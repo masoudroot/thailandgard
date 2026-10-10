@@ -148,7 +148,9 @@ export default async function TourPage({ params }: Props) {
           </ul>
         </section>
 
-        <section className="mt-12 space-y-5">
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold">دربارهٔ تور {tour.shortTitle}</h2>
+          <div className="mt-5 space-y-5">
           {tour.description.slice(0, 3).map((p, i) => (
             <p key={i} className="leading-9 text-foreground/90">
               {p}
@@ -163,6 +165,7 @@ export default async function TourPage({ params }: Props) {
               ))}
             </Alert>
           )}
+          </div>
         </section>
 
         <section className="mt-10">
@@ -258,7 +261,7 @@ export default async function TourPage({ params }: Props) {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>ترجیح می‌دهی خودت زنگ بزنی؟</CardTitle>
+              <CardTitle>ترجیح می‌دهید خودتان زنگ بزنید؟</CardTitle>
               <CardDescription>مستقیم با کارشناس فروش صحبت کن یا در واتس‌اپ پیام بده.</CardDescription>
             </CardHeader>
             <CardContent>
