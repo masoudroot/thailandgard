@@ -16,11 +16,11 @@ export default function GuideIndexPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="max-w-2xl">
-        <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
+        <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
           <BookOpenText className="size-4" />
           راهنمای سفر
         </p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">راهنمای سفر تایلند</h1>
+        <h1 className="mt-3 text-4xl font-extrabold">راهنمای سفر تایلند</h1>
         <p className="mt-4 text-base leading-8 text-muted-foreground">
           این‌جا را تیم محتوا با راهنماهای تازه به‌روز نگه می‌دارد. هر چه برای تصمیم گرفتن
           دربارهٔ سفر تایلند لازم داری، این‌جا پیدا می‌کنی؛ ساده، به‌روز و بدون حاشیه.
@@ -47,7 +47,7 @@ export default function GuideIndexPage() {
                     به‌روزرسانی: {guide.updatedFa}
                   </span>
                 </div>
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-foreground">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
                   خواندن راهنما
                   <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
                 </span>

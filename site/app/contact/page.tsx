@@ -25,11 +25,11 @@ export default function ContactPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="max-w-2xl">
-        <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
+        <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
           <Phone className="size-4" />
           تماس
         </p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">تماس با تایلندگرد</h1>
+        <h1 className="mt-3 text-4xl font-extrabold">تماس با تایلندگرد</h1>
         <p className="mt-4 text-base leading-8 text-muted-foreground">
           فروش ما فقط تلفنی است؛ پرداخت آنلاین نداریم. یک تماس کوتاه، همهٔ ابهام‌های سفرت
           را برطرف می‌کند.
@@ -50,12 +50,12 @@ export default function ContactPage() {
           <CardContent className="space-y-5 pt-6">
             <div>
               <a href={PHONE_MOBILE_LINK} className="group flex items-center gap-3">
-                <span className="flex size-11 items-center justify-center rounded-full bg-brand/10 text-brand">
+                <span className="flex size-11 items-center justify-center rounded-full bg-brand/15 text-brand-foreground">
                   <PhoneCall className="size-5" />
                 </span>
                 <span>
                   <span className="block text-xs text-muted-foreground">موبایل اصلی</span>
-                  <span dir="ltr" className="block text-xl font-bold tracking-wide group-hover:text-brand-foreground">
+                  <span dir="ltr" className="block text-xl font-bold">
                     {PHONE_MOBILE_DISPLAY}
                   </span>
                 </span>
@@ -66,7 +66,7 @@ export default function ContactPage() {
                 </span>
                 <span>
                   <span className="block text-xs text-muted-foreground">تلفن ثابت</span>
-                  <span dir="ltr" className="block text-xl font-bold tracking-wide">
+                  <span dir="ltr" className="block text-xl font-bold">
                     {PHONE_LANDLINE_DISPLAY}
                   </span>
                 </span>

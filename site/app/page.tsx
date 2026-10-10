@@ -85,7 +85,9 @@ export default function HomePage() {
           <>
             {SITE_NAME}
             <br />
-            <span className="text-brand">{SITE_SLOGAN}</span>
+            <span className="rounded-xl bg-brand/15 px-3 py-1 text-brand-foreground">
+              {SITE_SLOGAN}
+            </span>
           </>
         }
         description="سفر به تایلند را با مشاورهٔ تلفنی کارشناس مقصد شروع کن. ما فروش آنلاین نداریم؛ رزرو فقط با یک تماس انجام می‌شود."

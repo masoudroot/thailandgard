@@ -20,7 +20,7 @@ export function isIranMobile(input: string): boolean {
   return /^9\d{9}$/.test(normalizeIranMobile(input));
 }
 
-/** «912 345 6789» — three groups, always LTR. */
+/** «912 345 6789» | three groups, always LTR. */
 export function formatIranMobile(input: string): string {
   const d = normalizeIranMobile(input);
   return [d.slice(0, 3), d.slice(3, 6), d.slice(6, 10)].filter(Boolean).join(" ");
@@ -92,7 +92,7 @@ export function normalizeNationalId(input: string): string {
   return en(input).replace(/\D/g, "").slice(0, 10);
 }
 
-/** «۰۰۱-۲۳۴۵۶۷-۸» — the 3-6-1 grouping printed on the card. */
+/** «۰۰۱-۲۳۴۵۶۷-۸» | the 3-6-1 grouping printed on the card. */
 export function formatNationalId(input: string): string {
   const d = normalizeNationalId(input);
   return fa([d.slice(0, 3), d.slice(3, 9), d.slice(9, 10)].filter(Boolean).join("-"));
@@ -114,7 +114,7 @@ export function normalizeCardNumber(input: string): string {
   return en(input).replace(/\D/g, "").slice(0, 16);
 }
 
-/** «۶۰۳۷ ۹۹۱۱ ۲۲۳۳ ۴۴۵۵» — Persian digits, four groups. */
+/** «۶۰۳۷ ۹۹۱۱ ۲۲۳۳ ۴۴۵۵» | Persian digits, four groups. */
 export function formatCardNumber(input: string): string {
   const d = normalizeCardNumber(input);
   return fa(d.replace(/(.{4})/g, "$1 ").trim());

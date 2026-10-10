@@ -31,7 +31,7 @@ export interface UseFormOptions<T extends Record<string, unknown>> {
 }
 
 /**
- * useForm — a 60-line form state hook: values, an error map, touched flags,
+ * useForm | a 60-line form state hook: values, an error map, touched flags,
  * `field(name)` to bind inputs, and `handleSubmit`. No form library.
  */
 export function useForm<T extends Record<string, unknown>>({ initial, schema = {}, onSubmit }: UseFormOptions<T>) {

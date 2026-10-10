@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, ChevronLeft, Clock } from "lucide-react";
+import { CalendarDays, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { CallButtons } from "@/components/site/CallButtons";
 import { FaqBlock } from "@/components/blocks/faq";
 import { GUIDES, getGuide } from "@/lib/guides";
@@ -57,19 +57,13 @@ export default async function GuideDetailPage({ params }: PageProps) {
     <main className="mx-auto max-w-3xl px-6 py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <nav aria-label="مسیرنما" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          خانه
-        </Link>
-        <ChevronLeft className="size-4" aria-hidden />
-        <Link href="/guide" className="hover:text-foreground">
-          راهنمای سفر
-        </Link>
-        <ChevronLeft className="size-4" aria-hidden />
-        <span aria-current="page" className="text-foreground">
-          {guide.title}
-        </span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "خانه", href: "/" },
+          { label: "راهنمای سفر", href: "/guide" },
+          { label: guide.title },
+        ]}
+      />
 
       <header className="mt-6">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
@@ -83,7 +77,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
             به‌روزرسانی: {guide.updatedFa}
           </span>
         </div>
-        <h1 className="mt-4 text-4xl font-extrabold leading-snug tracking-tight">{guide.title}</h1>
+        <h1 className="mt-4 text-4xl font-extrabold leading-snug">{guide.title}</h1>
         <p className="mt-4 text-lg leading-9 text-muted-foreground">{guide.excerpt}</p>
       </header>
 

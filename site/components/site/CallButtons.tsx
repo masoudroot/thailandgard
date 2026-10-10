@@ -42,7 +42,7 @@ export function CallButtons({ compact = false }: { compact?: boolean }) {
                 {PHONE_CHANNELS_NOTE}
               </p>
             </div>
-            <a href={PHONE_LANDLINE_LINK} className="text-sm font-semibold text-brand-foreground underline underline-offset-4">
+            <a href={PHONE_LANDLINE_LINK} className="text-sm font-semibold text-foreground underline underline-offset-4">
               <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
             </a>
           </div>

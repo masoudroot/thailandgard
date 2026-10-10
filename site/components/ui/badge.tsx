@@ -9,7 +9,7 @@ const variants: Record<Variant, string> = {
   outline: "text-foreground/55",
   success: "text-success",
   warning: "text-warning",
-  brand: "text-brand",
+  brand: "rounded-full bg-brand/15 px-2.5 py-0.5 text-brand-foreground",
   destructive: "text-destructive",
 };
 
