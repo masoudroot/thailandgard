@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { TOURS, getTour } from "@/lib/tours";
+import { getGuide } from "@/lib/guides";
+import { TOUR_TO_GUIDES } from "@/lib/related";
 import { CONTACT_NAME, CONTACT_TITLE, PHONE_MOBILE_LINK, SITE_URL } from "@/lib/site";
 import { fa, formatToman } from "@/lib/utils";
 import { CallButtons } from "@/components/site/CallButtons";
@@ -34,6 +37,14 @@ export default async function TourPage({ params }: Props) {
   const { slug } = await params;
   const tour = getTour(slug);
   if (!tour) notFound();
+
+  // لینک‌های داخلی به راهنماهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
+  const guideBlock = TOUR_TO_GUIDES[tour.slug];
+  const relatedGuides = guideBlock
+    ? guideBlock.slugs
+        .map((s) => getGuide(s))
+        .filter((g): g is NonNullable<typeof g> => g !== undefined)
+    : [];
 
   const tripJsonLd = {
     "@context": "https://schema.org",
@@ -183,6 +194,28 @@ export default async function TourPage({ params }: Props) {
         }))}
       />
 
+      {relatedGuides.length > 0 && guideBlock && (
+        <section className="mx-auto mt-10 max-w-5xl px-6">
+          <div className="rounded-surface border border-border bg-card p-6">
+            <p className="leading-8 text-foreground/90">
+              {guideBlock.lead}{" "}
+              {relatedGuides.map((g, i) => (
+                <span key={g.slug}>
+                  {i > 0 && " و "}
+                  <Link
+                    href={`/guide/${g.slug}`}
+                    className="font-semibold underline underline-offset-4"
+                  >
+                    {g.title}
+                  </Link>
+                </span>
+              ))}{" "}
+              {guideBlock.trail}
+            </p>
+          </div>
+        </section>
+      )}
+
       <div className="mx-auto mt-16 max-w-5xl px-6 pb-28 md:pb-16">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -213,7 +246,7 @@ export default async function TourPage({ params }: Props) {
               شروع قیمت از {formatToman(tour.priceFrom)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {CONTACT_NAME} | {CONTACT_TITLE}
+              {CONTACT_NAME}؛ {CONTACT_TITLE}
             </p>
           </div>
           <Button asChild size="lg" variant="brand">

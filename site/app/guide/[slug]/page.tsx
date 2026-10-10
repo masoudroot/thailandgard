@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { CalendarDays, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { CallButtons } from "@/components/site/CallButtons";
 import { FaqBlock } from "@/components/blocks/faq";
 import { GUIDES, getGuide } from "@/lib/guides";
+import { getTour } from "@/lib/tours";
+import { GUIDE_TO_TOURS } from "@/lib/related";
 import { SITE_URL } from "@/lib/site";
 import { fa } from "@/lib/utils";
 
@@ -30,6 +33,14 @@ export default async function GuideDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const guide = getGuide(slug);
   if (!guide) notFound();
+
+  // لینک‌های داخلی به تورهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
+  const relatedBlock = GUIDE_TO_TOURS[guide.slug];
+  const relatedTours = relatedBlock
+    ? relatedBlock.slugs
+        .map((s) => getTour(s))
+        .filter((t): t is NonNullable<typeof t> => t !== undefined)
+    : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -93,6 +104,24 @@ export default async function GuideDetailPage({ params }: PageProps) {
           </div>
         </section>
       ))}
+
+      {relatedTours.length > 0 && relatedBlock && (
+        <section className="mt-10 rounded-surface border border-border bg-card p-6">
+          <h2 className="text-xl font-bold">قدم بعدی</h2>
+          <p className="mt-3 leading-8 text-foreground/90">
+            {relatedBlock.lead}{" "}
+            {relatedTours.map((t, i) => (
+              <span key={t.slug}>
+                {i > 0 && " و "}
+                <Link href={`/tours/${t.slug}`} className="font-semibold underline underline-offset-4">
+                  {t.title}
+                </Link>
+              </span>
+            ))}{" "}
+            {relatedBlock.trail}
+          </p>
+        </section>
+      )}
 
       <div className="-mx-6">
         <FaqBlock

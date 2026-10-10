@@ -32,15 +32,15 @@ export function CallButtons({ compact = false }: { compact?: boolean }) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold">
-                {CONTACT_NAME} | {CONTACT_TITLE}
+                {CONTACT_NAME}؛ {CONTACT_TITLE}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
                   <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
                 </a>
-                {" | "}
+                {"؛ "}
                 <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
-                {" | "}
+                {"؛ "}
                 {PHONE_CHANNELS_NOTE}
               </p>
             </div>
