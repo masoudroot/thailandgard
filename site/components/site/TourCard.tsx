@@ -18,7 +18,7 @@ export function TourCard({ tour }: { tour: Tour }) {
             {fa(tour.days)} روزه
           </span>
         </div>
-        <CardTitle className="mt-3 text-xl">{tour.title}</CardTitle>
+        <CardTitle className="mt-3 text-xl leading-8">{tour.title}</CardTitle>
         <CardDescription className="leading-7">{tour.summary}</CardDescription>
       </CardHeader>
       <CardContent className="mt-auto space-y-4 pt-2">

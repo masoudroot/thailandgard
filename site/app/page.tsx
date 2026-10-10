@@ -85,7 +85,7 @@ export default function HomePage() {
           <>
             {SITE_NAME}
             <br />
-            <span className="rounded-xl bg-brand/15 px-3 py-1 text-brand-foreground">
+            <span className="inline-block rounded-xl bg-brand/15 px-3 py-1.5 text-brand-foreground">
               {SITE_SLOGAN}
             </span>
           </>
@@ -217,7 +217,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mx-auto mt-8 max-w-2xl">
-              <CallButtons />
+              <CallButtons compact />
             </div>
           </CardContent>
         </Card>

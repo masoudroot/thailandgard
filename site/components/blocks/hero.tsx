@@ -14,7 +14,7 @@ export interface HeroBlockProps {
 }
 
 /** هیرو. Centered headline block with two actions and optional social proof. */
-export function HeroBlock({ badge, title, description, primary = { label: "شروع رایگان" }, secondary = { label: "دیدن نمونه‌ها" }, proof }: HeroBlockProps) {
+export function HeroBlock({ badge, title, description, primary = { label: "اقدام اصلی" }, secondary = { label: "مشاهدهٔ بیشتر" }, proof }: HeroBlockProps) {
   return (
     <section className="relative overflow-hidden px-6 py-20 text-center sm:py-28">
       <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px), linear-gradient(to bottom, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />

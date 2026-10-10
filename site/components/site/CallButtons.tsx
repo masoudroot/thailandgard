@@ -35,7 +35,9 @@ export function CallButtons({ compact = false }: { compact?: boolean }) {
                 {CONTACT_NAME} | {CONTACT_TITLE}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
+                <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
+                  <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
+                </a>
                 {" | "}
                 <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
                 {" | "}
