@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock, MessageCircle, Phone, PhoneCall } from "lucide-react";
+import { Clock, MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CallButtons } from "@/components/site/CallButtons";
@@ -8,10 +8,6 @@ import {
   CONTACT_NAME,
   CONTACT_TITLE,
   PHONE_CHANNELS_NOTE,
-  PHONE_LANDLINE_DISPLAY,
-  PHONE_LANDLINE_LINK,
-  PHONE_MOBILE_DISPLAY,
-  PHONE_MOBILE_LINK,
 } from "@/lib/site";
 import { fa } from "@/lib/utils";
 
@@ -19,6 +15,7 @@ export const metadata: Metadata = {
   title: "تماس با تایلندگرد",
   description:
     "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیر یا درخواست تماس ثبت کن.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
@@ -48,31 +45,7 @@ export default function ContactPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5 pt-6">
-            <div>
-              <a href={PHONE_MOBILE_LINK} className="group flex items-center gap-3">
-                <span className="flex size-11 items-center justify-center rounded-full bg-brand/15 text-brand-foreground">
-                  <PhoneCall className="size-5" />
-                </span>
-                <span>
-                  <span className="block text-xs text-muted-foreground">موبایل اصلی</span>
-                  <span dir="ltr" className="block text-xl font-bold">
-                    {PHONE_MOBILE_DISPLAY}
-                  </span>
-                </span>
-              </a>
-              <a href={PHONE_LANDLINE_LINK} className="mt-4 flex items-center gap-3">
-                <span className="flex size-11 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                  <Phone className="size-5" />
-                </span>
-                <span>
-                  <span className="block text-xs text-muted-foreground">تلفن ثابت</span>
-                  <span dir="ltr" className="block text-xl font-bold">
-                    {PHONE_LANDLINE_DISPLAY}
-                  </span>
-                </span>
-              </a>
-            </div>
-
+            <CallButtons compact />
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <MessageCircle className="size-4" />
               روی هر دو شماره {PHONE_CHANNELS_NOTE} فعال است؛ پیام بده، جواب می‌گیری.
@@ -81,8 +54,6 @@ export default function ContactPage() {
               <Clock className="size-4" />
               ساعت کاری: شنبه تا پنجشنبه، {fa(9)} صبح تا {fa(9)} شب
             </p>
-
-            <CallButtons />
           </CardContent>
         </Card>
 

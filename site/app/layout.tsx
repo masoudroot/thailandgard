@@ -19,6 +19,9 @@ import {
 } from "@/lib/site";
 import { TOURS } from "@/lib/tours";
 
+/** همهٔ مسیرها استاتیک‌اند؛ هر رندر درخواستیِ آینده بیلد را قرمز می‌کند. */
+export const ensureStatic = "navigation";
+
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
   subsets: ["arabic", "latin"],
