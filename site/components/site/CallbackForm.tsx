@@ -36,7 +36,7 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
       if (!res.ok || !data.ok) throw new Error(data.error ?? "خطا");
       setStatus("done");
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "ثبت درخواست ناموفق بود.");
+      setServerError(err instanceof Error ? err.message : "درخواستت ثبت نشد؛ یک بار دیگر تلاش کن.");
       setStatus("error");
     }
   }
