@@ -8,7 +8,7 @@ export interface AvatarProps {
   className?: string;
 }
 
-const sizes = { sm: "size-7 text-[11px]", md: "size-9 text-sm", lg: "size-12 text-base" };
+const sizes = { sm: "size-7 text-xs", md: "size-9 text-sm", lg: "size-12 text-base" };
 
 /** آواتار. Photo when `src` is set; otherwise a white initial in a white ring. */
 export function Avatar({ name, src, size = "md", className }: AvatarProps) {

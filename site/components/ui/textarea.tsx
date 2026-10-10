@@ -47,7 +47,7 @@ export function Textarea({ className, autoResize, showCount, maxLength, onChange
         {...props}
       />
       {showCount && maxLength && (
-        <p className="text-end text-[11px] text-muted-foreground" aria-live="polite">
+        <p className="text-end text-xs text-muted-foreground" aria-live="polite">
           {fa(len)} / {fa(maxLength)}
         </p>
       )}
