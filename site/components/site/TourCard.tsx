@@ -29,11 +29,11 @@ export function TourCard({ tour }: { tour: Tour }) {
         <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
           <div>
             <p className="text-xs text-muted-foreground">شروع قیمت از</p>
-            <p className="text-lg font-bold">{formatToman(tour.priceFrom)}</p>
+            <p className="text-lg font-bold tabular-nums">{formatToman(tour.priceFrom)}</p>
           </div>
           <Link href={`/tours/${tour.slug}`}>
             <Button variant="secondary">
-              جزئیات و رزرو
+              مشاهدهٔ جزئیات
               <ArrowLeft />
             </Button>
           </Link>

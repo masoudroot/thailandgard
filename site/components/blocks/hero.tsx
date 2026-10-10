@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +14,18 @@ export interface HeroBlockProps {
   proof?: { people: { name: string }[]; text: string };
 }
 
-/** هیرو. Centered headline block with two actions and optional social proof. */
+/**
+ * هیرو. Centered headline block with two actions and optional social proof,
+ * followed by a single real destination photo as a calm frame
+ * (quiet-luxury brief, 19 Mehr 1405; photo: Phang Nga Bay sunset, WebP).
+ *
+ * The photo is dark and the theme is light, so it sits below the text as a
+ * framed panel (restaurant-site registry precedent) instead of full-bleed:
+ * the copy keeps full contrast on theme tokens, no invented scrim needed.
+ */
 export function HeroBlock({ badge, title, description, primary = { label: "اقدام اصلی" }, secondary = { label: "مشاهدهٔ بیشتر" }, proof }: HeroBlockProps) {
   return (
-    <section className="relative overflow-hidden px-6 py-20 text-center sm:py-28">
-      <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px), linear-gradient(to bottom, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
+    <section className="relative overflow-hidden px-6 pt-20 text-center sm:pt-28">
       <div className="relative mx-auto max-w-3xl">
         {badge && <Badge variant="brand">{badge}</Badge>}
         <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">{title}</h1>
@@ -40,6 +48,19 @@ export function HeroBlock({ badge, title, description, primary = { label: "اق�
             <span>{proof.text}</span>
           </div>
         )}
+      </div>
+      <div className="relative mx-auto mt-12 max-w-5xl pb-20 sm:pb-28">
+        <div className="overflow-hidden rounded-3xl border border-border">
+          <Image
+            src="/images/hero-phuket-sunset.webp"
+            alt="غروب خورشید بر فراز خلیج فنگ‌نا در پوکت؛ یکی از مقصدهای تورهای تایلندگرد"
+            width={2400}
+            height={1600}
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+            className="h-auto w-full object-cover"
+          />
+        </div>
       </div>
     </section>
   );

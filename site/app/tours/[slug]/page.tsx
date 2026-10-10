@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Check, X } from "lucide-react";
+import { Check, Phone, X } from "lucide-react";
 import { TOURS, getTour } from "@/lib/tours";
-import { SITE_URL } from "@/lib/site";
+import { CONTACT_NAME, CONTACT_TITLE, PHONE_MOBILE_LINK, SITE_URL } from "@/lib/site";
 import { fa, formatToman } from "@/lib/utils";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
@@ -10,6 +10,7 @@ import { FaqBlock } from "@/components/blocks/faq";
 import { Accordion } from "@/components/ui/accordion";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -92,12 +93,12 @@ export default async function TourPage({ params }: Props) {
 
         <p className="mt-8 text-lg leading-9">{tour.summary}</p>
 
-        <Alert variant="info" className="mt-8">
+        <Alert variant="info" className="mt-6 border-0 bg-transparent px-0 [&>svg]:text-muted-foreground">
           قیمت‌ها «شروع قیمت» و تقریبی‌اند و با توجه به تاریخ سفر و ظرفیت هتل کمی تغییر می‌کنند.
           قیمت دقیق را کارشناس فروش موقع تماس می‌گوید.
         </Alert>
 
-        <section className="mt-14">
+        <section className="mt-10">
           <h2 className="text-2xl font-bold">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
@@ -109,15 +110,24 @@ export default async function TourPage({ params }: Props) {
           </ul>
         </section>
 
-        <section className="mt-14 space-y-5">
-          {tour.description.map((p, i) => (
+        <section className="mt-12 space-y-5">
+          {tour.description.slice(0, 3).map((p, i) => (
             <p key={i} className="leading-9 text-foreground/90">
               {p}
             </p>
           ))}
+          {tour.description.length > 3 && (
+            <Alert variant="info" title="نکتهٔ کارشناس">
+              {tour.description.slice(3).map((p, i) => (
+                <p key={i} className="leading-9 text-foreground/80">
+                  {p}
+                </p>
+              ))}
+            </Alert>
+          )}
         </section>
 
-        <section className="mt-14">
+        <section className="mt-10">
           <h2 className="text-2xl font-bold">برنامهٔ روزبه‌روز</h2>
           <Accordion
             className="mt-5"
@@ -130,7 +140,7 @@ export default async function TourPage({ params }: Props) {
           />
         </section>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>شامل می‌شود</CardTitle>
@@ -173,7 +183,7 @@ export default async function TourPage({ params }: Props) {
         }))}
       />
 
-      <div className="mx-auto max-w-5xl px-6 pb-16">
+      <div className="mx-auto mt-16 max-w-5xl px-6 pb-28 md:pb-16">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
@@ -193,6 +203,25 @@ export default async function TourPage({ params }: Props) {
               <CallButtons />
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">
+              شروع قیمت از {formatToman(tour.priceFrom)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {CONTACT_NAME} | {CONTACT_TITLE}
+            </p>
+          </div>
+          <Button asChild size="lg" variant="brand">
+            <a href={PHONE_MOBILE_LINK}>
+              <Phone />
+              تماس
+            </a>
+          </Button>
         </div>
       </div>
     </>

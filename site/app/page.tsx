@@ -29,7 +29,7 @@ import { GUIDES } from "@/lib/guides";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "تایلندگرد | متخصص تور تایلند",
+  title: "تایلندگرد؛ متخصص تور تایلند",
   description:
     "تایلندگرد فقط تور تایلند می‌فروشد؛ با مشاورهٔ تلفنی کارشناس مقصد، لیدر فارسی‌زبان و رزرو فقط با تماس. بدون پرداخت آنلاین.",
 };

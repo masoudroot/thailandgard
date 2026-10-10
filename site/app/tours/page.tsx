@@ -7,7 +7,7 @@ import { CallButtons } from "@/components/site/CallButtons";
 export const metadata: Metadata = {
   title: "تورهای تایلند",
   description:
-    "همهٔ تورهای تایلندگرد: پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند و رزرو فقط با تماس تلفنی انجام می‌شود.",
+    "همهٔ تورهای تایلندگرد؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند و رزرو فقط با تماس تلفنی انجام می‌شود.",
 };
 
 export default function ToursPage() {

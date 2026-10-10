@@ -43,8 +43,8 @@ const pinar = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | ${SITE_SLOGAN}`,
-    template: `%s | ${SITE_NAME}`,
+    default: `${SITE_NAME}؛ ${SITE_SLOGAN}`,
+    template: `%s؛ ${SITE_NAME}`,
   },
   description:
     "تایلندگرد فقط تور تایلند برگزار می‌کند: پوکت، بانکوک، پاتایا، سامویی و کرابی. مشاوره و رزرو فقط با تماس تلفنی.",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     siteName: SITE_NAME,
-    title: `${SITE_NAME} | ${SITE_SLOGAN}`,
+    title: `${SITE_NAME}؛ ${SITE_SLOGAN}`,
     description: SITE_TAGLINE,
   },
   robots: { index: true, follow: true },
