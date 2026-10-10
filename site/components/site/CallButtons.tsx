@@ -15,18 +15,18 @@ import {
 export function CallButtons({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? "flex flex-wrap items-center gap-3" : "grid gap-4 sm:grid-cols-2"}>
-      <a href={PHONE_MOBILE_LINK} className="block">
-        <Button size="lg" className="w-full" variant="brand">
+      <Button asChild size="lg" className="w-full" variant="brand">
+        <a href={PHONE_MOBILE_LINK}>
           <Phone />
           تماس با {CONTACT_NAME}
-        </Button>
-      </a>
-      <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="block">
-        <Button size="lg" className="w-full" variant="secondary">
+        </a>
+      </Button>
+      <Button asChild size="lg" className="w-full" variant="secondary">
+        <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
           <MessageCircle />
           واتس‌اپ
-        </Button>
-      </a>
+        </a>
+      </Button>
       {!compact && (
         <div className="sm:col-span-2 rounded-surface border border-border bg-card p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
