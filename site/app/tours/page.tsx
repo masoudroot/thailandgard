@@ -5,9 +5,10 @@ import { TourCard } from "@/components/site/TourCard";
 import { CallButtons } from "@/components/site/CallButtons";
 
 export const metadata: Metadata = {
-  title: "تورهای تایلند",
+  title: "تورهای تایلند؛ پوکت، بانکوک، سامویی، کرابی",
   description:
-    "همهٔ تورهای تایلندگرد؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند و رزرو فقط با تماس تلفنی انجام می‌شود.",
+    "هر ۴ تور تایلندگرد را ببین؛ تور پوکت ۷ روزه، بانکوک و پاتایا ۸ روزه، سامویی ۷ روزه و کرابی ۶ روزه. قیمت‌ها تقریبی و «شروع قیمت»‌اند؛ رزرو فقط با تماس.",
+  alternates: { canonical: "/tours" },
 };
 
 export default function ToursPage() {
