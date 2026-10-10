@@ -39,7 +39,7 @@ export default async function TourPage({ params }: Props) {
     "@type": "TouristTrip",
     name: tour.title,
     description: tour.summary,
-    touristType: "مسافر ایرانی",
+    touristType: tour.touristType,
     itinerary: {
       "@type": "ItemList",
       numberOfItems: tour.itinerary.length,
@@ -50,11 +50,12 @@ export default async function TourPage({ params }: Props) {
         description: d.description,
       })),
     },
+    // قیمت از اسکیما حذف شد: صفحه خودش می‌گوید قیمت‌ها «شروع قیمت» و تقریبی‌اند
+    // و با تاریخ سفر و ظرفیت هتل تغییر می‌کنند؛ پس validFrom/priceValidUntil واقعی
+    // وجود ندارد و نگه‌داشتن price گمراه‌کننده بود. قیمت نمایشی HTML سر جایش است.
     offers: {
       "@type": "Offer",
-      price: tour.priceFrom,
-      priceCurrency: "IRR",
-      availability: "https://schema.org/InStock",
+      availability: tour.active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       url: `${SITE_URL}/tours/${tour.slug}`,
     },
   };

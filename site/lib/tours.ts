@@ -19,6 +19,10 @@ export interface Tour {
   nights: number;
   route: string;
   priceFrom: number; // تومان
+  /** نوع گردشگر واقعی از روی محتوای همین تور (نه کلیشه)؛ در اسکیمای TouristTrip استفاده می‌شود */
+  touristType: string;
+  /** تور فعال و قابل فروش است یا نه؛ اسکیمای offers از روی همین ساخته می‌شود */
+  active: boolean;
   summary: string;
   description: string[];
   highlights: string[];
@@ -31,6 +35,8 @@ export interface Tour {
 export const TOURS: Tour[] = [
   {
     slug: "phuket-7-days",
+    touristType: "گردشگران تفریحی",
+    active: true,
     title: "تور پوکت ۷ روزه",
     shortTitle: "پوکت",
     days: 7,
@@ -88,6 +94,8 @@ export const TOURS: Tour[] = [
   },
   {
     slug: "bangkok-pattaya-8-days",
+    touristType: "خانواده‌ها",
+    active: true,
     title: "تور بانکوک و پاتایا ۸ روزه",
     shortTitle: "بانکوک و پاتایا",
     days: 8,
@@ -138,6 +146,8 @@ export const TOURS: Tour[] = [
   },
   {
     slug: "samui-7-days",
+    touristType: "زوج‌ها و ماه‌عسل",
+    active: true,
     title: "تور سامویی ۷ روزه",
     shortTitle: "سامویی",
     days: 7,
@@ -187,6 +197,8 @@ export const TOURS: Tour[] = [
   },
   {
     slug: "krabi-6-days",
+    touristType: "عاشقان طبیعت و ماجراجویی",
+    active: true,
     title: "تور کرابی ۶ روزه",
     shortTitle: "کرابی",
     days: 6,

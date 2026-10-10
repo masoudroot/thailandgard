@@ -62,8 +62,13 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
           }}
           placeholder="مثلاً سارا محمدی"
           aria-invalid={nameError ? true : undefined}
+          aria-describedby={nameError ? "cb-name-error" : undefined}
         />
-        {nameError && <p className="text-xs text-destructive">{nameError}</p>}
+        {nameError && (
+          <p id="cb-name-error" className="text-xs text-destructive">
+            {nameError}
+          </p>
+        )}
       </Field>
       <Field label="شمارهٔ موبایل" htmlFor="cb-mobile" hint="به همین شماره زنگ می‌زنیم">
         <PhoneInput id="cb-mobile" onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); }} />
