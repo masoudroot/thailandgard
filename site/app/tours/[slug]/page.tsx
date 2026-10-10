@@ -6,15 +6,18 @@ import { TOURS, getTour } from "@/lib/tours";
 import { getGuide } from "@/lib/guides";
 import { TOUR_TO_GUIDES } from "@/lib/related";
 import { CONTACT_NAME, CONTACT_TITLE, PHONE_MOBILE_LINK, SITE_URL } from "@/lib/site";
-import { fa, formatToman } from "@/lib/utils";
+import { fa } from "@/lib/utils";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import { FaqBlock } from "@/components/blocks/faq";
 import { Accordion } from "@/components/ui/accordion";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Price } from "@/components/ui/price";
+import { Separator } from "@/components/ui/separator";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -88,26 +91,50 @@ export default async function TourPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <div className="mx-auto max-w-5xl px-6 py-12">
+        <Breadcrumb
+          className="mb-6"
+          items={[
+            { label: "خانه", href: "/" },
+            { label: "تورها", href: "/tours" },
+            { label: tour.shortTitle },
+          ]}
+        />
         <header className="space-y-4">
-          <Badge variant="brand">{tour.shortTitle}</Badge>
-          <h1 className="text-3xl font-bold md:text-4xl">{tour.title}</h1>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span>
-              {fa(tour.days)} روزه | {fa(tour.nights)} شب
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Badge variant="brand">{tour.shortTitle}</Badge>
+            <span className="text-sm text-muted-foreground">
+              {fa(tour.days)} روزه | {fa(tour.nights)} شب · {tour.route}
             </span>
-            <span>{tour.route}</span>
           </div>
-          <p className="text-lg">
-            شروع قیمت از <strong>{formatToman(tour.priceFrom)}</strong>
-          </p>
+          <h1 className="text-3xl font-bold md:text-4xl">{tour.title}</h1>
+          <p className="text-lg leading-9">{tour.summary}</p>
         </header>
 
-        <p className="mt-8 text-lg leading-9">{tour.summary}</p>
+        <Separator className="my-6" />
 
-        <Alert variant="info" className="mt-6 border-0 bg-transparent px-0 [&>svg]:text-muted-foreground">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p className="text-sm text-muted-foreground">شروع قیمت از</p>
+          <Price amount={tour.priceFrom} size="lg" />
+        </div>
+
+        <Alert variant="info" className="mt-4">
           قیمت‌ها «شروع قیمت» و تقریبی‌اند و با توجه به تاریخ سفر و ظرفیت هتل کمی تغییر می‌کنند.
           قیمت دقیق را کارشناس فروش موقع تماس می‌گوید.
         </Alert>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg" variant="brand">
+            <a href={PHONE_MOBILE_LINK}>
+              <Phone />
+              تماس با کارشناس
+            </a>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <a href="#callback">درخواست تماس</a>
+          </Button>
+        </div>
+
+        <Separator className="my-8" />
 
         <section className="mt-10">
           <h2 className="text-2xl font-bold">چرا این تور؟</h2>
@@ -196,27 +223,29 @@ export default async function TourPage({ params }: Props) {
 
       {relatedGuides.length > 0 && guideBlock && (
         <section className="mx-auto mt-10 max-w-5xl px-6">
-          <div className="rounded-surface border border-border bg-card p-6">
-            <p className="leading-8 text-foreground/90">
-              {guideBlock.lead}{" "}
-              {relatedGuides.map((g, i) => (
-                <span key={g.slug}>
-                  {i > 0 && " و "}
-                  <Link
-                    href={`/guide/${g.slug}`}
-                    className="font-semibold underline underline-offset-4"
-                  >
-                    {g.title}
-                  </Link>
-                </span>
-              ))}{" "}
-              {guideBlock.trail}
-            </p>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="leading-8 text-foreground/90">
+                {guideBlock.lead}{" "}
+                {relatedGuides.map((g, i) => (
+                  <span key={g.slug}>
+                    {i > 0 && " و "}
+                    <Link
+                      href={`/guide/${g.slug}`}
+                      className="font-semibold underline underline-offset-4"
+                    >
+                      {g.title}
+                    </Link>
+                  </span>
+                ))}{" "}
+                {guideBlock.trail}
+              </p>
+            </CardContent>
+          </Card>
         </section>
       )}
 
-      <div className="mx-auto mt-16 max-w-5xl px-6 pb-28 md:pb-16">
+      <div id="callback" className="mx-auto mt-16 max-w-5xl scroll-mt-24 px-6 pb-28 md:pb-16">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
@@ -242,10 +271,9 @@ export default async function TourPage({ params }: Props) {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">
-              شروع قیمت از {formatToman(tour.priceFrom)}
-            </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">شروع قیمت از</p>
+            <Price amount={tour.priceFrom} size="sm" />
+            <p className="mt-1 truncate text-xs text-muted-foreground">
               {CONTACT_NAME}؛ {CONTACT_TITLE}
             </p>
           </div>

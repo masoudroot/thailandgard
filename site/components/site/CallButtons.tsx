@@ -1,5 +1,6 @@
 import { MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   CONTACT_NAME,
   CONTACT_TITLE,
@@ -28,7 +29,8 @@ export function CallButtons({ compact = false }: { compact?: boolean }) {
         </a>
       </Button>
       {!compact && (
-        <div className="sm:col-span-2 rounded-surface border border-border bg-card p-4">
+        <Card className="sm:col-span-2">
+          <CardContent className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold">
@@ -48,7 +50,8 @@ export function CallButtons({ compact = false }: { compact?: boolean }) {
               <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
             </a>
           </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

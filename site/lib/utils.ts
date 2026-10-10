@@ -1,18 +1,24 @@
+import { twMerge } from "tailwind-merge";
+
 export type ClassValue = string | number | bigint | null | undefined | false | ClassValue[];
 
-/** Minimal class joiner (swap for clsx + tailwind-merge when the library grows). */
+/**
+ * Merge class names, Tailwind-aware: conflicting classes are resolved so the
+ * LATER input wins (e.g. cn("p-5 pt-0", "p-4") -> "p-4"), instead of relying on
+ * CSS cascade order. (This is the clsx + tailwind-merge pattern the old comment promised.)
+ */
 export function cn(...inputs: ClassValue[]): string {
   const out: string[] = [];
-  for (const i of inputs) {
-    if (!i) continue;
+  const push = (i: ClassValue): void => {
+    if (!i) return;
     if (Array.isArray(i)) {
-      const nested = cn(...i);
-      if (nested) out.push(nested);
+      for (const n of i) push(n);
     } else {
       out.push(String(i));
     }
-  }
-  return out.join(" ");
+  };
+  for (const i of inputs) push(i);
+  return twMerge(out.join(" "));
 }
 
 const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
