@@ -12,7 +12,9 @@ import {
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "تماس با تایلندگرد",
+  title: {
+    absolute: "تماس با تایلندگرد؛ متخصص تور تایلند",
+  },
   description:
     "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیر یا درخواست تماس ثبت کن.",
   alternates: { canonical: "/contact" },

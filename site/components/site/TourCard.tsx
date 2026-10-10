@@ -11,7 +11,7 @@ import type { Tour } from "@/lib/tours";
 /** کارت تور در فهرست و صفحهٔ خانه. */
 export function TourCard({ tour }: { tour: Tour }) {
   return (
-    <Card className="flex h-full flex-col overflow-hidden transition-transform duration-(--motion) ease-motion hover:-translate-y-0.5">
+    <Card className="flex h-full flex-col overflow-hidden transition-transform duration-(--motion) ease-motion active:[transform:var(--press)]">
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <Badge variant="brand">{tour.shortTitle}</Badge>
@@ -29,7 +29,7 @@ export function TourCard({ tour }: { tour: Tour }) {
       </CardHeader>
       <CardContent className="mt-auto space-y-4 pt-2">
         <Separator />
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <div className="flex flex-nowrap items-baseline justify-between gap-3">
           <span className="text-xs text-muted-foreground">شروع قیمت از</span>
           <Price amount={tour.priceFrom} size="md" />
         </div>
