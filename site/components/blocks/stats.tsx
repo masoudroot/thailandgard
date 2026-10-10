@@ -11,7 +11,7 @@ export function StatsBlock({ items, className }: { items: StatItem[]; className?
           <div key={s.label} className="bg-card p-6 text-center">
             <dd className="text-3xl font-bold tabular-nums">{s.value}</dd>
             <dt className="mt-1 text-sm text-muted-foreground">{s.label}</dt>
-            {s.hint && <p className="mt-1 text-[11px] text-muted-foreground/70">{s.hint}</p>}
+            {s.hint && <p className="mt-1 text-xs text-muted-foreground/70">{s.hint}</p>}
           </div>
         ))}
       </dl>

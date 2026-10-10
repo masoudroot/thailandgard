@@ -26,21 +26,30 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   asChild?: boolean;
 }
 
-export function Button({ className, variant = "default", size = "md", type = "button", ...props }: ButtonProps) {
+export function Button({ asChild, className, variant = "default", size = "md", type = "button", children, ...props }: ButtonProps) {
+  const classes = cn(
+    // Shape, depth, press and motion come from the design-system tokens.
+    "inline-flex items-center justify-center whitespace-nowrap rounded-control font-semibold transition-all duration-(--motion) ease-motion",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    "disabled:pointer-events-none disabled:opacity-50 active:[transform:var(--press)]",
+    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+    variants[variant],
+    sizes[size],
+    className,
+  );
+  // asChild: render the single child (usually an <a> or <Link>) with the button
+  // classes merged in, instead of nesting a <button> inside an <a> (invalid HTML).
+  if (asChild && React.isValidElement(children)) {
+    const child = React.Children.only(children) as React.ReactElement<{ className?: string }>;
+    return React.cloneElement(child, { ...props, className: cn(classes, child.props.className) });
+  }
   return (
     <button
       type={type}
-      className={cn(
-        // Shape, depth, press and motion come from the design-system tokens.
-        "inline-flex items-center justify-center whitespace-nowrap rounded-control font-semibold transition-all duration-(--motion) ease-motion",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "disabled:pointer-events-none disabled:opacity-50 active:[transform:var(--press)]",
-        "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={classes}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }

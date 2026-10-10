@@ -45,7 +45,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneI
         />
         {valid && <Check className="size-4 text-success" />}
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {op ? `اپراتور: ${op}` : digits.length === 10 && !valid ? <span className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}
       </p>
     </div>

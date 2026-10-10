@@ -37,12 +37,12 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "شرو
           </ul>
           <div className="hidden items-center gap-2 md:flex">
             {secondary.href ? (
-              <a href={secondary.href}><Button variant="ghost" size="sm">{secondary.label}</Button></a>
+              <Button asChild variant="ghost" size="sm"><a href={secondary.href}>{secondary.label}</a></Button>
             ) : (
               <Button variant="ghost" size="sm">{secondary.label}</Button>
             )}
             {primary.href ? (
-              <a href={primary.href}><Button size="sm">{primary.label}</Button></a>
+              <Button asChild size="sm"><a href={primary.href}>{primary.label}</a></Button>
             ) : (
               <Button size="sm">{primary.label}</Button>
             )}
@@ -59,12 +59,12 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "شرو
         </ul>
         <div className="mt-auto flex flex-col gap-2 border-t border-border p-4">
           {primary.href ? (
-            <a href={primary.href} onClick={() => setOpen(false)}><Button className="w-full">{primary.label}</Button></a>
+            <Button asChild className="w-full"><a href={primary.href} onClick={() => setOpen(false)}>{primary.label}</a></Button>
           ) : (
             <Button>{primary.label}</Button>
           )}
           {secondary.href ? (
-            <a href={secondary.href} onClick={() => setOpen(false)}><Button variant="outline" className="w-full">{secondary.label}</Button></a>
+            <Button asChild variant="outline" className="w-full"><a href={secondary.href} onClick={() => setOpen(false)}>{secondary.label}</a></Button>
           ) : (
             <Button variant="outline">{secondary.label}</Button>
           )}

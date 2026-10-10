@@ -103,12 +103,12 @@ export default function HomePage() {
               محبوب‌ترین تورهای تایلند، با قیمت شروع و جزئیات کامل هر سفر.
             </p>
           </div>
-          <Link href="/tours" className="shrink-0">
-            <Button variant="outline">
+          <Button asChild variant="outline" className="shrink-0">
+            <Link href="/tours">
               همهٔ تورها
               <ArrowLeft />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featuredTours.map((tour) => (
@@ -151,17 +151,17 @@ export default function HomePage() {
               قبل از سفر بخوان؛ از انتخاب فصل سفر تا ویزا و مقایسهٔ جزیره‌ها.
             </p>
           </div>
-          <Link href="/guide" className="shrink-0">
-            <Button variant="outline">
+          <Button asChild variant="outline" className="shrink-0">
+            <Link href="/guide">
               همهٔ راهنماها
               <ArrowLeft />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {GUIDES.map((guide) => (
             <Link key={guide.slug} href={`/guide/${guide.slug}`} className="block h-full">
-              <Card className="flex h-full flex-col transition-shadow hover:shadow-md">
+              <Card className="flex h-full flex-col">
                 <CardHeader>
                   <Badge variant="brand">{guide.category}</Badge>
                   <CardTitle className="mt-3 text-xl leading-8">

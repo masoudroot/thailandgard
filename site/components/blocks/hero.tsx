@@ -20,16 +20,16 @@ export function HeroBlock({ badge, title, description, primary = { label: "شر�
       <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px), linear-gradient(to bottom, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
       <div className="relative mx-auto max-w-3xl">
         {badge && <Badge variant="brand">{badge}</Badge>}
-        <h1 className="mt-5 text-4xl font-bold leading-[1.2] sm:text-5xl">{title}</h1>
+        <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">{title}</h1>
         <p className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg">{description}</p>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           {primary.href ? (
-            <a href={primary.href}><Button size="lg" className="rounded-full px-6">{primary.label}<ArrowLeft /></Button></a>
+            <Button asChild size="lg" className="rounded-full px-6"><a href={primary.href}>{primary.label}<ArrowLeft /></a></Button>
           ) : (
             <Button size="lg" className="rounded-full px-6">{primary.label}<ArrowLeft /></Button>
           )}
           {secondary.href ? (
-            <a href={secondary.href}><Button size="lg" variant="outline" className="rounded-full px-6">{secondary.label}</Button></a>
+            <Button asChild size="lg" variant="outline" className="rounded-full px-6"><a href={secondary.href}>{secondary.label}</a></Button>
           ) : (
             <Button size="lg" variant="outline" className="rounded-full px-6">{secondary.label}</Button>
           )}
