@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * ورودی موبایل. دست‌ساز می‌ماند: placeholder فارسی است (۹۱۲ ۳۴۵ ۶۷۸۹)؛
+ * نسخهٔ رجیستری placeholder لاتین دارد.
+ */
+
 import * as React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";

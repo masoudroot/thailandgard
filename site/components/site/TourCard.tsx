@@ -1,3 +1,8 @@
+/**
+ * کارت تور. دست‌ساز می‌ماند: نزدیک‌ترین معادل رجیستری (product-grid)
+ * برای ویترین فروشگاه است نه تور؛ این کارت با ترکیب کامپوننت‌های
+ * رجیستری (Card، Price، Badge) ساخته شده ولی ساختار فروش تور را دارد.
+ */
 import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";

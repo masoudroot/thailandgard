@@ -1,3 +1,8 @@
+/**
+ * پرسش‌های متداول. دست‌ساز می‌ماند: محتوای هر آیتم ReactNode است نه
+ * فقط string (آیتم رجیستری فقط string می‌پذیرد) و تیتر در موبایل
+ * یک پله کوچک‌تر می‌شود.
+ */
 import type { ReactNode } from "react";
 import { Accordion } from "@/components/ui/accordion";
 

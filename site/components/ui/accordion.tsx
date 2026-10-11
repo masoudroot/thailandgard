@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * آکاردئون. دست‌ساز می‌ماند: آیتم disabled دارد (مثلاً آیتم «به‌زودی»
+ * در FAQ که باز نمی‌شود و کم‌رنگ است)؛ آیتم رجیستری این حالت را ندارد.
+ */
+
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";

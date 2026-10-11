@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * نوبار. دست‌ساز می‌ماند: نزدیک‌ترین آیتم رجیستری دکمه‌های بدون href دارد؛
+ * این نسخه دکمه‌ها را hrefپذیر کرده (asChild روی Button) تا لینک‌ها
+ * معتبر بمانند و در موبایل با کلیک، شیت هم بسته شود.
+ */
+
 import * as React from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";

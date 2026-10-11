@@ -1,3 +1,8 @@
+/**
+ * پابرگ. دست‌ساز می‌ماند: سال شمسی ثابت ۱۴۰۵ است چون نسخهٔ رجیستری
+ * با new Date() سال را زنده حساب می‌کند و در پیش‌رندر استاتیک Next خطا می‌دهد.
+ * هر نوروز به‌روز شود.
+ */
 import { fa } from "@/lib/utils";
 
 export interface FooterColumn { title: string; links: { label: string; href: string }[] }
