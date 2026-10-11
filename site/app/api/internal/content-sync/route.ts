@@ -13,6 +13,7 @@
  * - guide.insert               ساخت ردیف تازه در guides (راهنمای تازه)
  * - guide_section.insert        درج بخش تازه در guide_sections
  * - guide_section.set_paragraphs جایگزینی پاراگراف‌های یک بخش
+ * - guide_section.set_title     تغییر تیتر (heading) یک بخش موجود
  * - guide_faq.update            به‌روزرسانی جواب سؤال موجود در guide_faqs
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
  *
@@ -30,6 +31,7 @@ type OpCode =
   | "guide.insert"
   | "guide_section.insert"
   | "guide_section.set_paragraphs"
+  | "guide_section.set_title"
   | "guide_faq.update"
   | "tour_faq.update";
 
@@ -94,6 +96,12 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
         return { ok: false, error: "position نامعتبر است." };
       if (!isParagraphs(raw.paragraphs)) return { ok: false, error: "paragraphs نامعتبر است." };
+      return { ok: true, op: raw };
+    case "guide_section.set_title":
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
+        return { ok: false, error: "position نامعتبر است." };
+      if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
       return { ok: true, op: raw };
     case "guide_faq.update":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
@@ -189,6 +197,12 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       const { rows } = await postgrest(cfg, "PATCH", q, { paragraphs: op.paragraphs });
       if (rows.length === 0) throw new Error("رکوردی برای به‌روزرسانی پاراگراف پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی پاراگراف‌های بخش (position=${op.position})` };
+    }
+    case "guide_section.set_title": {
+      const q = `guide_sections?guide_slug=eq.${encodeURIComponent(String(op.guide_slug))}&position=eq.${op.position}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { heading: op.title });
+      if (rows.length === 0) throw new Error("رکوردی برای به‌روزرسانی تیتر پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی تیتر بخش (position=${op.position})` };
     }
     case "guide_faq.update": {
       const q = `guide_faqs?guide_slug=eq.${encodeURIComponent(String(op.guide_slug))}&question=eq.${encodeURIComponent(String(op.question))}`;
