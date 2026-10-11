@@ -5,8 +5,9 @@ type Variant = "info" | "success" | "warning" | "destructive";
 
 const styles: Record<Variant, { box: string; icon: React.ComponentType<{ className?: string }>; iconColor: string }> = {
   info: { box: "border-border bg-card", icon: Info, iconColor: "text-foreground" },
-  success: { box: "border-success/25 bg-success/10", icon: CheckCircle2, iconColor: "text-success" },
-  warning: { box: "border-warning/25 bg-warning/10", icon: AlertTriangle, iconColor: "text-warning" },
+  // یافتهٔ ۱ ممیزی a11y: آیکون (و تیتر) هم سایهٔ تیره‌تر همان توکن را می‌گیرد
+  success: { box: "border-success/25 bg-success/10", icon: CheckCircle2, iconColor: "text-success-text" },
+  warning: { box: "border-warning/25 bg-warning/10", icon: AlertTriangle, iconColor: "text-warning-text" },
   destructive: { box: "border-destructive/30 bg-destructive/10", icon: AlertCircle, iconColor: "text-destructive" },
 };
 

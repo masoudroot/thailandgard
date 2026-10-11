@@ -12,8 +12,10 @@ const variants: Record<Variant, string> = {
   default: "text-foreground",
   secondary: "text-muted-foreground",
   outline: "text-foreground/55",
-  success: "text-success",
-  warning: "text-warning",
+  // یافتهٔ ۱ ممیزی a11y ساعت ۱۷: text-success/text-warning روی پس‌زمینه
+  // ۳٫۲۴:۱ و ۲٫۱۶:۱ می‌دادند؛ سایهٔ تیره‌تر همان توکن (۴٫۸۳:۱ و ۴٫۷:۱)
+  success: "text-success-text",
+  warning: "text-warning-text",
   brand: "rounded-full bg-brand/15 px-2.5 py-0.5 text-brand-foreground",
   destructive: "text-destructive",
 };

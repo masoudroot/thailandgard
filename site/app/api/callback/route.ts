@@ -7,6 +7,7 @@ interface CallbackBody {
   mobile?: unknown;
   tourSlug?: unknown;
   source?: unknown;
+  preferredCallTime?: unknown;
 }
 
 export async function POST(req: NextRequest) {
@@ -35,6 +36,12 @@ export async function POST(req: NextRequest) {
       mobile,
       tourSlug,
       source,
+      // زمان ترجیحی تماس: اختیاری است (فیلدش در صف نوبت عصر محتواست)؛
+      // اگر آمد، خلاصه‌نویس lead-alert آن را بدون PII در intel_feed می‌نویسد.
+      preferredCallTime:
+        typeof body.preferredCallTime === "string" && body.preferredCallTime.trim().length > 0
+          ? body.preferredCallTime.trim().slice(0, 120)
+          : undefined,
       createdAt: new Date().toISOString(),
     });
   } catch {

@@ -42,7 +42,7 @@ export function ContactBlock({ title = "با ما در تماس باشید", des
           </div>
           <div className="mt-6 flex items-center gap-4">
             <Button type="submit" size="lg" disabled={busy || sent}>{sent ? "پیام ثبت شد" : busy ? "در حال ارسال…" : "ارسال پیام"}</Button>
-            {sent && <p role="status" className="text-sm text-success">ممنون، به‌زودی تماس می‌گیریم.</p>}
+            {sent && <p role="status" className="text-sm text-success-text">ممنون، به‌زودی تماس می‌گیریم.</p>}
           </div>
         </form>
         <aside className="overflow-hidden rounded-2xl border border-border bg-card md:col-span-2">

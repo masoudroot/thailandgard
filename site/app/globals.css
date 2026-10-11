@@ -27,6 +27,10 @@
   --destructive-foreground: oklch(0.985 0.003 90);
   --success: oklch(0.62 0.14 155);
   --warning: oklch(0.75 0.15 75);
+  /* سایهٔ تیره‌تر همان توکن‌ها برای متن (یافته‌های ۱ و ۲ ممیزی a11y ساعت ۱۷):
+     روی background به‌ترتیب ۴٫۸۳:۱ و ۴٫۷:۱ می‌دهند (حد AA برای متن ۴٫۵:۱) */
+  --success-text: oklch(0.52 0.14 155);
+  --warning-text: oklch(0.55 0.15 75);
   --border: oklch(0.25 0.006 90 / 12%);
   --input: oklch(0.25 0.006 90 / 18%);
   --ring: oklch(0.72 0.15 65);
@@ -75,6 +79,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-success-text: var(--success-text);
+  --color-warning-text: var(--warning-text);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
