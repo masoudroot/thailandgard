@@ -23,7 +23,7 @@ export const PHONE_LANDLINE = "02633350139";
 export const PHONE_LANDLINE_DISPLAY = "۰۲۶ ۳۳۳ ۵۰۱۳۹";
 export const PHONE_LANDLINE_LINK = "tel:+982633350139";
 
-export const PHONE_CHANNELS_NOTE = "واتس‌اپ و بله";
+export const PHONE_CHANNELS_NOTE = "واتس‌اپ";
 
 export const SITE_URL = "https://thailandgard.vercel.app";
 
