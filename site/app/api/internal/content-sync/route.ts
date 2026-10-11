@@ -10,6 +10,7 @@
  * INTERNAL_CONTENT_SECRET (فقط Vercel env، هرگز ریپو) یکی باشد.
  *
  * عملیات مجاز (فقط همین‌ها؛ هیچ نام جدول/ستونی از بیرون نمی‌آید):
+ * - guide.insert               ساخت ردیف تازه در guides (راهنمای تازه)
  * - guide_section.insert        درج بخش تازه در guide_sections
  * - guide_section.set_paragraphs جایگزینی پاراگراف‌های یک بخش
  * - guide_faq.update            به‌روزرسانی جواب سؤال موجود در guide_faqs
@@ -26,6 +27,7 @@ import { NextRequest, NextResponse } from "next/server";
 // ناسازگارند؛ پس هیچ export پیکربندی‌ای این‌جا نیست.
 
 type OpCode =
+  | "guide.insert"
   | "guide_section.insert"
   | "guide_section.set_paragraphs"
   | "guide_faq.update"
@@ -33,6 +35,12 @@ type OpCode =
 
 interface SyncOp {
   op: unknown;
+  slug?: unknown;
+  title?: unknown;
+  excerpt?: unknown;
+  category?: unknown;
+  reading_minutes?: unknown;
+  updated_fa?: unknown;
   guide_slug?: unknown;
   tour_slug?: unknown;
   position?: unknown;
@@ -65,6 +73,15 @@ function isParagraphs(v: unknown): v is string[] {
 function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error: string } {
   if (typeof raw !== "object" || raw === null) return { ok: false, error: "op نامعتبر است." };
   switch (raw.op) {
+    case "guide.insert":
+      if (!isSlug(raw.slug)) return { ok: false, error: "slug نامعتبر است." };
+      if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
+      if (!isText(raw.excerpt, 600)) return { ok: false, error: "excerpt نامعتبر است." };
+      if (!isText(raw.category, 60)) return { ok: false, error: "category نامعتبر است." };
+      if (!Number.isInteger(raw.reading_minutes) || (raw.reading_minutes as number) < 1 || (raw.reading_minutes as number) > 120)
+        return { ok: false, error: "reading_minutes نامعتبر است." };
+      if (!isText(raw.updated_fa, 40)) return { ok: false, error: "updated_fa نامعتبر است." };
+      return { ok: true, op: raw };
     case "guide_section.insert":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
       if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
@@ -147,6 +164,17 @@ async function postgrest(
 
 async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note: string }> {
   switch (op.op as OpCode) {
+    case "guide.insert": {
+      const { rows } = await postgrest(cfg, "POST", "guides", {
+        slug: op.slug,
+        title: op.title,
+        excerpt: op.excerpt,
+        category: op.category,
+        reading_minutes: op.reading_minutes,
+        updated_fa: op.updated_fa,
+      });
+      return { matched: rows.length, note: `ساخت راهنمای تازه در guides (slug=${op.slug})` };
+    }
     case "guide_section.insert": {
       const { rows } = await postgrest(cfg, "POST", "guide_sections", {
         guide_slug: op.guide_slug,
@@ -219,7 +247,7 @@ export async function POST(req: NextRequest) {
       dry_run: true,
       planned: validated.map((o) => ({
         op: o.op,
-        slug: o.guide_slug ?? o.tour_slug,
+        slug: o.slug ?? o.guide_slug ?? o.tour_slug,
         position: o.position ?? null,
       })),
     });

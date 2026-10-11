@@ -9,6 +9,7 @@ import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { TourStickyBar } from "@/components/site/TourStickyBar";
 import { FaqBlock } from "@/components/blocks/faq";
 import { Accordion } from "@/components/ui/accordion";
 import { Alert } from "@/components/ui/alert";
@@ -172,6 +173,8 @@ export default async function TourPage({ params }: Props) {
           </Button>
         </div>
 
+        <div id="tour-hero-end" aria-hidden className="h-px" />
+
         <Separator className="my-8" />
 
         <section className="mt-10">
@@ -311,23 +314,7 @@ export default async function TourPage({ params }: Props) {
         <ShareButtons title={`${tour.title}؛ تایلندگرد`} path={`/tours/${tour.slug}`} siteUrl={s.SITE_URL} divider />
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">شروع قیمت از</p>
-            <Price amount={tour.priceFrom} size="sm" />
-            <p className="mt-1 truncate text-xs text-muted-foreground">
-              {s.CONTACT_NAME}؛ {s.CONTACT_TITLE}
-            </p>
-          </div>
-          <Button asChild size="lg" variant="brand">
-            <a href={s.PHONE_MOBILE_LINK}>
-              <Phone />
-              تماس با کارشناس فروش
-            </a>
-          </Button>
-        </div>
-      </div>
+      <TourStickyBar />
     </>
   );
 }

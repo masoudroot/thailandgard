@@ -72,7 +72,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
       {/* پنل تایپوگرافیک مقصد: در موبایل بالا، در دسکتاپ ستون چپ (پایان خواندن) */}
       <div className="order-1 flex flex-col justify-center border-b border-border pb-6 md:order-2 md:border-b-0 md:border-s md:pb-0 md:ps-8">
         <span aria-hidden className="block h-px w-16 bg-border" />
-        <p className="mt-4 flex items-baseline justify-end gap-3 font-display text-5xl font-bold sm:text-6xl">
+        <p className="mt-4 flex items-baseline justify-end gap-3 font-display text-5xl sm:text-6xl">
           {tour.shortTitle}
           <span aria-hidden className="block size-2.5 shrink-0 rounded-full bg-brand" />
         </p>
