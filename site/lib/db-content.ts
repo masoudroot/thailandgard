@@ -327,6 +327,38 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   };
 }
 
+/* ---------- خوانش تازه برای سایت‌مپ (دستور سئو، ۱۹ مهر ۱۴۰۵ :۳۵) ---------- */
+
+export interface SitemapRows {
+  base: string;
+  guides: { slug: string; updatedFa: string }[];
+  tours: string[];
+}
+
+/**
+ * ردیف‌های سایت‌مپ با خوانش زندهٔ دیتابیس؛ عمداً `'use cache'` ندارد تا
+ * `/sitemap.xml` هر درخواست ربات را تازه بگیرد (معادل Next-16 دستور
+ * `export const dynamic = "force-dynamic"` — که در Next 16 با cacheComponents
+ * از پیکربندی قطعه حذف شده و خطای کامپایل می‌دهد؛ پس با `connection()` در
+ * خود `sitemap.ts` + این خوانش بدون‌کش پیاده می‌شود). فالبک: همان ثابت‌های
+ * `sitemap.ts`؛ صفحه‌های استاتیک در خود `sitemap.ts` تعریف می‌شوند.
+ */
+export async function getSitemapRows(): Promise<SitemapRows> {
+  const [settingRows, tourRows, guideRows] = await Promise.all([
+    fetchTable<SettingRow>("site_settings"),
+    fetchTable<TourRow>("tours"),
+    fetchTable<GuideRow>("guides"),
+  ]);
+  const base =
+    settingRows?.find((r) => r.key === "SITE_URL")?.value?.toString() ||
+    SITE_SETTINGS_FALLBACK.SITE_URL;
+  const tours = tourRows ? tourRows.map((t) => t.slug) : [];
+  const guides = guideRows
+    ? guideRows.map((g) => ({ slug: g.slug, updatedFa: g.updated_fa }))
+    : [];
+  return { base, guides, tours };
+}
+
 export async function getRelatedLinks(): Promise<RelatedLinks> {
   'use cache';
   const rows = await fetchTable<RelatedRow>("related_links");

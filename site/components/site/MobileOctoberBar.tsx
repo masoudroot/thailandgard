@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Price } from "@/components/ui/price";
 
 /**
- * نوار چسبان موبایل لندینگ «پوکت؛ نیمهٔ دوم اکتبر»؛ حکم ۲ artdir:
+ * نوار چسبان موبایل لندینگ «پوکت؛ نیمهٔ دوم اکتبر»؛ حکم ۲ artdir + جهت M5
+ * (یافتهٔ مهم qa، ۱۹ مهر ۱۴۰۵ :۳۵):
  * فقط از پایان هیرو به بعد (با نگهبان #october-hero-end)؛ ارتفاع حداکثر
  * ۲۰٪ دید؛ کادر مویی ۱px در بالا؛ بدون سایه؛ گوشه‌های بالایی ۸؛
- * env(safe-area-inset-bottom)؛ فقط سه چیز: قیمت «شروع از» (ارقام فارسی +
- * «تومان» و «هر نفر»، هرگز حذف نمی‌شوند) + دو CTA («تماس با کارشناس» فیل اول،
- * «مشاوره در واتس‌اپ» outline دوم؛ دو فیل هم‌وزن ممنوع)؛ بدون دکمهٔ بستن.
+ * env(safe-area-inset-bottom)؛ لی‌اوت دو ردیفه در کل بازهٔ موبایل:
+ * ردیف ۱ قیمت یک‌خطهٔ کامل («شروع قیمت از» + عدد فارسی + «تومان» + «هر نفر»،
+ * هیچ‌کدام حذف یا collapse نمی‌شوند؛ wrap احتیاطی با تراز راست)؛
+ * ردیف ۲ دو دکمهٔ flex-1 با h-10: «تماس فوری» فیل کهربایی (RTL: راست) و
+ * «واتس‌اپ» outline خنثی (RTL: چپ)؛ بدون دکمهٔ بستن.
  */
 export function MobileOctoberBar({
   priceFrom,
@@ -42,27 +45,28 @@ export function MobileOctoberBar({
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 max-h-[20vh] overflow-hidden rounded-t-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">شروع قیمت از</p>
-          <p className="mt-0.5">
-            <Price amount={priceFrom} size="sm" />
-            <span className="mr-1 text-xs text-muted-foreground">هر نفر</span>
-          </p>
+      {/* M5 (جهت artdir ۱۹ مهر ۱۴۰۵ :۳۵): دو ردیف در کل بازهٔ موبایل؛ قیمت از
+          ردیف دکمه‌ها جدا شد چون در ۳۶۰px زیر کف خوانایی بود. بودجهٔ ارتفاع:
+          pt-2 + ردیف قیمت + gap-1.5 + ردیف دکمه‌ها (h-10) + pb-2 + safe-area. */}
+      <div className="mx-auto flex max-w-5xl flex-col gap-1.5 px-4 pt-2 pb-2">
+        {/* ردیف ۱: قیمت — خط راست‌چین، بدون حذف هیچ عنصری */}
+        <p className="flex flex-wrap items-baseline justify-end gap-x-1.5 text-right">
+          <span className="text-xs text-muted-foreground">شروع قیمت از</span>
+          <Price amount={priceFrom} size="sm" />
+          <span className="text-xs text-muted-foreground">هر نفر</span>
+        </p>
+        {/* ردیف ۲: دکمه‌ها — RTL: «تماس فوری» راست (اول DOM)، «واتس‌اپ» چپ */}
+        <div className="flex gap-2">
+          <Button asChild size="md" variant="brand" className="flex-1">
+            <a href={phoneHref}>
+              <Phone />
+              تماس فوری
+            </a>
+          </Button>
+          <Button asChild size="md" variant="outline" className="flex-1">
+            <a href={whatsappHref}>واتس‌اپ</a>
+          </Button>
         </div>
-        {/* M1 (یافتهٔ مهم qa، ممیزی موبایل): در عرض ۳۶۰ پیکسل دکمه‌ها سرریز
-            می‌کردند (۱۳۴ + ۱۵۶ + گپ‌ها = ۳۱۴ > ۳۱۲ در دسترس). رفع: لیبل دوم
-            به «واتس‌اپ» کوتاه شد + پدینگ افقی px-4 و گپ gap-2. قیمت و دکمهٔ
-            اول دست‌نخورده‌اند. */}
-        <Button asChild size="lg" variant="brand" className="px-4">
-          <a href={phoneHref}>
-            <Phone />
-            تماس با کارشناس
-          </a>
-        </Button>
-        <Button asChild size="lg" variant="outline" className="px-4">
-          <a href={whatsappHref}>واتس‌اپ</a>
-        </Button>
       </div>
     </div>
   );

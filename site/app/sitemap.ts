@@ -1,5 +1,18 @@
 import type { MetadataRoute } from "next";
-import { getSiteSettings, getTours, getGuides } from "@/lib/db-content";
+import { connection } from "next/server";
+import { getSitemapRows } from "@/lib/db-content";
+
+/**
+ * سایت‌مپ داینامیک (دستور سئو، ۱۹ مهر ۱۴۰۵ :۳۵): هر درخواست ربات ردیف‌ها را
+ * از دیتابیس زنده می‌خواند تا راهنمای تازه درج‌شده بی‌درنگ در سایت‌مپ باشد
+ * (قانون «اول بردهای کوچک»: ایندکس کامل، نه «بعد از دپلوی بعدی»).
+ *
+ * نکتهٔ فنی: بریف `export const dynamic = "force-dynamic"` می‌خواست، ولی در
+ * Next 16 با cacheComponents روشن، پیکربندی‌های `dynamic`/`revalidate` از قطعه
+ * حذف شده‌اند و خطای کامپایل می‌دهند. معادل سالم: `connection()` (خروج از
+ * پیش‌رندر) + `getSitemapRows()` که عمداً `'use cache'` ندارد. ترافیک سایت‌مپ
+ * ناچیز است و هزینهٔ چند کوئری برای هر ربات قابل‌قبول.
+ */
 
 /**
  * یافتهٔ S1 تیم سئو (۱۹ مهر ۱۴۰۵): قبلاً همهٔ مسیرها lastModified: new Date()
@@ -76,18 +89,16 @@ function guideLastMod(updatedFa: string): Date {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const s = await getSiteSettings();
-  const tours = await getTours();
-  const guides = await getGuides();
-  const base = s.SITE_URL;
+  await connection(); // پیش‌رندر همین‌جا متوقف می‌شود؛ خوانش زیر فقط در زمان درخواست
+  const { base, guides, tours } = await getSitemapRows();
   const staticRoutes = ["", "/tours", "/guide", "/contact", "/phuket-october"].map((path) => ({
     url: `${base}${path}`,
     lastModified: path === "/phuket-october" ? PHUKET_OCTOBER_LASTMOD : STATIC_LASTMOD,
     changeFrequency: "weekly" as const,
     priority: path === "" ? 1 : 0.8,
   }));
-  const tourRoutes = tours.map((t) => ({
-    url: `${base}/tours/${t.slug}`,
+  const tourRoutes = tours.map((slug) => ({
+    url: `${base}/tours/${slug}`,
     lastModified: TOURS_LASTMOD,
     changeFrequency: "weekly" as const,
     priority: 0.9,

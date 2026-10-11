@@ -30,10 +30,13 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
       </Button>
       {compact && (
         <p className="w-full text-sm text-muted-foreground">
+          {/* F-005 (یافتهٔ جزئی بازرس، ۱۹ مهر ۱۴۰۵ :۳۵): شماره‌ها بدون لیبل
+              بودند؛ «موبایل» و «ثابت» اضافه شد. */}
+          موبایل:{" "}
           <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
             <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
           </a>
-          {"؛ "}
+          {"؛ "}ثابت:{" "}
           <a href={PHONE_LANDLINE_LINK} className="font-semibold underline underline-offset-4">
             <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
           </a>
@@ -48,10 +51,11 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
                 {CONTACT_NAME}؛ {CONTACT_TITLE}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
+                موبایل:{" "}
                 <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
                   <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
                 </a>
-                {"؛ "}
+                {"؛ "}ثابت:{" "}
                 <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
                 {"؛ "}
                 {PHONE_CHANNELS_NOTE}
