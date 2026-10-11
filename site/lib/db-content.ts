@@ -280,7 +280,17 @@ export async function getGuides(): Promise<Guide[]> {
     return GUIDES_FALLBACK;
   }
   const ordered = inFileOrder(rows, GUIDES_FALLBACK.map((g) => g.slug));
-  return ordered.map((row) => mapGuide(row, sectionRows, faqRows));
+  const dbGuides = ordered.map((row) => mapGuide(row, sectionRows, faqRows));
+  // تکمیل با فایل: راهنماهایی که هنوز در DB نیستند از فالبک guides.ts می‌آیند.
+  // DB همیشه اولویت اول است؛ فایل فقط جای خالی را پر می‌کند.
+  const dbSlugs = new Set(dbGuides.map((g) => g.slug));
+  const fileOnly = GUIDES_FALLBACK.filter((g) => !dbSlugs.has(g.slug));
+  if (fileOnly.length > 0) {
+    console.warn(
+      `[db-content] getGuides: ${fileOnly.length} راهنما فقط در فایل است: ${fileOnly.map((g) => g.slug).join(", ")}`
+    );
+  }
+  return [...dbGuides, ...fileOnly];
 }
 
 export async function getGuide(slug: string): Promise<Guide | undefined> {
