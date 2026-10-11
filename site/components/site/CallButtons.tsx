@@ -28,6 +28,17 @@ export function CallButtons({ compact = false }: { compact?: boolean }) {
           واتس‌اپ
         </a>
       </Button>
+      {compact && (
+        <p className="w-full text-sm text-muted-foreground">
+          <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
+            <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
+          </a>
+          {"؛ "}
+          <a href={PHONE_LANDLINE_LINK} className="font-semibold underline underline-offset-4">
+            <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
+          </a>
+        </p>
+      )}
       {!compact && (
         <Card className="sm:col-span-2">
           <CardContent className="p-4">

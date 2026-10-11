@@ -19,6 +19,7 @@ import {
   CONTACT_TITLE,
   PHONE_CHANNELS_NOTE,
   PHONE_LANDLINE_DISPLAY,
+  PHONE_LANDLINE_LINK,
   PHONE_MOBILE_DISPLAY,
   PHONE_MOBILE_LINK,
   SITE_NAME,
@@ -93,9 +94,9 @@ export default function HomePage() {
           <>
             {SITE_NAME}
             <br />
-            <span className="inline-block rounded-xl bg-brand/15 px-3 py-1.5 text-brand-foreground">
+            <Badge variant="brand" className="rounded-xl px-3 py-1.5 text-base">
               {SITE_SLOGAN}
-            </span>
+            </Badge>
           </>
         }
         description="سفر به تایلند را با مشاورهٔ تلفنی کارشناس مقصد شروع کن. ما فروش آنلاین نداریم؛ رزرو فقط با یک تماس انجام می‌شود."
@@ -217,7 +218,12 @@ export default function HomePage() {
                 </p>
                 <p>
                   <span className="text-muted-foreground">تلفن ثابت: </span>
-                  <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
+                  <a
+                    href={PHONE_LANDLINE_LINK}
+                    className="font-semibold underline underline-offset-4"
+                  >
+                    <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
+                  </a>
                 </p>
                 <p className="text-muted-foreground">
                   {PHONE_CHANNELS_NOTE} | شنبه تا پنجشنبه، ۹ صبح تا ۹ شب

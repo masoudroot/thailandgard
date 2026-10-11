@@ -5,6 +5,7 @@ import { CalendarDays, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { CallButtons } from "@/components/site/CallButtons";
+import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { GUIDES, getGuide } from "@/lib/guides";
 import { getTour } from "@/lib/tours";
@@ -26,13 +27,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: guide.title,
     description: guide.excerpt,
     alternates: { canonical: `/guide/${guide.slug}` },
-    openGraph:
-      guide.slug === "thailand-visa-guide"
-        ? {
-            title: `${guide.title}؛ تایلندگرد`,
-            description: guide.excerpt,
-          }
-        : undefined,
+    openGraph: {
+      title: `${guide.title}؛ تایلندگرد`,
+      description: guide.excerpt,
+    },
   };
 }
 
@@ -83,21 +81,31 @@ export default async function GuideDetailPage({ params }: PageProps) {
         ]}
       />
 
-      <header className="mt-6">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <Badge variant="brand">{guide.category}</Badge>
-          <span className="inline-flex items-center gap-1.5">
-            <Clock className="size-4" />
-            {fa(guide.readingMinutes)} دقیقه مطالعه
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <CalendarDays className="size-4" />
-            به‌روزرسانی: {guide.updatedFa}
-          </span>
-        </div>
-        <h1 className="mt-4 text-4xl font-extrabold leading-snug">{guide.title}</h1>
-        <p className="mt-4 text-lg leading-9 text-muted-foreground">{guide.excerpt}</p>
-      </header>
+      {guide.slug === "thailand-tour-complete-guide" ? (
+        <PillarHero
+          badge="راهنمای کامل"
+          title={guide.title}
+          description={guide.excerpt}
+          readingMinutes={guide.readingMinutes}
+          updatedFa={guide.updatedFa}
+        />
+      ) : (
+        <header className="mt-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <Badge variant="brand">{guide.category}</Badge>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="size-4" />
+              {fa(guide.readingMinutes)} دقیقه مطالعه
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="size-4" />
+              به‌روزرسانی: {guide.updatedFa}
+            </span>
+          </div>
+          <h1 className="mt-4 text-4xl font-extrabold leading-snug">{guide.title}</h1>
+          <p className="mt-4 text-lg leading-9 text-muted-foreground">{guide.excerpt}</p>
+        </header>
+      )}
 
       {guide.sections.map((section) => (
         <section key={section.heading} className="mt-10">
@@ -141,7 +149,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
         />
       </div>
 
-      <section className="mt-4 rounded-surface border border-border bg-card p-6 sm:p-8">
+      <section id="callback" className="mt-4 rounded-surface border border-border bg-card p-6 sm:p-8">
         <h2 className="text-xl font-bold">سؤالی داری؟</h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
           راهنما همه‌چیز را نگفت؟ کارشناس فروش ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و

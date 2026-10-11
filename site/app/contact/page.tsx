@@ -65,7 +65,7 @@ export default function ContactPage() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b border-border bg-muted/40">
             <CardTitle className="text-xl">درخواست تماس</CardTitle>
             <CardDescription className="leading-7">
               شماره‌ات را بگذار، {CONTACT_NAME} در اولین فرصت زنگ می‌زند.
