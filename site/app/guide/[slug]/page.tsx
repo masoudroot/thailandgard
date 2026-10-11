@@ -26,6 +26,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: guide.title,
     description: guide.excerpt,
     alternates: { canonical: `/guide/${guide.slug}` },
+    openGraph:
+      guide.slug === "thailand-visa-guide"
+        ? {
+            title: `${guide.title}؛ تایلندگرد`,
+            description: guide.excerpt,
+          }
+        : undefined,
   };
 }
 

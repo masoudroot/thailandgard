@@ -33,6 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: tour.title,
     description: tour.summary,
     alternates: { canonical: `/tours/${tour.slug}` },
+    openGraph: {
+      title: `${tour.title}؛ تایلندگرد`,
+      description: tour.summary,
+    },
   };
 }
 
@@ -151,20 +155,20 @@ export default async function TourPage({ params }: Props) {
         <section className="mt-12">
           <h2 className="text-2xl font-bold">دربارهٔ تور {tour.shortTitle}</h2>
           <div className="mt-5 space-y-5">
-          {tour.description.slice(0, 3).map((p, i) => (
-            <p key={i} className="leading-9 text-foreground/90">
-              {p}
-            </p>
-          ))}
-          {tour.description.length > 3 && (
-            <Alert variant="info" title="نکتهٔ کارشناس">
-              {tour.description.slice(3).map((p, i) => (
-                <p key={i} className="leading-9 text-foreground/80">
-                  {p}
-                </p>
-              ))}
-            </Alert>
-          )}
+            {tour.description.slice(0, 3).map((p, i) => (
+              <p key={i} className="leading-9 text-foreground/90">
+                {p}
+              </p>
+            ))}
+            {tour.description.length > 3 && (
+              <Alert variant="info" title="نکتهٔ کارشناس">
+                {tour.description.slice(3).map((p, i) => (
+                  <p key={i} className="leading-9 text-foreground/80">
+                    {p}
+                  </p>
+                ))}
+              </Alert>
+            )}
           </div>
         </section>
 
@@ -262,7 +266,7 @@ export default async function TourPage({ params }: Props) {
           <Card>
             <CardHeader>
               <CardTitle>ترجیح می‌دهید خودتان زنگ بزنید؟</CardTitle>
-              <CardDescription>مستقیم با کارشناس فروش صحبت کن یا در واتس‌اپ پیام بده.</CardDescription>
+              <CardDescription>مستقیم با کارشناس فروش صحبت کنید یا در واتس‌اپ پیام بدهید.</CardDescription>
             </CardHeader>
             <CardContent>
               <CallButtons />
