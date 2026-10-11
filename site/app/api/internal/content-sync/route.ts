@@ -32,11 +32,13 @@ import { NextRequest, NextResponse } from "next/server";
 type OpCode =
   | "guide.insert"
   | "guide.set_excerpt"
+  | "guide.set_title"
   | "guide_section.insert"
   | "guide_section.set_paragraphs"
   | "guide_section.set_title"
   | "guide_section.move"
   | "guide_faq.update"
+  | "tour.set_summary"
   | "tour_faq.update";
 
 interface SyncOp {
@@ -44,6 +46,7 @@ interface SyncOp {
   slug?: unknown;
   title?: unknown;
   excerpt?: unknown;
+  summary?: unknown;
   category?: unknown;
   reading_minutes?: unknown;
   updated_fa?: unknown;
@@ -93,6 +96,17 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
       if (typeof raw.excerpt !== "string" || raw.excerpt.length < 150 || raw.excerpt.length > 165)
         return { ok: false, error: "excerpt باید بین ۱۵۰ تا ۱۶۵ کاراکتر باشد." };
+      return { ok: true, op: raw };
+    case "guide.set_title":
+      // بریف seocontent ۰۱:۳۵ (meta-title-exec): تیتر راهنما هم کنار excerpt به‌روز می‌شود.
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
+      return { ok: true, op: raw };
+    case "tour.set_summary":
+      // بریف seocontent ۰۱:۳۵: متای تورها از tours.summary رندر می‌شود؛
+      // کلید anon روی tours حق UPDATE ندارد، پس این op از مسیر سرور (کلید سرور) می‌زند.
+      if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
+      if (!isText(raw.summary, 600)) return { ok: false, error: "summary نامعتبر است." };
       return { ok: true, op: raw };
     case "guide_section.insert":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
@@ -284,6 +298,18 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
     }
     case "guide_section.move": {
       return moveSection(cfg, String(op.guide_slug), Number(op.position), Number(op.to_position));
+    }
+    case "guide.set_title": {
+      const q = `guides?slug=eq.${encodeURIComponent(String(op.guide_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { title: op.title });
+      if (rows.length === 0) throw new Error("راهنمایی با این slug پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی title راهنما (slug=${op.guide_slug})` };
+    }
+    case "tour.set_summary": {
+      const q = `tours?slug=eq.${encodeURIComponent(String(op.tour_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { summary: op.summary });
+      if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی summary تور (slug=${op.tour_slug})` };
     }
     case "guide_faq.update": {
       const q = `guide_faqs?guide_slug=eq.${encodeURIComponent(String(op.guide_slug))}&question=eq.${encodeURIComponent(String(op.question))}`;

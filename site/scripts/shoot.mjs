@@ -33,13 +33,15 @@ function arg(name, def) {
 }
 const has = (name) => process.argv.includes(name);
 
-// F-004: امضاهای شناخته‌شدهٔ صفحهٔ خطای «… is blocked»
-// (راستی‌آزمایی بازرس ۲۳:۰۵ + راستی‌آزمایی dev ‏۲۳:۵۵). هر نمونه بایت‌به‌بایت
-// یکسان است ولی هر هاست (127.0.0.1 / localhost) نمونهٔ خودش را دارد.
+// F-004/F-010: امضاهای شناخته‌شدهٔ صفحه‌های خطای کرومیوم
+// (راستی‌آزمایی بازرس ۲۳:۰۵ + راستی‌آزمایی dev ‏۲۳:۵۵ + پیگیری F-010 در ۰۱:۳۵).
+// هر نمونه بایت‌به‌بایت یکسان است ولی هر هاست (127.0.0.1 / localhost) نمونهٔ خودش را دارد.
+// «localhost refused to connect» (بدون سرور روی پورت) امضای ۲۶۵۰۸ بایتی خودش را دارد.
 // شاتی که امضای خطا دارد «صفحهٔ خطا» حساب می‌شود و فالبک میکرولینک را تریگر می‌کند.
 const ERROR_SHOT_SIGNATURES = [
   { host: "127.0.0.1", size: 24885, sha256: "9a165975e04604c628689c8d13346318d5a50eea5e7e9ce52dbb3e52f7d935f4" },
   { host: "localhost", size: 25012, sha256: "638909e61fe1bf2f56ef1749972aa5b887cf4a7174606a8aa694cb53bc8f5b82" },
+  { host: "localhost", size: 26508, sha256: "d9f6e8121c20db84b306d8e81fef8e465402bef46450699871a3a327ebb927d9" },
 ];
 
 const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" });
@@ -274,12 +276,36 @@ function waitFor(url, tries = 30) {
   });
 }
 async function startServer() {
-  server = spawn("npx", ["next", "start", "-p", "3100"], { cwd: SITE_DIR, stdio: "ignore" });
+  // F-009 تکمیلی: detached تا kill روی کل گروه فرایند بنشیند؛ نوهٔ next-server پشت
+  // رپر npx هم در همان گروه است و با kill گروهی می‌میرد (نه فقط رپر npx).
+  server = spawn("npx", ["next", "start", "-p", "3100"], { cwd: SITE_DIR, stdio: "ignore", detached: true });
   await waitFor(baseUrl + "/");
 }
-function stopAll() {
-  if (server) try { server.kill("SIGTERM"); } catch { /* */ }
+function treeKill(proc, sig) {
+  // kill روی کل گروه فرایند (SIG به خود فرایند + همهٔ نوه‌ها)
+  if (!proc || proc.exitCode !== null) return;
+  try { process.kill(-proc.pid, sig); } catch { /* از قبل مرده */ }
+}
+async function stopAll() {
+  // F-009 تکمیلی: kill گروهی روی درخت next-server + جارو SIGKILL؛ بعد آزادشدن پورت
+  // 3100 راستی‌آزمایی می‌شود و اگر هنوز شنونده‌ای هست، گزارش می‌شود (بدون آویزان‌ماندن).
+  if (server) {
+    treeKill(server, "SIGTERM");
+    await new Promise((r) => setTimeout(r, 2000));
+    treeKill(server, "SIGKILL");
+    server = null;
+  }
   killChrome();
+  await new Promise((resolveP) => {
+    const sock = net.connect(3100, "127.0.0.1");
+    let done = false;
+    const fin = (listening) => { if (!done) { done = true; resolveP(listening); } };
+    sock.on("connect", () => { sock.destroy(); fin(true); });
+    sock.on("error", () => fin(false));
+    setTimeout(() => { try { sock.destroy(); } catch { } fin(false); }, 2000);
+  }).then((listening) => {
+    if (listening) console.error("WARN: port 3100 still listening after tree-kill (orphan?)");
+  });
 }
 
 async function main() {
@@ -353,9 +379,9 @@ async function main() {
   // process.on("exit") هرگز فراخوانی نمی‌شد (علت آویزان‌ماندن اجرای ۲۳:۳۵).
   try { writeFileSync(1, `done: ${results.length - failed.length}/${results.length} -> ${outDir}\n`); }
   catch { console.log(`done: ${results.length - failed.length}/${results.length} -> ${outDir}`); }
-  stopAll();
+  await stopAll();
   process.exit(failed.length ? 2 : 0);
 }
 
 process.on("exit", stopAll);
-main().catch((e) => { console.error("FATAL:", e.message); stopAll(); process.exit(1); });
+main().catch(async (e) => { console.error("FATAL:", e.message); await stopAll(); process.exit(1); });
