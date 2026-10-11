@@ -52,7 +52,8 @@ export function Accordion({ items, multiple, defaultOpen = [], className }: Acco
             </h3>
             <div id={`acc-${it.id}`} className={cn("grid transition-[grid-template-rows] duration-200 ease-out", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
               <div className="overflow-hidden">
-                <div className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</div>
+                {/* مشخصات seocontent (۱۲:۲۵): جواب FAQ در رندر، پاراگراف معنایی است */}
+                <p className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</p>
               </div>
             </div>
           </div>

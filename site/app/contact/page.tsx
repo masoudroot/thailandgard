@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import { getSiteSettings } from "@/lib/db-content";
+import { SITE_URL } from "@/lib/site";
+import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
     title: "تماس با تایلندگرد؛ مشاورهٔ تلفنی تور تایلند",
     description:
       "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
+    images: defaultOgImages(SITE_URL),
   },
   alternates: { canonical: "/contact" },
 };

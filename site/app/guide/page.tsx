@@ -4,6 +4,8 @@ import { ArrowLeft, BookOpenText, CalendarDays, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getGuides } from "@/lib/db-content";
+import { SITE_URL } from "@/lib/site";
+import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
     title: "راهنمای سفر تایلند؛ ویزا، بهترین زمان و مقایسهٔ مقصدها؛ تایلندگرد",
     description:
       "راهنماهای کاربردی سفر به تایلند؛ بهترین زمان سفر، ویزا و مدارک، مقایسهٔ مقصدها. تیم محتوای تایلندگرد این صفحه را با راهنماهای تازه به‌روز نگه می‌دارد.",
+    images: defaultOgImages(SITE_URL),
   },
 };
 

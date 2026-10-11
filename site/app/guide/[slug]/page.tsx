@@ -9,6 +9,8 @@ import { ShareButtons } from "@/components/site/ShareButtons";
 import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
+import { SITE_URL } from "@/lib/site";
+import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 
@@ -32,6 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
       description: guide.excerpt,
       type: "article",
+      images: defaultOgImages(SITE_URL),
     },
   };
 }

@@ -6,6 +6,7 @@ import "./globals.css";
 import { Navbar } from "@/components/blocks/navbar";
 import { FooterBlock } from "@/components/blocks/footer";
 import { getSiteSettings, getTours } from "@/lib/db-content";
+import { defaultOgImages } from "@/lib/og";
 
 /** همهٔ مسیرها استاتیک‌اند؛ هر رندر درخواستیِ آینده بیلد را قرمز می‌کند. */
 export const ensureStatic = "navigation";
@@ -45,6 +46,8 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: s.SITE_NAME,
       title: `${s.SITE_NAME}؛ ${s.SITE_SLOGAN}`,
       description: s.SITE_TAGLINE,
+      // دستور سئو ۱۲:۰۵؛ پیش‌فرض سراسری og:image (عکس موجود هیروی خانه، ۲۴۰۰×۱۶۰۰)
+      images: defaultOgImages(s.SITE_URL),
     },
     robots: { index: true, follow: true },
   };

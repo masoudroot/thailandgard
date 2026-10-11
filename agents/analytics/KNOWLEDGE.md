@@ -104,3 +104,7 @@ https://groundingpage.com/facts/entity-resolution/
 https://github.com/sandeep9889123/pm-skills/blob/HEAD/pm-product-discovery/skills/metrics-dashboard/SKILL.md
 https://blog.hubspot.com/service/sla-management-software
 https://medium.com/@outreach_8378/real-time-customer-analytics-queue-sla-dashboard-the-complete-guide-97db9151f639
+
+### یافته ۱۰: نشان کانال توزیع در نام منبع هم آلودگی است
+پرانتز «(Media OutReach)» در `Malay Mail (Media OutReach)` نشان سرویس توزیع رپرتاژ است، نه هویت ناشر؛ دقیقاً همان الگوی یکتاشدهٔ اسپک (مثل «(بیانیهٔ رسمی)» در flydubai). قانون: هر توضیح پرانتزیِ کانال/مناسبت در `source_name` به نام ناشر خالص تقلیل می‌یابد و توضیح به `summary` می‌رود. راستی‌آزمایی ساعت ۱۲ امروز: ردیف یادشده هیچ ارجاعی به Malay Mail یا Media OutReach در تیتر و خلاصه ندارد؛ یعنی پرانتز هیچ اطلاعاتی که جای دیگری نباشد اضافه نمی‌کند و حذفش بی‌ضرر است.
+(منبع: کوئری فقط‌خوان ساعت ۱۲ همین روز روی `intel_feed` + اسپک `source-name-normalization-2026-10-11-0935.md`؛ اعمال در: گزارش ۱۲ به‌صورت توصیهٔ SQL آماده به تیم اطلاعات)

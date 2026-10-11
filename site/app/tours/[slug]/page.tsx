@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
+import { SITE_URL } from "@/lib/site";
+import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
@@ -38,6 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
       description: tour.summary,
       type: "article",
+      images: defaultOgImages(SITE_URL),
     },
   };
 }

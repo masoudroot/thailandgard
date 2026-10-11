@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTours } from "@/lib/db-content";
+import { SITE_URL } from "@/lib/site";
+import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { TourCard } from "@/components/site/TourCard";
 import { TourBanner } from "@/components/site/TourBanner";
+import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { CallButtons } from "@/components/site/CallButtons";
 
 export const metadata: Metadata = {
@@ -14,6 +17,7 @@ export const metadata: Metadata = {
     title: "تورهای تایلند؛ پوکت، بانکوک، سامویی، کرابی؛ تایلندگرد",
     description:
       "همهٔ تورهای تایلندگرد را مقایسه کن؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
+    images: defaultOgImages(SITE_URL),
   },
   alternates: { canonical: "/tours" },
 };
@@ -43,6 +47,11 @@ export default async function ToursPage() {
         {tours.map((tour) => (
           <TourCard key={tour.slug} tour={tour} />
         ))}
+      </div>
+
+      {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}
+      <div className="mt-10">
+        <SeasonBanner />
       </div>
 
       <section className="mt-16 rounded-xl border border-border bg-card p-6 md:p-8">

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Compass, PhoneCall, ShieldCheck, Users } from "lucide-react";
-import { HeroBlock } from "@/components/blocks/hero";
+import { OctoberBanner } from "@/components/site/OctoberBanner";
+import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { TourCard } from "@/components/site/TourCard";
 import { CallButtons } from "@/components/site/CallButtons";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getTours, getGuides, getSiteSettings } from "@/lib/db-content";
+import { SITE_URL } from "@/lib/site";
+import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -26,6 +29,7 @@ export const metadata: Metadata = {
     title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
     description:
       "تور تایلند تخصصی از تهران؛ پوکت، بانکوک، سامویی و کرابی با لیدر فارسی‌زبان و مشاورهٔ تلفنی. همین حالا تماس بگیر؛ رزرو فقط تلفنی است.",
+    images: defaultOgImages(SITE_URL),
   },
   alternates: { canonical: "/" },
 };
@@ -76,21 +80,8 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <HeroBlock
-        badge="فقط تور تایلند"
-        title={
-          <>
-            {s.SITE_NAME}
-            <br />
-            <Badge variant="brand" className="rounded-xl px-3 py-1.5 text-base">
-              {s.SITE_SLOGAN}
-            </Badge>
-          </>
-        }
-        description="سفر به تایلند را با مشاورهٔ تلفنی کارشناس مقصد شروع کن. ما فروش آنلاین نداریم؛ رزرو فقط با یک تماس انجام می‌شود."
-        primary={{ label: `تماس با ${s.CONTACT_NAME}`, href: s.PHONE_MOBILE_LINK }}
-        secondary={{ label: "دیدن تورها", href: "/tours" }}
-      />
+      {/* بنر الف (کمپین «پنجرهٔ اکتبر») در اسلات هیروی خانه؛ حکم ۳ */}
+      <OctoberBanner />
 
       <section className="mx-auto max-w-6xl px-6 py-14">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -113,6 +104,11 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}
+      <div className="pb-14">
+        <SeasonBanner />
+      </div>
 
       <section className="border-y border-border bg-muted/40">
         <div className="mx-auto max-w-6xl px-6 py-14">
