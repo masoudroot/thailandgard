@@ -23,7 +23,7 @@ export default async function ToursPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <header className="max-w-3xl space-y-4">
-        <h1 className="text-3xl md:text-4xl">تورهای تایلند</h1>
+        <h1 className="text-3xl md:text-4xl leading-tight">تورهای تایلند</h1>
         <p className="leading-8 text-muted-foreground">
           در حال حاضر {fa(tours.length)} تور فعال داریم:{" "}
           <Link href="/tours/phuket-7-days" className="underline decoration-brand/60 underline-offset-4">تور پوکت</Link>،{" "}

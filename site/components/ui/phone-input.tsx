@@ -25,6 +25,8 @@ export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneI
   const digits = normalizeIranMobile(value ?? internal);
   const valid = isIranMobile(digits);
   const op = mobileOperator(digits);
+  // الگوی cb-name-error: متن راهنما/خطا شناسه دارد و اینپوت به آن وصل است
+  const hintId = id ? `${id}-hint` : undefined;
 
   function set(next: string) {
     const d = normalizeIranMobile(next);
@@ -48,10 +50,11 @@ export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneI
           placeholder="۹۱۲ ۳۴۵ ۶۷۸۹"
           className="h-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none placeholder:text-muted-foreground/50"
           aria-invalid={digits.length === 10 && !valid ? true : undefined}
+          aria-describedby={hintId}
         />
         {valid && <Check className="size-4 text-success" />}
       </div>
-      <p className="text-xs text-muted-foreground">
+      <p id={hintId} className="text-xs text-muted-foreground">
         {op ? `اپراتور: ${op}` : digits.length === 10 && !valid ? <span className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}
       </p>
     </div>

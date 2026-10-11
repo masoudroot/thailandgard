@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${guide.title}؛ تایلندگرد`,
       description: guide.excerpt,
+      type: "article",
     },
   };
 }

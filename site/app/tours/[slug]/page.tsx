@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${tour.title}؛ تایلندگرد`,
       description: tour.summary,
+      type: "article",
     },
   };
 }

@@ -14,6 +14,8 @@ export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
   variant?: Variant;
   title?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
+  /** ref روی div اصلی؛ برای مدیریت فوکس (ری‌اکت ۱۹ ref را مثل بقیهٔ propها می‌دهد) */
+  ref?: React.Ref<HTMLDivElement>;
 }
 
 /** هشدار درون‌صفحه‌ای. Icon at the inline-start; use `role="alert"` for errors that need announcing. */

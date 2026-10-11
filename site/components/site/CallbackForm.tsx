@@ -24,6 +24,12 @@ export function CallbackForm({
   const [nameError, setNameError] = React.useState<string | undefined>();
   const [status, setStatus] = React.useState<"idle" | "busy" | "done" | "error">("idle");
   const [serverError, setServerError] = React.useState("");
+  const statusAlertRef = React.useRef<HTMLDivElement>(null);
+
+  // پس از «ثبت شد» یا خطای سرور، فوکس به پیام وضعیت می‌رود (مدیریت فوکس)
+  React.useEffect(() => {
+    if (status === "done" || status === "error") statusAlertRef.current?.focus();
+  }, [status]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +57,7 @@ export function CallbackForm({
 
   if (status === "done") {
     return (
-      <Alert variant="success" title="درخواستتان ثبت شد">
+      <Alert ref={statusAlertRef} tabIndex={-1} variant="success" title="درخواستتان ثبت شد">
         {contactName} به‌زودی با همین شماره تماس می‌گیرد. اگر عجله دارید، مستقیم زنگ بزنید.
       </Alert>
     );
@@ -82,7 +88,7 @@ export function CallbackForm({
         <PhoneInput id="cb-mobile" onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); }} />
       </Field>
       {status === "error" && (
-        <Alert variant="destructive" title="مشکلی پیش آمد">
+        <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError}
         </Alert>
       )}
