@@ -239,7 +239,7 @@ export default async function TourPage({ params }: Props) {
       </div>
 
       <FaqBlock
-        description="هر سؤالی که دربارهٔ این تور داری، این‌جا جوابش را می‌بینی. اگر نبود، همان پایین شماره‌ات را بگذار."
+        description="هر سؤالی که دربارهٔ این تور دارید، این‌جا جوابش را می‌بینید. اگر نبود، همان پایین شماره‌تان را بگذارید."
         items={tour.faqs.map((f, i) => ({
           id: `faq-${i}`,
           title: f.question,
