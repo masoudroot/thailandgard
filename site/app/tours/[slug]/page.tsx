@@ -89,10 +89,23 @@ export default async function TourPage({ params }: Props) {
     })),
   };
 
+  // بردکرامب JSON-LD: آینهٔ همان سه سطح بردکرامب بصری (خانه ← تورها ← عنوان کوتاه تور)
+  // (دیف تیم سئو، ۰۷:۳۵؛ اجرا در ۰۹:۳۵)
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: `${s.SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "تورها", item: `${s.SITE_URL}/tours` },
+      { "@type": "ListItem", position: 3, name: tour.shortTitle, item: `${s.SITE_URL}/tours/${tour.slug}` },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tripJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <div className="mx-auto max-w-5xl px-6 py-12">
         <Breadcrumb
@@ -110,7 +123,7 @@ export default async function TourPage({ params }: Props) {
               {fa(tour.days)} روزه | {fa(tour.nights)} شب · {tour.route}
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl">{tour.title}</h1>
+          <h1 className="text-4xl">{tour.title}</h1>
           <p className="text-lg leading-9">{tour.summary}</p>
         </header>
 
@@ -141,7 +154,7 @@ export default async function TourPage({ params }: Props) {
         <Separator className="my-8" />
 
         <section className="mt-10">
-          <h2 className="text-2xl font-bold">چرا این تور؟</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
               <li key={h} className="flex items-start gap-2.5">
@@ -153,7 +166,7 @@ export default async function TourPage({ params }: Props) {
         </section>
 
         <section className="mt-12">
-          <h2 className="text-2xl font-bold">دربارهٔ تور {tour.shortTitle}</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">دربارهٔ تور {tour.shortTitle}</h2>
           <div className="mt-5 space-y-5">
             {tour.description.slice(0, 3).map((p, i) => (
               <p key={i} className="leading-9 text-foreground/90">
@@ -173,7 +186,7 @@ export default async function TourPage({ params }: Props) {
         </section>
 
         <section className="mt-10">
-          <h2 className="text-2xl font-bold">برنامهٔ روزبه‌روز</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">برنامهٔ روزبه‌روز</h2>
           <Accordion
             className="mt-5"
             defaultOpen={["day-1"]}

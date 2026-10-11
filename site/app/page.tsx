@@ -200,24 +200,6 @@ export default async function HomePage() {
               <p className="text-lg font-bold">{s.CONTACT_NAME}</p>
               <p className="mt-1 text-sm text-muted-foreground">{s.CONTACT_TITLE}</p>
               <div className="mt-4 space-y-2 text-sm">
-                <p>
-                  <span className="text-muted-foreground">موبایل اصلی: </span>
-                  <a
-                    href={s.PHONE_MOBILE_LINK}
-                    className="font-semibold underline underline-offset-4"
-                  >
-                    <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span>
-                  </a>
-                </p>
-                <p>
-                  <span className="text-muted-foreground">تلفن ثابت: </span>
-                  <a
-                    href={s.PHONE_LANDLINE_LINK}
-                    className="font-semibold underline underline-offset-4"
-                  >
-                    <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span>
-                  </a>
-                </p>
                 <p className="text-muted-foreground">
                   {s.PHONE_CHANNELS_NOTE} | شنبه تا پنجشنبه، ۹ صبح تا ۹ شب
                 </p>

@@ -25,7 +25,7 @@ export interface HeroBlockProps {
  */
 export function HeroBlock({ badge, title, description, primary = { label: "اقدام اصلی" }, secondary = { label: "مشاهدهٔ بیشتر" }, proof }: HeroBlockProps) {
   return (
-    <section className="relative overflow-hidden px-6 pt-20 text-center sm:pt-28">
+    <section className="relative overflow-hidden px-6 pt-14 text-center sm:pt-20">
       <div className="relative mx-auto max-w-3xl">
         {badge && <Badge variant="brand">{badge}</Badge>}
         <h1 className="mt-5 text-4xl leading-tight sm:text-5xl">{title}</h1>
@@ -49,7 +49,7 @@ export function HeroBlock({ badge, title, description, primary = { label: "اق�
           </div>
         )}
       </div>
-      <div className="relative mx-auto mt-12 max-w-5xl pb-20 sm:pb-28">
+      <div className="relative mx-auto mt-12 max-w-5xl pb-14 sm:pb-20">
         <div className="overflow-hidden rounded-surface border border-border">
           <Image
             src="/images/hero-phuket-sunset.webp"
