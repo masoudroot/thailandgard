@@ -45,7 +45,7 @@ export default function ToursPage() {
       </div>
 
       <section className="mt-16 rounded-xl border border-border bg-card p-6 md:p-8">
-        <h2 className="text-xl font-bold">هنوز تصمیم نگرفته‌اید؟</h2>
+        <h2 className="text-2xl font-bold sm:text-3xl">هنوز تصمیم نگرفته‌اید؟</h2>
         <p className="mt-2 leading-8 text-muted-foreground">
           بگویید دنبال چه سفری هستید؛ کارشناس فروشمان که خودش تایلند را خوب می‌شناسد،
           بهترین گزینه را با توجه به بودجه و سلیقه‌تان پیشنهاد می‌دهد.

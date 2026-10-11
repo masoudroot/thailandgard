@@ -30,6 +30,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneI
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className={cn("flex h-10 items-center gap-2 rounded-field border-line-field bg-field shadow-field px-3 transition-colors focus-within:ring-2 focus-within:ring-ring/60", digits.length === 10 && !valid ? "border-destructive/60" : "border-input")} dir="ltr">
+        {/* پیش‌شماره عمداً لاتین می‌ماند: رجیستری وایب‌فارسی برای فیلد موبایل start addon «+98» را در کانتینر dir="ltr" تجویز می‌کند (design-rules.md) */}
         <span className="text-sm text-muted-foreground">+98</span>
         <input
           id={id}
@@ -39,7 +40,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneI
           autoFocus={autoFocus}
           value={formatIranMobile(digits)}
           onChange={(e) => set(e.target.value)}
-          placeholder="912 345 6789"
+          placeholder="۹۱۲ ۳۴۵ ۶۷۸۹"
           className="h-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none placeholder:text-muted-foreground/50"
           aria-invalid={digits.length === 10 && !valid ? true : undefined}
         />

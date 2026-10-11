@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Clock, MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import {
@@ -42,7 +42,7 @@ export default function ContactPage() {
           <CardHeader className="border-b border-border bg-muted/40">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <CardTitle className="text-xl">{CONTACT_NAME}</CardTitle>
+                <h2 className="text-xl font-semibold">{CONTACT_NAME}</h2>
                 <CardDescription className="mt-1">{CONTACT_TITLE}</CardDescription>
               </div>
               <Badge variant="brand">پاسخگوی فروش</Badge>
@@ -63,7 +63,7 @@ export default function ContactPage() {
 
         <Card>
           <CardHeader className="border-b border-border bg-muted/40">
-            <CardTitle className="text-xl">درخواست تماس</CardTitle>
+            <h2 className="text-xl font-semibold">درخواست تماس</h2>
             <CardDescription className="leading-7">
               شماره‌تان را بگذارید، {CONTACT_NAME} در اولین فرصت زنگ می‌زند.
             </CardDescription>
