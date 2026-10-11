@@ -10,9 +10,11 @@ import { getSiteSettings, getTours, getGuides } from "@/lib/db-content";
  * - تورها و مسیرهای استاتیک: تاریخ ثابتِ مستند (رکوردهای tours در دیتابیس
  *   ستون updated_at ندارند؛ با اضافه شدنش، این ثابت‌ها با تاریخ واقعی رکورد
  *   جایگزین می‌شوند).
+ *   استثنا: /phuket-october با lastmod واقعی انتشار خودش (۱۹ مهر ۱۴۰۵).
  */
 const TOURS_LASTMOD = new Date("2026-10-10T00:00:00+03:30"); // زنده‌شدن سایت (۱۸ مهر ۱۴۰۵)
 const STATIC_LASTMOD = new Date("2026-10-10T00:00:00+03:30"); // زنده‌شدن سایت (۱۸ مهر ۱۴۰۵)
+const PHUKET_OCTOBER_LASTMOD = new Date("2026-10-11T00:00:00+03:30"); // انتشار لندینگ اکتبر (۱۹ مهر ۱۴۰۵)
 
 const FA_MONTHS: Record<string, number> = {
   فروردین: 1,
@@ -78,9 +80,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tours = await getTours();
   const guides = await getGuides();
   const base = s.SITE_URL;
-  const staticRoutes = ["", "/tours", "/guide", "/contact"].map((path) => ({
+  const staticRoutes = ["", "/tours", "/guide", "/contact", "/phuket-october"].map((path) => ({
     url: `${base}${path}`,
-    lastModified: STATIC_LASTMOD,
+    lastModified: path === "/phuket-october" ? PHUKET_OCTOBER_LASTMOD : STATIC_LASTMOD,
     changeFrequency: "weekly" as const,
     priority: path === "" ? 1 : 0.8,
   }));

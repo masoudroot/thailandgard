@@ -42,7 +42,7 @@ export function MobileOctoberBar({
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 max-h-[20vh] overflow-hidden rounded-t-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-3">
+      <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">شروع قیمت از</p>
           <p className="mt-0.5">
@@ -50,8 +50,10 @@ export function MobileOctoberBar({
             <span className="mr-1 text-xs text-muted-foreground">هر نفر</span>
           </p>
         </div>
-        {/* M1 (ممیزی موبایل ۱۷ مهر): در عرض ۳۶۰ پیکسل، پدینگ افقی دکمه‌ها
-            از px-6 به px-4 می‌رسد تا نوار سرریز نکند؛ لیبل‌ها حکم artdir‌اند و دست نخورده‌اند. */}
+        {/* M1 (یافتهٔ مهم qa، ممیزی موبایل): در عرض ۳۶۰ پیکسل دکمه‌ها سرریز
+            می‌کردند (۱۳۴ + ۱۵۶ + گپ‌ها = ۳۱۴ > ۳۱۲ در دسترس). رفع: لیبل دوم
+            به «واتس‌اپ» کوتاه شد + پدینگ افقی px-4 و گپ gap-2. قیمت و دکمهٔ
+            اول دست‌نخورده‌اند. */}
         <Button asChild size="lg" variant="brand" className="px-4">
           <a href={phoneHref}>
             <Phone />
@@ -59,7 +61,7 @@ export function MobileOctoberBar({
           </a>
         </Button>
         <Button asChild size="lg" variant="outline" className="px-4">
-          <a href={whatsappHref}>مشاوره در واتس‌اپ</a>
+          <a href={whatsappHref}>واتس‌اپ</a>
         </Button>
       </div>
     </div>

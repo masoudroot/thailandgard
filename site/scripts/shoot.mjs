@@ -175,6 +175,9 @@ let chromeProc = null;
 function launchChrome() {
   chromeProc = spawn(CHROME, [
     "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
+    // F-004 (بازرس): کرومیوم تازه درخواست‌های صفحه به 127.0.0.1 را با
+    // ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS می‌بندد؛ این فلگ چک را خاموش می‌کند.
+    "--disable-features=LocalNetworkAccessChecks",
     `--remote-debugging-port=${CDP_PORT}`, "--hide-scrollbars", "about:blank",
   ], { stdio: "ignore" });
   return new Promise((resolveP, reject) => {
@@ -271,8 +274,26 @@ async function main() {
         results.push({ name: r.name, route: r.path, file, ok });
         console.log(ok ? "OK  " : "FAIL", r.path, "->", file);
       } catch (e) {
-        results.push({ name: r.name, route: r.path, ok: false, error: String(e.message || e) });
-        console.log("FAIL", r.path, "-", e.message);
+        // F-004: فالبک خودکار به میکرولینک؛ اگر CDP محلی مرد (چک شبکهٔ
+        // محلی، استارت نشدن کروم، شات خالی)، همان مسیر از سایت زنده شات می‌گیرد.
+        const msg = String(e.message || e);
+        let fbOk = false;
+        let fbErr = msg;
+        if (/BLOCKED_BY_LOCAL_NETWORK|no ws url|chrome did not start|empty screenshot/i.test(msg)) {
+          try {
+            await microlinkShot(liveBase + r.path, file);
+            fbOk = existsSync(file);
+          } catch (e2) {
+            fbErr = msg + " | microlink: " + String(e2.message || e2);
+          }
+        }
+        if (fbOk) {
+          results.push({ name: r.name, route: r.path, file, ok: true, fallback: "microlink" });
+          console.log("OK  (microlink fallback)", r.path, "->", file);
+        } else {
+          results.push({ name: r.name, route: r.path, ok: false, error: fbErr });
+          console.log("FAIL", r.path, "-", fbErr.slice(0, 120));
+        }
       }
     }
   }

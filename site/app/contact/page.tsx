@@ -39,11 +39,13 @@ export default async function ContactPage() {
       </header>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        <Card className="overflow-hidden">
+        {/* قلم ۳ لید (سلسله‌مراتب کارت‌ها، حکم مدیر ۱۰:۱۵): «تماس مستقیم» مسیر اصلی است؛
+            تیتر حکم مدیر + حاشیهٔ برند تا چشم اول به همین کارت برود؛ بج برند حفظ شد. */}
+        <Card className="overflow-hidden border-brand">
           <CardHeader className="border-b border-border bg-muted/40">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold">{s.CONTACT_NAME}</h2>
+                <h2 className="text-xl font-semibold">خودتان زنگ بزنید؛ سریع‌ترین راه است</h2>
                 <CardDescription className="mt-1">{s.CONTACT_TITLE}</CardDescription>
               </div>
               <Badge variant="brand">پاسخگوی فروش</Badge>
@@ -65,8 +67,9 @@ export default async function ContactPage() {
         <Card>
           <CardHeader className="border-b border-border bg-muted/40">
             <h2 className="text-xl font-semibold">درخواست تماس</h2>
+            {/* قلم ۳ لید: کارت دوم خنثی و ثانویه؛ بدون بج؛ متن حکم مدیر. */}
             <CardDescription>
-              شماره‌تان را بگذارید، {s.CONTACT_NAME} در اولین فرصت زنگ می‌زند.
+              وقت ندارید؟ شماره‌تان را بگذارید، ما زنگ می‌زنیم.
             </CardDescription>
           </CardHeader>
           <CardContent>

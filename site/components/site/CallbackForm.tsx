@@ -45,6 +45,8 @@ export function CallbackForm({
   const [nameError, setNameError] = React.useState<string | undefined>();
   const [status, setStatus] = React.useState<"idle" | "busy" | "done" | "error">("idle");
   const [serverError, setServerError] = React.useState("");
+  // قلم ۱ لید (زمان ترجیحی تماس): بدون انتخاب = رشتهٔ خالی؛ سرور بدون کلید هم سازگار است.
+  const [callTime, setCallTime] = React.useState("");
   const statusAlertRef = React.useRef<HTMLDivElement>(null);
   // بستهٔ اندازه‌گیری کلریتی (تحلیل ۱۷ مهر): هر فیلد فقط یک‌بار «شروع»
   const startedFieldsRef = React.useRef<Set<string>>(new Set());
@@ -90,7 +92,13 @@ export function CallbackForm({
       const res = await fetch("/api/callback", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), mobile, tourSlug, source: "site-form" }),
+        body: JSON.stringify({
+          name: name.trim(),
+          mobile,
+          tourSlug,
+          source: "site-form",
+          ...(callTime ? { preferredCallTime: callTime } : {}),
+        }),
       });
       statusCode = res.status;
       const data = await res.json();
@@ -153,6 +161,41 @@ export function CallbackForm({
       <p className="text-xs text-muted-foreground">
         شماره‌تان فقط برای همین تماس برگشتی استفاده می‌شود؛ کارشناس فروش در اولین فرصتِ روز کاری با شما تماس می‌گیرد.
       </p>
+      {/* قلم ۱ لید (۱۹ مهر): «زمان ترجیحی تماس»؛ اختیاری، هیچ گزینه‌ای پیش‌فرض نیست؛
+          fieldset/legend + رادیوهای بومی برای دسترس‌پذیری صفحه‌کلید؛ ارقام فارسی؛ رجیستر «شما». */}
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">چه ساعتی با شما تماس بگیریم؟</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { value: "morning", label: "صبح (۹ تا ۱۲)" },
+            { value: "midday", label: "ظهر (۱۲ تا ۱۵)" },
+            { value: "afternoon", label: "عصر (۱۵ تا ۱۸)" },
+            { value: "evening", label: "شب (۱۸ تا ۲۱)" },
+          ].map((o) => (
+            <label
+              key={o.value}
+              className={
+                "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors " +
+                (callTime === o.value ? "border-brand bg-brand/10" : "border-border")
+              }
+            >
+              <input
+                type="radio"
+                name="cb-call-time"
+                value={o.value}
+                checked={callTime === o.value}
+                onChange={() => {
+                  setCallTime(o.value);
+                  trackFieldStart("call-time");
+                }}
+                className="size-4 accent-[var(--brand)]"
+              />
+              {o.label}
+            </label>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">اختیاری است؛ اگر انتخاب نکنید، در ساعت کاری با شما تماس می‌گیریم.</p>
+      </fieldset>
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}

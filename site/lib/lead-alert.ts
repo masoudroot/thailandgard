@@ -14,6 +14,9 @@
  * برای کل بازه نشان می‌دهد. انحراف آگاهانه از حکم چیدمان ۱۷ design (ظهور از ۳ ساعت).
  *
  * این ماجول هیچ PIIای لمس نمی‌کند؛ شناسهٔ کوتاه لید تنها شناسهٔ نمایشی است.
+ *
+ * کادانس شش‌لمسه (KNOWLEDGE تیم لید): لمس بعدی از روی createdAt حساب می‌شود؛
+ * ارسال پیام با فروشنده است، نه کد.
  */
 
 import { fa } from "./utils";
@@ -22,6 +25,46 @@ import { fa } from "./utils";
 export const LEAD_SLA_MS = 6 * 3600_000;
 /** پنجرهٔ «تازه»: ۳۰ دقیقه */
 export const LEAD_FRESH_MS = 30 * 60_000;
+
+/**
+ * کادانس شش‌لمسهٔ پیگیری (KNOWLEDGE تیم لید): لمس بعدی از روی createdAt حساب می‌شود؛
+ * ارسال پیام با فروشنده است، نه کد.
+ */
+export const TOUCH_OFFSETS_MS = [
+  0, // ۱: تماس اول — بلافاصله
+  6 * 3600_000, // ۲: تماس دوم — همان روز، حدود ۶ ساعت بعد
+  24 * 3600_000, // ۳: تماس سوم — فردا، حدود ۲۴ ساعت بعد
+  72 * 3600_000, // ۴: پیامک یا پیام‌رسان — روز سوم، حدود ۷۲ ساعت بعد
+  120 * 3600_000, // ۵: تماس پنجم — روز پنجم، حدود ۱۲۰ ساعت بعد
+  168 * 3600_000, // ۶: تماس پایانی — روز هفتم، حدود ۱۶۸ ساعت بعد
+] as const;
+export const TOUCH_TITLES = [
+  "تماس اول",
+  "تماس دوم",
+  "تماس سوم",
+  "پیامک یا پیام‌رسان",
+  "تماس پنجم",
+  "تماس پایانی",
+] as const;
+
+/**
+ * لمس بعدی از روی زمان ثبت لید و تعداد لمس‌های انجام‌شده.
+ * touchesDone از وضعیت می‌آید: new یعنی ۰، contacted یعنی حداقل ۱.
+ * اگر هر شش لمس انجام شد، null برمی‌گردد (انتقال به فهرست پرورش).
+ * due_at به‌صورت ISO با آفست تهران (+03:30، بدون DST) است؛ بدون PII.
+ */
+export function nextTouch(
+  createdAtISO: string,
+  touchesDone: number,
+): { touch: number; title: string; dueAt: string } | null {
+  const next = touchesDone + 1;
+  if (next > TOUCH_OFFSETS_MS.length) return null;
+  const dueMs = new Date(createdAtISO).getTime() + TOUCH_OFFSETS_MS[next - 1];
+  if (Number.isNaN(dueMs)) return null;
+  const tehran = new Date(dueMs + (3 * 60 + 30) * 60_000);
+  const dueAt = tehran.toISOString().slice(0, 19) + "+03:30";
+  return { touch: next, title: TOUCH_TITLES[next - 1], dueAt };
+}
 
 export type LeadAlertStage = "fresh" | "enroute" | "past";
 export type LeadStatus = "new" | "contacted" | "done";
@@ -114,7 +157,8 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
  * «هر تغییر وضعیت» هم ردیف می‌گیرد، نه فقط ثبت).
  *
  * قرارداد ران‌بوک: tags=[lead-alert]، title «لید تازه»/«تغییر وضعیت لید» + شناسهٔ کوتاه،
- * و summary آبجکت JSON با کلیدهای lead_id، status، created_at، changed_at، source، tour، preferred_call_time.
+ * و summary آبجکت JSON با کلیدهای lead_id، status، created_at، changed_at، source، tour،
+ * preferred_call_time و next_touch (رشتهٔ JSONِ {touch, due_at} یا «nurture» پس از شش لمس).
  *
  * نام و موبایل مشتری هرگز این‌جا نمی‌آید (نه در title، نه در summary).
  * خطا را هرگز به بالا پرتاب نمی‌کند تا ثبت لید نشکند؛ فقط لاگ می‌زند.
@@ -138,6 +182,10 @@ export async function writeLeadAlertSummary(
   if (input.source) summary.source = input.source;
   if (input.tour) summary.tour = input.tour;
   if (input.preferredCallTime) summary.preferred_call_time = input.preferredCallTime;
+  // کادانس شش‌لمسه: لمس بعدی در هر ردیف (ثبت و تغییر وضعیت) می‌آید تا فروشنده فراموش نکند.
+  const touchesDone = input.status === "new" ? 0 : input.status === "contacted" ? 1 : 6;
+  const nt = nextTouch(input.createdAt, touchesDone);
+  summary.next_touch = nt ? JSON.stringify({ touch: nt.touch, due_at: nt.dueAt }) : "nurture";
 
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/intel_feed`, {
