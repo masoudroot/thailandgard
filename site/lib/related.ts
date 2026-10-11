@@ -19,6 +19,16 @@ export const GUIDE_TO_TOURS: Record<string, InlineLinkBlock> = {
     slugs: ["phuket-7-days", "bangkok-pattaya-8-days", "krabi-6-days"],
     trail: "را ببینید.",
   },
+  "phuket-flight-routes": {
+    lead: "مسیر را انتخاب کردید؛ حالا",
+    slugs: ["phuket-7-days"],
+    trail: "را ببینید.",
+  },
+  "compare-thailand-tours": {
+    lead: "مقایسه را خواندید؛ حالا",
+    slugs: ["phuket-7-days", "bangkok-pattaya-8-days", "samui-7-days", "krabi-6-days"],
+    trail: "را از نزدیک ببینید.",
+  },
   "phuket-vs-samui": {
     lead: "مقایسه را که خواندید، جزئیات",
     slugs: ["phuket-7-days", "samui-7-days"],
