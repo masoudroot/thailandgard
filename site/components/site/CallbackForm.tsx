@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert } from "@/components/ui/alert";
-import { WHATSAPP_LINK } from "@/lib/site";
+import { LoadingDots } from "@/components/animations/loading-dots";
+import { WHATSAPP_LINK, PHONE_MOBILE_LINK } from "@/lib/site";
 
 /**
  * ساعت‌آگاهی (پیشنهاد ۱ لید، ساعت ۱۴): فرم ۲۴ساعته باز است ولی ساعت کاری
@@ -126,12 +127,29 @@ export function CallbackForm({
       </Field>
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
-          {serverError}
+          {serverError} اگر عجله دارید،{" "}
+          <a href={PHONE_MOBILE_LINK} className="underline">
+            مستقیم زنگ بزنید
+          </a>
+          .
         </Alert>
       )}
       <Button type="submit" size="lg" className="w-full" disabled={status === "busy" || !mobileValid}>
         <PhoneCall />
-        {status === "busy" ? "در حال ثبت…" : tourTitle ? `درخواست تماس برای ${tourTitle}` : "درخواست تماس"}
+        {status === "busy" ? (
+          <>
+            در حال ثبت…
+            {/* انحراف از دستور اجرایی (loading-dots + aria-hidden): پراپ aria-hidden در
+                API آیتم رجیستری نیست و کامپایل نمی‌شود؛ نقطه‌های داخلی خود آیتم
+                aria-hidden‌اند و role=status روی wrapper خالی است، پس متن دکمه
+                خوانده می‌شود. اگر ممیزی حکم دیگری داد، برمی‌گردانیم. */}
+            <LoadingDots />
+          </>
+        ) : tourTitle ? (
+          `درخواست تماس برای ${tourTitle}`
+        ) : (
+          "درخواست تماس"
+        )}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
         {outsideHours

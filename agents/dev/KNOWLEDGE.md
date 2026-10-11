@@ -88,3 +88,11 @@
 ## درس ۱۵:۰۵ — ساعت‌آگاهی در کامپوننت کلاینت و رندر استاتیک (۱۴۰۵/۰۷/۱۹)
 - `new Date()` در useState-initializer یا بدنهٔ رندرِ یک کامپوننت `"use client"` باعث می‌شود Next.js صفحهٔ استاتیک را داینامیک ببیند و بیلد با خطای «Route must be fully static» در prerender بشکند (اینجا: CallbackForm در /contact).
 - الگوی سالم: `useState<boolean | null>(null)` + محاسبهٔ ساعت در `useEffect` (فقط کلاینت)؛ نسخهٔ داخل-ساعت-کاری به‌عنوان پیش‌فرض SSR. پیام موفقیت فقط پس از ثبت و روی کلاینت دیده می‌شود، پس تناقضی پیش نمی‌آید.
+
+## درس ۱۶:۰۵ — اجرای دستور اجرایی حالت‌های خاص + لینک داخلی (۱۴۰۵/۰۷/۱۹)
+
+**۱) چه خواندم:** دستور اجرایی design (SPECS/states-exec-2026-10-11-16.md) با ۶ بخش (لودینگ‌داتس رجیستری، کدنویسی منفی error-shake با حکم انحراف ۷، مسیر تلفنی در آلرت سرور، `app/error.tsx` تازه، اسکلت/حالت خالی به‌عنوان الگوی آینده)؛ سند لینک داخلی seocontent (BRIEFS/internal-links-guides-to-tours-2026-10-11-16.md: ۴ دستور `set_paragraphs` از مسیر content-sync)؛ داکس Next.js ۱۶ (`node_modules/next/dist/docs/.../error.md`): پراپ `retry` ترجیحی است، `reset` قدیمی؛ سورس `loading-dots.json` رجیستری (فایل + بلوک css)؛ `site/AGENTS.md` (هشدار Next.js متفاوت از شناخت قبلی).
+
+**۲) چه قانونی درآوردم:** (الف) «دستور اجرایی design ≠ API فریم‌ورک»: وقتی spec پراپ قدیمی می‌گوید (`reset`) و داکس فریم‌ورک جدید را ترجیح می‌دهد (`retry`)، هر دو را بپذیر (prefer داکس) و انحراف را با کامنت + گزارش ثبت کن. (ب) «حالت خالی/اسکلتِ بدون نمونهٔ زنده، کد نمی‌خواهد»: فقط الگو در سند ثبت می‌شود؛ کدی نمی‌نویسیم که روی هیچ صفحه‌ای سوار نیست. (ج) «بایت‌به‌بایت یعنی پراپ تازه هم ممنوع»: دستور `<LoadingDots aria-hidden />` در API آیتم نیست و کامپایل نمی‌شود؛ با کامنت صریح از لفظ spec عدول کردم (نقطه‌های داخلی خود آیتم aria-hidden‌اند) و انحراف را برای ممیزی فاز ۳ گزارش دادم.
+
+**۳) کجا اعمالش کردم:** (الف) ← `site/components/animations/loading-dots.tsx` (کپی بایت‌به‌بایت: diff صفر) + `@keyframes bounce-dot` در `site/app/globals.css` (در CSS بیلدشده تأیید شد). (ب) ← `site/app/error.tsx` تازه (الگوی not-found؛ هر دو پراپ retry/reset). (ج) ← `site/components/site/CallbackForm.tsx`: لودینگ‌داتس در حالت busy + مسیر تلفنی `tel:` در آلرت خطای سرور. (د) ← `agents/design/DESIGN_SYSTEM.md`: قاعدهٔ ۱۲ تکمیل شد (لرزش ممنوع + آلرت سرور تلفنی). (ه) ← ۴ لینک داخلی seocontent از مسیر content-sync اعمال شد (applied:4, failed:0؛ راستی‌آزمایی DB).

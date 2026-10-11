@@ -184,6 +184,16 @@ h1 {
 }
 
 /*
+ * انیمیشن نقاط بارگذاری رجیستری (animations/loading-dots) برای وضعیت busy دکمهٔ فرم.
+ * آیتم بایت‌به‌بایت در site/components/animations/loading-dots.tsx است.
+ * بلوک css آیتم عیناً از رجیستری است؛ هیچ رنگ خامی.
+ */
+@keyframes bounce-dot {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-6px); opacity: 1; }
+}
+
+/*
  * انیمیشن marquee رجیستری (animations/marquee) برای نوار اعلان سراسری.
  * بلوک css آیتم عیناً از رجیستری است؛ فایل کامپوننت هم بایت‌به‌بایت کپی است
  * (site/components/animations/marquee.tsx).
