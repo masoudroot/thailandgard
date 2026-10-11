@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
-import { TOURS, getTour } from "@/lib/tours";
-import { getGuide } from "@/lib/guides";
-import { TOUR_TO_GUIDES } from "@/lib/related";
-import { CONTACT_NAME, CONTACT_TITLE, PHONE_MOBILE_LINK, SITE_URL } from "@/lib/site";
+import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
@@ -23,13 +20,13 @@ import { Separator } from "@/components/ui/separator";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return TOURS.map((tour) => ({ slug: tour.slug }));
+export async function generateStaticParams() {
+  return (await getTours()).map((tour) => ({ slug: tour.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const tour = getTour(slug);
+  const tour = await getTour(slug);
   if (!tour) return { title: "تور پیدا نشد" };
   return {
     title: tour.title,
@@ -44,15 +41,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TourPage({ params }: Props) {
   const { slug } = await params;
-  const tour = getTour(slug);
+  const tour = await getTour(slug);
   if (!tour) notFound();
 
   // لینک‌های داخلی به راهنماهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
-  const guideBlock = TOUR_TO_GUIDES[tour.slug];
+  const [{ tourToGuides }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
+  const guideBlock = tourToGuides[tour.slug];
   const relatedGuides = guideBlock
-    ? guideBlock.slugs
-        .map((s) => getGuide(s))
-        .filter((g): g is NonNullable<typeof g> => g !== undefined)
+    ? (
+        await Promise.all(guideBlock.slugs.map((gs) => getGuide(gs)))
+      ).filter((g): g is NonNullable<typeof g> => g !== undefined)
     : [];
 
   const tripJsonLd = {
@@ -77,7 +75,7 @@ export default async function TourPage({ params }: Props) {
     offers: {
       "@type": "Offer",
       availability: tour.active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      url: `${SITE_URL}/tours/${tour.slug}`,
+      url: `${s.SITE_URL}/tours/${tour.slug}`,
     },
   };
 
@@ -130,7 +128,7 @@ export default async function TourPage({ params }: Props) {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" variant="brand">
-            <a href={PHONE_MOBILE_LINK}>
+            <a href={s.PHONE_MOBILE_LINK}>
               <Phone />
               تماس با کارشناس
             </a>
@@ -262,7 +260,7 @@ export default async function TourPage({ params }: Props) {
               <CardDescription>شماره‌ات را بگذار؛ کارشناس فروش به‌زودی زنگ می‌زند.</CardDescription>
             </CardHeader>
             <CardContent>
-              <CallbackForm tourSlug={tour.slug} tourTitle={tour.shortTitle} />
+              <CallbackForm tourSlug={tour.slug} tourTitle={tour.shortTitle} contactName={s.CONTACT_NAME} />
             </CardContent>
           </Card>
           <Card>
@@ -276,7 +274,7 @@ export default async function TourPage({ params }: Props) {
           </Card>
         </div>
 
-        <ShareButtons title={`${tour.title}؛ تایلندگرد`} path={`/tours/${tour.slug}`} divider />
+        <ShareButtons title={`${tour.title}؛ تایلندگرد`} path={`/tours/${tour.slug}`} siteUrl={s.SITE_URL} divider />
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
@@ -285,11 +283,11 @@ export default async function TourPage({ params }: Props) {
             <p className="text-xs text-muted-foreground">شروع قیمت از</p>
             <Price amount={tour.priceFrom} size="sm" />
             <p className="mt-1 truncate text-xs text-muted-foreground">
-              {CONTACT_NAME}؛ {CONTACT_TITLE}
+              {s.CONTACT_NAME}؛ {s.CONTACT_TITLE}
             </p>
           </div>
           <Button asChild size="lg" variant="brand">
-            <a href={PHONE_MOBILE_LINK}>
+            <a href={s.PHONE_MOBILE_LINK}>
               <Phone />
               تماس
             </a>

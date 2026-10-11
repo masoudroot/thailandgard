@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, BookOpenText, CalendarDays, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GUIDES } from "@/lib/guides";
+import { getGuides } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -18,7 +18,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GuideIndexPage() {
+export default async function GuideIndexPage() {
+  const guides = await getGuides();
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="max-w-2xl">
@@ -34,7 +35,7 @@ export default function GuideIndexPage() {
       </header>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {GUIDES.map((guide) => (
+        {guides.map((guide) => (
           <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block">
             <Card className="flex h-full flex-col transition-colors group-hover:border-brand/60">
               <CardHeader>

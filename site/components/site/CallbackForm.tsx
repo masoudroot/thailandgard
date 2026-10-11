@@ -6,10 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert } from "@/components/ui/alert";
-import { CONTACT_NAME } from "@/lib/site";
 
 /** فرم «درخواست تماس»: نام + موبایل، با اعتبارسنجی ایرانی. */
-export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourTitle?: string }) {
+export function CallbackForm({
+  tourSlug,
+  tourTitle,
+  contactName,
+}: {
+  tourSlug?: string;
+  tourTitle?: string;
+  /** نام کارشناس فروش؛ از تنظیمات سایت (دیتابیس) می‌آید */
+  contactName: string;
+}) {
   const [name, setName] = React.useState("");
   const [mobile, setMobile] = React.useState("");
   const [mobileValid, setMobileValid] = React.useState(false);
@@ -44,7 +52,7 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
   if (status === "done") {
     return (
       <Alert variant="success" title="درخواستتان ثبت شد">
-        {CONTACT_NAME} به‌زودی با همین شماره تماس می‌گیرد. اگر عجله دارید، مستقیم زنگ بزنید.
+        {contactName} به‌زودی با همین شماره تماس می‌گیرد. اگر عجله دارید، مستقیم زنگ بزنید.
       </Alert>
     );
   }
@@ -82,7 +90,7 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
         <PhoneCall />
         {status === "busy" ? "در حال ثبت…" : tourTitle ? `درخواست تماس برای ${tourTitle}` : "درخواست تماس"}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">با ثبت این فرم، {CONTACT_NAME} در اولین فرصت با شما تماس می‌گیرد.</p>
+      <p className="text-center text-xs text-muted-foreground">با ثبت این فرم، {contactName} در اولین فرصت با شما تماس می‌گیرد.</p>
     </form>
   );
 }

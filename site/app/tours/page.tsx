@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TOURS } from "@/lib/tours";
+import { getTours } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 import { TourCard } from "@/components/site/TourCard";
 import { TourBanner } from "@/components/site/TourBanner";
@@ -18,13 +18,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tours" },
 };
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const tours = await getTours();
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <header className="max-w-3xl space-y-4">
         <h1 className="text-3xl md:text-4xl">تورهای تایلند</h1>
         <p className="leading-8 text-muted-foreground">
-          در حال حاضر {fa(TOURS.length)} تور فعال داریم:{" "}
+          در حال حاضر {fa(tours.length)} تور فعال داریم:{" "}
           <Link href="/tours/phuket-7-days" className="underline decoration-brand/60 underline-offset-4">تور پوکت</Link>،{" "}
           <Link href="/tours/bangkok-pattaya-8-days" className="underline decoration-brand/60 underline-offset-4">تور بانکوک و پاتایا</Link>،{" "}
           <Link href="/tours/samui-7-days" className="underline decoration-brand/60 underline-offset-4">تور سامویی</Link> و{" "}
@@ -35,11 +36,11 @@ export default function ToursPage() {
       </header>
 
       <section className="mt-10">
-        <TourBanner tour={TOURS[0]} />
+        <TourBanner tour={tours[0]} />
       </section>
 
       <div className="mt-10 grid gap-6 md:grid-cols-2">
-        {TOURS.map((tour) => (
+        {tours.map((tour) => (
           <TourCard key={tour.slug} tour={tour} />
         ))}
       </div>

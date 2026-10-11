@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Price } from "@/components/ui/price";
 import { fa } from "@/lib/utils";
-import { PHONE_MOBILE_LINK } from "@/lib/site";
+import { getSiteSettings } from "@/lib/db-content";
 import type { Tour } from "@/lib/tours";
 
 /**
  * بنر «منتخب این هفته» برای بالای /tours (قابل استفاده در خانه).
  * پوستر تایپوگرافیک: نام مقصد جای عکس. هیچ تصویری ندارد.
  */
-export function TourBanner({ tour }: { tour: Tour }) {
+export async function TourBanner({ tour }: { tour: Tour }) {
+  const { PHONE_MOBILE_LINK } = await getSiteSettings();
   const titleId = `tour-banner-${tour.slug}`;
   return (
     <Card

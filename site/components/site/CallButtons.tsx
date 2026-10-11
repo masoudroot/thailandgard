@@ -1,19 +1,19 @@
 import { MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  CONTACT_NAME,
-  CONTACT_TITLE,
-  PHONE_CHANNELS_NOTE,
-  PHONE_LANDLINE_DISPLAY,
-  PHONE_LANDLINE_LINK,
-  PHONE_MOBILE_DISPLAY,
-  PHONE_MOBILE_LINK,
-  WHATSAPP_LINK,
-} from "@/lib/site";
+import { getSiteSettings } from "@/lib/db-content";
 
 /** دکمه‌های تماس فروش: موبایل اصلی، ثابت دوم، و واتس‌اپ. */
-export function CallButtons({ compact = false }: { compact?: boolean }) {
+export async function CallButtons({ compact = false }: { compact?: boolean }) {
+  const s = await getSiteSettings();
+  const CONTACT_NAME = s.CONTACT_NAME;
+  const CONTACT_TITLE = s.CONTACT_TITLE;
+  const PHONE_CHANNELS_NOTE = s.PHONE_CHANNELS_NOTE;
+  const PHONE_LANDLINE_DISPLAY = s.PHONE_LANDLINE_DISPLAY;
+  const PHONE_LANDLINE_LINK = s.PHONE_LANDLINE_LINK;
+  const PHONE_MOBILE_DISPLAY = s.PHONE_MOBILE_DISPLAY;
+  const PHONE_MOBILE_LINK = s.PHONE_MOBILE_LINK;
+  const WHATSAPP_LINK = s.WHATSAPP_LINK;
   return (
     <div className={compact ? "flex flex-wrap items-center gap-3" : "grid gap-4 sm:grid-cols-2"}>
       <Button asChild size="lg" className="w-full" variant="brand">

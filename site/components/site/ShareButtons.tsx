@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Check, Copy, MessageCircle, Send, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export interface ShareButtonsProps {
@@ -11,6 +10,8 @@ export interface ShareButtonsProps {
   title: string;
   /** مسیر کانونیکال صفحه، مثل /tours/phuket-7-days */
   path: string;
+  /** آدرس پایهٔ سایت؛ از تنظیمات سایت (دیتابیس) می‌آید */
+  siteUrl: string;
   /** وسط‌چین (هدر پیلار) */
   centered?: boolean;
   /** جداکنندهٔ مویی بالای ردیف (فقط صفحهٔ تور) */
@@ -25,7 +26,7 @@ export interface ShareButtonsProps {
  * بدون وابستگی تازه؛ فقط واریانت‌های موجود دکمهٔ رجیستری (ghost/icon و outline/sm).
  * مبنا: agents/farsiui/COMPARE/share-final-check-2026-10-11-0535.md
  */
-export function ShareButtons({ title, path, centered, divider, className }: ShareButtonsProps) {
+export function ShareButtons({ title, path, siteUrl, centered, divider, className }: ShareButtonsProps) {
   const [nativeShare, setNativeShare] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -33,7 +34,7 @@ export function ShareButtons({ title, path, centered, divider, className }: Shar
     setNativeShare(typeof navigator !== "undefined" && "share" in navigator);
   }, []);
 
-  const url = `${SITE_URL}${path}`;
+  const url = `${siteUrl}${path}`;
   const telegramHref = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
 

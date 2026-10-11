@@ -4,10 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
-import {
-  CONTACT_NAME,
-  CONTACT_TITLE,
-} from "@/lib/site";
+import { getSiteSettings } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -22,7 +19,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const s = await getSiteSettings();
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="max-w-2xl">
@@ -42,8 +40,8 @@ export default function ContactPage() {
           <CardHeader className="border-b border-border bg-muted/40">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold">{CONTACT_NAME}</h2>
-                <CardDescription className="mt-1">{CONTACT_TITLE}</CardDescription>
+                <h2 className="text-xl font-semibold">{s.CONTACT_NAME}</h2>
+                <CardDescription className="mt-1">{s.CONTACT_TITLE}</CardDescription>
               </div>
               <Badge variant="brand">پاسخگوی فروش</Badge>
             </div>
@@ -65,11 +63,11 @@ export default function ContactPage() {
           <CardHeader className="border-b border-border bg-muted/40">
             <h2 className="text-xl font-semibold">درخواست تماس</h2>
             <CardDescription className="leading-7">
-              شماره‌تان را بگذارید، {CONTACT_NAME} در اولین فرصت زنگ می‌زند.
+              شماره‌تان را بگذارید، {s.CONTACT_NAME} در اولین فرصت زنگ می‌زند.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CallbackForm />
+            <CallbackForm contactName={s.CONTACT_NAME} />
           </CardContent>
         </Card>
       </div>

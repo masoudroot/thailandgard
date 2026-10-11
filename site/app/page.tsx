@@ -13,20 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TOURS } from "@/lib/tours";
-import {
-  CONTACT_NAME,
-  CONTACT_TITLE,
-  PHONE_CHANNELS_NOTE,
-  PHONE_LANDLINE_DISPLAY,
-  PHONE_LANDLINE_LINK,
-  PHONE_MOBILE_DISPLAY,
-  PHONE_MOBILE_LINK,
-  SITE_NAME,
-  SITE_SLOGAN,
-  SITE_URL,
-} from "@/lib/site";
-import { GUIDES } from "@/lib/guides";
+import { getTours, getGuides, getSiteSettings } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -66,18 +53,19 @@ const WHY_US = [
   },
 ];
 
-const featuredTours = TOURS.slice(0, 3);
+export default async function HomePage() {
+  const [tours, guides, s] = await Promise.all([getTours(), getGuides(), getSiteSettings()]);
+  const featuredTours = tours.slice(0, 3);
 
-export default function HomePage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `${SITE_NAME} | ${SITE_SLOGAN}`,
-    itemListElement: TOURS.map((tour, index) => ({
+    name: `${s.SITE_NAME} | ${s.SITE_SLOGAN}`,
+    itemListElement: tours.map((tour, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: tour.title,
-      url: `${SITE_URL}/tours/${tour.slug}`,
+      url: `${s.SITE_URL}/tours/${tour.slug}`,
     })),
   };
 
@@ -92,15 +80,15 @@ export default function HomePage() {
         badge="فقط تور تایلند"
         title={
           <>
-            {SITE_NAME}
+            {s.SITE_NAME}
             <br />
             <Badge variant="brand" className="rounded-xl px-3 py-1.5 text-base">
-              {SITE_SLOGAN}
+              {s.SITE_SLOGAN}
             </Badge>
           </>
         }
         description="سفر به تایلند را با مشاورهٔ تلفنی کارشناس مقصد شروع کن. ما فروش آنلاین نداریم؛ رزرو فقط با یک تماس انجام می‌شود."
-        primary={{ label: `تماس با ${CONTACT_NAME}`, href: PHONE_MOBILE_LINK }}
+        primary={{ label: `تماس با ${s.CONTACT_NAME}`, href: s.PHONE_MOBILE_LINK }}
         secondary={{ label: "دیدن تورها", href: "/tours" }}
       />
 
@@ -173,7 +161,7 @@ export default function HomePage() {
           </Button>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {GUIDES.map((guide) => (
+          {guides.map((guide) => (
             <Link key={guide.slug} href={`/guide/${guide.slug}`} className="block h-full">
               <Card className="flex h-full flex-col">
                 <CardHeader>
@@ -203,35 +191,35 @@ export default function HomePage() {
               برای رزرو، فقط کافی است زنگ بزنی
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              {CONTACT_NAME}، {CONTACT_TITLE.toLowerCase()}، خودش پاسخ‌گوی توست؛
+              {s.CONTACT_NAME}، {s.CONTACT_TITLE.toLowerCase()}، خودش پاسخ‌گوی توست؛
               از انتخاب تور تا روز پرواز.
             </p>
           </div>
           <CardContent className="px-6 py-8 sm:px-10">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-lg font-bold">{CONTACT_NAME}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{CONTACT_TITLE}</p>
+              <p className="text-lg font-bold">{s.CONTACT_NAME}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{s.CONTACT_TITLE}</p>
               <div className="mt-4 space-y-2 text-sm">
                 <p>
                   <span className="text-muted-foreground">موبایل اصلی: </span>
                   <a
-                    href={PHONE_MOBILE_LINK}
+                    href={s.PHONE_MOBILE_LINK}
                     className="font-semibold underline underline-offset-4"
                   >
-                    <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
+                    <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span>
                   </a>
                 </p>
                 <p>
                   <span className="text-muted-foreground">تلفن ثابت: </span>
                   <a
-                    href={PHONE_LANDLINE_LINK}
+                    href={s.PHONE_LANDLINE_LINK}
                     className="font-semibold underline underline-offset-4"
                   >
-                    <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
+                    <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span>
                   </a>
                 </p>
                 <p className="text-muted-foreground">
-                  {PHONE_CHANNELS_NOTE} | شنبه تا پنجشنبه، ۹ صبح تا ۹ شب
+                  {s.PHONE_CHANNELS_NOTE} | شنبه تا پنجشنبه، ۹ صبح تا ۹ شب
                 </p>
               </div>
             </div>

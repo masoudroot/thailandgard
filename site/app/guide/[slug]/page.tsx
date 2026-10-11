@@ -8,22 +8,19 @@ import { CallButtons } from "@/components/site/CallButtons";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
-import { GUIDES, getGuide } from "@/lib/guides";
-import { getTour } from "@/lib/tours";
-import { GUIDE_TO_TOURS } from "@/lib/related";
-import { SITE_URL } from "@/lib/site";
+import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return GUIDES.map((guide) => ({ slug: guide.slug }));
+export async function generateStaticParams() {
+  return (await getGuides()).map((guide) => ({ slug: guide.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const guide = getGuide(slug);
+  const guide = await getGuide(slug);
   if (!guide) return { title: "راهنما پیدا نشد" };
   return {
     title: guide.title,
@@ -38,15 +35,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function GuideDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const guide = getGuide(slug);
+  const guide = await getGuide(slug);
   if (!guide) notFound();
 
   // لینک‌های داخلی به تورهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
-  const relatedBlock = GUIDE_TO_TOURS[guide.slug];
+  const [{ guideToTours }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
+  const relatedBlock = guideToTours[guide.slug];
   const relatedTours = relatedBlock
-    ? relatedBlock.slugs
-        .map((s) => getTour(s))
-        .filter((t): t is NonNullable<typeof t> => t !== undefined)
+    ? (
+        await Promise.all(relatedBlock.slugs.map((ts) => getTour(ts)))
+      ).filter((t): t is NonNullable<typeof t> => t !== undefined)
     : [];
 
   const jsonLd = {
@@ -57,8 +55,8 @@ export default async function GuideDetailPage({ params }: PageProps) {
         headline: guide.title,
         description: guide.excerpt,
         inLanguage: "fa",
-        url: `${SITE_URL}/guide/${guide.slug}`,
-        mainEntityOfPage: `${SITE_URL}/guide/${guide.slug}`,
+        url: `${s.SITE_URL}/guide/${guide.slug}`,
+        mainEntityOfPage: `${s.SITE_URL}/guide/${guide.slug}`,
       },
       {
         "@type": "FAQPage",
@@ -67,6 +65,14 @@ export default async function GuideDetailPage({ params }: PageProps) {
           name: faq.question,
           acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(faq.answer) },
         })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "خانه", item: `${s.SITE_URL}/` },
+          { "@type": "ListItem", position: 2, name: "راهنمای سفر", item: `${s.SITE_URL}/guide` },
+          { "@type": "ListItem", position: 3, name: guide.title, item: `${s.SITE_URL}/guide/${guide.slug}` },
+        ],
       },
     ],
   };
@@ -90,7 +96,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           description={guide.excerpt}
           readingMinutes={guide.readingMinutes}
           updatedFa={guide.updatedFa}
-          share={<ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} centered />}
+          share={<ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} centered />}
         />
       ) : (
         <header className="mt-6">
@@ -107,7 +113,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           </div>
           <h1 className="mt-4 text-4xl leading-snug">{guide.title}</h1>
           <p className="mt-4 text-lg leading-9">{guide.excerpt}</p>
-          <ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} className="mt-4" />
+          <ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
         </header>
       )}
 

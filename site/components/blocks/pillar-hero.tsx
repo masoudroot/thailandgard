@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { CalendarDays, Clock, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PHONE_MOBILE_LINK } from "@/lib/site";
+import { getSiteSettings } from "@/lib/db-content";
 import { fa } from "@/lib/utils";
 
 export interface PillarHeroProps {
@@ -22,7 +22,8 @@ export interface PillarHeroProps {
  * (pt-10/sm:pt-14 تا هر دو CTA بالای تا دیده شوند)، خط متا
  * «لیبل اول، عدد بعد» طبق قانون راست‌چین عدد و لیبل.
  */
-export function PillarHero({ badge, title, description, readingMinutes, updatedFa, share }: PillarHeroProps) {
+export async function PillarHero({ badge, title, description, readingMinutes, updatedFa, share }: PillarHeroProps) {
+  const { PHONE_MOBILE_LINK } = await getSiteSettings();
   return (
     <section className="relative overflow-hidden px-6 pb-8 pt-10 text-center sm:pb-10 sm:pt-14">
       <div className="relative mx-auto max-w-3xl">
