@@ -16,8 +16,9 @@ export interface HeroBlockProps {
 
 /**
  * هیرو. Centered headline block with two actions and optional social proof,
- * followed by a single real destination photo as a calm frame
+ * followed by a temporary destination photo (موقت) as a calm frame
  * (quiet-luxury brief, 19 Mehr 1405; photo: Phang Nga Bay sunset, WebP).
+ * ثبت منشأ: public/images/hero-phuket-sunset.webp ← موقت (تا سند عکس واقعی از مدیر برسد).
  *
  * The photo is dark and the theme is light, so it sits below the text as a
  * framed panel (restaurant-site registry precedent) instead of full-bleed:

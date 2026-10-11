@@ -11,8 +11,7 @@ import { TourCard } from "@/components/site/TourCard";
 import { MobileOctoberBar } from "@/components/site/MobileOctoberBar";
 import { OctoberTimeline } from "@/components/site/OctoberTimeline";
 import { getTour, getSiteSettings } from "@/lib/db-content";
-import { SITE_URL } from "@/lib/site";
-import { defaultOgImages } from "@/lib/og";
+import { pageSeo } from "@/lib/og";
 
 /**
  * لندینگ فصلی «پوکت؛ نیمهٔ دوم اکتبر»؛ مسیر /phuket-october
@@ -22,20 +21,14 @@ import { defaultOgImages } from "@/lib/og";
  * بازبینی کلی محتوا ۱۵ آبان ۱۴۰۵ (مالک تقویم: تیم محتوا).
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   // حکم مدیر ۱۲:۴۰ (نوبت دوم ساعت ۱۲): عنوان سؤالی ← «؟ | تایلندگرد» (قرارداد سراسری سایت)
-  title: { absolute: "تور پوکت در اکتبر؛ الان برویم یا صبر کنیم؟ | تایلندگرد" },
+  title: "تور پوکت در اکتبر؛ الان برویم یا صبر کنیم؟ | تایلندگرد",
   description:
     "تور پوکت در نیمهٔ دوم اکتبر؛ جشنوارهٔ گیاه‌خواران (۱۰ تا ۱۸ اکتبر)، بازگشایی سیمیلان (۱۵ اکتبر) و پرواز مستقیم (۱۸ اکتبر). پنجرهٔ سفر را با تایلندگرد ببینید.",
-  alternates: { canonical: "/phuket-october" },
-  openGraph: {
-    title: "تور پوکت در اکتبر؛ الان برویم یا صبر کنیم؟ | تایلندگرد",
-    description:
-      "تور پوکت در نیمهٔ دوم اکتبر؛ جشنوارهٔ گیاه‌خواران (۱۰ تا ۱۸ اکتبر)، بازگشایی سیمیلان (۱۵ اکتبر) و پرواز مستقیم (۱۸ اکتبر). پنجرهٔ سفر را با تایلندگرد ببینید.",
-    type: "article",
-    images: defaultOgImages(SITE_URL),
-  },
-};
+  canonical: "/phuket-october",
+  type: "article",
+});
 
 const WHY_NOW = [
   {
@@ -116,13 +109,13 @@ export default async function PhuketOctoberPage() {
       {/* سکشن ۱: هیرو ← blocks/hero + حکم ۶ (خالی‌شده: بدون proof و گرید پس‌زمینه) */}
       <section className="px-6 pt-14 text-center sm:pt-20">
         <div className="mx-auto max-w-3xl">
-          <Badge variant="brand">تقویم رویدادهای نیمهٔ دوم اکتبر</Badge>
+          <Badge variant="brand">رویدادهای تقویمی پوکت</Badge>
           <h1 className="mt-5 font-display text-4xl font-bold leading-tight">
             پوکت؛ نیمهٔ دوم اکتبر
           </h1>
           {/* زیرتیتر موقت تا بازبینی ۲۱:۰۰ تیم محتوا */}
           <p className="mx-auto mt-5 max-w-xl leading-8 text-muted-foreground">
-            ۱۰ تا ۱۸ اکتبر: جشنوارهٔ گیاه‌خواران، بازگشایی سیمیلان، پرواز مستقیم هیترو
+            ۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر): جشنوارهٔ گیاه‌خواران، بازگشایی سیمیلان، پرواز مستقیم هیترو
           </p>
           <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
             <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:scale-[0.98]">
@@ -222,7 +215,9 @@ export default async function PhuketOctoberPage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-xs leading-6 text-muted-foreground">
+                {/* گاردریل فاصلهٔ خط کنسلی (نقد ۲ artdir، ۱۳:۰۵): جداکنندهٔ مویی + دست‌کم mt-6 بالای خط */}
+                <Separator className="mt-5 mb-6" />
+                <p className="text-xs leading-6 text-muted-foreground">
                   تور چارتر و غیرقابل کنسلی است
                 </p>
 

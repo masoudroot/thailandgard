@@ -15,24 +15,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getTours, getGuides, getSiteSettings } from "@/lib/db-content";
-import { SITE_URL } from "@/lib/site";
-import { defaultOgImages } from "@/lib/og";
+import { pageSeo } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: {
-    absolute: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
-  },
+export const metadata: Metadata = pageSeo({
+  title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
   description:
     "تور تایلند تخصصی از تهران؛ پوکت، بانکوک، سامویی و کرابی با لیدر فارسی‌زبان و مشاورهٔ تلفنی. همین حالا تماس بگیر؛ رزرو فقط تلفنی است.",
-  openGraph: {
-    title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
-    description:
-      "تور تایلند تخصصی از تهران؛ پوکت، بانکوک، سامویی و کرابی با لیدر فارسی‌زبان و مشاورهٔ تلفنی. همین حالا تماس بگیر؛ رزرو فقط تلفنی است.",
-    images: defaultOgImages(SITE_URL),
-  },
-  alternates: { canonical: "/" },
-};
+  canonical: "/",
+});
 
 const WHY_US = [
   {

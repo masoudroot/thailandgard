@@ -121,6 +121,22 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * انیمیشن blur-text رجیستری (animations/blur-text) برای تیتر هیروی خانه.
+ * آیتم بایت‌به‌بایت در site/components/animations/blur-text.tsx است.
+ * mount هیرو بعد از پایان کمپین (۱۸ اکتبر ۱۴۰۵)؛ تا آن روز فقط زیرساخت.
+ * بلوک css آیتم عیناً از رجیستری است؛ هیچ رنگ خامی.
+ */
+@keyframes blur-in {
+  from { opacity: 0; filter: blur(10px); transform: translateY(6px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+/* شکاف آیتم (قید artdir قدم ۵): خود رجیستری reduced-motion ندارد؛ پس این‌جا صفرش می‌کنیم. */
+@media (prefers-reduced-motion: reduce) {
+  .blur-text span { animation: none; opacity: 1; filter: none; transform: none; }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
