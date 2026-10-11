@@ -106,14 +106,14 @@ export default async function GuideDetailPage({ params }: PageProps) {
             </span>
           </div>
           <h1 className="mt-4 text-4xl leading-snug">{guide.title}</h1>
-          <p className="mt-4 text-lg leading-9 text-muted-foreground">{guide.excerpt}</p>
+          <p className="mt-4 text-lg leading-9">{guide.excerpt}</p>
           <ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} className="mt-4" />
         </header>
       )}
 
       {guide.sections.map((section) => (
         <section key={section.heading} className="mt-10">
-          <h2 className="text-2xl font-bold">{section.heading}</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">{section.heading}</h2>
           <div className="mt-4 space-y-4">
             {section.paragraphs.map((paragraph, i) => (
               <p key={i} className="leading-8 text-foreground/90">
@@ -126,7 +126,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
 
       {relatedTours.length > 0 && relatedBlock && (
         <section className="mt-10 rounded-surface border border-border bg-card p-6">
-          <h2 className="text-xl font-bold">قدم بعدی</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">قدم بعدی</h2>
           <p className="mt-3 leading-8 text-foreground/90">
             {relatedBlock.lead}{" "}
             {relatedTours.map((t, i) => (
@@ -154,7 +154,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       </div>
 
       <section id="callback" className="mt-4 rounded-surface border border-border bg-card p-6 sm:p-8">
-        <h2 className="text-xl font-bold">سؤالی داری؟</h2>
+        <h2 className="text-2xl font-bold sm:text-3xl">سؤالی داری؟</h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
           راهنما همه‌چیز را نگفت؟ کارشناس فروش ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و
           دقیقاً برای سفر خودت مشاوره بگیر.

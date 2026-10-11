@@ -7,7 +7,6 @@ import { CallbackForm } from "@/components/site/CallbackForm";
 import {
   CONTACT_NAME,
   CONTACT_TITLE,
-  PHONE_CHANNELS_NOTE,
 } from "@/lib/site";
 import { fa } from "@/lib/utils";
 
@@ -53,7 +52,7 @@ export default function ContactPage() {
             <CallButtons compact />
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <MessageCircle className="size-4" />
-              روی هر دو شماره {PHONE_CHANNELS_NOTE} فعال است؛ پیام بده، جواب می‌گیری.
+              واتس‌اپ و بله روی موبایل فعال است؛ پیام بده، جواب می‌گیری. با شمارهٔ ثابت هم می‌توانی زنگ بزنی.
             </p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="size-4" />

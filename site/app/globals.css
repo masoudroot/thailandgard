@@ -102,6 +102,19 @@
   --spacing-sticky-bar-clearance: var(--sticky-bar-clearance);
   --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-pinar), var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+
+  /* حرکت اسکلت: sweep براقیت راست‌به‌چپ + نبض نرم (زیر prefers-reduced-motion صفر می‌شوند) */
+  --animate-shine: shine 2.2s linear infinite;
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+
+  @keyframes shine {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
 }
 
 html {

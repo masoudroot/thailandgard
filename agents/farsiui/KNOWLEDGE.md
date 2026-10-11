@@ -61,3 +61,22 @@ TanStack Table را نشان می‌دهد. جدول مقایسهٔ ما مات�
 تعاملی، پس TanStack توجیه ندارد؛ راست‌چین با رفتار بومی `<table>` در `dir="rtl"` حل
 می‌شود. حکم: محلی می‌ماند، هیچ وامی نمی‌گیریم. قرارداد نمایشی قابل برداشت از راهنما:
 ارقام فارسی (`Intl.NumberFormat("fa-IR")`) و `text-end` برای سلول‌های عددی.
+
+### اجرای ۰۶ (۱۴۰۵/۰۷/۱۹)؛ مقایسهٔ آکاردئون
+
+**منابع:** سورس `site/components/ui/accordion.tsx` و مصرف‌کننده‌ها
+(`tours/[slug]` خط ۱۷۹، `FaqBlock`)؛ سورس `apps/v4/registry/bases/radix/ui/accordion.tsx`
+(کامیت `0cfba181`) و داک https://github.com/miladjoodi/farsiui/blob/HEAD/apps/v4/content/docs/components/radix/accordion.mdx
+
+- کامپوننت `accordion` رجیستری radix: روت با `dir="rtl"` پیش‌فرض، chevron در ابتدای خط
+  (راست) با کامنت صریح، تعویض آیکون ChevronDown به ChevronUp هنگام باز شدن
+  (نه چرخش)، انیمیشن با `--radix-accordion-content-height`، مدل کامل دسترس‌پذیری
+  رادیکس (جهت‌نما/Home/End، آیتم disabled، data-state). نصب: `npx farsiui@latest add accordion`
+  + وابستگی `radix-ui`.
+- حکم: آکاردئون محلی می‌ماند. سه دلیل: نیاز واقعی (FAQ + برنامهٔ روزبه‌روز) پوشش داده
+  شده؛ مهاجرت هزینه دارد (radix-ui + بازنویسی ۳ مصرف + بازتوکن‌نگاری cn-*) بدون سود
+  محصولی؛ API داده‌محور ما با `tours.ts`/`guides.ts` جفت است.
+- وام‌های ثبت‌شده برای dev: افزودن `disabled` به آیتم (استایل `disabled:pointer-events-none
+  disabled:opacity-50`)؛ تصمیم جای chevron (ابتدای خط در برابر انتهای خط) به artdir/design
+  ارجاع شد. وام نگیر: توکن‌های cn-*، تعویض آیکون، `dir="rtl"` تکی.
+- سند کامل: `agents/farsiui/COMPARE/accordion-compare-2026-10-11-06.md`

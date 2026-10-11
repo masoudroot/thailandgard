@@ -4,7 +4,13 @@ import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface AccordionItem { id: string; title: React.ReactNode; content: React.ReactNode }
+export interface AccordionItem {
+  id: string;
+  title: React.ReactNode;
+  content: React.ReactNode;
+  /** آیتم غیرفعال: باز نمی‌شود و کم‌رنگ است (مثلاً آیتم «به‌زودی» در FAQ). */
+  disabled?: boolean;
+}
 
 export interface AccordionProps {
   items: AccordionItem[];
@@ -31,8 +37,9 @@ export function Accordion({ items, multiple, defaultOpen = [], className }: Acco
                 type="button"
                 aria-expanded={isOpen}
                 aria-controls={`acc-${it.id}`}
+                disabled={it.disabled}
                 onClick={() => toggle(it.id)}
-                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-start text-sm font-medium transition-colors hover:bg-accent/40"
+                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-start text-sm font-medium transition-colors hover:bg-accent/40 disabled:pointer-events-none disabled:opacity-50"
               >
                 {it.title}
                 <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />

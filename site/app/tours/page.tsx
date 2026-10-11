@@ -3,6 +3,7 @@ import Link from "next/link";
 import { TOURS } from "@/lib/tours";
 import { fa } from "@/lib/utils";
 import { TourCard } from "@/components/site/TourCard";
+import { TourBanner } from "@/components/site/TourBanner";
 import { CallButtons } from "@/components/site/CallButtons";
 
 export const metadata: Metadata = {
@@ -32,6 +33,10 @@ export default function ToursPage() {
           رزرو هم فقط با تماس تلفنی انجام می‌شود؛ پرداخت آنلاین نداریم.
         </p>
       </header>
+
+      <section className="mt-10">
+        <TourBanner tour={TOURS[0]} />
+      </section>
 
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         {TOURS.map((tour) => (

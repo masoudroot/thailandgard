@@ -17,7 +17,7 @@ export const PHONE_MOBILE_DISPLAY = "۰۹۱۲ ۰۶۴ ۳۱۱۲";
 export const PHONE_MOBILE_LINK = "tel:+989120643112";
 export const WHATSAPP_LINK = "https://wa.me/989120643112";
 
-/** تلفن ثابت دوم فروش (واتس‌اپ و بله هم روی همین شماره است) */
+/** تلفن ثابت دوم فروش (فقط تماس تلفنی) */
 export const PHONE_LANDLINE = "02633350139";
 export const PHONE_LANDLINE_DISPLAY = "۰۲۶ ۳۳۳ ۵۰۱۳۹";
 export const PHONE_LANDLINE_LINK = "tel:+982633350139";

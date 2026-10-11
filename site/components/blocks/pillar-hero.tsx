@@ -28,7 +28,7 @@ export function PillarHero({ badge, title, description, readingMinutes, updatedF
       <div className="relative mx-auto max-w-3xl">
         <Badge variant="brand">{badge}</Badge>
         <h1 className="mt-5 text-4xl leading-tight sm:text-5xl">{title}</h1>
-        <p className="mx-auto mt-5 max-w-xl leading-9 text-muted-foreground sm:text-lg">{description}</p>
+        <p className="mx-auto mt-5 max-w-xl leading-9 sm:text-lg">{description}</p>
         {share ? <div className="mt-4 flex justify-center">{share}</div> : null}
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           <Button asChild size="lg" variant="brand" className="rounded-full">
