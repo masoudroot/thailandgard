@@ -8,6 +8,7 @@ import { CallButtons } from "@/components/site/CallButtons";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
+import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
 import { defaultOgImages } from "@/lib/og";
@@ -15,6 +16,35 @@ import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 
 type PageProps = { params: Promise<{ slug: string }> };
+
+/**
+ * قدم‌های ویزا (بریف ۲ artdir، ساعت ۱۴)؛ پیش‌نویس طراحی، متن نهایی با تیم محتواست.
+ * به‌صورت prop به StepsBlock داده می‌شود تا مالکیت متن با محتوا بماند.
+ * TDAC با ایزولهٔ U+2066/U+2069 رندر می‌شود (قانون رشته‌های مختلط design-rules).
+ */
+const VISA_STEPS: Step[] = [
+  {
+    title: "مدارک را آماده کنید",
+    description: "گذرنامه، عکس، واچر هتل، بلیت رفت‌وبرگشت و گردش حساب را آماده و باکیفیت اسکن کنید.",
+  },
+  {
+    title: "درخواست را آنلاین ثبت کنید",
+    description: "در سامانهٔ آنلاین ویزا حساب بسازید، فرم را پر کنید و مدارک را بارگذاری کنید؛ گذرنامه پیش خودتان می‌ماند.",
+  },
+  {
+    title: "کارت ورود دیجیتال را ثبت کنید",
+    description: `در ${fa(72)} ساعت پیش از پرواز، \u2066TDAC\u2069 را از درگاه رسمی ثبت کنید و کد QR را ذخیره کنید.`,
+  },
+  {
+    title: "از مهاجرت رد شوید",
+    description: "در فرودگاه از باجهٔ افسر مهاجرت رد شوید و به سالن برداشت چمدان بروید.",
+  },
+];
+
+/** بخش «قدم‌به‌قدم» راهنمای ویزا با StepsBlock رندر می‌شود، نه پاراگرافی. */
+function isVisaStepsSection(slug: string, heading: string): boolean {
+  return slug === "thailand-visa-guide" && heading.includes("قدم‌به‌قدم");
+}
 
 export async function generateStaticParams() {
   return (await getGuides()).map((guide) => ({ slug: guide.slug }));
@@ -123,18 +153,22 @@ export default async function GuideDetailPage({ params }: PageProps) {
         </header>
       )}
 
-      {guide.sections.map((section) => (
-        <section key={section.heading} className="mt-10">
-          <h2 className="text-2xl font-bold sm:text-3xl">{section.heading}</h2>
-          <div className="mt-4 space-y-4">
-            {section.paragraphs.map((paragraph, i) => (
-              <p key={i} className="leading-8 text-foreground/90">
-                {renderInlineLinks(paragraph)}
-              </p>
-            ))}
-          </div>
-        </section>
-      ))}
+      {guide.sections.map((section) =>
+        isVisaStepsSection(guide.slug, section.heading) ? (
+          <StepsBlock key={section.heading} title={section.heading} steps={VISA_STEPS} />
+        ) : (
+          <section key={section.heading} className="mt-10">
+            <h2 className="text-2xl font-bold sm:text-3xl">{section.heading}</h2>
+            <div className="mt-4 space-y-4">
+              {section.paragraphs.map((paragraph, i) => (
+                <p key={i} className="leading-8 text-foreground/90">
+                  {renderInlineLinks(paragraph)}
+                </p>
+              ))}
+            </div>
+          </section>
+        )
+      )}
 
       {relatedTours.length > 0 && relatedBlock && (
         <section className="mt-10 rounded-surface border border-border bg-card p-6">

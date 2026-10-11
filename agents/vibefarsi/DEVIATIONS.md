@@ -27,3 +27,20 @@
 - `dir="ltr"` روی شماره‌های فارسی (`۰۹۱۲...`): طبق قواعد، عدد لاتین‌نما در متن راست‌چین همین‌طور نشان داده می‌شود.
 - `Badge variant="brand"` به شکل `bg-brand/15` + `text-brand-foreground`: همان الگوی مجاز «فیل/هایلایت کوچک + متن brand-foreground».
 - کپی محلی به‌جای نصب فارسی‌یوآی: حکم مشترک دو تیم (۱۴۰۵/۰۷/۱۸)؛ تطابق تم، صفر وابستگی، هزینهٔ صفر.
+
+## بستهٔ هندآف ۱۴:۰۵ (۱۴۰۵/۰۷/۱۹)؛ پیاده‌سازی dev فاز ۴
+
+| کجا | چه انحرافی | دلیل فنی |
+|---|---|---|
+| `site/components/site/AnnouncementMarquee.tsx` (از `animations/marquee`) | `hover:[animation-play-state:paused]` با سلکتور `[data-marquee-track]:hover > div > div` در `globals.css` پیاده شد، نه کلاس روی div میانی آیتم | فایل کپی‌شدهٔ آیتم بایت‌به‌بایت مانده (قانون diff صفر)؛ رفتار روی wrapper کامپوننت سفارشی اعمال می‌شود (تأیید ممیزی ۱۴:۰۵، ردیف ۱) |
+| `site/components/site/AnnouncementMarquee.tsx` | مدیاکوئری `prefers-reduced-motion` با سلکتور `[data-marquee-track] > div > div { animation: none !important }` در `globals.css` | همان دلیل بالا؛ لازم‌الاجرا (قانون «حرکت» design-rules؛ ردیف ۲ ممیزی). قید ellipsis بریف هم منتفی است چون ساختار `w-max` آیتم تک‌خطِ پیوسته است (ردیف ۳) |
+| `site/components/site/AnnouncementMarquee.tsx` | زمینهٔ `bg-background` به‌جای `bg-paper` هندآف | توکن `paper` در تم graphite-soft وجود ندارد (کلاس ناشناخته هیچ CSS تولید نمی‌کرد)؛ `bg-background` همان سطح کاغذی تم است و توکن‌محور می‌ماند |
+| `site/components/blocks/steps-block.tsx` (از `blocks/steps`) | گرید `md:grid-cols-2 lg:grid-cols-4` به‌جای `md:grid-cols-3` | بریف ۴ قدم دارد و آیتم برای ۳ قدم ساخته شده (ردیف ۴ ممیزی؛ تأیید design) |
+| `site/components/blocks/steps-block.tsx` | خط نقطه‌چین از `md:block` به `lg:block` | دستور اصلاح ۱ farsiui: در md چیدمان ۲×۲ است و خط فقط ردیف اول را وصل می‌کرد؛ خط فقط وقتی دیده می‌شود که هر ۴ قدم یک ردیفند |
+| `site/components/blocks/steps-block.tsx` | `eyebrow` استفاده نشده (فقط `title`) | لازم‌الاجرا: آیتم eyebrow را با `text-brand` رندر می‌کند = نقض قانون مصرف برند مدیر (ردیف ۵ ممیزی) |
+| `site/components/blocks/steps-block.tsx` | افزودن `import type * as React from "react"` در خط ۱ | تطبیق کامپایل: `React.ComponentType` در اینترفیس آیتم بدون ایمپورت در ماجول TS خطای TS2686 می‌داد؛ ایمپورت تایپ‌اونلی است و هیچ اثر ران‌تایمی ندارد |
+| `site/components/blocks/cta.tsx` (از `blocks/cta`) | آیکون `Phone` به‌جای `ArrowLeft` | معنای درست دکمهٔ تماس در RTL (ردیف ۶ ممیزی + تأیید صریح farsiui)؛ از همان `lucide-react` وابستگیِ اعلام‌شدهٔ آیتم |
+| `site/components/blocks/cta.tsx` | `action` از `string` به `React.ReactNode` + افزودن `actionHref?: string` | دستور اصلاح ۲ farsiui: شمارهٔ داخل دکمه باید `dir="ltr"` بگیرد؛ بدون ReactNode ممکن نبود. `actionHref` لینک واقعی دکمه (مثل `tel:`) را می‌دهد؛ بدون آن رفتار عین آیتم است |
+| `site/components/blocks/cta.tsx` | دکمه `w-full sm:w-auto` | حکم بریف ۳: در موبایل تمام‌عرض |
+| `site/app/tours/page.tsx` | بخش دستی «هنوز تصمیم نگرفته‌اید؟» با `<CtaBlock>` جایگزین شد (تصمیم معماری، نه انحراف از آیتم) | حکم مدیر: یک مسیر تماس؛ دو باند تماس پشت سر هم ممنوع (ردیف ۷ ممیزی) |
+| `site/app/guide/[slug]/page.tsx` | بخش «مراحل گرفتن ویزای تایلند، قدم‌به‌قدم» با `<StepsBlock>` رندر می‌شود؛ تطبیق heading با `includes("قدم‌به‌قدم")` | محتوای راهنما از DB می‌آید (اولویت بر `guides.ts`) و عنوان ممکن است ویرایش شود؛ تطبیق مقاوم از گم‌شدن بلوک جلوگیری می‌کند. TDAC در قدم ۳ با ایزولهٔ U+2066/U+2069 داخل رشته (قانون رشته‌های مختلط) |

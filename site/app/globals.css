@@ -182,3 +182,28 @@ h1 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * انیمیشن marquee رجیستری (animations/marquee) برای نوار اعلان سراسری.
+ * بلوک css آیتم عیناً از رجیستری است؛ فایل کامپوننت هم بایت‌به‌بایت کپی است
+ * (site/components/animations/marquee.tsx).
+ * توقف با هاور و احترام به prefers-reduced-motion روی wrapper با
+ * data-marquee-track پیاده شده تا فایل کپی‌شدهٔ آیتم دست نخورده بماند
+ * (انحراف‌های مستند بریف ۱، تأییدشده در ممیزی وایب‌فارسی ۱۴:۰۵).
+ */
+@keyframes marquee {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+/* توقف نوار با هاور: div میانی آیتم (همان که animation اینلاین دارد). */
+[data-marquee-track]:hover > div > div {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-marquee-track] > div > div {
+    animation: none !important;
+  }
+}
+

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTours } from "@/lib/db-content";
+import { getTours, getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
 import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { TourCard } from "@/components/site/TourCard";
 import { TourBanner } from "@/components/site/TourBanner";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
-import { CallButtons } from "@/components/site/CallButtons";
+import { CtaBlock } from "@/components/blocks/cta";
 
 export const metadata: Metadata = {
   title: "تورهای تایلند؛ مقایسه و انتخاب تور",
@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 
 export default async function ToursPage() {
   const tours = await getTours();
+  const s = await getSiteSettings();
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <header className="max-w-3xl space-y-4">
@@ -54,16 +55,15 @@ export default async function ToursPage() {
         <SeasonBanner />
       </div>
 
-      <section className="mt-16 rounded-xl border border-border bg-card p-6 md:p-8">
-        <h2 className="text-2xl font-bold sm:text-3xl">هنوز تصمیم نگرفته‌اید؟</h2>
-        <p className="mt-2 leading-8 text-muted-foreground">
-          بگویید دنبال چه سفری هستید؛ کارشناس فروشمان که خودش تایلند را خوب می‌شناسد،
-          بهترین گزینه را با توجه به بودجه و سلیقه‌تان پیشنهاد می‌دهد.
-        </p>
-        <div className="mt-5">
-          <CallButtons compact />
-        </div>
-      </section>
+      {/* باند CTA پایانی (بریف ۳ artdir): جایگزین بخش دستی «هنوز تصمیم نگرفته‌اید؟»؛
+          حکم مدیر: فقط یک مسیر تماس. کپی نهایی با تیم محتواست؛ شماره فعلاً موقت. */}
+      <CtaBlock
+        title="با کارشناس حرف بزنید"
+        description="تور موردنظرتان را پیدا نکردید؟ بگویید چه می‌خواهید، ما می‌چینیم"
+        action={<span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span>}
+        actionHref={s.PHONE_MOBILE_LINK}
+        note="زمان ترجیحی تماس را شما می‌گویید"
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
 import { Navbar } from "@/components/blocks/navbar";
+import { AnnouncementMarquee } from "@/components/site/AnnouncementMarquee";
 import { FooterBlock } from "@/components/blocks/footer";
 import { getSiteSettings, getTours } from "@/lib/db-content";
 import { defaultOgImages } from "@/lib/og";
@@ -89,6 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="flex min-h-screen flex-col">
+        <AnnouncementMarquee />
         <Navbar
           logo={
             <span className="flex items-center gap-2">
