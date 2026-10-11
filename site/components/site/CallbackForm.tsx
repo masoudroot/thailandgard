@@ -20,7 +20,7 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (name.trim().length < 2) {
-      setNameError("نام را کامل وارد کن.");
+      setNameError("نام را کامل وارد کنید.");
       return;
     }
     if (!mobileValid) return;
@@ -36,15 +36,15 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
       if (!res.ok || !data.ok) throw new Error(data.error ?? "خطا");
       setStatus("done");
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "درخواستت ثبت نشد؛ یک بار دیگر تلاش کن.");
+      setServerError(err instanceof Error ? err.message : "درخواستتان ثبت نشد؛ یک بار دیگر تلاش کنید.");
       setStatus("error");
     }
   }
 
   if (status === "done") {
     return (
-      <Alert variant="success" title="درخواستت ثبت شد">
-        {CONTACT_NAME} به‌زودی با همین شماره تماس می‌گیرد. اگر عجله داری، مستقیم زنگ بزن.
+      <Alert variant="success" title="درخواستتان ثبت شد">
+        {CONTACT_NAME} به‌زودی با همین شماره تماس می‌گیرد. اگر عجله دارید، مستقیم زنگ بزنید.
       </Alert>
     );
   }
@@ -82,7 +82,7 @@ export function CallbackForm({ tourSlug, tourTitle }: { tourSlug?: string; tourT
         <PhoneCall />
         {status === "busy" ? "در حال ثبت…" : tourTitle ? `درخواست تماس برای ${tourTitle}` : "درخواست تماس"}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">با ثبت این فرم، {CONTACT_NAME} در اولین فرصت با تو تماس می‌گیرد.</p>
+      <p className="text-center text-xs text-muted-foreground">با ثبت این فرم، {CONTACT_NAME} در اولین فرصت با شما تماس می‌گیرد.</p>
     </form>
   );
 }

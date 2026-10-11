@@ -13,11 +13,11 @@ import { fa } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "تماس با تایلندگرد؛ مشاورهٔ تلفنی تور تایلند",
   description:
-    "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیر یا درخواست تماس ثبت کن.",
+    "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
   openGraph: {
     title: "تماس با تایلندگرد؛ مشاورهٔ تلفنی تور تایلند",
     description:
-      "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیر یا درخواست تماس ثبت کن.",
+      "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
   },
   alternates: { canonical: "/contact" },
 };
@@ -32,7 +32,7 @@ export default function ContactPage() {
         </p>
         <h1 className="mt-3 text-4xl">تماس با تایلندگرد</h1>
         <p className="mt-4 text-base leading-8 text-muted-foreground">
-          فروش ما فقط تلفنی است؛ پرداخت آنلاین نداریم. یک تماس کوتاه، همهٔ ابهام‌های سفرت
+          فروش ما فقط تلفنی است؛ پرداخت آنلاین نداریم. یک تماس کوتاه، همهٔ ابهام‌های سفرتان
           را برطرف می‌کند.
         </p>
       </header>
@@ -52,7 +52,7 @@ export default function ContactPage() {
             <CallButtons compact />
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <MessageCircle className="size-4" />
-              واتس‌اپ و بله روی موبایل فعال است؛ پیام بده، جواب می‌گیری. با شمارهٔ ثابت هم می‌توانی زنگ بزنی.
+              واتس‌اپ و بله روی موبایل فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
             </p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="size-4" />
@@ -65,7 +65,7 @@ export default function ContactPage() {
           <CardHeader className="border-b border-border bg-muted/40">
             <CardTitle className="text-xl">درخواست تماس</CardTitle>
             <CardDescription className="leading-7">
-              شماره‌ات را بگذار، {CONTACT_NAME} در اولین فرصت زنگ می‌زند.
+              شماره‌تان را بگذارید، {CONTACT_NAME} در اولین فرصت زنگ می‌زند.
             </CardDescription>
           </CardHeader>
           <CardContent>

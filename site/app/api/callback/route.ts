@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const source = typeof body.source === "string" ? body.source : "site-form";
 
   if (name.length < 2) {
-    return NextResponse.json({ ok: false, error: "نام را کامل وارد کن." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "نام را کامل وارد کنید." }, { status: 400 });
   }
   if (!isIranMobile(mobile)) {
     return NextResponse.json({ ok: false, error: "شمارهٔ موبایل معتبر نیست." }, { status: 400 });
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     });
   } catch {
-    return NextResponse.json({ ok: false, error: "ثبت درخواست ناموفق بود؛ لطفاً مستقیم تماس بگیر." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "ثبت درخواست ناموفق بود؛ لطفاً مستقیم تماس بگیرید." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

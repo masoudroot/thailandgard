@@ -9,7 +9,7 @@ import { PHONE_MOBILE_LINK } from "@/lib/site";
 import type { Tour } from "@/lib/tours";
 
 /**
- * بنر «تور تازه» برای بالای /tours (قابل استفاده در خانه).
+ * بنر «منتخب این هفته» برای بالای /tours (قابل استفاده در خانه).
  * پوستر تایپوگرافیک: نام مقصد جای عکس. هیچ تصویری ندارد.
  */
 export function TourBanner({ tour }: { tour: Tour }) {
@@ -17,12 +17,13 @@ export function TourBanner({ tour }: { tour: Tour }) {
   return (
     <Card
       aria-labelledby={titleId}
+      role="region"
       className="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_18rem]"
     >
       {/* ستون متن: در موبایل زیر پنل، در دسکتاپ راست (ابتدای خواندن) */}
       <div className="order-2 flex flex-col gap-6 md:order-1">
         <div className="space-y-4">
-          <Badge variant="brand">تور تازه</Badge>
+          <Badge variant="brand">منتخب این هفته</Badge>
           <h2
             id={titleId}
             className="font-display text-3xl font-bold leading-snug sm:text-4xl"

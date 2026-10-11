@@ -33,10 +33,10 @@ const pinar = localFont({
   variable: "--font-pinar",
   display: "swap",
   src: [
-    { path: "./fonts/Pinar-FD-Regular.ttf", weight: "400" },
-    { path: "./fonts/Pinar-FD-Medium.ttf", weight: "500" },
-    { path: "./fonts/Pinar-FD-SemiBold.ttf", weight: "600" },
-    { path: "./fonts/Pinar-FD-Bold.ttf", weight: "700" },
+    { path: "./fonts/Pinar-FD-Regular.woff2", weight: "400" },
+    { path: "./fonts/Pinar-FD-Medium.woff2", weight: "500" },
+    { path: "./fonts/Pinar-FD-SemiBold.woff2", weight: "600" },
+    { path: "./fonts/Pinar-FD-Bold.woff2", weight: "700" },
   ],
 });
 
