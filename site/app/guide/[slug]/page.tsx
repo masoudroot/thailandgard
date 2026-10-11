@@ -5,6 +5,7 @@ import { CalendarDays, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { CallButtons } from "@/components/site/CallButtons";
+import { ShareButtons } from "@/components/site/ShareButtons";
 import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { GUIDES, getGuide } from "@/lib/guides";
@@ -12,6 +13,7 @@ import { getTour } from "@/lib/tours";
 import { GUIDE_TO_TOURS } from "@/lib/related";
 import { SITE_URL } from "@/lib/site";
 import { fa } from "@/lib/utils";
+import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -63,7 +65,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
         mainEntity: guide.faqs.map((faq) => ({
           "@type": "Question",
           name: faq.question,
-          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(faq.answer) },
         })),
       },
     ],
@@ -88,6 +90,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           description={guide.excerpt}
           readingMinutes={guide.readingMinutes}
           updatedFa={guide.updatedFa}
+          share={<ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} centered />}
         />
       ) : (
         <header className="mt-6">
@@ -102,8 +105,9 @@ export default async function GuideDetailPage({ params }: PageProps) {
               به‌روزرسانی: {guide.updatedFa}
             </span>
           </div>
-          <h1 className="mt-4 text-4xl font-extrabold leading-snug">{guide.title}</h1>
+          <h1 className="mt-4 text-4xl leading-snug">{guide.title}</h1>
           <p className="mt-4 text-lg leading-9 text-muted-foreground">{guide.excerpt}</p>
+          <ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} className="mt-4" />
         </header>
       )}
 
@@ -113,7 +117,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           <div className="mt-4 space-y-4">
             {section.paragraphs.map((paragraph, i) => (
               <p key={i} className="leading-8 text-foreground/90">
-                {paragraph}
+                {renderInlineLinks(paragraph)}
               </p>
             ))}
           </div>
@@ -144,7 +148,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           items={guide.faqs.map((faq, i) => ({
             id: `${guide.slug}-faq-${i}`,
             title: faq.question,
-            content: faq.answer,
+            content: renderInlineLinks(faq.answer),
           }))}
         />
       </div>

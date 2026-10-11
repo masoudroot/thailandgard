@@ -12,9 +12,7 @@ import {
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: {
-    absolute: "تماس با تایلندگرد؛ متخصص تور تایلند",
-  },
+  title: "تماس با تایلندگرد؛ مشاورهٔ تلفنی تور تایلند",
   description:
     "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیر یا درخواست تماس ثبت کن.",
   openGraph: {
@@ -33,7 +31,7 @@ export default function ContactPage() {
           <Phone className="size-4" />
           تماس
         </p>
-        <h1 className="mt-3 text-4xl font-extrabold">تماس با تایلندگرد</h1>
+        <h1 className="mt-3 text-4xl">تماس با تایلندگرد</h1>
         <p className="mt-4 text-base leading-8 text-muted-foreground">
           فروش ما فقط تلفنی است؛ پرداخت آنلاین نداریم. یک تماس کوتاه، همهٔ ابهام‌های سفرت
           را برطرف می‌کند.

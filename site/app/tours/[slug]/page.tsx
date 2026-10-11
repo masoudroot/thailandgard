@@ -7,8 +7,10 @@ import { getGuide } from "@/lib/guides";
 import { TOUR_TO_GUIDES } from "@/lib/related";
 import { CONTACT_NAME, CONTACT_TITLE, PHONE_MOBILE_LINK, SITE_URL } from "@/lib/site";
 import { fa } from "@/lib/utils";
+import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
+import { ShareButtons } from "@/components/site/ShareButtons";
 import { FaqBlock } from "@/components/blocks/faq";
 import { Accordion } from "@/components/ui/accordion";
 import { Alert } from "@/components/ui/alert";
@@ -85,7 +87,7 @@ export default async function TourPage({ params }: Props) {
     mainEntity: tour.faqs.map((f) => ({
       "@type": "Question",
       name: f.question,
-      acceptedAnswer: { "@type": "Answer", text: f.answer },
+      acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(f.answer) },
     })),
   };
 
@@ -110,7 +112,7 @@ export default async function TourPage({ params }: Props) {
               {fa(tour.days)} روزه | {fa(tour.nights)} شب · {tour.route}
             </span>
           </div>
-          <h1 className="text-3xl font-bold md:text-4xl">{tour.title}</h1>
+          <h1 className="text-3xl md:text-4xl">{tour.title}</h1>
           <p className="text-lg leading-9">{tour.summary}</p>
         </header>
 
@@ -157,14 +159,14 @@ export default async function TourPage({ params }: Props) {
           <div className="mt-5 space-y-5">
             {tour.description.slice(0, 3).map((p, i) => (
               <p key={i} className="leading-9 text-foreground/90">
-                {p}
+                {renderInlineLinks(p)}
               </p>
             ))}
             {tour.description.length > 3 && (
               <Alert variant="info" title="نکتهٔ کارشناس">
                 {tour.description.slice(3).map((p, i) => (
                   <p key={i} className="leading-9 text-foreground/80">
-                    {p}
+                    {renderInlineLinks(p)}
                   </p>
                 ))}
               </Alert>
@@ -224,7 +226,7 @@ export default async function TourPage({ params }: Props) {
         items={tour.faqs.map((f, i) => ({
           id: `faq-${i}`,
           title: f.question,
-          content: f.answer,
+          content: renderInlineLinks(f.answer),
         }))}
       />
 
@@ -273,6 +275,8 @@ export default async function TourPage({ params }: Props) {
             </CardContent>
           </Card>
         </div>
+
+        <ShareButtons title={`${tour.title}؛ تایلندگرد`} path={`/tours/${tour.slug}`} divider />
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">

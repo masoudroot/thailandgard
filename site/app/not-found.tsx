@@ -12,8 +12,8 @@ export default function NotFound() {
         style={{ backgroundImage: "repeating-radial-gradient(circle at 50% 50%, oklch(from var(--foreground) l c h / 14%) 0 1px, transparent 1px 26px)" }}
       />
       <div className="relative w-full max-w-md text-center">
-        <p className="font-mono text-7xl font-bold tabular-nums text-foreground/15 sm:text-8xl">۴۰۴</p>
-        <h1 className="mt-4 text-2xl font-bold">این صفحه وجود ندارد</h1>
+        <p className="font-display text-7xl font-bold tabular-nums text-foreground/15 sm:text-8xl">۴۰۴</p>
+        <h1 className="mt-4 text-2xl">این صفحه وجود ندارد</h1>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
           شاید لینک قدیمی باشد یا آدرس اشتباه تایپ شده. از صفحهٔ اصلی ادامه دهید.
         </p>

@@ -24,7 +24,6 @@ export const PHONE_LANDLINE_LINK = "tel:+982633350139";
 
 export const PHONE_CHANNELS_NOTE = "واتس‌اپ و بله";
 
-// TODO: بعد از اولین دیپلوی ورسل، آدرس واقعی پروژه را این‌جا بگذار.
 export const SITE_URL = "https://thailandgard.vercel.app";
 
 export const NAV_LINKS = [

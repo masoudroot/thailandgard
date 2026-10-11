@@ -26,7 +26,7 @@ export default function GuideIndexPage() {
           <BookOpenText className="size-4" />
           راهنمای سفر
         </p>
-        <h1 className="mt-3 text-4xl font-extrabold">راهنمای سفر تایلند</h1>
+        <h1 className="mt-3 text-4xl">راهنمای سفر تایلند</h1>
         <p className="mt-4 text-base leading-8 text-muted-foreground">
           این‌جا را تیم محتوا با راهنماهای تازه به‌روز نگه می‌دارد. هر چه برای تصمیم گرفتن
           دربارهٔ سفر تایلند لازم داری، این‌جا پیدا می‌کنی؛ ساده، به‌روز و بدون حاشیه.

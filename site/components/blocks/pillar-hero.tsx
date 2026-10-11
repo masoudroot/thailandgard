@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CalendarDays, Clock, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,8 @@ export interface PillarHeroProps {
   description: string;
   readingMinutes: number;
   updatedFa: string;
+  /** ردیف اشتراک‌گذاری زیر توضیح؛ وسط‌چین با بقیهٔ هدر پیلار */
+  share?: ReactNode;
 }
 
 /**
@@ -19,13 +22,14 @@ export interface PillarHeroProps {
  * (pt-10/sm:pt-14 تا هر دو CTA بالای تا دیده شوند)، خط متا
  * «لیبل اول، عدد بعد» طبق قانون راست‌چین عدد و لیبل.
  */
-export function PillarHero({ badge, title, description, readingMinutes, updatedFa }: PillarHeroProps) {
+export function PillarHero({ badge, title, description, readingMinutes, updatedFa, share }: PillarHeroProps) {
   return (
     <section className="relative overflow-hidden px-6 pb-8 pt-10 text-center sm:pb-10 sm:pt-14">
       <div className="relative mx-auto max-w-3xl">
         <Badge variant="brand">{badge}</Badge>
-        <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">{title}</h1>
+        <h1 className="mt-5 text-4xl leading-tight sm:text-5xl">{title}</h1>
         <p className="mx-auto mt-5 max-w-xl leading-9 text-muted-foreground sm:text-lg">{description}</p>
+        {share ? <div className="mt-4 flex justify-center">{share}</div> : null}
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           <Button asChild size="lg" variant="brand" className="rounded-full">
             <a href={PHONE_MOBILE_LINK}>

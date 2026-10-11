@@ -1,0 +1,107 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Check, Copy, MessageCircle, Send, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SITE_URL } from "@/lib/site";
+import { cn } from "@/lib/utils";
+
+export interface ShareButtonsProps {
+  /** متن اشتراک؛ همان og:title صفحه */
+  title: string;
+  /** مسیر کانونیکال صفحه، مثل /tours/phuket-7-days */
+  path: string;
+  /** وسط‌چین (هدر پیلار) */
+  centered?: boolean;
+  /** جداکنندهٔ مویی بالای ردیف (فقط صفحهٔ تور) */
+  divider?: boolean;
+  className?: string;
+}
+
+/**
+ * دکمه‌های اشتراک‌گذاری صفحه.
+ * اگر navigator.share موجود بود، یک دکمهٔ outline شیت بومی سیستم را باز می‌کند؛
+ * وگرنه ردیف آیکونی کم‌رنگ تلگرام، واتس‌اپ و کپی لینک با بازخورد محلی «لینک کپی شد».
+ * بدون وابستگی تازه؛ فقط واریانت‌های موجود دکمهٔ رجیستری (ghost/icon و outline/sm).
+ * مبنا: agents/farsiui/COMPARE/share-final-check-2026-10-11-0535.md
+ */
+export function ShareButtons({ title, path, centered, divider, className }: ShareButtonsProps) {
+  const [nativeShare, setNativeShare] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setNativeShare(typeof navigator !== "undefined" && "share" in navigator);
+  }, []);
+
+  const url = `${SITE_URL}${path}`;
+  const telegramHref = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
+
+  const handleNativeShare = async () => {
+    try {
+      await navigator.share({ title, text: title, url });
+    } catch {
+      /* کاربر شیت را بست؛ کاری لازم نیست */
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      return;
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-2",
+        centered && "justify-center",
+        divider && "mt-10 border-t border-border pt-6",
+        className,
+      )}
+    >
+      {nativeShare ? (
+        <Button variant="outline" size="sm" onClick={handleNativeShare}>
+          <Share2 aria-hidden />
+          اشتراک‌گذاری
+        </Button>
+      ) : (
+        <>
+          <span className="text-sm text-muted-foreground">اشتراک‌گذاری</span>
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Button variant="ghost" size="icon" asChild>
+              <a
+                href={telegramHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="اشتراک‌گذاری در تلگرام"
+              >
+                <Send aria-hidden />
+              </a>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="اشتراک‌گذاری در واتس‌اپ"
+              >
+                <MessageCircle aria-hidden />
+              </a>
+            </Button>
+            <Button variant="ghost" size="icon" aria-label="کپی لینک" onClick={handleCopy}>
+              {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+            </Button>
+          </div>
+          <span aria-live="polite" className="text-xs text-muted-foreground">
+            {copied ? "لینک کپی شد" : ""}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
