@@ -105,8 +105,8 @@ export default function HomePage() {
       />
 
       <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="flex items-end justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-bold sm:text-3xl">تورهای پیشنهادی</h2>
             <p className="mt-2 text-muted-foreground">
               محبوب‌ترین تورهای تایلند، با قیمت شروع و جزئیات کامل هر سفر.
@@ -153,8 +153,8 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="flex items-end justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-bold sm:text-3xl">راهنمای سفر تایلند</h2>
             <p className="mt-2 text-muted-foreground">
               قبل از سفر بخوان؛ از انتخاب فصل سفر تا ویزا و مقایسهٔ جزیره‌ها.
