@@ -7,7 +7,7 @@ import { GUIDES } from "@/lib/guides";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "راهنمای سفر تایلند",
+  title: "راهنمای سفر تایلند؛ ویزا، بهترین زمان و مقایسهٔ مقصدها",
   description:
     "راهنماهای کاربردی سفر به تایلند؛ بهترین زمان سفر، ویزا و مدارک، مقایسهٔ مقصدها. تیم محتوای تایلندگرد این صفحه را با راهنماهای تازه به‌روز نگه می‌دارد.",
   alternates: { canonical: "/guide" },

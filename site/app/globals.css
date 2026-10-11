@@ -51,6 +51,8 @@
   --press: scale(0.98);
   --motion: 200ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  /* فاصلهٔ خالی زیر سکشن پایانی صفحه‌هایی که نوار چسبان موبایل دارند (تصمیم آرت‌دایرکشن ۱۴۰۵/۰۷/۱۹) */
+  --sticky-bar-clearance: 7.5rem;
 }
 
 @theme inline {
@@ -97,6 +99,7 @@
 
   /* حرکت و فونت */
   --ease-motion: var(--motion-ease);
+  --spacing-sticky-bar-clearance: var(--sticky-bar-clearance);
   --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-pinar), var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
 }

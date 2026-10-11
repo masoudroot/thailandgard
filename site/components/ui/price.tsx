@@ -16,7 +16,7 @@ export function Price({ amount, original, unit = "تومان", size = "md", clas
   const off = original && original > amount ? Math.round((1 - amount / original) * 100) : 0;
   return (
     <div className={cn("inline-flex flex-col", className)}>
-      <span className="flex items-baseline gap-1.5">
+      <span className="flex flex-wrap items-baseline gap-x-1.5">
         <span className={cn("font-bold tabular-nums", sizes[size])}>{faNumber(amount)}</span>
         <span className="text-sm text-muted-foreground">{unit}</span>
       </span>

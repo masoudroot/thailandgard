@@ -252,7 +252,7 @@ export default async function TourPage({ params }: Props) {
         </section>
       )}
 
-      <div id="callback" className="mx-auto mt-16 max-w-5xl scroll-mt-24 px-6 pb-28 md:pb-16">
+      <div id="callback" className="mx-auto mt-16 max-w-5xl scroll-mt-24 px-6 pb-sticky-bar-clearance md:pb-16">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
