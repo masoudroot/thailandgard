@@ -11,6 +11,7 @@
  *
  * عملیات مجاز (فقط همین‌ها؛ هیچ نام جدول/ستونی از بیرون نمی‌آید):
  * - guide.insert               ساخت ردیف تازه در guides (راهنمای تازه)
+ * - guide.set_excerpt          به‌روزرسانی excerpt (متا) یک راهنمای موجود (۱۵۰ تا ۱۶۵ کاراکتر)
  * - guide_section.insert        درج بخش تازه در guide_sections
  * - guide_section.set_paragraphs جایگزینی پاراگراف‌های یک بخش
  * - guide_section.set_title     تغییر تیتر (heading) یک بخش موجود
@@ -30,6 +31,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 type OpCode =
   | "guide.insert"
+  | "guide.set_excerpt"
   | "guide_section.insert"
   | "guide_section.set_paragraphs"
   | "guide_section.set_title"
@@ -86,6 +88,11 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!Number.isInteger(raw.reading_minutes) || (raw.reading_minutes as number) < 1 || (raw.reading_minutes as number) > 120)
         return { ok: false, error: "reading_minutes نامعتبر است." };
       if (!isText(raw.updated_fa, 40)) return { ok: false, error: "updated_fa نامعتبر است." };
+      return { ok: true, op: raw };
+    case "guide.set_excerpt":
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (typeof raw.excerpt !== "string" || raw.excerpt.length < 150 || raw.excerpt.length > 165)
+        return { ok: false, error: "excerpt باید بین ۱۵۰ تا ۱۶۵ کاراکتر باشد." };
       return { ok: true, op: raw };
     case "guide_section.insert":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
@@ -247,6 +254,12 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
         updated_fa: op.updated_fa,
       });
       return { matched: rows.length, note: `ساخت راهنمای تازه در guides (slug=${op.slug})` };
+    }
+    case "guide.set_excerpt": {
+      const q = `guides?slug=eq.${encodeURIComponent(String(op.guide_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { excerpt: op.excerpt });
+      if (rows.length === 0) return { matched: 0, note: `راهنمایی با slug=${op.guide_slug} پیدا نشد.` };
+      return { matched: rows.length, note: `به‌روزرسانی excerpt راهنما (slug=${op.guide_slug})` };
     }
     case "guide_section.insert": {
       const { rows } = await postgrest(cfg, "POST", "guide_sections", {

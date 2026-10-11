@@ -57,13 +57,13 @@ function microlinkShot(pageUrl, outFile) {
     waitUntil: "networkidle0",
   }).toString();
   return new Promise((resolveP, reject) => {
-    https.get(api, (res) => {
+    https.get(api, { agent: false }, (res) => {
       let body = "";
       res.on("data", (c) => (body += c));
       res.on("end", () => {
         try {
           const shotUrl = JSON.parse(body).data.screenshot.url;
-          https.get(shotUrl, (r2) => {
+          https.get(shotUrl, { agent: false }, (r2) => {
             const chunks = [];
             r2.on("data", (c) => chunks.push(c));
             r2.on("end", () => { writeFileSync(outFile, Buffer.concat(chunks)); resolveP(); });
@@ -79,8 +79,9 @@ function microlinkShot(pageUrl, outFile) {
 
 function cdpHttp(path, method = "GET") {
   return new Promise((resolveP, reject) => {
+    // F-009: agent:false تا سوکت keep-alive حلقهٔ node را زنده نگه ندارد
     const req = http.request(
-      { host: "127.0.0.1", port: CDP_PORT, path, method },
+      { host: "127.0.0.1", port: CDP_PORT, path, method, agent: false },
       (res) => {
         let body = "";
         res.on("data", (c) => (body += c));
@@ -177,7 +178,8 @@ class CdpSession {
     });
   }
   on(method, fn) { this.handlers.set(method, fn); }
-  close() { try { this.sock.end(); } catch { /* */ } }
+  // F-009: destroy قطعی؛ end() تنها FIN می‌فرستد و سوکت نیمه‌باز حلقهٔ node را زنده نگه می‌داشت
+  close() { try { this.sock.destroy(); } catch { /* */ } }
 }
 
 let chromeProc = null;
@@ -197,7 +199,7 @@ function launchChrome() {
     let n = 0;
     const tick = () => {
       n++;
-      http.get({ host: "127.0.0.1", port: CDP_PORT, path: "/json/version" }, (res) => {
+      http.get({ host: "127.0.0.1", port: CDP_PORT, path: "/json/version", agent: false }, (res) => {
         if (res.statusCode === 200) return resolveP();
         if (n > 30) return reject(new Error("chrome did not start"));
         setTimeout(tick, 500);
@@ -213,33 +215,38 @@ async function screenshot(url, outFile) {
   const wsUrl = target.webSocketDebuggerUrl;
   if (!wsUrl) throw new Error("no ws url for " + url);
   const s = new CdpSession(wsUrl);
-  await s.connect();
-  await s.send("Emulation.setDeviceMetricsOverride", {
-    width: 1440, height: 900, deviceScaleFactor: 1, mobile: false,
-  });
-  let loaded = false;
-  s.on("Page.loadEventFired", () => { loaded = true; });
-  await s.send("Page.enable");
-  await s.send("Page.navigate", { url });
-  const t0 = Date.now();
-  while (!loaded && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 300));
-  await new Promise((r) => setTimeout(r, 1500)); // فرصت رندر نهایی
-  // F-004: تشخیص صریح صفحهٔ خطا از متن بدنه (نه فقط تیتر؛ تیتر صفحهٔ خطا
-  // فقط هاست است: «localhost» یا «127.0.0.1»، بدون کلمهٔ «blocked»)
+  let buf;
   let pageText = "";
   try {
-    const tr = await s.send("Runtime.evaluate", {
-      expression: "(document.title + ' ' + document.documentElement.innerText).slice(0, 600)",
-      returnByValue: true,
+    await s.connect();
+    await s.send("Emulation.setDeviceMetricsOverride", {
+      width: 1440, height: 900, deviceScaleFactor: 1, mobile: false,
     });
-    pageText = String(tr && tr.result && tr.result.result ? tr.result.result.value : "");
-  } catch { /* نادیده */ }
-  const res = await s.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true });
-  if (!res.result || !res.result.data) throw new Error("empty screenshot");
-  const buf = Buffer.from(res.result.data, "base64");
-  writeFileSync(outFile, buf);
-  s.close();
-  await cdpHttp(`/json/close/${target.id}`);
+    let loaded = false;
+    s.on("Page.loadEventFired", () => { loaded = true; });
+    await s.send("Page.enable");
+    await s.send("Page.navigate", { url });
+    const t0 = Date.now();
+    while (!loaded && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 1500)); // فرصت رندر نهایی
+    // F-004: تشخیص صریح صفحهٔ خطا از متن بدنه (نه فقط تیتر؛ تیتر صفحهٔ خطا
+    // فقط هاست است: «localhost» یا «127.0.0.1»، بدون کلمهٔ «blocked»)
+    try {
+      const tr = await s.send("Runtime.evaluate", {
+        expression: "(document.title + ' ' + document.documentElement.innerText).slice(0, 600)",
+        returnByValue: true,
+      });
+      pageText = String(tr && tr.result && tr.result.result ? tr.result.result.value : "");
+    } catch { /* نادیده */ }
+    const res = await s.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true });
+    if (!res.result || !res.result.data) throw new Error("empty screenshot");
+    buf = Buffer.from(res.result.data, "base64");
+    writeFileSync(outFile, buf);
+  } finally {
+    // F-009: بستن قطعی سوکت CDP حتی در مسیر خطا؛ سوکت باز حلقهٔ node را زنده نگه می‌داشت
+    s.close();
+    try { await cdpHttp(`/json/close/${target.id}`); } catch { /* نادیده */ }
+  }
   // F-004: تشخیص تکمیلی با امضای فایل (حجم/هشِ هر نمونهٔ خطای شناخته‌شده)
   const hash = crypto.createHash("sha256").update(buf).digest("hex");
   const sigHit = ERROR_SHOT_SIGNATURES.some((sg) => sg.size === buf.length || sg.sha256 === hash);
@@ -256,7 +263,7 @@ function waitFor(url, tries = 30) {
     let n = 0;
     const tick = () => {
       n++;
-      const req = http.get(url, (res) => {
+      const req = http.get(url, { agent: false }, (res) => {
         if (String(res.statusCode).startsWith("2")) return resolveP();
         if (n >= tries) return reject(new Error("server not ready"));
         setTimeout(tick, 1000);
@@ -342,8 +349,12 @@ async function main() {
     console.log("reference shots ->", refDir);
   }
   const failed = results.filter((x) => !x.ok);
-  console.log(`done: ${results.length - failed.length}/${results.length} -> ${outDir}`);
-  if (failed.length) process.exitCode = 2;
+  // F-009: خروج صریح و همگام؛ سوکت‌های خام CDP حلقهٔ node را زنده نگه می‌داشتند و
+  // process.on("exit") هرگز فراخوانی نمی‌شد (علت آویزان‌ماندن اجرای ۲۳:۳۵).
+  try { writeFileSync(1, `done: ${results.length - failed.length}/${results.length} -> ${outDir}\n`); }
+  catch { console.log(`done: ${results.length - failed.length}/${results.length} -> ${outDir}`); }
+  stopAll();
+  process.exit(failed.length ? 2 : 0);
 }
 
 process.on("exit", stopAll);
