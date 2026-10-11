@@ -42,6 +42,8 @@ export function Sheet({
   const [mounted, setMounted] = React.useState(false);
   const [present, setPresent] = React.useState(open);
   const [shown, setShown] = React.useState(false);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const restoreFocusRef = React.useRef<Element | null>(null);
 
   React.useEffect(() => {
     setMounted(true);
@@ -49,6 +51,8 @@ export function Sheet({
 
   React.useEffect(() => {
     if (open) {
+      // Record the trigger so focus can be restored when the sheet closes.
+      restoreFocusRef.current = document.activeElement;
       setPresent(true);
       const id = requestAnimationFrame(() => {
         requestAnimationFrame(() => setShown(true));
@@ -59,6 +63,21 @@ export function Sheet({
     const t = window.setTimeout(() => setPresent(false), PANEL_MS);
     return () => window.clearTimeout(t);
   }, [open]);
+
+  // Move focus into the panel when it opens (screen-reader announcement).
+  React.useEffect(() => {
+    if (!present) return;
+    const t = window.setTimeout(() => panelRef.current?.focus({ preventScroll: true }), 60);
+    return () => window.clearTimeout(t);
+  }, [present]);
+
+  // Restore focus to the trigger when the sheet is gone.
+  React.useEffect(() => {
+    if (present) return;
+    const el = restoreFocusRef.current;
+    restoreFocusRef.current = null;
+    if (el instanceof HTMLElement) el.focus({ preventScroll: true });
+  }, [present]);
 
   React.useEffect(() => {
     if (!present) return;
@@ -71,6 +90,26 @@ export function Sheet({
       document.body.style.overflow = prev;
     };
   }, [present, onOpenChange]);
+
+  /** Focus trap: keep Tab cycling inside the panel while it is shown. */
+  const onPanelKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const focusables = panel.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
 
   if (!mounted || !present) return null;
 
@@ -86,9 +125,12 @@ export function Sheet({
         style={{ transitionDuration: `${OVERLAY_MS}ms` }}
       />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
+        onKeyDown={onPanelKeyDown}
         className={cn(
           "absolute flex flex-col bg-popover text-popover-foreground shadow-overlay will-change-transform",
           "transition-[transform,opacity]",
@@ -113,7 +155,8 @@ export function Sheet({
             type="button"
             aria-label="بستن"
             onClick={() => onOpenChange(false)}
-            className="ms-auto flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            className="relative ms-auto flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground before:absolute before:-inset-1.5 before:content-['']"
+            title="بستن"
           >
             <X className="size-4" />
           </button>

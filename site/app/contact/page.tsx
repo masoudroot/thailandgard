@@ -28,7 +28,7 @@ export default async function ContactPage() {
           <Phone className="size-4" />
           تماس
         </p>
-        <h1 className="mt-3 text-4xl">تماس با تایلندگرد</h1>
+        <h1 className="mt-3 text-4xl leading-tight">تماس با تایلندگرد</h1>
         <p className="mt-4 text-base leading-8 text-muted-foreground">
           فروش ما فقط تلفنی است؛ پرداخت آنلاین نداریم. یک تماس کوتاه، همهٔ ابهام‌های سفرتان
           را برطرف می‌کند.
@@ -46,14 +46,14 @@ export default async function ContactPage() {
               <Badge variant="brand">پاسخگوی فروش</Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-5 pt-6">
+          <CardContent className="space-y-5">
             <CallButtons compact />
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MessageCircle className="size-4" />
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <MessageCircle className="mt-0.5 size-4 shrink-0" />
               واتس‌اپ و بله روی موبایل فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
             </p>
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="size-4" />
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Clock className="mt-0.5 size-4 shrink-0" />
               ساعت کاری: شنبه تا پنجشنبه، {fa(9)} صبح تا {fa(9)} شب
             </p>
           </CardContent>
@@ -62,7 +62,7 @@ export default async function ContactPage() {
         <Card>
           <CardHeader className="border-b border-border bg-muted/40">
             <h2 className="text-xl font-semibold">درخواست تماس</h2>
-            <CardDescription className="leading-7">
+            <CardDescription>
               شماره‌تان را بگذارید، {s.CONTACT_NAME} در اولین فرصت زنگ می‌زند.
             </CardDescription>
           </CardHeader>

@@ -53,7 +53,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "شرو
               <Button size="sm">{primary.label}</Button>
             )}
           </div>
-          <Button variant="ghost" size="icon" className="md:hidden" aria-label="باز کردن منو" onClick={() => setOpen(true)}><Menu /></Button>
+          <Button variant="ghost" size="icon" className="size-11 md:hidden" aria-label="باز کردن منو" onClick={() => setOpen(true)}><Menu /></Button>
         </nav>
       </header>
       {/* A sibling of the header: backdrop-blur would otherwise trap the fixed sheet inside it. */}
