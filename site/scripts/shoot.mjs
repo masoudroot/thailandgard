@@ -2,7 +2,7 @@
 // کاربرد: node site/scripts/shoot.mjs [--base <url>] [--serve] [--out <dir>] [--ref]
 // بدون وابستگی خارجی: کلاینت حداقلی CDP با سوکت خام (چون --screenshot هدلس این سندباکس خراب است).
 import { spawn } from "node:child_process";
-import { mkdirSync, existsSync, copyFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, existsSync, copyFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import http from "node:http";
@@ -33,9 +33,18 @@ function arg(name, def) {
 }
 const has = (name) => process.argv.includes(name);
 
+// F-004: امضاهای شناخته‌شدهٔ صفحهٔ خطای «… is blocked»
+// (راستی‌آزمایی بازرس ۲۳:۰۵ + راستی‌آزمایی dev ‏۲۳:۵۵). هر نمونه بایت‌به‌بایت
+// یکسان است ولی هر هاست (127.0.0.1 / localhost) نمونهٔ خودش را دارد.
+// شاتی که امضای خطا دارد «صفحهٔ خطا» حساب می‌شود و فالبک میکرولینک را تریگر می‌کند.
+const ERROR_SHOT_SIGNATURES = [
+  { host: "127.0.0.1", size: 24885, sha256: "9a165975e04604c628689c8d13346318d5a50eea5e7e9ce52dbb3e52f7d935f4" },
+  { host: "localhost", size: 25012, sha256: "638909e61fe1bf2f56ef1749972aa5b887cf4a7174606a8aa694cb53bc8f5b82" },
+];
+
 const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" });
 const outDir = resolve(arg("--out", join(INSPECTOR_DIR, "SHOTS", today)));
-const baseUrl = arg("--base", "http://127.0.0.1:3100").replace(/\/$/, "");
+const baseUrl = arg("--base", "http://localhost:3100").replace(/\/$/, "");
 const makeRef = has("--ref");
 const useMicrolink = has("--microlink");
 const liveBase = arg("--live-base", "https://thailandgard.vercel.app").replace(/\/$/, "");
@@ -175,9 +184,13 @@ let chromeProc = null;
 function launchChrome() {
   chromeProc = spawn(CHROME, [
     "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
-    // F-004 (بازرس): کرومیوم تازه درخواست‌های صفحه به 127.0.0.1 را با
-    // ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS می‌بندد؛ این فلگ چک را خاموش می‌کند.
-    "--disable-features=LocalNetworkAccessChecks",
+    // F-004 (بازرس): کرومیوم تازه درخواست‌های صفحه به لوپ‌بک را با
+    // ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS می‌بندد. در ۱۵۲.۰.۷۹۷۷.۸۲
+    // فلگِ تکیِ LocalNetworkAccessChecks جواب نداد؛ ترکیب با
+    // BlockInsecurePrivateNetworkRequests + ناوبری به localhost (نه 127.0.0.1)
+    // امتحان می‌شود. اگر باز هم صفحهٔ خطا آمد، تشخیص صریح (پایین) فالبک
+    // میکرولینک را تریگر می‌کند.
+    "--disable-features=LocalNetworkAccessChecks,BlockInsecurePrivateNetworkRequests",
     `--remote-debugging-port=${CDP_PORT}`, "--hide-scrollbars", "about:blank",
   ], { stdio: "ignore" });
   return new Promise((resolveP, reject) => {
@@ -211,11 +224,28 @@ async function screenshot(url, outFile) {
   const t0 = Date.now();
   while (!loaded && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 300));
   await new Promise((r) => setTimeout(r, 1500)); // فرصت رندر نهایی
+  // F-004: تشخیص صریح صفحهٔ خطا از متن بدنه (نه فقط تیتر؛ تیتر صفحهٔ خطا
+  // فقط هاست است: «localhost» یا «127.0.0.1»، بدون کلمهٔ «blocked»)
+  let pageText = "";
+  try {
+    const tr = await s.send("Runtime.evaluate", {
+      expression: "(document.title + ' ' + document.documentElement.innerText).slice(0, 600)",
+      returnByValue: true,
+    });
+    pageText = String(tr && tr.result && tr.result.result ? tr.result.result.value : "");
+  } catch { /* نادیده */ }
   const res = await s.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true });
   if (!res.result || !res.result.data) throw new Error("empty screenshot");
-  writeFileSync(outFile, Buffer.from(res.result.data, "base64"));
+  const buf = Buffer.from(res.result.data, "base64");
+  writeFileSync(outFile, buf);
   s.close();
   await cdpHttp(`/json/close/${target.id}`);
+  // F-004: تشخیص تکمیلی با امضای فایل (حجم/هشِ هر نمونهٔ خطای شناخته‌شده)
+  const hash = crypto.createHash("sha256").update(buf).digest("hex");
+  const sigHit = ERROR_SHOT_SIGNATURES.some((sg) => sg.size === buf.length || sg.sha256 === hash);
+  const isErrorPage =
+    /is blocked|ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS/i.test(pageText) || sigHit;
+  return { file: outFile, pageText: pageText.slice(0, 80), size: buf.length, hash, isErrorPage };
 }
 
 // ---------- سرور next ----------
@@ -269,17 +299,25 @@ async function main() {
     for (const r of ROUTES) {
       const file = join(outDir, `${r.name}.png`);
       try {
-        await screenshot(baseUrl + r.path, file);
+        const shot = await screenshot(baseUrl + r.path, file);
+        if (shot.isErrorPage) {
+          // F-004: «کپچرِ موفقِ صفحهٔ خطا» = شکست؛ مثل اکسپشن CDP با آن رفتار می‌شود
+          const err = new Error(`error-page captured (${shot.pageText}… size=${shot.size})`);
+          err.errorPage = true;
+          throw err;
+        }
         const ok = existsSync(file);
         results.push({ name: r.name, route: r.path, file, ok });
-        console.log(ok ? "OK  " : "FAIL", r.path, "->", file);
+        console.log(ok ? "OK  " : "FAIL", r.path, "->", file, `page="${shot.pageText}"`);
       } catch (e) {
         // F-004: فالبک خودکار به میکرولینک؛ اگر CDP محلی مرد (چک شبکهٔ
-        // محلی، استارت نشدن کروم، شات خالی)، همان مسیر از سایت زنده شات می‌گیرد.
+        // محلی، استارت نشدن کروم، شات خالی، یا کپچرِ صفحهٔ خطا)، همان مسیر
+        // از سایت زنده شات می‌گیرد.
         const msg = String(e.message || e);
         let fbOk = false;
         let fbErr = msg;
-        if (/BLOCKED_BY_LOCAL_NETWORK|no ws url|chrome did not start|empty screenshot/i.test(msg)) {
+        if (/error-page captured|BLOCKED_BY_LOCAL_NETWORK|no ws url|chrome did not start|empty screenshot/i.test(msg)) {
+          if (e.errorPage) { try { unlinkSync(file); } catch { /* نادیده */ } }
           try {
             await microlinkShot(liveBase + r.path, file);
             fbOk = existsSync(file);

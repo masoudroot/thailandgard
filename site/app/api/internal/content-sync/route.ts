@@ -14,6 +14,7 @@
  * - guide_section.insert        درج بخش تازه در guide_sections
  * - guide_section.set_paragraphs جایگزینی پاراگراف‌های یک بخش
  * - guide_section.set_title     تغییر تیتر (heading) یک بخش موجود
+ * - guide_section.move          جابه‌جایی بخش به position تازه (بازشماری تراکنشی همهٔ بخش‌های راهنما)
  * - guide_faq.update            به‌روزرسانی جواب سؤال موجود در guide_faqs
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
  *
@@ -32,6 +33,7 @@ type OpCode =
   | "guide_section.insert"
   | "guide_section.set_paragraphs"
   | "guide_section.set_title"
+  | "guide_section.move"
   | "guide_faq.update"
   | "tour_faq.update";
 
@@ -46,6 +48,7 @@ interface SyncOp {
   guide_slug?: unknown;
   tour_slug?: unknown;
   position?: unknown;
+  to_position?: unknown;
   heading?: unknown;
   paragraphs?: unknown;
   question?: unknown;
@@ -103,6 +106,13 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
         return { ok: false, error: "position نامعتبر است." };
       if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
       return { ok: true, op: raw };
+    case "guide_section.move":
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
+        return { ok: false, error: "position نامعتبر است." };
+      if (!Number.isInteger(raw.to_position) || (raw.to_position as number) < 1 || (raw.to_position as number) > 100)
+        return { ok: false, error: "to_position نامعتبر است." };
+      return { ok: true, op: raw };
     case "guide_faq.update":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
       if (!isText(raw.question, 300)) return { ok: false, error: "question نامعتبر است." };
@@ -149,9 +159,9 @@ function dbConfig(): DbCfg | null {
 
 async function postgrest(
   cfg: DbCfg,
-  method: "POST" | "PATCH",
+  method: "POST" | "PATCH" | "GET",
   path: string,
-  body: Record<string, unknown>
+  body?: Record<string, unknown>
 ): Promise<{ status: number; rows: unknown[] }> {
   const res = await fetch(`${cfg.url}/rest/v1/${path}`, {
     method,
@@ -159,15 +169,70 @@ async function postgrest(
       "Content-Type": "application/json",
       apikey: cfg.serviceKey,
       Authorization: `Bearer ${cfg.serviceKey}`,
-      Prefer: "return=representation",
+      ...(method === "GET" ? {} : { Prefer: "return=representation" }),
     },
-    body: JSON.stringify(body),
+    ...(method === "GET" ? {} : { body: JSON.stringify(body ?? {}) }),
   });
   if (!res.ok) {
     throw new Error(`postgrest ${res.status} روی ${path.split("?")[0]}`);
   }
   const rows = (await res.json()) as unknown[];
   return { status: res.status, rows };
+}
+
+/**
+ * جابه‌جایی بخش (guide_section.move): بخشِ position=from به position=to می‌رود و
+ * positionهای همهٔ بخش‌های راهنما از نو ۱ تا N بازشماری می‌شوند.
+ *
+ * چون PostgREST تراکنش چندفراخوانی ندارد، بازشماری در دو پاس با آفست موقت
+ * انجام می‌شود تا هیچ‌وقت دو ردیف هم‌زمان یک position نگیرند (امن در برابر
+ * unique(guide_slug, position)):
+ *   پاس ۱: همهٔ بخش‌ها از position قدیم ← ‎۱۰۰۰+قدیم (نزولی، بدون تداخل)
+ *   پاس ۲: از ‎۱۰۰۰+قدیم ← position تازه (۱ تا N؛ همهٔ مقصدها خالی‌اند)
+ */
+const MOVE_TEMP_OFFSET = 1000;
+
+async function moveSection(
+  cfg: DbCfg,
+  guideSlug: string,
+  from: number,
+  to: number
+): Promise<{ matched: number; note: string }> {
+  const q = `guide_sections?guide_slug=eq.${encodeURIComponent(guideSlug)}&select=position&order=position.asc`;
+  const { rows } = await postgrest(cfg, "GET", q);
+  const positions = (rows as Array<{ position: number }>)
+    .map((r) => Number(r.position))
+    .filter((p) => Number.isInteger(p) && p > 0)
+    .sort((a, b) => a - b);
+  if (positions.length === 0) throw new Error("بخشی برای این راهنما پیدا نشد.");
+  const fromIdx = positions.indexOf(from);
+  if (fromIdx < 0) throw new Error(`بخشی با position=${from} پیدا نشد.`);
+  const targetIdx = Math.min(Math.max(to - 1, 0), positions.length - 1);
+  if (fromIdx === targetIdx) {
+    return { matched: positions.length, note: "جابه‌جایی لازم نبود (position یکسان)." };
+  }
+  const newOrder = [...positions];
+  const [moved] = newOrder.splice(fromIdx, 1);
+  newOrder.splice(targetIdx, 0, moved);
+  const mapping = new Map<number, number>();
+  newOrder.forEach((oldPos, i) => mapping.set(oldPos, i + 1));
+  const enc = encodeURIComponent(guideSlug);
+  // پاس ۱: قدیم ← موقت (نزولی تا هیچ تداخلی پیش نیاید)
+  for (const oldPos of [...positions].sort((a, b) => b - a)) {
+    await postgrest(cfg, "PATCH", `guide_sections?guide_slug=eq.${enc}&position=eq.${oldPos}`, {
+      position: MOVE_TEMP_OFFSET + oldPos,
+    });
+  }
+  // پاس ۲: موقت ← تازه
+  for (const oldPos of positions) {
+    await postgrest(cfg, "PATCH", `guide_sections?guide_slug=eq.${enc}&position=eq.${MOVE_TEMP_OFFSET + oldPos}`, {
+      position: mapping.get(oldPos),
+    });
+  }
+  return {
+    matched: positions.length,
+    note: `جابه‌جایی بخش ${from} به position ${mapping.get(from)} (بازشماری ${positions.length} بخش)`,
+  };
 }
 
 async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note: string }> {
@@ -203,6 +268,9 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       const { rows } = await postgrest(cfg, "PATCH", q, { heading: op.title });
       if (rows.length === 0) throw new Error("رکوردی برای به‌روزرسانی تیتر پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی تیتر بخش (position=${op.position})` };
+    }
+    case "guide_section.move": {
+      return moveSection(cfg, String(op.guide_slug), Number(op.position), Number(op.to_position));
     }
     case "guide_faq.update": {
       const q = `guide_faqs?guide_slug=eq.${encodeURIComponent(String(op.guide_slug))}&question=eq.${encodeURIComponent(String(op.question))}`;

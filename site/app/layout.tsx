@@ -64,7 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name: `${s.SITE_NAME} (${s.SITE_LATIN})`,
     slogan: s.SITE_SLOGAN,
     url: s.SITE_URL,
-    telephone: s.PHONE_MOBILE_LINK.replace("tel:", "+"),
+    telephone: s.PHONE_MOBILE_LINK.replace("tel:", ""),
     contactPoint: {
       "@type": "ContactPoint",
       telephone: "+989120643112",
