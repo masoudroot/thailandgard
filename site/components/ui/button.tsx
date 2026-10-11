@@ -10,7 +10,7 @@ const variants: Record<Variant, string> = {
   outline: "border-line border-input bg-transparent hover:bg-accent hover:text-accent-foreground shadow-control active:shadow-press",
   ghost: "hover:bg-accent hover:text-accent-foreground",
   brand: "bg-brand text-brand-foreground hover:bg-brand/90 shadow-control active:shadow-press",
-  destructive: "bg-destructive text-white hover:bg-destructive/90 shadow-control active:shadow-press",
+  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-control active:shadow-press",
 };
 
 const sizes: Record<Size, string> = {

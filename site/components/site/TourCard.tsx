@@ -35,8 +35,8 @@ export function TourCard({ tour }: { tour: Tour }) {
         </div>
         <Button asChild variant="secondary" className="w-full">
           <Link href={`/tours/${tour.slug}`}>
-            مشاهدهٔ جزئیات
-            <ArrowLeft />
+            مشاهدهٔ جزئیات تور {tour.shortTitle}
+            <ArrowLeft aria-hidden />
           </Link>
         </Button>
       </CardContent>

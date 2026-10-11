@@ -50,7 +50,7 @@ export function HeroBlock({ badge, title, description, primary = { label: "اق�
         )}
       </div>
       <div className="relative mx-auto mt-12 max-w-5xl pb-20 sm:pb-28">
-        <div className="overflow-hidden rounded-3xl border border-border">
+        <div className="overflow-hidden rounded-surface border border-border">
           <Image
             src="/images/hero-phuket-sunset.webp"
             alt="غروب خورشید بر فراز خلیج فنگ‌نا در پوکت؛ یکی از مقصدهای تورهای تایلندگرد"

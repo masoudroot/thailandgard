@@ -80,7 +80,7 @@ export function Sheet({
         aria-hidden
         onClick={() => onOpenChange(false)}
         className={cn(
-          "absolute inset-0 bg-black/50 transition-[opacity,filter] ease-in-out",
+          "absolute inset-0 bg-foreground/50 transition-[opacity,filter] ease-in-out",
           shown ? "opacity-100 blur-0" : "opacity-0 blur-sm",
         )}
         style={{ transitionDuration: `${OVERLAY_MS}ms` }}
@@ -90,7 +90,7 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          "absolute flex flex-col bg-popover text-popover-foreground shadow-2xl will-change-transform",
+          "absolute flex flex-col bg-popover text-popover-foreground shadow-overlay will-change-transform",
           "transition-[transform,opacity]",
           side === "start" && "inset-y-0 start-0 w-full max-w-sm border-e border-border",
           side === "end" && "inset-y-0 end-0 w-full max-w-sm border-s border-border",

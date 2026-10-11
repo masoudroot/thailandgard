@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TOURS } from "@/lib/tours";
 import { fa } from "@/lib/utils";
 import { TourCard } from "@/components/site/TourCard";
@@ -22,7 +23,11 @@ export default function ToursPage() {
       <header className="max-w-3xl space-y-4">
         <h1 className="text-3xl font-bold md:text-4xl">تورهای تایلند</h1>
         <p className="leading-8 text-muted-foreground">
-          در حال حاضر {fa(TOURS.length)} تور فعال داریم: پوکت، بانکوک و پاتایا، سامویی و کرابی.
+          در حال حاضر {fa(TOURS.length)} تور فعال داریم:{" "}
+          <Link href="/tours/phuket-7-days" className="underline decoration-brand/60 underline-offset-4">تور پوکت</Link>،{" "}
+          <Link href="/tours/bangkok-pattaya-8-days" className="underline decoration-brand/60 underline-offset-4">تور بانکوک و پاتایا</Link>،{" "}
+          <Link href="/tours/samui-7-days" className="underline decoration-brand/60 underline-offset-4">تور سامویی</Link> و{" "}
+          <Link href="/tours/krabi-6-days" className="underline decoration-brand/60 underline-offset-4">تور کرابی</Link>.
           قیمت‌هایی که می‌بینی «شروع قیمت»‌اند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.
           رزرو هم فقط با تماس تلفنی انجام می‌شود؛ پرداخت آنلاین نداریم.
         </p>

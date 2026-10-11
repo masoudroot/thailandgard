@@ -15,7 +15,7 @@ export interface InlineLinkBlock {
 export const GUIDE_TO_TOURS: Record<string, InlineLinkBlock> = {
   "thailand-visa-guide": {
     lead: "اگر مدارک را آماده کردید،",
-    slugs: ["phuket-7-days", "bangkok-pattaya-8-days"],
+    slugs: ["phuket-7-days", "bangkok-pattaya-8-days", "krabi-6-days"],
     trail: "را ببینید.",
   },
   "phuket-vs-samui": {

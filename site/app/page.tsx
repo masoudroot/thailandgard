@@ -157,7 +157,12 @@ export default function HomePage() {
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-bold sm:text-3xl">راهنمای سفر تایلند</h2>
             <p className="mt-2 text-muted-foreground">
-              قبل از سفر بخوان؛ از انتخاب فصل سفر تا ویزا و مقایسهٔ جزیره‌ها.
+              قبل از سفر بخوان؛ از{" "}
+              <Link href="/guide/best-time-to-visit-thailand" className="underline decoration-brand/60 underline-offset-4">انتخاب فصل سفر</Link>{" "}
+              تا{" "}
+              <Link href="/guide/thailand-visa-guide" className="underline decoration-brand/60 underline-offset-4">ویزای تایلند</Link>{" "}
+              و{" "}
+              <Link href="/guide/phuket-vs-samui" className="underline decoration-brand/60 underline-offset-4">مقایسهٔ پوکت و سامویی</Link>.
             </p>
           </div>
           <Button asChild variant="outline" className="shrink-0">
