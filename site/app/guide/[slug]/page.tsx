@@ -10,8 +10,7 @@ import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
-import { SITE_URL } from "@/lib/site";
-import { defaultOgImages } from "@/lib/og";
+import { pageSeo } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 
@@ -54,19 +53,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const guide = await getGuide(slug);
   if (!guide) return { title: "راهنما پیدا نشد" };
-  return {
-    title: {
-      absolute: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
-    },
+  // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
+  // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
+  return pageSeo({
+    title: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
     description: guide.excerpt,
-    alternates: { canonical: `/guide/${guide.slug}` },
-    openGraph: {
-      title: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
-      description: guide.excerpt,
-      type: "article",
-      images: defaultOgImages(SITE_URL),
-    },
-  };
+    canonical: `/guide/${guide.slug}`,
+    type: "article",
+  });
 }
 
 export default async function GuideDetailPage({ params }: PageProps) {

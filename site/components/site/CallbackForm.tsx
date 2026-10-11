@@ -125,6 +125,11 @@ export function CallbackForm({
       <Field label="شمارهٔ موبایل" htmlFor="cb-mobile" hint="به همین شماره زنگ می‌زنیم">
         <PhoneInput id="cb-mobile" onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); }} />
       </Field>
+      {/* خط اطمینان (دستور تیزشدهٔ لید، ۱۹ مهر ۱۴۰۵): کاهش‌دهندهٔ ریسک با بافت
+          مثبت (چه می‌شود، نه چه نمی‌شود)؛ رجیستر «شما»؛ بدون واژهٔ منفی. */}
+      <p className="text-xs text-muted-foreground">
+        شماره‌تان فقط برای همین تماس برگشتی استفاده می‌شود؛ کارشناس فروش در اولین فرصتِ روز کاری با شما تماس می‌گیرد.
+      </p>
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}

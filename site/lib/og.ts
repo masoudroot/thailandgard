@@ -43,6 +43,16 @@ export function pageSeo({
       title,
       description,
       type,
+      url: canonical,
+      locale: "fa_IR",
+      images: defaultOgImages(SITE_URL),
+    },
+    // یافتهٔ S2 تیم سئو (۱۹ مهر ۱۴۰۵): بلوک twitter و فیلدهای url/locale
+    // به کارت اشتراک‌گذاری اضافه شد.
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
       images: defaultOgImages(SITE_URL),
     },
   };

@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
-import { SITE_URL } from "@/lib/site";
-import { defaultOgImages } from "@/lib/og";
+import { pageSeo } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
@@ -30,19 +29,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const tour = await getTour(slug);
   if (!tour) return { title: "تور پیدا نشد" };
-  return {
-    title: {
-      absolute: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
-    },
+  // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
+  // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
+  return pageSeo({
+    title: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
     description: tour.summary,
-    alternates: { canonical: `/tours/${tour.slug}` },
-    openGraph: {
-      title: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
-      description: tour.summary,
-      type: "article",
-      images: defaultOgImages(SITE_URL),
-    },
-  };
+    canonical: `/tours/${tour.slug}`,
+    type: "article",
+  });
 }
 
 export default async function TourPage({ params }: Props) {
