@@ -105,6 +105,9 @@
 | نوار چسبان موبایل | `components/site/MobileOctoberBar.tsx` | — | **انحراف** (حکم ۲؛ معادل رجیستری ندارد) |
 | پانوشت صداقت | متن ساده | — | **بدون آیتم** (آیتم تک‌خطی در رجیستری نیست؛ «الگوی خط کپی‌رایت blocks/footer» در ممیزی ۱۱:۳۵ و ۱۲:۰۵ رد شد: یک‌بار رد، برای همیشه رد) |
 | دکمه‌های اشتراک‌گذاری | `components/site/ShareButtons.tsx` | — | **بدون آیتم** (آیتم اشتراک در رجیستری نیست؛ فقط واریانت‌های components/**button**؛ بازبینی فارسی‌یوآی ۰۵:۳۵) |
+| گالری «پوکت در ۲۰ قاب» (درفت ۱۴) | در راه (اسپک ۱۸:۰۵) | blocks/**bento** | **انحراف** (روتیتر text-brand ← پل مصوب برند؛ اسلات visual ← تصویر تمام‌عرض aspect-[4/3]؛ description ← زیرنویس text-foreground/90؛ proof/avatar اضافه نمی‌شود) |
+| لندینگ کمپین پاییز (درفت ۱۸:۰۵) | در راه (درفت ۱۸:۰۵) | blocks/**banner** + blocks/**hero** + blocks/**stats** + blocks/**steps** + blocks/**faq** + blocks/**cta** | **انحراف** (banner: بدون بستن/localStorage، حکم ۴؛ hero: proof متنی تنها، بدون AvatarGroup؛ steps: نقطهٔ کهربایی + خط مویی، قید حکم ۱؛ cta: تایپوگرافیک خالص، حکم ۳) |
+| og:image اختصاصی کرابی | `site/public/images/og-krabi-6-days.webp` (در راه) | — (آیتم og در رجیستری نیست) | **بدون آیتم**؛ نزدیک‌ترین: جهت «بنر مستطیلی تایپوگرافیک» + پل برند components/**badge**؛ رندر PIL + Pinar FD + Vazirmatn، منشأ «تولیدی» |
 
 ### ۲.۲ کامپوننت‌های UI
 
