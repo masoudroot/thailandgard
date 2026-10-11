@@ -27,11 +27,11 @@ export async function TourBanner({ tour }: { tour: Tour }) {
           <Badge variant="brand">منتخب این هفته</Badge>
           <h2
             id={titleId}
-            className="font-display text-3xl font-bold leading-snug sm:text-4xl"
+            className="font-display text-3xl sm:text-4xl"
           >
             {tour.title}
           </h2>
-          <p className="max-w-2xl text-base leading-8">{tour.summary}</p>
+          <p className="max-w-2xl text-base leading-[1.8]">{tour.summary}</p>
         </div>
 
         <dl className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
@@ -57,7 +57,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
           <Button asChild variant="brand" size="lg">
             <a href={PHONE_MOBILE_LINK}>
               <Phone aria-hidden />
-              تماس با کارشناس
+              تماس با کارشناس فروش
             </a>
           </Button>
           <Button asChild variant="secondary" size="lg">

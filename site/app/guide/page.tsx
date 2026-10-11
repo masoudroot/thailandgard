@@ -30,8 +30,8 @@ export default async function GuideIndexPage() {
           <BookOpenText className="size-4" />
           راهنمای سفر
         </p>
-        <h1 className="mt-3 text-4xl leading-tight">راهنمای سفر تایلند</h1>
-        <p className="mt-4 text-base leading-8 text-muted-foreground">
+        <h1 className="mt-3 text-4xl">راهنمای سفر تایلند</h1>
+        <p className="mt-4 text-base leading-[1.8] text-muted-foreground">
           این‌جا را تیم محتوا با راهنماهای تازه به‌روز نگه می‌دارد. هر چه برای تصمیم گرفتن
           دربارهٔ سفر تایلند لازم داری، این‌جا پیدا می‌کنی؛ ساده، به‌روز و بدون حاشیه.
         </p>
@@ -43,7 +43,7 @@ export default async function GuideIndexPage() {
             <Card className="flex h-full flex-col transition-colors group-hover:border-brand/60">
               <CardHeader>
                 <Badge variant="brand">{guide.category}</Badge>
-                <CardTitle className="mt-2 text-xl leading-8">{guide.title}</CardTitle>
+                <CardTitle className="mt-2 text-xl">{guide.title}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col gap-4">
                 <p className="text-sm leading-7 text-muted-foreground">{guide.excerpt}</p>

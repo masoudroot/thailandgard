@@ -27,7 +27,7 @@ export interface NavbarProps {
 }
 
 /** نوار بالا. Logo on the right, links in the middle, actions on the left; a sheet from the right on mobile. */
-export function Navbar({ logo, homeHref = "/", links, primary = { label: "شروع رایگان" }, secondary = { label: "ورود" }, sticky = true, className }: NavbarProps) {
+export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با کارشناس فروش" }, secondary = { label: "درخواست تماس" }, sticky = true, className }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
   return (
     <>

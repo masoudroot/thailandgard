@@ -19,7 +19,7 @@ export function Stat({ label, value, unit, delta, deltaLabel = "نسبت به د
     <div className={cn("min-w-0 overflow-hidden rounded-xl border border-border bg-card", size === "sm" ? "p-3" : "p-4", className)}>
       <p className="text-xs text-muted-foreground">{label}</p>
       <div className="mt-1 flex items-end justify-between gap-2">
-        <p className={cn("min-w-0 font-bold leading-tight wrap-break-word", size === "sm" ? "text-lg" : "text-xl sm:text-2xl")}>
+        <p className={cn("min-w-0 font-bold leading-[1.35] wrap-break-word", size === "sm" ? "text-lg" : "text-xl sm:text-2xl")}>
           <span className="tabular-nums">{value}</span>
           {unit && <span className="ms-1 inline-block text-xs font-normal text-muted-foreground">{unit}</span>}
         </p>

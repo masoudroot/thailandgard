@@ -166,7 +166,7 @@ export function CallbackForm({
         <PhoneCall />
         {status === "busy" ? (
           <>
-            در حال ثبت…
+            در حال ارسال…
             {/* انحراف از دستور اجرایی (loading-dots + aria-hidden): پراپ aria-hidden در
                 API آیتم رجیستری نیست و کامپایل نمی‌شود؛ نقطه‌های داخلی خود آیتم
                 aria-hidden‌اند و role=status روی wrapper خالی است، پس متن دکمه

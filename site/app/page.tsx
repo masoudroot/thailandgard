@@ -77,7 +77,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-14">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold sm:text-3xl">تورهای پیشنهادی</h2>
+            <h2 className="text-2xl sm:text-3xl">تورهای پیشنهادی</h2>
             <p className="mt-2 text-muted-foreground">
               محبوب‌ترین تورهای تایلند، با قیمت شروع و جزئیات کامل هر سفر.
             </p>
@@ -103,7 +103,7 @@ export default async function HomePage() {
 
       <section className="border-y border-border bg-muted/40">
         <div className="mx-auto max-w-6xl px-6 py-14">
-          <h2 className="text-center text-2xl font-bold sm:text-3xl">
+          <h2 className="text-center text-2xl sm:text-3xl">
             چرا تایلندگرد
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">
@@ -130,7 +130,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-14">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold sm:text-3xl">راهنمای سفر تایلند</h2>
+            <h2 className="text-2xl sm:text-3xl">راهنمای سفر تایلند</h2>
             <p className="mt-2 text-muted-foreground">
               قبل از سفر بخوان؛ از{" "}
               <Link href="/guide/best-time-to-visit-thailand" className="underline decoration-brand/60 underline-offset-4">بهترین زمان سفر به تایلند</Link>{" "}
@@ -153,7 +153,7 @@ export default async function HomePage() {
               <Card className="flex h-full flex-col">
                 <CardHeader>
                   <Badge variant="brand">{guide.category}</Badge>
-                  <CardTitle className="mt-3 text-xl leading-8">
+                  <CardTitle className="mt-3 text-xl">
                     {guide.title}
                   </CardTitle>
                 </CardHeader>
@@ -174,7 +174,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <Card className="overflow-hidden">
           <div className="bg-brand/10 px-6 py-10 text-center sm:px-10">
-            <h2 className="text-2xl font-bold sm:text-3xl">
+            <h2 className="text-2xl sm:text-3xl">
               برای رزرو، فقط کافی است زنگ بزنی
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">

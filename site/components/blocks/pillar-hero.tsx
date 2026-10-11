@@ -28,18 +28,18 @@ export async function PillarHero({ badge, title, description, readingMinutes, up
     <section className="relative overflow-hidden px-6 pb-8 pt-10 text-center sm:pb-10 sm:pt-14">
       <div className="relative mx-auto max-w-3xl">
         <Badge variant="brand">{badge}</Badge>
-        <h1 className="mt-5 text-4xl leading-tight sm:text-5xl">{title}</h1>
+        <h1 className="mt-5 text-4xl sm:text-5xl">{title}</h1>
         <p className="mx-auto mt-5 max-w-xl leading-9 sm:text-lg">{description}</p>
         {share ? <div className="mt-4 flex justify-center">{share}</div> : null}
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           <Button asChild size="lg" variant="brand" className="rounded-full">
             <a href={PHONE_MOBILE_LINK}>
               <Phone />
-              تماس با کارشناس
+              تماس با کارشناس فروش
             </a>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-full">
-            <a href="#callback">درخواست مشاوره</a>
+            <a href="#callback">درخواست تماس</a>
           </Button>
         </div>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">

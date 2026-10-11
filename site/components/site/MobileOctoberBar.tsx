@@ -10,7 +10,7 @@ import { Price } from "@/components/ui/price";
  * فقط از پایان هیرو به بعد (با نگهبان #october-hero-end)؛ ارتفاع حداکثر
  * ۲۰٪ دید؛ کادر مویی ۱px در بالا؛ بدون سایه؛ گوشه‌های بالایی ۸؛
  * env(safe-area-inset-bottom)؛ فقط سه چیز: قیمت «شروع از» (ارقام فارسی +
- * «تومان» و «هر نفر»، هرگز حذف نمی‌شوند) + دو CTA («تماس فوری» فیل اول،
+ * «تومان» و «هر نفر»، هرگز حذف نمی‌شوند) + دو CTA («تماس با کارشناس» فیل اول،
  * «مشاوره در واتس‌اپ» outline دوم؛ دو فیل هم‌وزن ممنوع)؛ بدون دکمهٔ بستن.
  */
 export function MobileOctoberBar({
@@ -55,7 +55,7 @@ export function MobileOctoberBar({
         <Button asChild size="lg" variant="brand" className="px-4">
           <a href={phoneHref}>
             <Phone />
-            تماس فوری
+            تماس با کارشناس
           </a>
         </Button>
         <Button asChild size="lg" variant="outline" className="px-4">

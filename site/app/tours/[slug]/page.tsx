@@ -29,14 +29,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const tour = await getTour(slug);
   if (!tour) return { title: "تور پیدا نشد" };
+  const s = await getSiteSettings();
   // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
   // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
-  return pageSeo({
+  const meta = pageSeo({
     title: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
     description: tour.summary,
     canonical: `/tours/${tour.slug}`,
     type: "article",
   });
+  // F4 سئو (۱۹ مهر ۱۴۰۵، بستن یافته): og:image اختصاصی فقط برای اسلاگ krabi-6-days؛
+  // بقیهٔ تورها همان پیش‌فرض سراسری og.ts می‌مانند. موقت تا رسیدن عکس واقعی کرابی.
+  if (slug === "krabi-6-days") {
+    meta.openGraph = {
+      ...meta.openGraph,
+      images: [
+        {
+          url: `${s.SITE_URL}/images/og-krabi-6-days.webp`,
+          width: 1200,
+          height: 630,
+          alt: "کارت معرفی تور کرابی شش‌روزهٔ تایلندگرد؛ صخره‌های آهکی آندامان و ساحل ریلی",
+        },
+      ],
+    };
+    meta.twitter = {
+      ...meta.twitter,
+      images: [`${s.SITE_URL}/images/og-krabi-6-days.webp`],
+    };
+  }
+  return meta;
 }
 
 export default async function TourPage({ params }: Props) {
@@ -123,7 +144,7 @@ export default async function TourPage({ params }: Props) {
               {fa(tour.days)} روزه | {fa(tour.nights)} شب · {tour.route}
             </span>
           </div>
-          <h1 className="text-4xl leading-tight">{tour.title}</h1>
+          <h1 className="text-4xl">{tour.title}</h1>
           <p className="text-lg leading-9">{tour.summary}</p>
         </header>
 
@@ -143,7 +164,7 @@ export default async function TourPage({ params }: Props) {
           <Button asChild size="lg" variant="brand">
             <a href={s.PHONE_MOBILE_LINK}>
               <Phone />
-              تماس با کارشناس
+              تماس با کارشناس فروش
             </a>
           </Button>
           <Button asChild size="lg" variant="outline">
@@ -154,11 +175,11 @@ export default async function TourPage({ params }: Props) {
         <Separator className="my-8" />
 
         <section className="mt-10">
-          <h2 className="text-2xl font-bold sm:text-3xl">چرا این تور؟</h2>
+          <h2 className="text-2xl sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
               <li key={h} className="flex items-start gap-2.5">
-                <Check className="mt-1 size-5 shrink-0 text-success" />
+                <Check className="mt-1 size-5 shrink-0 text-success-text" />
                 <span className="leading-7">{h}</span>
               </li>
             ))}
@@ -166,7 +187,7 @@ export default async function TourPage({ params }: Props) {
         </section>
 
         <section className="mt-12">
-          <h2 className="text-2xl font-bold sm:text-3xl">دربارهٔ تور {tour.shortTitle}</h2>
+          <h2 className="text-2xl sm:text-3xl">دربارهٔ تور {tour.shortTitle}</h2>
           <div className="mt-5 space-y-5">
             {tour.description.slice(0, 3).map((p, i) => (
               <p key={i} className="leading-9 text-foreground/90">
@@ -186,7 +207,7 @@ export default async function TourPage({ params }: Props) {
         </section>
 
         <section className="mt-10">
-          <h2 className="text-2xl font-bold sm:text-3xl">برنامهٔ روزبه‌روز</h2>
+          <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
           <Accordion
             className="mt-5"
             defaultOpen={["day-1"]}
@@ -207,7 +228,7 @@ export default async function TourPage({ params }: Props) {
               <ul className="space-y-2.5">
                 {tour.includes.map((i) => (
                   <li key={i} className="flex items-start gap-2.5">
-                    <Check className="mt-0.5 size-5 shrink-0 text-success" />
+                    <Check className="mt-0.5 size-5 shrink-0 text-success-text" />
                     <span className="text-sm leading-7">{i}</span>
                   </li>
                 ))}
@@ -245,7 +266,7 @@ export default async function TourPage({ params }: Props) {
         <section className="mx-auto mt-10 max-w-5xl px-6">
           <Card>
             <CardContent className="pt-6">
-              <p className="leading-8 text-foreground/90">
+              <p className="leading-[1.8] text-foreground/90">
                 {guideBlock.lead}{" "}
                 {relatedGuides.map((g, i) => (
                   <span key={g.slug}>
@@ -270,7 +291,7 @@ export default async function TourPage({ params }: Props) {
           <Card>
             <CardHeader>
               <CardTitle>درخواست تماس برای تور {tour.shortTitle}</CardTitle>
-              <CardDescription>شماره‌تان را بگذارید؛ در بازه‌ای که می‌گویید با شما تماس می‌گیریم.</CardDescription>
+              <CardDescription>شماره‌تان را وارد کنید؛ در بازه‌ای که می‌گویید با شما تماس می‌گیریم.</CardDescription>
             </CardHeader>
             <CardContent>
               <CallbackForm tourSlug={tour.slug} tourTitle={tour.shortTitle} contactName={s.CONTACT_NAME} />
@@ -302,7 +323,7 @@ export default async function TourPage({ params }: Props) {
           <Button asChild size="lg" variant="brand">
             <a href={s.PHONE_MOBILE_LINK}>
               <Phone />
-              تماس
+              تماس با کارشناس فروش
             </a>
           </Button>
         </div>

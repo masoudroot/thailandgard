@@ -110,11 +110,11 @@ export default async function PhuketOctoberPage() {
       <section className="px-6 pt-14 text-center sm:pt-20">
         <div className="mx-auto max-w-3xl">
           <Badge variant="brand">رویدادهای تقویمی پوکت</Badge>
-          <h1 className="mt-5 font-display text-4xl font-bold leading-tight">
+          <h1 className="mt-5 font-display text-4xl">
             پوکت؛ نیمهٔ دوم اکتبر
           </h1>
           {/* زیرتیتر موقت تا بازبینی ۲۱:۰۰ تیم محتوا */}
-          <p className="mx-auto mt-5 max-w-xl leading-8 text-muted-foreground">
+          <p className="mx-auto mt-5 max-w-xl leading-[1.8] text-muted-foreground">
             ۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر): جشنوارهٔ گیاه‌خواران، بازگشایی سیمیلان، پرواز مستقیم هیترو
           </p>
           <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
@@ -141,14 +141,14 @@ export default async function PhuketOctoberPage() {
           <div className="min-w-0">
             {/* سکشن ۲: سه کارت «چرا الان» */}
             <section>
-              <h2 className="text-2xl font-bold sm:text-3xl">چرا نیمهٔ دوم اکتبر؟</h2>
+              <h2 className="text-2xl sm:text-3xl">چرا نیمهٔ دوم اکتبر؟</h2>
               <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {WHY_NOW.map((c) => (
                   <Card key={c.title} className="rounded-surface border-border shadow-none">
                     <CardContent className="p-6">
                       <p className="text-2xl font-bold tabular-nums">{c.stat}</p>
                       <Separator className="my-4" />
-                      <h3 className="text-lg font-bold leading-8">{c.title}</h3>
+                      <h3 className="text-lg">{c.title}</h3>
                       <p className="mt-3 text-sm leading-7 text-muted-foreground">{c.body}</p>
                     </CardContent>
                   </Card>
@@ -158,7 +158,7 @@ export default async function PhuketOctoberPage() {
 
             {/* سکشن ۳: تورهای همین پنجره */}
             <section id="october-tours" className="mt-14 scroll-mt-24">
-              <h2 className="text-2xl font-bold sm:text-3xl">تورهای همین پنجره</h2>
+              <h2 className="text-2xl sm:text-3xl">تورهای همین پنجره</h2>
               <div className="mt-8 max-w-md">
                 <TourCard tour={tour} />
               </div>
@@ -166,7 +166,7 @@ export default async function PhuketOctoberPage() {
 
             {/* سکشن ۵: پرسش‌های متداول ← blocks/faq (فقط ستون آکاردئون) */}
             <section className="mt-14">
-              <h2 className="text-2xl font-bold sm:text-3xl">پرسش‌های پرتکرار</h2>
+              <h2 className="text-2xl sm:text-3xl">پرسش‌های پرتکرار</h2>
               <Accordion
                 className="mt-8"
                 defaultOpen={["october-faq-0"]}
@@ -225,7 +225,7 @@ export default async function PhuketOctoberPage() {
                   <Button asChild size="lg" variant="brand" className="active:scale-[0.98]">
                     <a href={s.PHONE_MOBILE_LINK}>
                       <Phone />
-                      تماس فوری
+                      تماس با کارشناس
                     </a>
                   </Button>
                   <Button asChild size="lg" variant="outline">

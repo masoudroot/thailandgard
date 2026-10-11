@@ -6,8 +6,12 @@
  *
  * سه مرحلهٔ UI (فقط برای وضعیت new):
  * - تازه: سن زیر ۳۰ دقیقه (اولویت زیر ۱۵ دقیقه)
- * - در مسیر: از ۳ ساعت تا سررسید ۶ ساعته؛ در ۴٫۵ ساعت فقط ساعت باقی‌مانده به‌روز می‌شود
+ * - در مسیر: از ۳۰ دقیقه تا سررسید ۶ ساعته؛ در ۴٫۵ ساعت فقط ساعت باقی‌مانده به‌روز می‌شود
  * - گذشته: سن بیش از ۶ ساعت
+ *
+ * تغییر ۱۹ مهر ۱۴۰۵ (یافتهٔ تیم lead، دستور هماهنگ‌کننده): بازهٔ ۳۰ دقیقه تا ۳ ساعت
+ * دیگر از فهرست نمی‌افتد؛ «در مسیر» همان متن طراحی (تا ساعت سررسید فرصت دارید) را
+ * برای کل بازه نشان می‌دهد. انحراف آگاهانه از حکم چیدمان ۱۷ design (ظهور از ۳ ساعت).
  *
  * این ماجول هیچ PIIای لمس نمی‌کند؛ شناسهٔ کوتاه لید تنها شناسهٔ نمایشی است.
  */
@@ -18,17 +22,14 @@ import { fa } from "./utils";
 export const LEAD_SLA_MS = 6 * 3600_000;
 /** پنجرهٔ «تازه»: ۳۰ دقیقه */
 export const LEAD_FRESH_MS = 30 * 60_000;
-/** شروع مرحلهٔ «در مسیر»: ۳ ساعت (۵۰٪ مسیر SLA) */
-export const LEAD_ENROUTE_FROM_MS = 3 * 3600_000;
 
 export type LeadAlertStage = "fresh" | "enroute" | "past";
 export type LeadStatus = "new" | "contacted" | "done";
 
-/** مرحلهٔ هشدار از روی سن لید؛ برای پنجرهٔ ۳۰ دقیقه تا ۳ ساعت null (ردیفی نیست). */
+/** مرحلهٔ هشدار از روی سن لید؛ فقط برای سن نامعتبر null (ردیفی نیست). */
 export function stageForAge(ageMs: number): LeadAlertStage | null {
   if (!Number.isFinite(ageMs) || ageMs < 0) return null;
   if (ageMs < LEAD_FRESH_MS) return "fresh";
-  if (ageMs < LEAD_ENROUTE_FROM_MS) return null;
   if (ageMs <= LEAD_SLA_MS) return "enroute";
   return "past";
 }

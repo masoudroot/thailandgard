@@ -33,7 +33,7 @@ export function ContactBlock({ title = "با ما در تماس باشید", des
     <section className="px-6 py-16">
       <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-5">
         <form onSubmit={submit} className="md:col-span-3">
-          <h2 className="text-3xl font-bold">{title}</h2>
+          <h2 className="text-3xl">{title}</h2>
           <p className="mt-2 text-muted-foreground">{description}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <Field label="نام" htmlFor="contact-name"><Input id="contact-name" name="name" required autoComplete="name" /></Field>
@@ -41,13 +41,13 @@ export function ContactBlock({ title = "با ما در تماس باشید", des
             <Field label="پیام" htmlFor="contact-message" className="sm:col-span-2"><Textarea id="contact-message" name="message" rows={5} required /></Field>
           </div>
           <div className="mt-6 flex items-center gap-4">
-            <Button type="submit" size="lg" disabled={busy || sent}>{sent ? "پیام ثبت شد" : busy ? "در حال ارسال…" : "ارسال پیام"}</Button>
+            <Button type="submit" size="lg" disabled={busy || sent}>{sent ? "درخواستتان ثبت شد" : busy ? "در حال ارسال…" : "ثبت درخواست تماس"}</Button>
             {sent && <p role="status" className="text-sm text-success-text">ممنون، به‌زودی تماس می‌گیریم.</p>}
           </div>
         </form>
         <aside className="overflow-hidden rounded-2xl border border-border bg-card md:col-span-2">
           <div className="h-40 bg-secondary">
-            {map ?? <div aria-hidden className="size-full" style={{ backgroundImage: "linear-gradient(to right, oklch(from var(--foreground) l c h / 8%) 1px, transparent 1px), linear-gradient(to bottom, oklch(from var(--foreground) l c h / 8%) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />}
+            {map ?? <div aria-hidden className="size-full border-b border-border" />}
           </div>
           <dl className="space-y-4 p-5 text-sm">
             {info.address && <div className="flex gap-3"><dt className="sr-only">آدرس</dt><MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" /><dd className="leading-6">{info.address}</dd></div>}

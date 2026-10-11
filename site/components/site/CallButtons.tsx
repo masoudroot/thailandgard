@@ -19,7 +19,7 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
       <Button asChild size="lg" className="w-full" variant="brand">
         <a href={PHONE_MOBILE_LINK}>
           <Phone />
-          تماس با {CONTACT_NAME}
+          تماس با کارشناس فروش
         </a>
       </Button>
       <Button asChild size="lg" className="w-full" variant="secondary">
