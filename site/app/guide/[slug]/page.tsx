@@ -23,11 +23,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const guide = await getGuide(slug);
   if (!guide) return { title: "راهنما پیدا نشد" };
   return {
-    title: guide.title,
+    title: {
+      absolute: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
+    },
     description: guide.excerpt,
     alternates: { canonical: `/guide/${guide.slug}` },
     openGraph: {
-      title: `${guide.title}؛ تایلندگرد`,
+      title: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
       description: guide.excerpt,
       type: "article",
     },

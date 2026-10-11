@@ -29,11 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tour = await getTour(slug);
   if (!tour) return { title: "تور پیدا نشد" };
   return {
-    title: tour.title,
+    title: {
+      absolute: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
+    },
     description: tour.summary,
     alternates: { canonical: `/tours/${tour.slug}` },
     openGraph: {
-      title: `${tour.title}؛ تایلندگرد`,
+      title: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
       description: tour.summary,
       type: "article",
     },
