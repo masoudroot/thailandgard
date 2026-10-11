@@ -1,0 +1,1 @@
+{"query": "قانون را در جمله", "ok": true, "error": null, "warnings": [], "chunks": [{"index": 0, "text": "قانون را در جمله", "search_ok": true, "judge_ok": true, "judge_error": null, "warnings": null, "notes": [{"note_path": "01-دستور زبان فارسی/نقش و جمله/جملهٔ پایه.md", "title": "جملهٔ پایه", "distance": 0.3105644398591244, "source": "vector"}]}]}
