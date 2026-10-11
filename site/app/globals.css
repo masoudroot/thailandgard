@@ -1,42 +1,39 @@
 @import "tailwindcss";
 
 /*
- * تم گرافیت تیرهٔ وایب‌فارسی (نصب فاز ۲، ۱۴۰۵/۰۷/۱۹).
- * سیاه خنثی با خط‌های مویی، دکمهٔ سفید و لهجهٔ کهربایی؛ color-scheme تیره.
- * منبع: ~/workspace/skills/vibefarsi/themes/graphite.css
- * استایل‌های سفارشی سایت که حفظ شدند: فاصلهٔ نوار چسبان (--sticky-bar-clearance)،
- * فونت‌ها (Pinar برای دیسپلی، Vazirmatn برای متن)، انیمیشن‌های اسکلت،
- * قاعدهٔ iOS برای فیلدها و prefers-reduced-motion.
+ * تم graphite-soft تایلندگرد.
+ * زبان طراحی گرافیت (خط مویی ۱px، بدون سایهٔ سنگین، گوشه‌های ۸/۲۲،
+ * حرکت ۲۰۰ms، لهجهٔ کهربایی) روی پالت روشنِ ملایم.
  */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* رنگ‌ها */
-  --background: oklch(0.115 0.002 285);
-  --foreground: oklch(0.975 0 0);
-  --card: oklch(0.14 0.002 285);
-  --card-foreground: oklch(0.975 0 0);
-  --popover: oklch(0.16 0.002 285);
-  --popover-foreground: oklch(0.975 0 0);
-  --primary: oklch(0.975 0 0);
-  --primary-foreground: oklch(0.13 0 0);
-  --secondary: oklch(0.2 0.002 285);
-  --secondary-foreground: oklch(0.975 0 0);
-  --muted: oklch(0.175 0.002 285);
-  --muted-foreground: oklch(0.63 0.004 285);
-  --accent: oklch(0.2 0.002 285);
-  --accent-foreground: oklch(0.975 0 0);
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(0.975 0 0);
-  --success: oklch(0.75 0.16 160);
-  --warning: oklch(0.82 0.16 80);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 11%);
-  --ring: oklch(0.7 0 0);
-  --brand: oklch(0.8 0.165 65);
-  --brand-foreground: oklch(0.22 0.06 60);
+  --background: oklch(0.982 0.0035 90);
+  --foreground: oklch(0.245 0.004 90);
+  --card: oklch(0.993 0.002 90);
+  --card-foreground: oklch(0.245 0.004 90);
+  --popover: oklch(0.993 0.002 90);
+  --popover-foreground: oklch(0.245 0.004 90);
+  --primary: oklch(0.27 0.006 90);
+  --primary-foreground: oklch(0.985 0.003 90);
+  --secondary: oklch(0.94 0.006 90);
+  --secondary-foreground: oklch(0.27 0.005 90);
+  --muted: oklch(0.955 0.005 90);
+  --muted-foreground: oklch(0.46 0.008 90);
+  --accent: oklch(0.925 0.012 80);
+  --accent-foreground: oklch(0.27 0.005 90);
+  --destructive: oklch(0.57 0.19 28);
+  --destructive-foreground: oklch(0.985 0.003 90);
+  --success: oklch(0.62 0.14 155);
+  --warning: oklch(0.75 0.15 75);
+  --border: oklch(0.25 0.006 90 / 12%);
+  --input: oklch(0.25 0.006 90 / 18%);
+  --ring: oklch(0.72 0.15 65);
+  --brand: oklch(0.74 0.155 62);
+  --brand-foreground: oklch(0.26 0.02 60);
 
-  /* زبان طراحی: فونت، فرم، خط، عمق، حرکت و تراکم */
+  /* زبان طراحی: فونت، فرم، خط، عمق، حرکت */
   --radius: 0.625rem;
   --type-display-weight: 700;
   --shape-control: calc(var(--radius) - 2px);
@@ -45,20 +42,15 @@
   --shape-overlay: calc(var(--radius) + 4px);
   --line: 1px;
   --line-field: 1px;
-  --line-style: solid;
-  --field: color-mix(in oklch, var(--background) 60%, transparent);
+  --field: oklch(0.975 0.003 90);
   --depth-control: 0 0 #0000;
   --depth-press: 0 0 #0000;
   --depth-field: 0 0 #0000;
-  --depth-surface: 0 1px 0 0 oklch(1 0 0 / 6%) inset;
-  --depth-overlay: 0 20px 50px -20px oklch(0 0 0 / 80%);
-  --surface-filter: none;
+  --depth-surface: 0 10px 28px -18px oklch(0.25 0.01 90 / 35%);
+  --depth-overlay: 0 24px 60px -24px oklch(0.25 0.01 90 / 30%);
   --press: scale(0.98);
   --motion: 200ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
-  --backdrop: none;
-  --spacing: 0.25rem;
-
   /* فاصلهٔ خالی زیر سکشن پایانی صفحه‌هایی که نوار چسبان موبایل دارند (تصمیم آرت‌دایرکشن ۱۴۰۵/۰۷/۱۹) */
   --sticky-bar-clearance: 7.5rem;
 }
