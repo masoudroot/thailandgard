@@ -50,13 +50,15 @@ export function MobileOctoberBar({
             <span className="mr-1 text-xs text-muted-foreground">هر نفر</span>
           </p>
         </div>
-        <Button asChild size="lg" variant="brand">
+        {/* M1 (ممیزی موبایل ۱۷ مهر): در عرض ۳۶۰ پیکسل، پدینگ افقی دکمه‌ها
+            از px-6 به px-4 می‌رسد تا نوار سرریز نکند؛ لیبل‌ها حکم artdir‌اند و دست نخورده‌اند. */}
+        <Button asChild size="lg" variant="brand" className="px-4">
           <a href={phoneHref}>
             <Phone />
             تماس فوری
           </a>
         </Button>
-        <Button asChild size="lg" variant="outline">
+        <Button asChild size="lg" variant="outline" className="px-4">
           <a href={whatsappHref}>مشاوره در واتس‌اپ</a>
         </Button>
       </div>

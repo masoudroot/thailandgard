@@ -74,7 +74,8 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
         <>
           <span className="text-sm text-muted-foreground">اشتراک‌گذاری</span>
           <div className="flex items-center gap-1 text-muted-foreground">
-            <Button variant="ghost" size="icon" asChild>
+            {/* M2 (ممیزی موبایل ۱۷ مهر): تارگت لمسی حداقل ۴۴ پیکسل */}
+            <Button variant="ghost" size="icon" className="size-11" asChild>
               <a
                 href={telegramHref}
                 target="_blank"
@@ -84,7 +85,7 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
                 <Send aria-hidden />
               </a>
             </Button>
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="icon" className="size-11" asChild>
               <a
                 href={whatsappHref}
                 target="_blank"
@@ -94,7 +95,7 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
                 <MessageCircle aria-hidden />
               </a>
             </Button>
-            <Button variant="ghost" size="icon" aria-label="کپی لینک" onClick={handleCopy}>
+            <Button variant="ghost" size="icon" className="size-11" aria-label="کپی لینک" onClick={handleCopy}>
               {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
             </Button>
           </div>

@@ -6,7 +6,7 @@ import { PHONE_MOBILE_LINK } from "@/lib/site";
 
 /**
  * صفحهٔ خطای سراسری (۵۰۰). زبان همان not-found (۴۰۴) است؛ بدون انیمیشن ورودی.
- * متن نهایی با تیم محتوا («نتوانستیم این صفحه را بارگذاری کنیم.» موقت است).
+ * متن نهایی از تیم محتوا (هندآف ۱۹ مهر ۱۴۰۵).
  *
  * نکتهٔ سازگاری: داکس Next.js ۱۶ پراپ `retry` را ترجیح می‌دهد (`reset` قدیمی است)؛
  * هر دو را می‌پذیریم تا با هر نسخه‌ای که فریم‌ورک پاس داد کار کند.
@@ -30,7 +30,7 @@ export default function Error({
         <p className="font-display text-7xl font-bold tabular-nums text-foreground/15 sm:text-8xl">۵۰۰</p>
         <h1 className="mt-4 text-2xl">مشکلی پیش آمد</h1>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          نتوانستیم این صفحه را بارگذاری کنیم.
+          نتوانستیم این صفحه را بارگذاری کنیم. اگر خطا ادامه داشت، با کارشناسان ما تماس بگیرید تا شما را راهنمایی کنند.
         </p>
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
           <Button asChild size="lg">

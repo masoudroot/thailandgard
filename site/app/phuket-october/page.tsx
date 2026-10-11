@@ -136,7 +136,7 @@ export default async function PhuketOctoberPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-6 pb-24 md:pb-16">
+      <div className="mx-auto max-w-6xl px-6 pb-sticky-bar-clearance md:pb-16">
         <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
           <div className="min-w-0">
             {/* سکشن ۲: سه کارت «چرا الان» */}

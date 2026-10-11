@@ -8,6 +8,7 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert } from "@/components/ui/alert";
 import { LoadingDots } from "@/components/animations/loading-dots";
 import { WHATSAPP_LINK, PHONE_MOBILE_LINK } from "@/lib/site";
+import { clarityEvent } from "@/lib/clarity";
 
 /**
  * ساعت‌آگاهی (پیشنهاد ۱ لید، ساعت ۱۴): فرم ۲۴ساعته باز است ولی ساعت کاری
@@ -45,12 +46,24 @@ export function CallbackForm({
   const [status, setStatus] = React.useState<"idle" | "busy" | "done" | "error">("idle");
   const [serverError, setServerError] = React.useState("");
   const statusAlertRef = React.useRef<HTMLDivElement>(null);
+  // بستهٔ اندازه‌گیری کلریتی (تحلیل ۱۷ مهر): هر فیلد فقط یک‌بار «شروع»
+  const startedFieldsRef = React.useRef<Set<string>>(new Set());
+  const extra = React.useMemo(() => ({ tourSlug }), [tourSlug]);
+  const trackFieldStart = React.useCallback(
+    (field: string) => {
+      if (startedFieldsRef.current.has(field)) return;
+      startedFieldsRef.current.add(field);
+      clarityEvent("callback_field_start", { ...extra, field });
+    },
+    [extra],
+  );
   // ساعت‌آگاهی فقط کلاینت‌ساید: در useEffect تا رندر استاتیک (prerender) نشکند.
   // پیش‌فرض null = نسخهٔ داخل ساعت کاری (فقط تا hydrate؛ پیام موفقیت فقط پس از ثبت و روی کلاینت دیده می‌شود).
   const [withinHours, setWithinHours] = React.useState<boolean | null>(null);
   React.useEffect(() => {
     setWithinHours(isWithinWorkingHours());
-  }, []);
+    clarityEvent("callback_view", { tourSlug });
+  }, [tourSlug]);
   const outsideHours = withinHours === false;
 
   // پس از «ثبت شد» یا خطای سرور، فوکس به پیام وضعیت می‌رود (مدیریت فوکس)
@@ -60,25 +73,34 @@ export function CallbackForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    clarityEvent("callback_submit_attempt", { tourSlug });
     if (name.trim().length < 2) {
       setNameError("نام را کامل وارد کنید.");
+      clarityEvent("callback_validation_fail", { ...extra, field: "name" });
       return;
     }
-    if (!mobileValid) return;
+    if (!mobileValid) {
+      clarityEvent("callback_validation_fail", { ...extra, field: "mobile" });
+      return;
+    }
     setStatus("busy");
     setServerError("");
+    let statusCode = 0;
     try {
       const res = await fetch("/api/callback", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ name: name.trim(), mobile, tourSlug, source: "site-form" }),
       });
+      statusCode = res.status;
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error ?? "خطا");
       setStatus("done");
+      clarityEvent("callback_submit_success", { tourSlug });
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "درخواستتان ثبت نشد؛ یک بار دیگر تلاش کنید.");
       setStatus("error");
+      clarityEvent("callback_server_error", { ...extra, code: statusCode > 0 ? String(statusCode) : "network" });
     }
   }
 
@@ -108,6 +130,7 @@ export function CallbackForm({
           id="cb-name"
           autoComplete="name"
           value={name}
+          onFocus={() => trackFieldStart("name")}
           onChange={(e) => {
             setName(e.target.value);
             if (nameError && e.target.value.trim().length >= 2) setNameError(undefined);
@@ -123,7 +146,7 @@ export function CallbackForm({
         )}
       </Field>
       <Field label="شمارهٔ موبایل" htmlFor="cb-mobile" hint="به همین شماره زنگ می‌زنیم">
-        <PhoneInput id="cb-mobile" onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); }} />
+        <PhoneInput id="cb-mobile" onFocus={() => trackFieldStart("mobile")} onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); }} />
       </Field>
       {/* خط اطمینان (دستور تیزشدهٔ لید، ۱۹ مهر ۱۴۰۵): کاهش‌دهندهٔ ریسک با بافت
           مثبت (چه می‌شود، نه چه نمی‌شود)؛ رجیستر «شما»؛ بدون واژهٔ منفی. */}
@@ -133,7 +156,7 @@ export function CallbackForm({
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}
-          <a href={PHONE_MOBILE_LINK} className="underline">
+          <a href={PHONE_MOBILE_LINK} className="underline" onClick={() => clarityEvent("tel_fallback_click", extra)}>
             مستقیم زنگ بزنید
           </a>
           .

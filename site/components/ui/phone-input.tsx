@@ -17,10 +17,12 @@ export interface PhoneInputProps {
   className?: string;
   id?: string;
   autoFocus?: boolean;
+  /** برای اندازه‌گیری (callback_field_start) روی اولین لمس فیلد */
+  onFocus?: React.FocusEventHandler<HTMLInputElement>;
 }
 
 /** شماره‌ی موبایل ایران. «+98» fixed on the left, groups of 3-3-4, operator detection, Persian digits accepted. */
-export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneInputProps) {
+export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus }: PhoneInputProps) {
   const [internal, setInternal] = React.useState("");
   const digits = normalizeIranMobile(value ?? internal);
   const valid = isIranMobile(digits);
@@ -47,6 +49,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus }: PhoneI
           autoFocus={autoFocus}
           value={formatIranMobile(digits)}
           onChange={(e) => set(e.target.value)}
+          onFocus={onFocus}
           placeholder="۹۱۲ ۳۴۵ ۶۷۸۹"
           className="h-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none placeholder:text-muted-foreground/50"
           aria-invalid={digits.length === 10 && !valid ? true : undefined}
