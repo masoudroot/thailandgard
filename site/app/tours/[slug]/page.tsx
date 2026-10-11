@@ -276,7 +276,7 @@ export default async function TourPage({ params }: Props) {
           <Card>
             <CardHeader>
               <CardTitle>درخواست تماس برای تور {tour.shortTitle}</CardTitle>
-              <CardDescription>شماره‌ات را بگذار؛ کارشناس فروش به‌زودی زنگ می‌زند.</CardDescription>
+              <CardDescription>شماره‌تان را بگذارید؛ در بازه‌ای که می‌گویید با شما تماس می‌گیریم.</CardDescription>
             </CardHeader>
             <CardContent>
               <CallbackForm tourSlug={tour.slug} tourTitle={tour.shortTitle} contactName={s.CONTACT_NAME} />

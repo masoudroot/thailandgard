@@ -6,6 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert } from "@/components/ui/alert";
+import { WHATSAPP_LINK } from "@/lib/site";
+
+/**
+ * ساعت‌آگاهی (پیشنهاد ۱ لید، ساعت ۱۴): فرم ۲۴ساعته باز است ولی ساعت کاری
+ * «شنبه تا پنجشنبه، ۹ صبح تا ۹ شب» است؛ پیام موفقیت طبق ساعت تهران تصمیم می‌گیرد
+ * تا «به‌زودی»ی که نیمه‌شب دروغ می‌شد، تکرار نشود.
+ */
+function isWithinWorkingHours(): boolean {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tehran",
+    hour: "numeric",
+    hourCycle: "h23",
+    weekday: "short",
+  }).formatToParts(new Date());
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const weekday = parts.find((p) => p.type === "weekday")?.value;
+  // جمعه = تعطیل؛ بقیهٔ روزها فقط ۹ تا ۲۱
+  return weekday !== "Fri" && hour >= 9 && hour < 21;
+}
 
 /** فرم «درخواست تماس»: نام + موبایل، با اعتبارسنجی ایرانی. */
 export function CallbackForm({
@@ -25,6 +44,13 @@ export function CallbackForm({
   const [status, setStatus] = React.useState<"idle" | "busy" | "done" | "error">("idle");
   const [serverError, setServerError] = React.useState("");
   const statusAlertRef = React.useRef<HTMLDivElement>(null);
+  // ساعت‌آگاهی فقط کلاینت‌ساید: در useEffect تا رندر استاتیک (prerender) نشکند.
+  // پیش‌فرض null = نسخهٔ داخل ساعت کاری (فقط تا hydrate؛ پیام موفقیت فقط پس از ثبت و روی کلاینت دیده می‌شود).
+  const [withinHours, setWithinHours] = React.useState<boolean | null>(null);
+  React.useEffect(() => {
+    setWithinHours(isWithinWorkingHours());
+  }, []);
+  const outsideHours = withinHours === false;
 
   // پس از «ثبت شد» یا خطای سرور، فوکس به پیام وضعیت می‌رود (مدیریت فوکس)
   React.useEffect(() => {
@@ -58,7 +84,18 @@ export function CallbackForm({
   if (status === "done") {
     return (
       <Alert ref={statusAlertRef} tabIndex={-1} variant="success" title="درخواستتان ثبت شد">
-        {contactName} به‌زودی با همین شماره تماس می‌گیرد. اگر عجله دارید، مستقیم زنگ بزنید.
+        {outsideHours ? (
+          <>
+            درخواستتان ثبت شد. ساعت کاری ما شنبه تا پنجشنبه، ۹ صبح تا ۹ شب است؛ در اولین فرصتِ روز
+            کاری بعد با شما تماس می‌گیریم. اگر عجله دارید،{" "}
+            <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
+              در واتس‌اپ پیام بدهید
+            </a>
+            .
+          </>
+        ) : (
+          "ممنون؛ در اولین فرصتِ امروز با شما تماس می‌گیریم. اگر عجله دارید، مستقیم زنگ بزنید."
+        )}
       </Alert>
     );
   }
@@ -96,7 +133,11 @@ export function CallbackForm({
         <PhoneCall />
         {status === "busy" ? "در حال ثبت…" : tourTitle ? `درخواست تماس برای ${tourTitle}` : "درخواست تماس"}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">با ثبت این فرم، {contactName} در اولین فرصت با شما تماس می‌گیرد.</p>
+      <p className="text-center text-xs text-muted-foreground">
+        {outsideHours
+          ? "با ثبت این فرم، در اولین فرصتِ روز کاری بعد (شنبه تا پنجشنبه، ۹ صبح تا ۹ شب) با شما تماس می‌گیریم."
+          : "با ثبت این فرم، در اولین فرصتِ امروز با شما تماس می‌گیریم."}
+      </p>
     </form>
   );
 }
