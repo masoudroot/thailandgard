@@ -21,6 +21,7 @@
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
  * - tour_faq.insert             درج سؤال تازه در tour_faqs (موج واکنشی dev ۱۱:۰۵، ۱۴۰۵/۰۷/۲۰؛ آینهٔ guide_faq.insert)
  * - tour.set_highlights         به‌روزرسانی هایلایت‌های تور در tours (یافتهٔ S-024 حسابرس سئو، ۱۴۰۵/۰۷/۲۰)
+ * - tour.set_description        به‌روزرسانی متن بدنهٔ تور در tours (توسعهٔ S-024، ۱۴۰۵/۰۷/۲۰)
  * - tour.insert                 ساخت رکورد تازه در tours (هندآف مدیر ۱۲:۴۰، ۱۴۰۵/۰۷/۲۰؛ RLS کلید ایجنت روی tours بسته است)
  * - setting.set                 به‌روزرسانی یک کلید site_settings (فقط ۱۶ کلید شناخته‌شده؛ شعار مصوب ۱۴۰۵/۰۷/۲۰)
  * - lead_alert.backfill         آشتی‌جویی ردیف‌های lead-alert برای لیدهای N ساعت اخیر
@@ -51,6 +52,7 @@ type OpCode =
   | "guide_faq.insert"
   | "tour.set_summary"
   | "tour.set_highlights"
+  | "tour.set_description"
   | "setting.set"
   | "tour_faq.update"
   | "tour_faq.insert"
@@ -142,6 +144,11 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       // یافتهٔ S-024 حسابرس سئو (۲۰ مهر ۱۴۰۵): اصلاح هایلایت‌های تور از مسیر سرور.
       if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
       if (!isParagraphs(raw.highlights)) return { ok: false, error: "highlights نامعتبر است." };
+      return { ok: true, op: raw };
+    case "tour.set_description":
+      // توسعهٔ S-024 (۲۰ مهر ۱۴۰۵): متن بدنهٔ تور هم «پنج شب پوکت» داشت.
+      if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
+      if (!isParagraphs(raw.description)) return { ok: false, error: "description نامعتبر است." };
       return { ok: true, op: raw };
     case "setting.set": {
       // شعار مصوب مسعود ۱۴۰۵/۰۷/۲۰: تنظیمات site_settings فقط ۱۶ کلید شناخته‌شدهٔ site.ts را می‌پذیرد؛
@@ -521,6 +528,12 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی highlights تور (slug=${op.tour_slug})` };
     }
+    case "tour.set_description": {
+      const q = `tours?slug=eq.${encodeURIComponent(String(op.tour_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { description: op.description });
+      if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی description تور (slug=${op.tour_slug})` };
+    }
     case "setting.set": {
       const q = `site_settings?key=eq.${encodeURIComponent(String(op.key))}`;
       const { rows } = await postgrest(cfg, "PATCH", q, { value: op.value });
@@ -622,6 +635,7 @@ function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
       return { tags: ["guides"], paths: [`/guide/${slug}`, "/"] };
     case "tour.set_summary":
     case "tour.set_highlights":
+    case "tour.set_description":
     case "tour_faq.update":
     case "tour_faq.insert":
     case "tour.insert":
