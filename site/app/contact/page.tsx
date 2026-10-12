@@ -41,7 +41,7 @@ export default async function ContactPage() {
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
           <Phone className="size-4" />
-          تماس
+          مشاورهٔ تلفنی
         </p>
         <h1 className="mt-3 text-3xl md:text-4xl">تماس با تایلندگرد</h1>
         <p className="mt-4 text-base leading-[1.8] text-muted-foreground">
