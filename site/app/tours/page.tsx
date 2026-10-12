@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import Link from "next/link";
 import { getTours, getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
@@ -49,10 +50,14 @@ export default async function ToursPage() {
         <h1 className="text-3xl md:text-4xl">تورهای تایلند</h1>
         <p className="leading-[1.8] text-muted-foreground">
           در حال حاضر {fa(tours.length)} تور فعال داریم:{" "}
-          <Link href="/tours/phuket-7-days" className="underline decoration-brand/60 underline-offset-4">تور پوکت</Link>،{" "}
-          <Link href="/tours/bangkok-pattaya-8-days" className="underline decoration-brand/60 underline-offset-4">تور بانکوک و پاتایا</Link>،{" "}
-          <Link href="/tours/samui-7-days" className="underline decoration-brand/60 underline-offset-4">تور سامویی</Link> و{" "}
-          <Link href="/tours/krabi-6-days" className="underline decoration-brand/60 underline-offset-4">تور کرابی</Link>.
+          {tours.map((t, i) => (
+            <Fragment key={t.slug}>
+              {i > 0 && (i === tours.length - 1 ? " و " : "، ")}
+              <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4">
+                تور {t.shortTitle || t.title}
+              </Link>
+            </Fragment>
+          ))}.
           قیمت‌هایی که می‌بینی «شروع قیمت»‌اند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.
           رزرو هم فقط با تماس تلفنی انجام می‌شود؛ پرداخت آنلاین نداریم.
         </p>
