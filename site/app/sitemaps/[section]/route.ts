@@ -15,9 +15,11 @@ export async function GET(
 ): Promise<Response> {
   await connection();
   const { section } = await ctx.params;
+  // section مقدارش «pages.xml» است (با پسوند)؛ پسوند را می‌گیریم
+  const name = section.replace(/\.xml$/, "");
   const sections = await getSitemapSections();
   const entries =
-    section === "pages" ? sections.pages : section === "tours" ? sections.tours : section === "guides" ? sections.guides : null;
+    name === "pages" ? sections.pages : name === "tours" ? sections.tours : name === "guides" ? sections.guides : null;
   if (!entries) {
     return new Response("Not Found", { status: 404 });
   }
