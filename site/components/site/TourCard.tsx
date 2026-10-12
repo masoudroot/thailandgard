@@ -42,9 +42,10 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
           />
         ) : (
-          // جای‌نگه‌دار هم‌شکل تایپوگرافیک (تور بدون کاور؛ عکس ناجور ممنوع)
-          <div className="flex size-full flex-col items-center justify-center gap-2 bg-secondary/50 p-6 text-center">
-            <span className="font-display text-2xl text-foreground/70">{tour.shortTitle}</span>
+          // جای‌نگه‌دار مینیمال (D-081): واژهٔ تزئینی shortTitle حذف شد؛ تیتر کامل
+          // روی ماسک (CardTitle) همان واژه را تکرار می‌کرد و تیتر تکراری می‌شد.
+          // فقط خط‌حایل مویی می‌ماند تا اسلات شکلش را نگه دارد.
+          <div className="flex size-full flex-col items-center justify-center bg-secondary/50 p-6">
             <span aria-hidden className="block h-px w-16 bg-border" />
           </div>
         )}
