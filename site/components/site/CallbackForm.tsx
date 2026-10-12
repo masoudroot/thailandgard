@@ -100,6 +100,9 @@ export function CallbackForm({
   const [mobile, setMobile] = React.useState("");
   const [mobileValid, setMobileValid] = React.useState(false);
   const [nameError, setNameError] = React.useState<string | undefined>();
+  // دیف UX فرم ۲۰ مهر ۱۴۰۵: دکمه دیگر با موبایل نامعتبر غیرفعال نمی‌شود؛
+  // روی submit با موبایل نامعتبر این پرچم ست می‌شود و فوکس به فیلد موبایل می‌رود (الگوی nameError).
+  const [mobileForceError, setMobileForceError] = React.useState(false);
   const [status, setStatus] = React.useState<"idle" | "busy" | "done" | "error">("idle");
   const [serverError, setServerError] = React.useState("");
   // قلم ۱ لید (زمان ترجیحی تماس): بدون انتخاب = رشتهٔ خالی؛ سرور بدون کلید هم سازگار است.
@@ -164,6 +167,8 @@ export function CallbackForm({
       return;
     }
     if (!mobileValid) {
+      setMobileForceError(true);
+      document.getElementById("cb-mobile")?.focus();
       clarityEvent("callback_validation_fail", { ...extra, field: "mobile" });
       return;
     }
@@ -236,7 +241,7 @@ export function CallbackForm({
         )}
       </Field>
       <Field label="شمارهٔ موبایل" htmlFor="cb-mobile" hint="به همین شماره زنگ می‌زنیم">
-        <PhoneInput id="cb-mobile" onFocus={() => trackFieldStart("mobile")} onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); }} />
+        <PhoneInput id="cb-mobile" forceError={mobileForceError} onFocus={() => trackFieldStart("mobile")} onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); if (mobileForceError && valid) setMobileForceError(false); }} />
       </Field>
       {/* خط اطمینان (دستور تیزشدهٔ لید، ۱۹ مهر ۱۴۰۵): کاهش‌دهندهٔ ریسک با بافت
           مثبت (چه می‌شود، نه چه نمی‌شود)؛ رجیستر «شما»؛ بدون واژهٔ منفی. */}
@@ -287,7 +292,7 @@ export function CallbackForm({
           .
         </Alert>
       )}
-      <Button type="submit" size="lg" className="w-full" disabled={status === "busy" || !mobileValid}>
+      <Button type="submit" size="lg" className="w-full" disabled={status === "busy"}>
         <PhoneCall />
         {status === "busy" ? (
           <>

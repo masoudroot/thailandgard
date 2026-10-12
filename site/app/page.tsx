@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowLeft, Compass, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import { OctoberBanner } from "@/components/site/OctoberBanner";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
-import { TourCard } from "@/components/site/TourCard";
+import { TourCard, COMBO_SLUG } from "@/components/site/TourCard";
+import { Reveal } from "@/components/animations/reveal";
 import { CallButtons } from "@/components/site/CallButtons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,11 @@ const WHY_US = [
 
 export default async function HomePage() {
   const [tours, guides, s] = await Promise.all([getTours(), getGuides(), getSiteSettings()]);
-  const featuredTours = tours.slice(0, 3);
+  // قلم ۴ اسپک خانه (۲۰ مهر): وقتی تور ترکیبی در payload بود، اول می‌نشیند
+  // (راست‌ترین کارت در RTL). تا payload نیامده، رفتار همان slice(0, 3) است.
+  const comboIdx = tours.findIndex((t) => t.slug === COMBO_SLUG);
+  const featuredTours =
+    comboIdx >= 0 ? [tours[comboIdx], ...tours.filter((_, i) => i !== comboIdx)].slice(0, 3) : tours.slice(0, 3);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -89,11 +94,13 @@ export default async function HomePage() {
             </Link>
           </Button>
         </div>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* قلم ۶ اسپک (یافتهٔ تطبیق): گرید کارت‌ها در animations/reveal بایت‌به‌بایت پیچیده شد؛
+            تنشِ «حکم ۵ می‌گوید دست نزنید» با واقعیت (هیچ reveal روی گرید نبود) به نفع واقعیت حل شد. */}
+        <Reveal className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featuredTours.map((tour) => (
             <TourCard key={tour.slug} tour={tour} />
           ))}
-        </div>
+        </Reveal>
       </section>
 
       {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}

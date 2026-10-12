@@ -3,6 +3,8 @@
 /**
  * ورودی موبایل. دست‌ساز می‌ماند: placeholder فارسی است (۹۱۲ ۳۴۵ ۶۷۸۹)؛
  * نسخهٔ رجیستری placeholder لاتین دارد.
+ * انحراف ثبت‌شده (DEVIATIONS.md): پراپ `forceError` در آیتم رجیستری نیست؛
+ * برای خطای اجباری روی submit فرم (دیف UX فرم «درخواست تماس»، ۲۰ مهر) اضافه شد.
  */
 
 import * as React from "react";
@@ -19,16 +21,22 @@ export interface PhoneInputProps {
   autoFocus?: boolean;
   /** برای اندازه‌گیری (callback_field_start) روی اولین لمس فیلد */
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
+  /** خطای اجباری از بیرون (روی submit فرم): hint خطا را نشان می‌دهد و
+      aria-invalid + حلقهٔ خطا هم به همین پرچم گره می‌خورند. */
+  forceError?: boolean;
 }
 
 /** شماره‌ی موبایل ایران. «+98» fixed on the left, groups of 3-3-4, operator detection, Persian digits accepted. */
-export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus }: PhoneInputProps) {
+export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus, forceError }: PhoneInputProps) {
   const [internal, setInternal] = React.useState("");
   const digits = normalizeIranMobile(value ?? internal);
   const valid = isIranMobile(digits);
   const op = mobileOperator(digits);
   // الگوی cb-name-error: متن راهنما/خطا شناسه دارد و اینپوت به آن وصل است
   const hintId = id ? `${id}-hint` : undefined;
+  // قید ممیزی فاز ۳ (farsiui F-078 + vibefarsi): خطای اجباری بدون aria-invalid ناقص است؛
+  // هر سه (حلقه، aria-invalid، متن hint) به همان پرچم forceError گره می‌خورند.
+  const showError = forceError || (digits.length === 10 && !valid);
 
   function set(next: string) {
     const d = normalizeIranMobile(next);
@@ -38,7 +46,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus 
 
   return (
     <div className={cn("space-y-1.5", className)}>
-      <div className={cn("flex h-10 items-center gap-2 rounded-field border-line-field bg-field shadow-field px-3 transition-colors focus-within:ring-2 focus-within:ring-ring/60", digits.length === 10 && !valid ? "border-destructive/60" : "border-input")} dir="ltr">
+      <div className={cn("flex h-10 items-center gap-2 rounded-field border-line-field bg-field shadow-field px-3 transition-colors focus-within:ring-2 focus-within:ring-ring/60", showError ? "border-destructive/60" : "border-input")} dir="ltr">
         {/* پیش‌شماره عمداً لاتین می‌ماند: رجیستری وایب‌فارسی برای فیلد موبایل start addon «+98» را در کانتینر dir="ltr" تجویز می‌کند (design-rules.md) */}
         <span className="text-sm text-muted-foreground">+98</span>
         <input
@@ -52,13 +60,13 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus 
           onFocus={onFocus}
           placeholder="۹۱۲ ۳۴۵ ۶۷۸۹"
           className="h-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none placeholder:text-muted-foreground/50"
-          aria-invalid={digits.length === 10 && !valid ? true : undefined}
+          aria-invalid={showError ? true : undefined}
           aria-describedby={hintId}
         />
         {valid && <Check className="size-4 text-success-text" />}
       </div>
       <p id={hintId} className="text-xs text-muted-foreground">
-        {op ? `اپراتور: ${op}` : digits.length === 10 && !valid ? <span className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}
+        {forceError ? <span className="text-destructive">شمارهٔ موبایل را کامل و درست وارد کنید.</span> : op ? `اپراتور: ${op}` : digits.length === 10 && !valid ? <span className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}
       </p>
     </div>
   );

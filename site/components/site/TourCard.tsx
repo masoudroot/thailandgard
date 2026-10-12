@@ -13,13 +13,21 @@ import { Separator } from "@/components/ui/separator";
 import { fa } from "@/lib/utils";
 import type { Tour } from "@/lib/tours";
 
+/** اسلاگ تور ترکیبی (اسپک خانه ۲۰ مهر ۱۴۰۵): رندر شرطی روی یک ثابت متمرکز؛
+    اگر seo اسلاگ نهایی را عوض کرد، فقط همین‌جا عوض می‌شود. */
+export const COMBO_SLUG = "bangkok-phuket";
+
 /** کارت تور در فهرست و صفحهٔ خانه. */
 export function TourCard({ tour }: { tour: Tour }) {
+  // دروازهٔ mount (اسپک ۲۰ مهر): رکورد DB + قیمت مسعود. بدون این دو،
+  // هیچ تور ترکیبی در payload نیست و این شرط‌ها کد مرده‌اند؛ چیزی mount نمی‌شود.
+  const isCombo = tour.slug === COMBO_SLUG;
   return (
     <Card className="flex h-full flex-col overflow-hidden transition-transform duration-(--motion) ease-motion active:[transform:var(--press)]">
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
-          <Badge variant="brand">{tour.shortTitle}</Badge>
+          {/* بج: برای ترکیبی فقط یک لکهٔ کهربایی «ترکیبی جدید»؛ بج shortTitle نمی‌آید (حکم ۲ بریف) */}
+          <Badge variant="brand">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <CalendarDays className="size-3.5" />
             {fa(tour.days)} روزه
@@ -34,9 +42,18 @@ export function TourCard({ tour }: { tour: Tour }) {
       </CardHeader>
       <CardContent className="mt-auto space-y-4 pt-2">
         <Separator />
+        {/* ردیف قیمت: برای ترکیبی (بدون عدد) Price و لیبل «شروع قیمت از» نمی‌آیند؛
+            میکروکپی ثابت در همان کانتینر می‌نشیند تا هم‌قدی کارت‌ها حفظ شود (قلم ۳ اسپک).
+            با رسیدن عدد مسعود: Price + برچسب «اعتبار نرخ تا» (در این اسپک پیاده نمی‌شود). */}
         <div className="flex flex-nowrap items-baseline justify-between gap-3">
-          <span className="text-xs text-muted-foreground">شروع قیمت از</span>
-          <Price amount={tour.priceFrom} size="md" />
+          {isCombo ? (
+            <span className="text-sm text-muted-foreground">قیمت روز بر اساس تاریخ سفر و هتل انتخابی؛ تلفنی</span>
+          ) : (
+            <>
+              <span className="text-xs text-muted-foreground">شروع قیمت از</span>
+              <Price amount={tour.priceFrom} size="md" />
+            </>
+          )}
         </div>
         <Button asChild variant="secondary" className="w-full">
           <Link href={`/tours/${tour.slug}`}>
