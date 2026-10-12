@@ -6,6 +6,7 @@ import { join } from "node:path";
  * ردیاب تماس (قفل ۵ موتور رشد): دریافت کلیک‌های tel: از کلاینت.
  * قرارداد: همیشه ۲۰۰؛ ردیابی هرگز UX را نمی‌شکند.
  * ذخیره: سوپابیس (جدول call_clicks، با service_role)؛ اگر env نبود، JSONL محلی.
+ * فیلد source: سه‌بخشی «کانال|صفحه|کمپین» طبق SOURCE-TRACKING.md (یافتهٔ ۳۶ تحلیل).
  */
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,10 +15,12 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 export async function POST(req: NextRequest) {
   let href = "";
   let page = "";
+  let source = "";
   try {
     const body = await req.json();
     if (typeof body.href === "string") href = body.href.slice(0, 64);
     if (typeof body.page === "string") page = body.page.slice(0, 128);
+    if (typeof body.source === "string") source = body.source.slice(0, 128);
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  const row = { href, page, created_at: new Date().toISOString() };
+  const row = { href, page, source, created_at: new Date().toISOString() };
 
   try {
     if (SUPABASE_URL && SERVICE_KEY) {

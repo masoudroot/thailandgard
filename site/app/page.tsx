@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Compass, PhoneCall, ShieldCheck, Users } from "lucide-react";
-import { OctoberBanner } from "@/components/site/OctoberBanner";
+import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { TourCard, COMBO_SLUG } from "@/components/site/TourCard";
 import { Reveal } from "@/components/animations/reveal";
@@ -76,8 +76,13 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* بنر الف (کمپین «پنجرهٔ اکتبر») در اسلات هیروی خانه؛ حکم ۳ */}
-      <OctoberBanner />
+      {/* کپسول عملیاتی هیرو در اسلات هیروی خانه (دستور :۳۵، ۲۰ مهر ۱۴۰۵؛ مأموریت بصری).
+          بنر الف (کمپین «پنجرهٔ اکتبر») فعلاً از اسلات خارج شد؛ فایل OctoberBanner سر جایش است. */}
+      <HeroCapsule
+        phoneHref={s.PHONE_MOBILE_LINK}
+        phoneLabel="تماس با کارشناس فروش"
+        whatsappHref={s.WHATSAPP_LINK}
+      />
 
       <section className="mx-auto max-w-6xl px-6 pt-14">
         <div className="flex flex-wrap items-end justify-between gap-4">
