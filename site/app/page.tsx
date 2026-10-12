@@ -161,8 +161,8 @@ export default async function HomePage() {
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {guides.map((guide) => (
-            <Link key={guide.slug} href={`/guide/${guide.slug}`} className="block h-full">
-              <Card className="flex h-full flex-col">
+            <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block h-full">
+              <Card className="flex h-full flex-col transition-colors group-hover:border-brand/60">
                 <CardHeader>
                   <Badge variant="brand">{guide.category}</Badge>
                   <CardTitle className="mt-3 text-xl">
