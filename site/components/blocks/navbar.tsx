@@ -43,12 +43,10 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
               </li>
             ))}
           </ul>
+          {/* D-031: ممیزی ۱۷:۴۶ — روی دسکتاپ دکمهٔ روح «تماس با مشاور سفر» (secondary) حذف شد؛
+              همان لیبل با دو استایل متفاوت، کنار «تماس» ناوبری، سه محرک تکراری می‌ساخت.
+              فقط دکمهٔ جوهرینهٔ اصلی می‌ماند؛ secondary در شیت موبایل سر جایش است. */}
           <div className="hidden items-center gap-2 md:flex">
-            {secondary.href ? (
-              <Button asChild variant="ghost" size="sm"><a href={secondary.href}>{secondary.label}</a></Button>
-            ) : (
-              <Button variant="ghost" size="sm">{secondary.label}</Button>
-            )}
             {primary.href ? (
               <Button asChild size="sm"><a href={primary.href}>{primary.label}</a></Button>
             ) : (
