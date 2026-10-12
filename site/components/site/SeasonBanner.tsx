@@ -14,7 +14,7 @@ export function SeasonBanner() {
   return (
     <div className="rounded-xl border border-border bg-card px-4 py-3 text-start">
         <p className="text-sm leading-[1.5] text-foreground/90 sm:text-base">
-          ۱۸ اکتبر (۲۶ مهر)؛ ۳ پرواز هفتگی جدید به پوکت
+          ۱۸ اکتبر (۲۶ مهر)؛ ۳ پرواز هفتگی جدید به پوکت{" "}
           <br className="sm:hidden" />
           <Link
             href="/phuket-october"
