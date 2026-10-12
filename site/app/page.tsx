@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Compass, PhoneCall, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Compass, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { TourCard, COMBO_SLUG } from "@/components/site/TourCard";
+import { CoverImage } from "@/components/site/CoverImage";
+import { GUIDE_COVERS } from "@/lib/guide-covers";
 import { Reveal } from "@/components/animations/reveal";
 import { CallButtons } from "@/components/site/CallButtons";
 import { Badge } from "@/components/ui/badge";
@@ -160,26 +162,51 @@ export default async function HomePage() {
           </Button>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {guides.map((guide) => (
+          {guides.map((guide) => {
+            const cover = GUIDE_COVERS[guide.slug];
+            return (
             <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block h-full">
-              <Card className="flex h-full flex-col transition-colors group-hover:border-brand/60">
-                <CardHeader>
-                  <Badge variant="brand">{guide.category}</Badge>
-                  <CardTitle className="mt-3 text-xl">
-                    {displayTitle(guide.title)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="mt-auto">
-                  <CardDescription className="leading-7">
-                    {guide.excerpt}
-                  </CardDescription>
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    {fa(guide.readingMinutes)} دقیقه مطالعه | به‌روز شده در {guide.updatedFa}
-                  </p>
+              <Card className="flex h-full flex-col overflow-hidden transition-colors group-hover:border-brand/60">
+                {/* D-083: اسلات تصویری S5 (همان الگوی app/guide/page.tsx): قاب ۱۶:۱۰ +
+                    ماسک graphite-soft از پایین؛ راهنمای بدون کاور جای‌نگه‌دار
+                    تایپوگرافیک می‌گیرد، عکس ناجور ممنوع */}
+                <div className="relative aspect-[16/10] overflow-hidden border-b border-border">
+                  {cover ? (
+                    <CoverImage
+                      src={cover.src}
+                      alt={cover.alt}
+                      width={cover.w}
+                      height={cover.h}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center bg-secondary/50 p-6 text-center">
+                      <span className="font-display text-lg text-foreground/70">{displayTitle(guide.title)}</span>
+                    </div>
+                  )}
+                  <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
+                    <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle>
+                  </div>
+                </div>
+                <CardContent className="flex flex-1 flex-col gap-4 p-5">
+                  <p className="text-sm leading-7 text-muted-foreground">{guide.excerpt}</p>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="size-3.5" />
+                      {fa(guide.readingMinutes)} دقیقه مطالعه
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarDays className="size-3.5" />
+                      به‌روزرسانی: {guide.updatedFa}
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 
