@@ -15,7 +15,7 @@
 
 ## ۲. خط زمانی سه‌ایستگاهی ← blocks/steps با انحراف مصوب «خط زمانی کمپینی»
 
-**ایمپورت واقعی:** کپی نو از رجیستری به `site/components/blocks/steps.tsx` (slug: `blocks/steps`). نکته: فقط `steps-block.tsx` تطبیق‌یافتهٔ پوکت در `site/` هست؛ قانون کپی نو (قابل‌ارتباط با DEVIATIONS).
+**ایمپورت واقعی:** کپی نو از رجیستری به `site/components/blocks/steps.tsx` (slug: `blocks/steps`). نکته: فقط `steps-block.tsx` تطبیق‌یافتهٔ پوکت در `site/` هست؛ طبق قانون کپی نو، از آن استفاده نمی‌شود و کپی نو از رجیستری گرفته می‌شود؛ انحراف در `agents/vibefarsi/DEVIATIONS.md` ثبت می‌شود.
 
 **قیدهای اجرایی:**
 ۱. شماره‌ها حذف؛ نقطهٔ هر ایستگاه: فعال `bg-brand`، بقیه `bg-muted-foreground/50`؛ خط اتصال `border-t border-border` پیوسته.
