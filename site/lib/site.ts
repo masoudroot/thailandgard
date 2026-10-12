@@ -5,7 +5,7 @@
 
 export const SITE_NAME = "تایلندگرد";
 export const SITE_LATIN = "ThailandGard";
-export const SITE_SLOGAN = "متخصص تور تایلند";
+export const SITE_SLOGAN = "تایلند، کار ماست.";
 export const SITE_TAGLINE = "فقط تور تایلند، با مشاورهٔ تلفنی کارشناسان مقصد";
 
 /** کارشناس مقصد */

@@ -39,12 +39,12 @@ SEED_OUT = Path(__file__).resolve().parents[1] / "seed" / "content_seed.json"
 EXPECTED_COUNTS = {
     "tours": 4,
     "tour_days": 28,
-    "tour_faqs": 9,
-    "guides": 3,
-    "guide_sections": 9,
-    "guide_faqs": 15,
+    "tour_faqs": 12,
+    "guides": 5,
+    "guide_sections": 22,
+    "guide_faqs": 29,
     "site_settings": 16,
-    "related_links": 7,
+    "related_links": 9,
 }
 
 # قالب هارنس جاوااسکریپت: TS را به JS تمیز تبدیل و با node ارزیابی می‌کند.

@@ -21,6 +21,7 @@
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
  * - tour_faq.insert             درج سؤال تازه در tour_faqs (موج واکنشی dev ۱۱:۰۵، ۱۴۰۵/۰۷/۲۰؛ آینهٔ guide_faq.insert)
  * - tour.insert                 ساخت رکورد تازه در tours (هندآف مدیر ۱۲:۴۰، ۱۴۰۵/۰۷/۲۰؛ RLS کلید ایجنت روی tours بسته است)
+ * - setting.set                 به‌روزرسانی یک کلید site_settings (فقط ۱۶ کلید شناخته‌شده؛ شعار مصوب ۱۴۰۵/۰۷/۲۰)
  * - lead_alert.backfill         آشتی‌جویی ردیف‌های lead-alert برای لیدهای N ساعت اخیر
  *                               (یافتهٔ باز qa، ۲۰ مهر ۱۴۰۵: رویداد لید بدون ردیف ماند)
  *
@@ -29,6 +30,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { shortLeadId, nextTouch } from "@/lib/lead-alert";
 import { getTour } from "@/lib/tours";
 
@@ -47,6 +49,7 @@ type OpCode =
   | "guide_faq.update"
   | "guide_faq.insert"
   | "tour.set_summary"
+  | "setting.set"
   | "tour_faq.update"
   | "tour_faq.insert"
   | "tour.insert"
@@ -81,6 +84,8 @@ interface SyncOp {
   question?: unknown;
   answer?: unknown;
   hours?: unknown;
+  key?: unknown;
+  value?: unknown;
 }
 
 const MAX_OPS = 20;
@@ -131,6 +136,22 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
       if (!isText(raw.summary, 600)) return { ok: false, error: "summary نامعتبر است." };
       return { ok: true, op: raw };
+    case "setting.set": {
+      // شعار مصوب مسعود ۱۴۰۵/۰۷/۲۰: تنظیمات site_settings فقط ۱۶ کلید شناخته‌شدهٔ site.ts را می‌پذیرد؛
+      // کلید anon روی site_settings حق UPDATE ندارد، پس این op از مسیر سرور (کلید سرور) می‌زند.
+      const SETTING_KEYS = new Set([
+        "SITE_NAME", "SITE_LATIN", "SITE_SLOGAN", "SITE_TAGLINE",
+        "CONTACT_NAME", "CONTACT_TITLE",
+        "PHONE_MOBILE", "PHONE_MOBILE_DISPLAY", "PHONE_MOBILE_LINK", "WHATSAPP_LINK",
+        "PHONE_LANDLINE", "PHONE_LANDLINE_DISPLAY", "PHONE_LANDLINE_LINK",
+        "PHONE_CHANNELS_NOTE", "SITE_URL",
+      ]);
+      if (typeof raw.key !== "string" || !SETTING_KEYS.has(raw.key))
+        return { ok: false, error: "key نامعتبر است (فقط کلیدهای site_settings)." };
+      if (typeof raw.value !== "string" || raw.value.trim().length === 0 || raw.value.length > 500)
+        return { ok: false, error: "value نامعتبر است." };
+      return { ok: true, op: raw };
+    }
     case "guide_section.insert":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
       if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
@@ -487,6 +508,12 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی summary تور (slug=${op.tour_slug})` };
     }
+    case "setting.set": {
+      const q = `site_settings?key=eq.${encodeURIComponent(String(op.key))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { value: op.value });
+      if (rows.length === 0) throw new Error("کلیدی با این نام در site_settings پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی تنظیم سایت (key=${op.key})` };
+    }
     case "guide_faq.update": {
       const q = `guide_faqs?guide_slug=eq.${encodeURIComponent(String(op.guide_slug))}&question=eq.${encodeURIComponent(String(op.question))}`;
       const { rows } = await postgrest(cfg, "PATCH", q, { answer: op.answer });
@@ -552,6 +579,65 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
     }
   }
   throw new Error("عملیات ناشناخته.");
+}
+
+/**
+ * ابطال کش پس از opهای محتوایی (یافتهٔ F-092 بازرس، ۲۰ مهر ۱۴۰۵).
+ *
+ * ریشه: این روت هیچ revalidateای نداشت و `'use cache'` روی getGuides/getTours
+ * (در `site/lib/db-content.ts`) کش دادهٔ سرور را نگه می‌داشت؛ پس هر op
+ * محتواییِ DB بدون ابطال، روی زنده اثر نمی‌گذاشت (متای قدیم روی پروداکشن).
+ *
+ * سازوکار (دو لایه، هر دو پس از opهای موفق):
+ *  ۱) تگ: `cacheTag('guides' | 'tours')` در db-content.ts؛ این‌جا revalidateTag.
+ *  ۲) مسیر: revalidatePath برای صفحهٔ اثرگرفته + فهرست + خانه (خانه تور/راهنما رندر می‌کند).
+ * ابطال فقط برای opهای موفق انجام می‌شود؛ خطای ابطال، نتیجهٔ op را خراب نمی‌کند.
+ */
+function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
+  const slug = String(op.slug ?? op.guide_slug ?? op.tour_slug ?? "");
+  switch (op.op as OpCode) {
+    case "guide.insert":
+    case "guide.set_excerpt":
+    case "guide.set_title":
+      return { tags: ["guides"], paths: [`/guide/${slug}`, "/guide", "/"] };
+    case "guide_section.insert":
+    case "guide_section.set_paragraphs":
+    case "guide_section.set_title":
+    case "guide_section.move":
+    case "guide_faq.update":
+    case "guide_faq.insert":
+      return { tags: ["guides"], paths: [`/guide/${slug}`, "/"] };
+    case "tour.set_summary":
+    case "tour_faq.update":
+    case "tour_faq.insert":
+    case "tour.insert":
+      return { tags: ["tours"], paths: [`/tours/${slug}`, "/tours", "/"] };
+    case "lead_alert.backfill":
+      // ردیف intel_feed روی هیچ صفحه‌ای رندر نمی‌شود؛ ابطالی لازم نیست.
+      return { tags: [], paths: [] };
+  }
+  return { tags: [], paths: [] };
+}
+
+/** ابطال تجمیعی تگ‌ها و مسیرهای همهٔ opهای موفق؛ هرگز throw نمی‌کند. */
+function invalidateAfterOps(ops: SyncOp[], results: Array<{ ok: boolean }>): { tags: string[]; paths: string[] } {
+  const tags = new Set<string>();
+  const paths = new Set<string>();
+  results.forEach((r, i) => {
+    if (!r.ok) return;
+    const inv = invalidationFor(ops[i]);
+    inv.tags.forEach((t) => tags.add(t));
+    inv.paths.forEach((p) => paths.add(p));
+  });
+  const tagList = [...tags];
+  const pathList = [...paths];
+  try {
+    for (const t of tagList) revalidateTag(t, "max");
+    for (const p of pathList) revalidatePath(p);
+  } catch (e) {
+    console.error(`[content-sync] خطا در ابطال کش: ${e instanceof Error ? e.message : "نامشخص"}`);
+  }
+  return { tags: tagList, paths: pathList };
 }
 
 export async function GET() {
@@ -621,10 +707,13 @@ export async function POST(req: NextRequest) {
     }
   }
   const failed = results.filter((r) => !r.ok).length;
+  // یافتهٔ F-092: ابطال کش پس از opهای موفق (تگ + مسیرهای اثرگرفته).
+  const invalidated = invalidateAfterOps(validated, results);
   return NextResponse.json({
     ok: failed === 0,
     applied: results.length - failed,
     failed,
     results,
+    invalidated,
   });
 }
