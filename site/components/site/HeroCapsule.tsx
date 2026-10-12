@@ -86,7 +86,7 @@ export function HeroCapsule({
 
         <div className="mt-8 flex flex-col items-center justify-center gap-2 sm:flex-row">
           <Button asChild size="lg" variant="brand" className="rounded-full px-7">
-            <a href={phoneHref}>
+            <a href={phoneHref} data-call-context="hero">
               <Phone />
               {phoneLabel}
             </a>

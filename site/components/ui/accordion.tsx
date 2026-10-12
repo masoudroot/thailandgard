@@ -1,8 +1,11 @@
 "use client";
 
 /**
- * آکاردئون. دست‌ساز می‌ماند: آیتم disabled دارد (مثلاً آیتم «به‌زودی»
- * در FAQ که باز نمی‌شود و کم‌رنگ است)؛ آیتم رجیستری این حالت را ندارد.
+ * آکاردئون. دست‌ساز می‌ماند چون چهار نیاز بومی دارد: آیتم disabled (مثلاً
+ * «به‌زودی» در FAQ که باز نمی‌شود و کم‌رنگ است)، آیکون باز/بستهٔ انتخابی
+ * (toggleIcon: شورون پیش‌فرض یا پلاس/منهای خطی)، محتوای بلوکی (contentBlock:
+ * رپر div به‌جای p وقتی جواب FAQ لیست دارد تا HTML نامعتبر نشود)، و حلقهٔ
+ * فوکوس دسترس‌پذیر روی دکمهٔ هر آیتم.
  */
 
 import * as React from "react";
@@ -70,7 +73,7 @@ export function Accordion({ items, multiple, defaultOpen = [], className, toggle
             </h3>
             <div id={`acc-${it.id}`} className={cn("grid transition-[grid-template-rows] duration-200 ease-out", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
               <div className="overflow-hidden">
-                {/* مشخصات seocontent (۱۲:۲۵): جواب FAQ در رندر، پاراگراف معنایی است */}
+                {/* وقتی contentBlock=true، جواب FAQ ممکن است بلوک (مثل ul) داشته باشد پس رپر div می‌شود؛ وگرنه p معنایی است */}
                 {contentBlock ? (
                   <div className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</div>
                 ) : (

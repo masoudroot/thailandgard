@@ -17,7 +17,7 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? "flex flex-wrap items-center gap-3" : "grid gap-4 sm:grid-cols-2"}>
       <Button asChild size="lg" className="w-full" variant="brand">
-        <a href={PHONE_MOBILE_LINK}>
+        <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-main">
           <Phone />
           تماس با کارشناس فروش
         </a>
@@ -33,11 +33,11 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
           {/* F-005 (یافتهٔ جزئی بازرس، ۱۹ مهر ۱۴۰۵ :۳۵): شماره‌ها بدون لیبل
               بودند؛ «موبایل» و «ثابت» اضافه شد. */}
           موبایل:{" "}
-          <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
+          <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-mobile-num" className="font-semibold underline underline-offset-4">
             <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
           </a>
           {"؛ "}ثابت:{" "}
-          <a href={PHONE_LANDLINE_LINK} className="font-semibold underline underline-offset-4">
+          <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-num" className="font-semibold underline underline-offset-4">
             <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
           </a>
         </p>
@@ -52,18 +52,18 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 موبایل:{" "}
-                <a href={PHONE_MOBILE_LINK} className="font-semibold underline underline-offset-4">
+                <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-mobile-num" className="font-semibold underline underline-offset-4">
                   <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
                 </a>
                 {"؛ "}ثابت:{" "}
-                <a href={PHONE_LANDLINE_LINK} className="font-semibold underline underline-offset-4">
+                <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-num" className="font-semibold underline underline-offset-4">
                   <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
                 </a>
                 {"؛ "}
                 {PHONE_CHANNELS_NOTE}
               </p>
             </div>
-            <a href={PHONE_LANDLINE_LINK} className="text-sm font-semibold text-foreground underline underline-offset-4">
+            <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-side" className="text-sm font-semibold text-foreground underline underline-offset-4">
               <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
             </a>
           </div>

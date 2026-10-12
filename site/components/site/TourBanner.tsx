@@ -55,7 +55,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
 
         <div className="flex flex-wrap items-center gap-3">
           <Button asChild variant="brand" size="lg">
-            <a href={PHONE_MOBILE_LINK}>
+            <a href={PHONE_MOBILE_LINK} data-call-context="tour-banner">
               <Phone aria-hidden />
               تماس با کارشناس فروش
             </a>

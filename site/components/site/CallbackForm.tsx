@@ -285,7 +285,7 @@ export function CallbackForm({
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}
-          <a href={PHONE_MOBILE_LINK} className="underline" onClick={() => clarityEvent("tel_fallback_click", extra)}>
+          <a href={PHONE_MOBILE_LINK} data-call-context="form" className="underline" onClick={() => clarityEvent("tel_fallback_click", extra)}>
             مستقیم زنگ بزنید
           </a>
           .

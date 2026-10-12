@@ -67,7 +67,7 @@ export default async function ToursPage() {
         ))}
       </div>
 
-      {/* بلوک «هزینهٔ تور تایلند چقدر است؟»؛ بریف seocontent ۲۰ مهر ۱۴۰۵، ۱۰:۰۰ — اسنیپت پاراگرافی */}
+      {/* بلوک «هزینهٔ تور تایلند چقدر است؟»؛ بریف seocontent ۲۰ مهر ۱۴۰۵، ۱۰:۰۰، اسنیپت پاراگرافی */}
       <section className="mt-10 max-w-3xl space-y-4">
         <h2 className="text-2xl">هزینهٔ تور تایلند چقدر است؟</h2>
         <p className="leading-[1.8] text-muted-foreground">
@@ -87,6 +87,7 @@ export default async function ToursPage() {
         description="تور موردنظرتان را پیدا نکردید؟ بگویید چه می‌خواهید؛ ما برنامه‌اش را می‌چینیم"
         action={<span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span>}
         actionHref={s.PHONE_MOBILE_LINK}
+        callContext="tours-cta"
         note="زمان ترجیحی تماس را شما می‌گویید"
       />
       </div>

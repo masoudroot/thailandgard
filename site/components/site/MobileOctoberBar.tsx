@@ -57,7 +57,7 @@ export function MobileOctoberBar({
         {/* ردیف ۲: دکمه‌ها — RTL: «تماس فوری» راست (اول DOM)، «واتس‌اپ» چپ */}
         <div className="flex gap-2">
           <Button asChild size="md" variant="brand" className="flex-1 h-11">
-            <a href={phoneHref}>
+            <a href={phoneHref} data-call-context="mobile-october-bar">
               <Phone />
               تماس فوری
             </a>

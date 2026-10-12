@@ -33,7 +33,7 @@ export async function PillarHero({ badge, title, description, readingMinutes, up
         {share ? <div className="mt-4 flex justify-center">{share}</div> : null}
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           <Button asChild size="lg" variant="brand" className="rounded-full">
-            <a href={PHONE_MOBILE_LINK}>
+            <a href={PHONE_MOBILE_LINK} data-call-context="pillar-hero">
               <Phone />
               تماس با کارشناس فروش
             </a>

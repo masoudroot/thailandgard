@@ -66,7 +66,7 @@ export function TourCard({ tour }: { tour: Tour }) {
             </Link>
           </Button>
           <Button asChild variant="outline" size="icon" className="size-11 shrink-0" aria-label="تماس با کارشناس فروش">
-            <a href={PHONE_MOBILE_LINK}>
+            <a href={PHONE_MOBILE_LINK} data-call-context="tour-card">
               <Phone />
             </a>
           </Button>

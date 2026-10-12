@@ -220,7 +220,7 @@ export default async function TourPage({ params }: Props) {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" variant="brand">
-            <a href={s.PHONE_MOBILE_LINK}>
+            <a href={s.PHONE_MOBILE_LINK} data-call-context="tour-page">
               <Phone />
               تماس با کارشناس فروش
             </a>

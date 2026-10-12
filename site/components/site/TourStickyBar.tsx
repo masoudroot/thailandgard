@@ -43,7 +43,7 @@ export function TourStickyBar() {
             سایز دکمه هیچ سایزی دقیقاً h-11 نیست؛ ابعاد lg دستی تکرار شده. */}
         <div className="grid grid-cols-[7fr_3fr] gap-2">
           <Button asChild variant="brand" className="h-11 px-6 text-base gap-2.5">
-            <a href={PHONE_MOBILE_LINK}>
+            <a href={PHONE_MOBILE_LINK} data-call-context="sticky-bar">
               <Phone />
               تماس با کارشناس فروش
             </a>
