@@ -13,6 +13,7 @@ import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "
 import { pageSeo, brandTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
+import { renderGuideBlocks } from "@/lib/guide-tables";
 import { updatedFaToIso } from "@/lib/jalali";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -165,13 +166,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
         ) : (
           <section key={section.heading} className="mt-10">
             <h2 className="text-2xl sm:text-3xl">{section.heading}</h2>
-            <div className="mt-4 space-y-4">
-              {section.paragraphs.map((paragraph, i) => (
-                <p key={i} className="leading-[1.9] text-foreground/90">
-                  {renderInlineLinks(paragraph)}
-                </p>
-              ))}
-            </div>
+            <div className="mt-4 space-y-4">{renderGuideBlocks(section.paragraphs)}</div>
           </section>
         )
       )}
