@@ -17,6 +17,8 @@ export const metadata: Metadata = {
     title: "تورهای تایلند؛ پوکت، بانکوک، سامویی، کرابی؛ تایلندگرد",
     description:
       "همهٔ تورهای تایلندگرد را مقایسه کن؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
+    // باریک‌شدهٔ سئو ۱۲:۳۷ (یافتهٔ :۳۵): مثل contact، og:url اضافه شد.
+    url: "/tours",
     images: defaultOgImages(SITE_URL),
   },
   alternates: { canonical: "/tours" },
