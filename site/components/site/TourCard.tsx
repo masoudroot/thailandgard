@@ -31,7 +31,7 @@ export function TourCard({ tour }: { tour: Tour }) {
           <Badge variant="brand">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
           <span className="flex items-center gap-1 text-sm text-muted-foreground">
             <CalendarDays className="size-3.5" />
-            {fa(tour.days)} روزه
+            {fa(tour.days)} روز و {fa(tour.nights)} شب
           </span>
         </div>
         <CardTitle className="mt-3 text-xl">{tour.title}</CardTitle>
