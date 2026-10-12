@@ -72,10 +72,11 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
         </Button>
       ) : (
         <>
-          <span className="text-sm text-muted-foreground">اشتراک‌گذاری</span>
-          <div className="flex items-center gap-1 text-muted-foreground">
+          <span className="text-sm text-muted-foreground">اشتراک‌گذاری:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* D-026: دکمه‌ها برچسب متنی گرفتند (آیکون تنها نامفهوم بود) */}
             {/* M2 (ممیزی موبایل ۱۷ مهر): تارگت لمسی حداقل ۴۴ پیکسل */}
-            <Button variant="ghost" size="icon" className="size-11" asChild>
+            <Button variant="ghost" size="sm" className="min-h-11" asChild>
               <a
                 href={telegramHref}
                 target="_blank"
@@ -83,9 +84,10 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
                 aria-label="اشتراک‌گذاری در تلگرام"
               >
                 <Send aria-hidden />
+                تلگرام
               </a>
             </Button>
-            <Button variant="ghost" size="icon" className="size-11" asChild>
+            <Button variant="ghost" size="sm" className="min-h-11" asChild>
               <a
                 href={whatsappHref}
                 target="_blank"
@@ -93,10 +95,12 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
                 aria-label="اشتراک‌گذاری در واتس‌اپ"
               >
                 <MessageCircle aria-hidden />
+                واتس‌اپ
               </a>
             </Button>
-            <Button variant="ghost" size="icon" className="size-11" aria-label="کپی لینک" onClick={handleCopy}>
+            <Button variant="ghost" size="sm" className="min-h-11" aria-label="کپی لینک" onClick={handleCopy}>
               {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+              کپی لینک
             </Button>
           </div>
           <span aria-live="polite" className="text-sm text-muted-foreground">
