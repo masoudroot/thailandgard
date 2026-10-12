@@ -12,7 +12,8 @@ import { Price } from "@/components/ui/price";
  * ۲۰٪ دید؛ کادر مویی ۱px در بالا؛ بدون سایه؛ گوشه‌های بالایی ۸؛
  * env(safe-area-inset-bottom)؛ لی‌اوت دو ردیفه در کل بازهٔ موبایل:
  * ردیف ۱ قیمت یک‌خطهٔ کامل («از» + عدد فارسی + «تومان» + «هر نفر»، یا «تماس بگیرید» اگر قیمت null است؛
- * هیچ‌کدام حذف یا collapse نمی‌شوند؛ wrap احتیاطی با تراز راست)؛
+ * هیچ‌کدام حذف یا collapse نمی‌شوند؛ هرگز wrap نمی‌شود: whitespace-nowrap در هر دو سطح + عدد
+ * کمی کوچک‌تر در ۳۶۰px)؛
  * ردیف ۲ دو دکمهٔ flex-1 با h-11 (کف لمسی ۴۴px؛ بازحکم artdir ۱۴۰۵/۰۷/۲۰): «تماس فوری» فیل کهربایی (RTL: راست) و
  * «واتس‌اپ» outline خنثی (RTL: چپ)؛ بدون دکمهٔ بستن.
  */
@@ -49,10 +50,12 @@ export function MobileOctoberBar({
           ردیف دکمه‌ها جدا شد چون در ۳۶۰px زیر کف خوانایی بود. بودجهٔ ارتفاع:
           pt-2 + ردیف قیمت + gap-1.5 + ردیف دکمه‌ها (h-11) + pb-2 + safe-area. */}
       <div className="mx-auto flex max-w-5xl flex-col gap-1.5 px-4 pt-2 pb-2">
-        {/* ردیف ۱: قیمت — «از X تومان هر نفر» یا «تماس بگیرید» (قانون نمایش قیمت، دستور مسعود ۱۴۰۵/۰۷/۲۰) */}
-        <p className="flex flex-wrap items-baseline justify-end gap-x-1.5 text-right">
-          <Price amount={priceFrom} size="sm" />
-          {priceFrom != null && <span className="text-sm text-muted-foreground">هر نفر</span>}
+        {/* ردیف ۱: قیمت — «از X تومان هر نفر» یا «تماس بگیرید» (قانون نمایش قیمت، دستور مسعود ۱۴۰۵/۰۷/۲۰).
+            D-014: در ۳۶۰px هرگز wrap نمی‌شود؛ whitespace-nowrap در این سطح و سطح داخلی Price،
+            عدد اصلی با text-sm جمع‌وجور می‌شود تا یک خطه بماند. */}
+        <p className="flex items-baseline justify-end gap-x-1.5 whitespace-nowrap text-right">
+          <Price amount={priceFrom} size="sm" className="[&_.flex-wrap]:flex-nowrap [&_.tabular-nums]:whitespace-nowrap [&_.tabular-nums]:text-sm" />
+          {priceFrom != null && <span className="shrink-0 text-sm text-muted-foreground">هر نفر</span>}
         </p>
         {/* ردیف ۲: دکمه‌ها — RTL: «تماس فوری» راست (اول DOM)، «واتس‌اپ» چپ */}
         <div className="flex gap-2">
