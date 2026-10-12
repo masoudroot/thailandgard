@@ -31,7 +31,13 @@ export async function TourBanner({ tour }: { tour: Tour }) {
           >
             {tour.title}
           </h2>
-          <p className="max-w-2xl text-base leading-[1.8]">{tour.summary}</p>
+          {/* D-048: خلاصهٔ تکراری کارت حذف شد؛ به‌جایش سه هایلایت یک‌خطی از
+              دیتای همان تور تا بلوک «منتخب» توصیف متفاوت خودش را داشته باشد */}
+          <p className="max-w-2xl text-base leading-[1.8]">
+            {tour.highlights && tour.highlights.length > 0
+              ? tour.highlights.slice(0, 3).join("، ")
+              : tour.summary}
+          </p>
         </div>
 
         <dl className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
@@ -62,7 +68,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
           </Button>
           <Button asChild variant="secondary" size="lg">
             <Link href={`/tours/${tour.slug}`}>
-              مشاهدهٔ جزئیات تور
+              مشاهدهٔ جزئیات تور {tour.shortTitle}
               <ArrowLeft aria-hidden />
             </Link>
           </Button>
