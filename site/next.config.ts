@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // استقرار روی Prisma Compute: خروجی standalone اجباری است
+  // (بدون آن دپلوی موفق می‌شود ولی URL خطا می‌دهد).
+  output: "standalone",
   // ریدایرکت دائمی مسیر منتقل‌شدهٔ کمپین اکتبر (بریف سئو ۰۶:۳۵، ۱۴۰۵/۰۷/۲۰؛
   // قانون ۳۶: انتقال مسیر = ریدایرکت همان اجرا). permanent:true یعنی ۳۰۸ که
   // گوگل معادل ۳۰۱ می‌خواند.

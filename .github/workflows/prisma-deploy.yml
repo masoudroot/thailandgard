@@ -1,0 +1,97 @@
+# Deploy to Prisma Cloud (Prisma Compute) — experimental action.
+#
+# چه می‌کند: روی هر push، وابستگی‌ها را نصب می‌کند، `npm run build` را در
+# site/ اجرا می‌کند و خروجی را با `prisma deploy` روی Prisma Compute می‌نشاند.
+# - push روی برنچ پیش‌فرض (main) ← پروداکشن
+# - push روی هر برنچ دیگر ← پریویو جدا (با URL خودش)
+#
+# احراز هویت (به ترتیب اولویت):
+#   ۱. اگر ریپو در کنسول پریزما به پروژه وصل شده باشد: هیچ سکرتی لازم نیست.
+#      اکشن با OIDC گیت‌هاب توکن کوتاه‌مدت (۳۰ دقیقه) می‌گیرد. فقط
+#      `id-token: write` در permissions لازم است.
+#   ۲. وگرنه: در کنسول پریزما یک service token بسازید، در گیت‌هاب به اسم
+#      PRISMA_SERVICE_TOKEN به‌عنوان Actions secret اضافه کنید و بلوک env
+#      پایین را از کامنت دربیاورید. توکن صریح همیشه بر OIDC غلبه می‌کند.
+#
+# نکته‌ها:
+# - بیلد داخل GitHub Actions اجرا می‌شود (دقیقه‌های اکشنز شما، نه پریزما).
+#   چون سایت موقع بیلد از سوپابیس می‌خواند، متغیرهای زیر باید به‌عنوان
+#   Actions secrets/env در همین ورک‌فلو موجود باشند (مقادیر را از Vercel
+#   یا داشبورد سوپابیس بردارید؛ هرگز داخل ریپو ننویسید):
+#     NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - متغیرهای فقط-ران‌تایم (SUPABASE_SERVICE_ROLE_KEY, INTERNAL_CONTENT_SECRET)
+#   موقع بیلد لازم نیستند؛ ولی باید در کنسول پریزما
+#   (Project → Environment → Add variable) برای هر دو محیط PRODUCTION و
+#   PREVIEW ست شوند تا موقع اجرا به سرویس تزریق شوند.
+# - این اکشن به Bun نسخه ۱.۳.۱۰+ روی رانر نیاز دارد (قدم setup-bun).
+
+name: prisma-deploy
+
+on:
+  push:
+  delete:
+
+concurrency:
+  group: prisma-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == github.event.repository.default_branch && 'production' || format('preview/{0}', github.ref_name) }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - uses: oven-sh/setup-bun@v2
+
+      - id: deploy
+        uses: prisma/cloud-deploy-action@v1
+        with:
+          working-directory: site
+          module: prisma-compute/module.ts
+          build-command: npm run build
+        env:
+          # مقادیر بیلدتایم (سوپابیس) — از GitHub Actions secrets بخوانید:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # اگر ریپو در کنسول پریزما وصل نیست، این خط را فعال کنید و
+          # PRISMA_SERVICE_TOKEN را در Actions secrets بسازید:
+          # PRISMA_SERVICE_TOKEN: ${{ secrets.PRISMA_SERVICE_TOKEN }}
+
+  teardown:
+    # حذف پریویو وقتی برنچ پاک می‌شود. فعلاً mode: destroy با CLI فعلی
+    # کار نمی‌کند (محدودیت شناخته‌شده اکشن)؛ ریپوهای وصل‌شده در کنسول،
+    # تخریب پریویو را از اتوماسیون برنچ خود پلتفرم می‌گیرند.
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: prisma/cloud-deploy-action@v1
+        with:
+          working-directory: site
+          module: prisma-compute/module.ts
+          build-command: npm run build
+          mode: destroy
+          stage: ${{ github.event.ref }}
