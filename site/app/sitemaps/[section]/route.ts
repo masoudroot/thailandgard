@@ -2,9 +2,12 @@ import { connection } from "next/server";
 import { getSitemapSections } from "@/lib/sitemap-sections";
 
 /**
- * بخش‌های جدای نقشهٔ سایت: ‎/sitemap/pages.xml‎، ‎/sitemap/tours.xml‎،
- * ‎/sitemap/guides.xml‎ — برای آمار تفکیکی در سرچ کنسول.
+ * بخش‌های جدای نقشهٔ سایت: ‎/sitemaps/pages.xml‎، ‎/sitemaps/tours.xml‎،
+ * ‎/sitemaps/guides.xml‎ — برای آمار تفکیکی در سرچ کنسول.
  * داینامیک و خودبه‌روزشونده از دیتابیس زنده.
+ *
+ * نکته (۲۰ مهر ۱۴۰۵): زیر ‎/sitemap/‎ نمی‌شود گذاشت — سیستم متاروت نکست
+ * در نکست ۱۶.۴ آن فضا را گرفته و route دستی ۴۰۴ می‌دهد؛ پس جمع «sitemaps».
  */
 export async function GET(
   _req: Request,

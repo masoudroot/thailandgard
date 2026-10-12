@@ -7,9 +7,9 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: [{ userAgent: "*", allow: "/" }],
     sitemap: [
       `${s.SITE_URL}/sitemap.xml`,
-      `${s.SITE_URL}/sitemap/pages.xml`,
-      `${s.SITE_URL}/sitemap/tours.xml`,
-      `${s.SITE_URL}/sitemap/guides.xml`,
+      `${s.SITE_URL}/sitemaps/pages.xml`,
+      `${s.SITE_URL}/sitemaps/tours.xml`,
+      `${s.SITE_URL}/sitemaps/guides.xml`,
     ],
   };
 }
