@@ -1,0 +1,56 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * نقشهٔ سراسری slug ← {file, alt} برای og:image (S-003؛ اسپک og-per-slug-exec).
+ *
+ * قاعده: هر صفحه که فایل اختصاصی ندارد، همان پیش‌فرض سراسری og.ts می‌ماند؛
+ * با نشستن فایل در مسیر جدول، همان صفحه خودکار تصویر مرتبط می‌گیرد و کد
+ * دست نمی‌خورد. بررسی وجود فایل در زمان بیلد (generateMetadata) انجام می‌شود.
+ * ابعاد همهٔ کارت‌ها: ۱۲۰۰×۶۳۰.
+ */
+const OG_SLUG_MAP: Record<string, { file: string; alt: string }> = {
+  "phuket-7-days": {
+    file: "images/og-phuket-7-days.webp",
+    alt: "ساحل پاتونگ پوکت در غروب؛ تور پوکت تایلندگرد",
+  },
+  "samui-7-days": {
+    file: "images/og-samui-7-days.webp",
+    alt: "ساحل چاونگ سامویی در غروب؛ تور سامویی تایلندگرد",
+  },
+  "bangkok-pattaya-8-days": {
+    file: "images/og-bangkok-pattaya-8-days.webp",
+    alt: "خط افق بانکوک در شب؛ تور بانکوک و پاتایا تایلندگرد",
+  },
+  "krabi-6-days": {
+    file: "images/og-krabi-6-days.webp",
+    alt: "قایق دم‌بلند در دریای آندامان کرابی؛ تور کرابی تایلندگرد",
+  },
+  "krabi-vs-phuket": {
+    file: "images/og-krabi-vs-phuket.webp",
+    alt: "صخره‌های آهکی ساحل رایلی کرابی؛ مقایسهٔ کرابی و پوکت",
+  },
+  "bangkok-world-best-city-2026": {
+    file: "images/og-bangkok-world-best-city-2026.webp",
+    alt: "چراغ‌های شبانهٔ بانکوک؛ بانکوک بهترین شهر جهان ۲۰۲۶",
+  },
+};
+
+export interface SlugOgImage {
+  url: string;
+  width: number;
+  height: number;
+  alt: string;
+}
+
+/**
+ * اگر برای این اسلاگ فایل og اختصاصی در public/images هست، آبجکت تصویر
+ * را برمی‌گرداند؛ وگرنه null (یعنی پیش‌فرض سراسری بماند). فقط در
+ * generateMetadata (زمان بیلد/رندر سرور) صدا بزن.
+ */
+export function ogImageForSlug(siteUrl: string, slug: string): SlugOgImage | null {
+  const entry = OG_SLUG_MAP[slug];
+  if (!entry) return null;
+  if (!existsSync(join(process.cwd(), "public", entry.file))) return null;
+  return { url: `${siteUrl}/${entry.file}`, width: 1200, height: 630, alt: entry.alt };
+}
