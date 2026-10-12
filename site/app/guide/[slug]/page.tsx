@@ -154,7 +154,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
               به‌روزرسانی: {guide.updatedFa}
             </span>
           </div>
-          <h1 className="mt-4 text-4xl">{guide.title}</h1>
+          <h1 className="mt-4 text-3xl md:text-4xl">{guide.title}</h1>
           <p className="mt-4 text-lg leading-9">{guide.excerpt}</p>
           <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
         </header>

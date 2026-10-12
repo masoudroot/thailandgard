@@ -202,7 +202,7 @@ export default async function TourPage({ params }: Props) {
               {fa(tour.days)} روزه | {fa(tour.nights)} شب · {tour.route}
             </span>
           </div>
-          <h1 className="text-4xl">{tour.title}</h1>
+          <h1 className="text-3xl md:text-4xl">{tour.title}</h1>
           <p className="text-lg leading-9">{tour.summary}</p>
         </header>
 

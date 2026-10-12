@@ -43,7 +43,7 @@ export default async function ContactPage() {
           <Phone className="size-4" />
           تماس
         </p>
-        <h1 className="mt-3 text-4xl">تماس با تایلندگرد</h1>
+        <h1 className="mt-3 text-3xl md:text-4xl">تماس با تایلندگرد</h1>
         <p className="mt-4 text-base leading-[1.8] text-muted-foreground">
           فروش ما فقط تلفنی است؛ پرداخت آنلاین نداریم. یک تماس کوتاه، همهٔ ابهام‌های سفرتان
           را برطرف می‌کند.
