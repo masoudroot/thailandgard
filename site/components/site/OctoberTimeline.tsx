@@ -2,19 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { formatJalali } from "@/lib/jalali";
 
 /**
- * خط زمانی سه‌ایستگاهی لندینگ «پوکت؛ نیمهٔ دوم اکتبر»؛ حکم ۱ artdir:
- * خط مویی ۱px پیوسته (توکن border، هرگز کهربایی)؛ نقطه‌های ۸px دقیقاً روی خط؛
- * خوانش راست‌به‌چپ (ایستگاه اول سمت راست)؛ ایستگاه پیش‌رو نقطهٔ کهربایی،
- * ایستگاه سپری‌شده نقطهٔ خنثی کم‌رنگ (بدون برچسب «به پایان رسید»)؛
+ * خط زمانی سه‌ایستگاهی لندینگ «پوکت؛ نیمهٔ دوم اکتبر»؛ حکم ۱ artdir + حکم جهت (اجرای :۳۵، ۲۰ مهر ۱۴۰۵):
+ * خط مویی ۱px پیوسته (توکن border، هرگز کهربایی)؛ نقطه‌های ۸px دقیقاً روی خط
+ * (size-2.5 آیتم رجیستری سوار نشد؛ حکم ۱ پابرجاست)؛ خوانش راست‌به‌چپ (ایستگاه اول سمت راست)؛
+ * ایستگاه پیش‌رو نقطهٔ کهربایی، ایستگاه سپری‌شده نقطهٔ خنثی کم‌رنگ (بدون برچسب «به پایان رسید»)؛
  * موبایل افقی، برچسب‌ها حداکثر دوخطی.
- * وضعیت سپری‌شده/پیش‌رو در کلاینت حساب می‌شود (Date.now در پره‌رندر سرور ممنوع است).
+ * الگوی activeIndex آیتم رجیستری components/timeline برای وضعیت فعال/سپری‌شده
+ * (به‌جای محاسبهٔ خام هر آیتم): activeIndex = نخستین ایستگاهی که هنوز سپری نشده؛
+ * آیتم‌های پیش از آن سپری‌شده، بقیه پیش‌رو.
+ * تاریخ‌ها با formatJalali: شمسی اصلی + میلادی کمکی، مثل «۱۸ مهر (۱۰ اکتبر)».
+ * جهت افقی: انحراف آگاهانه از آیتم عمودی رجیستری (ثبت در agents/vibefarsi/DEVIATIONS.md)؛
+ * این تایم‌لاین فهرست رویداد نیست، نوار شمارش فشردهٔ کمپین است.
+ * وضعیت در کلاینت حساب می‌شود (Date.now در پره‌رندر سرور ممنوع است).
  */
 const STATIONS = [
-  { dateLabel: "۱۰ اکتبر", label: "جشنوارهٔ گیاه‌خواران", time: new Date("2026-10-10T23:59:59+03:30").getTime() },
-  { dateLabel: "۱۵ اکتبر", label: "بازگشایی سیمیلان", time: new Date("2026-10-15T23:59:59+03:30").getTime() },
-  { dateLabel: "۱۸ اکتبر", label: "پرواز مستقیم هیترو", time: new Date("2026-10-18T23:59:59+03:30").getTime() },
+  { date: new Date("2026-10-10T23:59:59+03:30"), gLabel: "۱۰ اکتبر", label: "جشنوارهٔ گیاه‌خواران" },
+  { date: new Date("2026-10-15T23:59:59+03:30"), gLabel: "۱۵ اکتبر", label: "بازگشایی سیمیلان" },
+  { date: new Date("2026-10-18T23:59:59+03:30"), gLabel: "۱۸ اکتبر", label: "پرواز مستقیم هیترو" },
 ];
 
 export function OctoberTimeline() {
@@ -23,19 +30,25 @@ export function OctoberTimeline() {
     setNow(Date.now());
   }, []);
 
+  // الگوی activeIndex آیتم رجیستری: یک ایندکس واحد وضعیت را می‌راند، نه محاسبهٔ خام هر آیتم.
+  const rawIndex = STATIONS.findIndex((st) => now === null || now <= st.date.getTime());
+  const activeIndex = rawIndex === -1 ? STATIONS.length : rawIndex;
+
   return (
     <div className="relative mx-auto mt-14 max-w-3xl pb-14 sm:pb-20" dir="rtl">
       <div aria-hidden className="absolute inset-x-14 top-1 h-px bg-border" />
       <ol className="relative flex items-start justify-between">
-        {STATIONS.map((st) => {
-          const elapsed = now !== null && now > st.time;
+        {STATIONS.map((st, i) => {
+          const elapsed = i < activeIndex;
           return (
-            <li key={st.dateLabel} className="flex w-28 flex-col items-center">
+            <li key={st.gLabel} className="flex w-28 flex-col items-center">
               <span
                 aria-hidden
                 className={cn("size-2 rounded-full", elapsed ? "bg-muted-foreground/40" : "bg-brand")}
               />
-              <span className="mt-3 text-sm font-semibold tabular-nums">{st.dateLabel}</span>
+              <span className="mt-3 text-sm font-semibold tabular-nums">
+                {formatJalali(st.date, { year: false })} ({st.gLabel})
+              </span>
               <span className="mt-1 line-clamp-2 text-center text-xs leading-5 text-muted-foreground">
                 {st.label}
               </span>

@@ -10,7 +10,7 @@ import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
-import { pageSeo } from "@/lib/og";
+import { pageSeo, brandTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
   // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
   return pageSeo({
-    title: /[؟!]$/.test(guide.title) ? `${guide.title} | تایلندگرد` : `${guide.title}؛ تایلندگرد`,
+    title: brandTitle(guide.title),
     description: guide.excerpt,
     canonical: `/guide/${guide.slug}`,
     type: "article",
@@ -126,7 +126,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           description={guide.excerpt}
           readingMinutes={guide.readingMinutes}
           updatedFa={guide.updatedFa}
-          share={<ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} centered />}
+          share={<ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} centered />}
         />
       ) : (
         <header className="mt-6">
@@ -143,7 +143,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           </div>
           <h1 className="mt-4 text-4xl">{guide.title}</h1>
           <p className="mt-4 text-lg leading-9">{guide.excerpt}</p>
-          <ShareButtons title={`${guide.title}؛ تایلندگرد`} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
+          <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
         </header>
       )}
 

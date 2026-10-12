@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
-import { pageSeo } from "@/lib/og";
+import { pageSeo, brandTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
   // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
   const meta = pageSeo({
-    title: /[؟!]$/.test(tour.title) ? `${tour.title} | تایلندگرد` : `${tour.title}؛ تایلندگرد`,
+    title: brandTitle(tour.title),
     description: tour.summary,
     canonical: `/tours/${tour.slug}`,
     type: "article",
@@ -311,7 +311,7 @@ export default async function TourPage({ params }: Props) {
           </Card>
         </div>
 
-        <ShareButtons title={`${tour.title}؛ تایلندگرد`} path={`/tours/${tour.slug}`} siteUrl={s.SITE_URL} divider />
+        <ShareButtons title={brandTitle(tour.title)} path={`/tours/${tour.slug}`} siteUrl={s.SITE_URL} divider />
       </div>
 
       <TourStickyBar />
