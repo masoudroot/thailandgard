@@ -64,7 +64,7 @@ export default async function ContactPage() {
             <CallButtons compact />
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
               <MessageCircle className="mt-0.5 size-4 shrink-0" />
-              واتس‌اپ روی موبایل فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
+              واتس‌اپ در ساعت کاری فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
             </p>
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
               <Clock className="mt-0.5 size-4 shrink-0" />

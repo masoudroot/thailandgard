@@ -56,7 +56,9 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
                   <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
                 </a>
                 {"؛ "}ثابت:{" "}
-                <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
+                <a href={PHONE_LANDLINE_LINK} className="font-semibold underline underline-offset-4">
+                  <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
+                </a>
                 {"؛ "}
                 {PHONE_CHANNELS_NOTE}
               </p>

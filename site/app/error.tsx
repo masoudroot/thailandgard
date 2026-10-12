@@ -1,17 +1,16 @@
 "use client";
 
-import { Phone, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ErrorPage } from "@/components/templates/error-pages";
 import { PHONE_MOBILE_LINK } from "@/lib/site";
 
 /**
- * صفحهٔ خطای سراسری (۵۰۰). زبان همان not-found (۴۰۴) است؛ بدون انیمیشن ورودی.
- * متن نهایی از تیم محتوا (هندآف ۱۹ مهر ۱۴۰۵).
- *
- * نکتهٔ سازگاری: داکس Next.js ۱۶ پراپ `retry` را ترجیح می‌دهد (`reset` قدیمی است)؛
- * هر دو را می‌پذیریم تا با هر نسخه‌ای که فریم‌ورک پاس داد کار کند.
+ * صفحهٔ خطای سراسری (۵۰۰). ایمپورت واقعی آیتم templates/error-pages رجیستری وایب‌فارسی.
+ * «تلاش دوباره» دکمهٔ اصلی است (retry ترجیحی Next.js ۱۶؛ reset قدیمی هم پذیرفته
+ * می‌شود تا با هر نسخه‌ای که فریم‌ورک پاس داد کار کند)؛ «تماس با کارشناس» لینک tel.
+ * «کد پیگیری» فقط وقتی digest هست رندر می‌شود.
  */
 export default function Error({
+  error,
   retry,
   reset,
 }: {
@@ -20,26 +19,11 @@ export default function Error({
   reset?: () => void;
 }) {
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-6 py-16 text-foreground">
-      <div className="relative w-full max-w-md text-center">
-        <p className="font-display text-7xl tabular-nums text-foreground/15 sm:text-8xl">۵۰۰</p>
-        <h1 className="mt-4 text-2xl">مشکلی پیش آمد</h1>
-        <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          نتوانستیم این صفحه را بارگذاری کنیم. اگر خطا ادامه داشت، با کارشناسان ما تماس بگیرید تا شما را راهنمایی کنند.
-        </p>
-        <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
-          <Button asChild size="lg">
-            <a href={PHONE_MOBILE_LINK}>
-              <Phone />
-              تماس با کارشناس
-            </a>
-          </Button>
-          <Button size="lg" variant="ghost" onClick={() => (retry ?? reset)?.()}>
-            <RotateCcw />
-            تلاش دوباره
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ErrorPage
+      kind="500"
+      onPrimary={() => (retry ?? reset)?.()}
+      secondaryHref={PHONE_MOBILE_LINK}
+      refCode={error.digest?.slice(0, 8)}
+    />
   );
 }

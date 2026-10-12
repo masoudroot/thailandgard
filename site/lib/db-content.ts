@@ -54,6 +54,8 @@ interface TourRow {
   nights: number;
   route: string;
   price_from: number;
+  /** اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵): «تازگی قیمت»؛ NULL یعنی نامشخص صادقانه */
+  price_updated_at: string | null;
   tourist_type: string;
   active: boolean;
   summary: string;
@@ -195,6 +197,7 @@ function mapTour(row: TourRow, dayRows: TourDayRow[], faqRows: TourFaqRow[]): To
     nights: row.nights,
     route: row.route,
     priceFrom: row.price_from,
+    priceUpdatedAt: row.price_updated_at,
     touristType: row.tourist_type,
     active: row.active,
     summary: row.summary,

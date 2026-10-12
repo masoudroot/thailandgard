@@ -15,7 +15,7 @@ import type { Tour } from "@/lib/tours";
 
 /** اسلاگ تور ترکیبی (اسپک خانه ۲۰ مهر ۱۴۰۵): رندر شرطی روی یک ثابت متمرکز؛
     اگر seo اسلاگ نهایی را عوض کرد، فقط همین‌جا عوض می‌شود. */
-export const COMBO_SLUG = "bangkok-phuket";
+export const COMBO_SLUG = "bangkok-phuket-8-days";
 
 /** کارت تور در فهرست و صفحهٔ خانه. */
 export function TourCard({ tour }: { tour: Tour }) {
@@ -28,14 +28,14 @@ export function TourCard({ tour }: { tour: Tour }) {
         <div className="flex items-center justify-between gap-2">
           {/* بج: برای ترکیبی فقط یک لکهٔ کهربایی «ترکیبی جدید»؛ بج shortTitle نمی‌آید (حکم ۲ بریف) */}
           <Badge variant="brand">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
             <CalendarDays className="size-3.5" />
             {fa(tour.days)} روزه
           </span>
         </div>
         <CardTitle className="mt-3 text-xl">{tour.title}</CardTitle>
         <CardDescription className="leading-7">{tour.summary}</CardDescription>
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
           <MapPin className="size-3.5" />
           {tour.route}
         </p>
@@ -50,7 +50,7 @@ export function TourCard({ tour }: { tour: Tour }) {
             <span className="text-sm text-muted-foreground">قیمت روز بر اساس تاریخ سفر و هتل انتخابی؛ تلفنی</span>
           ) : (
             <>
-              <span className="text-xs text-muted-foreground">شروع قیمت از</span>
+              <span className="text-sm text-muted-foreground">شروع قیمت از</span>
               <Price amount={tour.priceFrom} size="md" />
             </>
           )}

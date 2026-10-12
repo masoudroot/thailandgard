@@ -7,7 +7,7 @@
  */
 
 import * as React from "react";
-import { Menu } from "lucide-react";
+import { Menu, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -23,11 +23,13 @@ export interface NavbarProps {
   secondary?: { label: string; href?: string };
   /** Sticks to the top with a blurred background. */
   sticky?: boolean;
+  /** Optional tel: link; renders a persistent call icon on mobile. */
+  callHref?: string;
   className?: string;
 }
 
 /** نوار بالا. Logo on the right, links in the middle, actions on the left; a sheet from the right on mobile. */
-export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با کارشناس فروش" }, secondary = { label: "درخواست تماس" }, sticky = true, className }: NavbarProps) {
+export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با کارشناس فروش" }, secondary = { label: "درخواست تماس" }, sticky = true, callHref, className }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
   return (
     <>
@@ -53,7 +55,14 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
               <Button size="sm">{primary.label}</Button>
             )}
           </div>
-          <Button variant="ghost" size="icon" className="size-11 md:hidden" aria-label="باز کردن منو" onClick={() => setOpen(true)}><Menu /></Button>
+          <div className="flex items-center gap-1 md:hidden">
+            {callHref && (
+              <Button asChild variant="ghost" size="icon" className="size-11" aria-label="تماس با کارشناس فروش">
+                <a href={callHref}><Phone /></a>
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" className="size-11" aria-label="باز کردن منو" onClick={() => setOpen(true)}><Menu /></Button>
+          </div>
         </nav>
       </header>
       {/* A sibling of the header: backdrop-blur would otherwise trap the fixed sheet inside it. */}

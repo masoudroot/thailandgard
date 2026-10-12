@@ -96,7 +96,7 @@ export default async function HomePage() {
         </div>
         {/* قلم ۶ اسپک (یافتهٔ تطبیق): گرید کارت‌ها در animations/reveal بایت‌به‌بایت پیچیده شد؛
             تنشِ «حکم ۵ می‌گوید دست نزنید» با واقعیت (هیچ reveal روی گرید نبود) به نفع واقعیت حل شد. */}
-        <Reveal className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal className="mt-8 grid gap-6 duration-(--motion) sm:grid-cols-2 lg:grid-cols-3">
           {featuredTours.map((tour) => (
             <TourCard key={tour.slug} tour={tour} />
           ))}
@@ -168,7 +168,7 @@ export default async function HomePage() {
                   <CardDescription className="leading-7">
                     {guide.excerpt}
                   </CardDescription>
-                  <p className="mt-4 text-xs text-muted-foreground">
+                  <p className="mt-4 text-sm text-muted-foreground">
                     {fa(guide.readingMinutes)} دقیقه مطالعه | به‌روز شده در {guide.updatedFa}
                   </p>
                 </CardContent>

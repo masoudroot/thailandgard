@@ -39,24 +39,33 @@ interface TextBlock {
 
 export type GuideBlock = TableBlock | TextBlock;
 
+/**
+ * هر پاراگراف جداگانه بلوک‌بندی می‌شود (چیدمان قدیمی متن‌ها دست نمی‌خورد).
+ * اگر داخل یک پاراگراف ردیف جداکنندهٔ مارک‌داون بود، همان پاراگراف
+ * خط‌به‌خط می‌شود: سرستون + جداکننده + ردیف‌های شامل `|` = یک بلوک جدول؛
+ * بقیهٔ خط‌ها متن معمولی می‌مانند.
+ */
 export function splitGuideBlocks(paragraphs: string[]): GuideBlock[] {
   const blocks: GuideBlock[] = [];
-  let i = 0;
-  while (i < paragraphs.length) {
-    const p = paragraphs[i];
-    const next = paragraphs[i + 1];
-    if (p.includes("|") && next !== undefined && SEPARATOR_RE.test(next)) {
-      const header = splitRow(p);
-      i += 2; // ردیف جداکننده رد می‌شود
-      const rows: string[][] = [];
-      while (i < paragraphs.length && paragraphs[i].includes("|")) {
-        rows.push(splitRow(paragraphs[i]));
+  for (const p of paragraphs) {
+    const lines = p.split("\n").filter((line) => line.trim() !== "");
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      const next = lines[i + 1];
+      if (line.includes("|") && next !== undefined && SEPARATOR_RE.test(next)) {
+        const header = splitRow(line);
+        i += 2; // ردیف جداکننده رد می‌شود
+        const rows: string[][] = [];
+        while (i < lines.length && lines[i].includes("|")) {
+          rows.push(splitRow(lines[i]));
+          i += 1;
+        }
+        blocks.push({ type: "table", header, rows });
+      } else {
+        blocks.push({ type: "text", text: line });
         i += 1;
       }
-      blocks.push({ type: "table", header, rows });
-    } else {
-      blocks.push({ type: "text", text: p });
-      i += 1;
     }
   }
   return blocks;

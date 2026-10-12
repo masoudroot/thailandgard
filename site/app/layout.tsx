@@ -94,7 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Navbar
           logo={
             <span className="flex items-center gap-2">
-              <span className="font-display text-lg font-bold">{s.SITE_NAME}</span>
+              <span className="font-display text-lg">{s.SITE_NAME}</span>
               <span className="rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-semibold text-brand-foreground">
                 {s.SITE_SLOGAN}
               </span>
@@ -103,6 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           links={s.NAV_LINKS}
           primary={{ label: "تماس با کارشناس فروش", href: s.PHONE_MOBILE_LINK }}
           secondary={{ label: "درخواست تماس", href: "/contact" }}
+          callHref={s.PHONE_MOBILE_LINK}
         />
         <main className="flex-1">{children}</main>
         <FooterBlock
@@ -124,8 +125,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {
               title: "تماس",
               links: [
-                { label: `${s.CONTACT_NAME}: ${s.PHONE_MOBILE_DISPLAY}`, href: s.PHONE_MOBILE_LINK },
-                { label: `تلفن ثابت: ${s.PHONE_LANDLINE_DISPLAY}`, href: s.PHONE_LANDLINE_LINK },
+                { label: `${s.CONTACT_NAME}: ${s.PHONE_MOBILE_DISPLAY}`, href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با کارشناس فروش تایلندگرد" },
+                { label: `تلفن ثابت: ${s.PHONE_LANDLINE_DISPLAY}`, href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد" },
               ],
             },
           ]}

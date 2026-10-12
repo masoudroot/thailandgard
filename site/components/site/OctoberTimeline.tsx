@@ -49,9 +49,13 @@ export function OctoberTimeline() {
               <span className="mt-3 text-sm font-semibold tabular-nums">
                 {formatJalali(st.date, { year: false })} ({st.gLabel})
               </span>
-              <span className="mt-1 line-clamp-2 text-center text-xs leading-5 text-muted-foreground">
+              <span className="mt-1 line-clamp-2 text-center text-sm leading-6 text-muted-foreground">
                 {st.label}
               </span>
+              {/* قلم ۵ artdir (۰۹:۰۵): برچسب فاصله زیر ایستگاه میانی؛ فاصله‌های ایستگاه‌ها مساوی می‌مانند */}
+              {i === 1 && (
+                <span className="mt-1 text-xs text-muted-foreground">۵ روز بعد</span>
+              )}
             </li>
           );
         })}

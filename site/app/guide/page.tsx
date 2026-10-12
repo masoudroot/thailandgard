@@ -62,7 +62,7 @@ export default async function GuideIndexPage() {
               </CardHeader>
               <CardContent className="flex flex-1 flex-col gap-4">
                 <p className="text-sm leading-7 text-muted-foreground">{guide.excerpt}</p>
-                <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-muted-foreground">
+                <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
                     <Clock className="size-3.5" />
                     {fa(guide.readingMinutes)} دقیقه مطالعه

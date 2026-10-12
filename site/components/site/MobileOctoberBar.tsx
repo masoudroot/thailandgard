@@ -51,9 +51,9 @@ export function MobileOctoberBar({
       <div className="mx-auto flex max-w-5xl flex-col gap-1.5 px-4 pt-2 pb-2">
         {/* ردیف ۱: قیمت — خط راست‌چین، بدون حذف هیچ عنصری */}
         <p className="flex flex-wrap items-baseline justify-end gap-x-1.5 text-right">
-          <span className="text-xs text-muted-foreground">شروع قیمت از</span>
+          <span className="text-sm text-muted-foreground">شروع قیمت از</span>
           <Price amount={priceFrom} size="sm" />
-          <span className="text-xs text-muted-foreground">هر نفر</span>
+          <span className="text-sm text-muted-foreground">هر نفر</span>
         </p>
         {/* ردیف ۲: دکمه‌ها — RTL: «تماس فوری» راست (اول DOM)، «واتس‌اپ» چپ */}
         <div className="flex gap-2">

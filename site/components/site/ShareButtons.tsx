@@ -99,7 +99,7 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
               {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
             </Button>
           </div>
-          <span aria-live="polite" className="text-xs text-muted-foreground">
+          <span aria-live="polite" className="text-sm text-muted-foreground">
             {copied ? "لینک کپی شد" : ""}
           </span>
         </>

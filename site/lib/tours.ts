@@ -20,6 +20,8 @@ export interface Tour {
   nights: number;
   route: string;
   priceFrom: number; // تومان
+  /** اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵): تاریخ به‌روزرسانی قیمت (ISO)؛ نامشخص = null */
+  priceUpdatedAt?: string | null;
   /** نوع گردشگر واقعی از روی محتوای همین تور (نه کلیشه)؛ در اسکیمای TouristTrip استفاده می‌شود */
   touristType: string;
   /** تور فعال و قابل فروش است یا نه؛ اسکیمای offers از روی همین ساخته می‌شود */

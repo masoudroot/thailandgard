@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { pageSeo, brandTitle } from "@/lib/og";
-import { fa } from "@/lib/utils";
+import { fa, faNumber } from "@/lib/utils";
+import { formatJalali } from "@/lib/jalali";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
@@ -66,6 +67,25 @@ export default async function TourPage({ params }: Props) {
   const tour = await getTour(slug);
   if (!tour) notFound();
 
+  // اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵) — قانون «تازگی قیمت»:
+  // قیمت «نامشخص» است اگر price_from یا price_updated_at برابر NULL باشد یا
+  // به‌روزرسانی قدیمی‌تر از ۷ روز باشد؛ در این حالت هیچ آیتم FAQ قیمتی
+  // رندر نمی‌شود (نه در HTML، نه در اسکیمای FAQPage). فقط قیمت تازه،
+  // آیتم اول FAQ می‌گیرد. اسکیمای TouristTrip/Offer دست نمی‌خورد.
+  const faqs = [...tour.faqs];
+  const priceUpdatedAt = tour.priceUpdatedAt ? new Date(tour.priceUpdatedAt) : null;
+  const priceUpdatedAtOk = priceUpdatedAt !== null && !Number.isNaN(priceUpdatedAt.getTime());
+  const priceFresh =
+    tour.priceFrom != null &&
+    priceUpdatedAtOk &&
+    Date.now() - (priceUpdatedAt as Date).getTime() <= 7 * 24 * 60 * 60 * 1000;
+  if (priceFresh && priceUpdatedAtOk) {
+    faqs.unshift({
+      question: `قیمت تور ${tour.title} چقدر است؟`,
+      answer: `شروع قیمت از ${faNumber(tour.priceFrom)} تومان؛ آخرین به‌روزرسانی: ${formatJalali(priceUpdatedAt as Date)}. برای قیمت به‌روز، با کارشناس فروش تماس بگیرید.`,
+    });
+  }
+
   // لینک‌های داخلی به راهنماهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
   const [{ tourToGuides }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
   const guideBlock = tourToGuides[tour.slug];
@@ -104,7 +124,7 @@ export default async function TourPage({ params }: Props) {
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: tour.faqs.map((f) => ({
+    mainEntity: faqs.map((f) => ({
       "@type": "Question",
       name: f.question,
       acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(f.answer) },
@@ -178,7 +198,7 @@ export default async function TourPage({ params }: Props) {
         <Separator className="my-8" />
 
         <section className="mt-10">
-          <h2 className="text-2xl sm:text-3xl">چرا این تور؟</h2>
+          <h2 className="text-center text-2xl sm:text-start sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
               <li key={h} className="flex items-start gap-2.5">
@@ -258,7 +278,7 @@ export default async function TourPage({ params }: Props) {
 
       <FaqBlock
         description="هر سؤالی که دربارهٔ این تور دارید، این‌جا جوابش را می‌بینید. اگر نبود، همان پایین شماره‌تان را بگذارید."
-        items={tour.faqs.map((f, i) => ({
+        items={faqs.map((f, i) => ({
           id: `faq-${i}`,
           title: f.question,
           content: renderInlineLinks(f.answer),
