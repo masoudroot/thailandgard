@@ -63,6 +63,16 @@ export function HeroCapsule({
 }) {
   const [destination, setDestination] = React.useState<DestinationValue>("combo");
   const active = DESTINATIONS.find((d) => d.value === destination) ?? DESTINATIONS[3];
+  const capsuleWrap = React.useRef<HTMLDivElement>(null);
+
+  // موبایل (۳۶۰px): گزینهٔ فعال (مثل «بانکوک و پوکت») ممکن است بیرون دید باشد؛
+  // آن را به مرکز اسکرولر بیاور. فقط محور افقی؛ صفحه عمودی نمی‌پرد.
+  React.useEffect(() => {
+    const btn = capsuleWrap.current?.querySelector<HTMLElement>(
+      `[data-value="${CSS.escape(destination)}"]`,
+    );
+    btn?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [destination]);
 
   return (
     <section className="relative overflow-hidden px-6 py-20 text-center sm:py-28">
@@ -98,7 +108,7 @@ export function HeroCapsule({
 
         {/* کپسول انتخاب مقصد؛ اسکرول افقی در موبایل تا قیچی نشود */}
         <Reveal delay={650} durationMs={200} className="mt-8">
-          <div className="mx-auto max-w-full overflow-x-auto pb-1">
+          <div ref={capsuleWrap} className="mx-auto max-w-full overflow-x-auto pb-1">
             <SegmentedControl
               options={DESTINATIONS.map((d) => ({ value: d.value, label: d.label }))}
               value={destination}
