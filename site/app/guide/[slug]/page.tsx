@@ -87,17 +87,38 @@ export default async function GuideDetailPage({ params }: PageProps) {
   const isPillar = guide.slug === "thailand-tour-complete-guide";
 
   // لینک‌های داخلی به تورهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
+  // S-049 (مصوبهٔ ۱۸:۲۰): تور غیرفعال در «قدم بعدی» نمی‌آید (حذف، نه ریدایرکت).
   const [{ guideToTours }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
   const relatedBlock = guideToTours[guide.slug];
   const relatedTours = relatedBlock
     ? (
         await Promise.all(relatedBlock.slugs.map((ts) => getTour(ts)))
-      ).filter((t): t is NonNullable<typeof t> => t !== undefined)
+      ).filter((t): t is NonNullable<typeof t> => t !== undefined && t.active)
     : [];
+
+  // بریف تک‌قانونی h1 (۲۰ مهر ۱۴۰۵، یافتهٔ seo/seocontent/content):
+  // h1 کلمهٔ کلیدی صفحه است نه تکرار تایتل؛ اگر ستون h1 در DB پر بود همان،
+  // وگرنه displayTitle(title) مثل قبل.
+  const h1 = guide.h1?.trim() ? guide.h1 : displayTitle(guide.title);
 
   // قانون ۳۷ اسکیما: dateModified از همان رشته‌ای می‌آید که صفحه نمایش می‌دهد
   // (خط «به‌روزرسانی: {guide.updatedFa}»)؛ datePublished داده نداریم پس عمداً نیست.
   const dateModified = updatedFaToIso(guide.updatedFa);
+  // S-045 (کلاس؛ ۲۰ مهر ۱۴۰۵): بلاک FAQPage خالی نویز ساخت‌یافته است؛
+  // فقط وقتی راهنما سؤال واقعی دارد در گراف می‌آید.
+  const faqBlock =
+    guide.faqs.length > 0
+      ? [
+          {
+            "@type": "FAQPage",
+            mainEntity: guide.faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(faq.answer) },
+            })),
+          },
+        ]
+      : [];
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -117,14 +138,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
           telephone: s.PHONE_MOBILE_LINK.replace("tel:", ""),
         },
       },
-      {
-        "@type": "FAQPage",
-        mainEntity: guide.faqs.map((faq) => ({
-          "@type": "Question",
-          name: faq.question,
-          acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(faq.answer) },
-        })),
-      },
+      ...faqBlock,
       {
         "@type": "BreadcrumbList",
         itemListElement: [
@@ -168,11 +182,12 @@ export default async function GuideDetailPage({ params }: PageProps) {
             <span className="font-display text-2xl text-foreground/70">{displayTitle(guide.title)}</span>
           </div>
         )}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/25 to-transparent" />
+        <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
         {!isPillar && (
           <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
-            <Badge variant="brand">{guide.category}</Badge>
-            <h1 className="font-display text-2xl text-foreground md:text-4xl">{displayTitle(guide.title)}</h1>
+            {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
+            <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
+            <h1 className="font-display text-2xl text-foreground md:text-4xl">{h1}</h1>
           </div>
         )}
       </div>

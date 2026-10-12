@@ -1,0 +1,20 @@
+{
+  "dry_run": false,
+  "ops": [
+    {
+      "op": "guide.set_h1",
+      "guide_slug": "bangkok-world-best-city-2026",
+      "h1": "بانکوک بهترین شهر جهان"
+    },
+    {
+      "op": "guide.set_h1",
+      "guide_slug": "one-bangkok-second-anniversary",
+      "h1": "دومین سالگرد وان بانکوک"
+    },
+    {
+      "op": "guide.set_h1",
+      "guide_slug": "diamond-resort-phuket-review",
+      "h1": "هتل دایموند ریزورت پوکت"
+    }
+  ]
+}

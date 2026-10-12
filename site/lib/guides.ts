@@ -9,6 +9,9 @@ export interface GuideSection {
 export interface Guide {
   slug: string;
   title: string;
+  /** تیتر نمایشی h1 (بریف تک‌قانونی h1، ۲۰ مهر ۱۴۰۵): اگر ستون h1 در DB پر بود
+      همان می‌آید، وگرنه displayTitle(title). کلمهٔ کلیدی صفحه، نه تکرار تایتل. */
+  h1?: string | null;
   excerpt: string;
   category: string;
   readingMinutes: number;

@@ -24,13 +24,15 @@ export async function TourBanner({ tour }: { tour: Tour }) {
       {/* ستون متن: در موبایل زیر پنل، در دسکتاپ راست (ابتدای خواندن) */}
       <div className="order-2 flex flex-col gap-6 md:order-1">
         <div className="space-y-4">
-          <Badge variant="brand">منتخب این هفته</Badge>
-          <h2
+          <Badge variant="brand" className="bg-brand text-brand-foreground">منتخب این هفته</Badge>
+          {/* S-020 (۲۰ مهر ۱۴۰۵): کارت ویژه هم h3 است مثل کارت‌های گرید؛
+              زیر همان h2 بخشی می‌نشیند. */}
+          <h3
             id={titleId}
             className="font-display text-3xl sm:text-4xl"
           >
             {tour.title}
-          </h2>
+          </h3>
           {/* D-048: خلاصهٔ تکراری کارت حذف شد؛ به‌جایش سه هایلایت یک‌خطی از
               دیتای همان تور تا بلوک «منتخب» توصیف متفاوت خودش را داشته باشد */}
           <p className="max-w-2xl text-base leading-[1.8]">

@@ -102,6 +102,9 @@ export default async function TourPage({ params }: Props) {
   const { slug } = await params;
   const tour = await getTour(slug);
   if (!tour) notFound();
+  // S-049 (مصوبهٔ ۱۸:۲۰، ۱۴۰۵/۰۷/۲۰): تور غیرفعال عرضه نمی‌شود؛
+  // صفحهٔ جزئیاتش هم ۴۰۴ می‌دهد تا سیگنال «فعال و قابل‌فروش» ندهد.
+  if (!tour.active) notFound();
 
   // کاور قاب قهرمان (اسپک mount §۳): اگر نگاشت نداشت، جای‌نگه‌دار
   // تایپوگرافیکِ هم‌شکل (تور ترکیبی؛ عکس ناجور ممنوع).
@@ -141,16 +144,22 @@ export default async function TourPage({ params }: Props) {
     name: tour.title,
     description: tour.summary,
     touristType: tour.touristType,
-    itinerary: {
-      "@type": "ItemList",
-      numberOfItems: tour.itinerary.length,
-      itemListElement: tour.itinerary.map((d) => ({
-        "@type": "ListItem",
-        position: d.day,
-        name: `روز ${fa(d.day)} | ${d.title}`,
-        description: d.description,
-      })),
-    },
+    // S-046 حسابرس (۲۰ مهر ۱۴۰۵): itinerary خالی (numberOfItems: 0) ساختار مرده است؛
+    // وقتی دادهٔ برنامهٔ روزبه‌روز هنوز نوشته نشده، کلید کلاً حذف می‌شود.
+    ...(tour.itinerary.length > 0
+      ? {
+          itinerary: {
+            "@type": "ItemList",
+            numberOfItems: tour.itinerary.length,
+            itemListElement: tour.itinerary.map((d) => ({
+              "@type": "ListItem",
+              position: d.day,
+              name: `روز ${fa(d.day)} | ${d.title}`,
+              description: d.description,
+            })),
+          },
+        }
+      : {}),
     // قیمت از اسکیما حذف شد: صفحه خودش می‌گوید قیمت‌ها «قیمت پایه» و تقریبی‌اند
     // و با تاریخ سفر و ظرفیت هتل تغییر می‌کنند؛ پس validFrom/priceValidUntil واقعی
     // وجود ندارد و نگه‌داشتن price گمراه‌کننده بود. قیمت نمایشی HTML سر جایش است.
@@ -187,7 +196,11 @@ export default async function TourPage({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(tripJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }} />
+      {/* S-045 حسابرس (۲۰ مهر ۱۴۰۵): بلاک FAQPage خالی نویز ساخت‌یافته است؛
+          فقط وقتی سؤال واقعی هست (از tour_faqs یا FAQ قیمت تازه) رندر می‌شود. */}
+      {faqs.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }} />
+      )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }} />
 
       <div className="mx-auto max-w-5xl px-6 py-12">
@@ -219,9 +232,10 @@ export default async function TourPage({ params }: Props) {
             </div>
           )}
           {/* استثنای design-rules: جهت گرادیان ماسک خاصیت بصری است نه چیدمان */}
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/25 to-transparent" />
+          <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
           <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
-            <Badge variant="brand">{tour.shortTitle}</Badge>
+            {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
+            <Badge variant="brand" className="bg-brand text-brand-foreground">{tour.shortTitle}</Badge>
             <h1 className="font-display text-2xl text-foreground md:text-4xl">{tour.title}</h1>
           </div>
         </div>
@@ -400,9 +414,9 @@ export default async function TourPage({ params }: Props) {
         </section>
       )}
 
-      {/* اقدام ۲ بریف S-010: لینک متقابل کنترل‌شده به لندینگ فصلی؛ فقط روی
+      {/* اقدام ۲ بریف S-010: لینک متقابل کنترل‌شده به راهنمای فصلی؛ فقط روی
           صفحهٔ تور پوکت و فقط در این بلوک جانبی (نه در مسیر خرید) تا تردید
-          نسازد. انکر توصیفی = h1 تازهٔ لندینگ. */}
+          نسازد. انکر توصیفی = h1 تازهٔ راهنما. مقصد: تصمیم کانونیکال ۲۲:۴۵. */}
       {tour.slug === "phuket-7-days" && (
         <section className="mx-auto mt-8 max-w-5xl px-6">
           <Card>
@@ -410,7 +424,7 @@ export default async function TourPage({ params }: Props) {
               <p className="leading-[1.8] text-foreground/90">
                 <span className="font-semibold">آب‌وهوا و رویدادهای اکتبر در پوکت:</span>{" "}
                 اگر سفرتان به نیمهٔ دوم اکتبر می‌خورد،{" "}
-                <Link href="/phuket-october" className="font-semibold underline underline-offset-4">
+                <Link href="/guide/phuket-in-october" className="font-semibold underline underline-offset-4">
                   راهنمای سفر به پوکت در نیمهٔ دوم اکتبر
                 </Link>{" "}
                 را ببینید؛ جشنوارهٔ گیاه‌خواران و بازگشایی سیمیلان همان هفته‌هاست.

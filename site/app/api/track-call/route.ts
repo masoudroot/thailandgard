@@ -57,8 +57,10 @@ export async function POST(req: NextRequest) {
       await mkdir(dir, { recursive: true });
       await appendFile(join(dir, "call-clicks.jsonl"), JSON.stringify(row) + "\n", "utf8");
     }
-  } catch {
-    /* سکوت عمدی: ردیابی خراب، تماس را خراب نمی‌کند */
+  } catch (e) {
+    /* ردیابی هرگز UX را نمی‌شکند؛ ولی علت را در لاگ سرور می‌نویسیم تا
+       خرابی خاموش (مثل نبود env در دیپلوی) قابل‌تشخیص بماند. */
+    console.error(`[track-call] ذخیره‌سازی ناموفق: ${e instanceof Error ? e.message : "نامشخص"}`);
   }
 
   return NextResponse.json({ ok: true });

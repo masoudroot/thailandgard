@@ -12,6 +12,9 @@
  * عملیات مجاز (فقط همین‌ها؛ هیچ نام جدول/ستونی از بیرون نمی‌آید):
  * - guide.insert               ساخت ردیف تازه در guides (راهنمای تازه)
  * - guide.set_excerpt          به‌روزرسانی excerpt (متا) یک راهنمای موجود (۱۵۰ تا ۱۶۵ کاراکتر)
+ * - guide.set_title            به‌روزرسانی title یک راهنمای موجود
+ * - guide.set_h1               به‌روزرسانی ستون h1 یک راهنمای موجود (بریف تک‌قانونی h1، ۲۰ مهر ۱۴۰۵؛
+ *                              نیازمند مایگریشن ۰۰۸ ستون h1)
  * - guide_section.insert        درج بخش تازه در guide_sections
  * - guide_section.set_paragraphs جایگزینی پاراگراف‌های یک بخش
  * - guide_section.set_title     تغییر تیتر (heading) یک بخش موجود
@@ -44,6 +47,7 @@ type OpCode =
   | "guide.insert"
   | "guide.set_excerpt"
   | "guide.set_title"
+  | "guide.set_h1"
   | "guide_section.insert"
   | "guide_section.set_paragraphs"
   | "guide_section.set_title"
@@ -63,6 +67,7 @@ interface SyncOp {
   op: unknown;
   slug?: unknown;
   title?: unknown;
+  h1?: unknown;
   excerpt?: unknown;
   summary?: unknown;
   category?: unknown;
@@ -133,6 +138,12 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       // بریف seocontent ۰۱:۳۵ (meta-title-exec): تیتر راهنما هم کنار excerpt به‌روز می‌شود.
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
       if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
+      return { ok: true, op: raw };
+    case "guide.set_h1":
+      // بریف تک‌قانونی h1 (۲۰ مهر ۱۴۰۵): اعتبارسنجی این‌جا؛ اجرای واقعی در applyOp.
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (typeof raw.h1 !== "string" || raw.h1.trim().length === 0 || raw.h1.length > 200)
+        return { ok: false, error: "h1 نامعتبر است." };
       return { ok: true, op: raw };
     case "tour.set_summary":
       // بریف seocontent ۰۱:۳۵: متای تورها از tours.summary رندر می‌شود؛
@@ -516,6 +527,14 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       if (rows.length === 0) throw new Error("راهنمایی با این slug پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی title راهنما (slug=${op.guide_slug})` };
     }
+    case "guide.set_h1": {
+      // بریف تک‌قانونی h1 (۲۰ مهر ۱۴۰۵): ستون h1 با مایگریشن ۰۰۸ می‌آید؛
+      // تا آن روز این op خطای «ستون ناموجود» می‌دهد.
+      const q = `guides?slug=eq.${encodeURIComponent(String(op.guide_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { h1: op.h1 });
+      if (rows.length === 0) throw new Error("راهنمایی با این slug پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی h1 راهنما (slug=${op.guide_slug})` };
+    }
     case "tour.set_summary": {
       const q = `tours?slug=eq.${encodeURIComponent(String(op.tour_slug))}`;
       const { rows } = await postgrest(cfg, "PATCH", q, { summary: op.summary });
@@ -625,6 +644,7 @@ function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
     case "guide.insert":
     case "guide.set_excerpt":
     case "guide.set_title":
+    case "guide.set_h1":
       return { tags: ["guides"], paths: [`/guide/${slug}`, "/guide", "/"] };
     case "guide_section.insert":
     case "guide_section.set_paragraphs":
@@ -640,6 +660,11 @@ function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
     case "tour_faq.insert":
     case "tour.insert":
       return { tags: ["tours"], paths: [`/tours/${slug}`, "/tours", "/"] };
+    case "setting.set":
+      // بازبینی F-092 (اجرای ۱۸:۲۰): این op در نگاشت جا افتاده بود؛ کش
+      // site-settings (شعار نوبار، شماره‌ها) بدون ابطال می‌ماند. تگ همهٔ
+      // صفحه‌ها را پوشش می‌دهد؛ مسیرهای پرنما صریح revalidate می‌شوند.
+      return { tags: ["site-settings"], paths: ["/", "/contact", "/tours"] };
     case "lead_alert.backfill":
       // ردیف intel_feed روی هیچ صفحه‌ای رندر نمی‌شود؛ ابطالی لازم نیست.
       return { tags: [], paths: [] };

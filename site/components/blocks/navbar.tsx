@@ -29,7 +29,10 @@ export interface NavbarProps {
 }
 
 /** نوار بالا. Logo on the right, links in the middle, actions on the left; a sheet from the right on mobile. */
-export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با مشاور سفر" }, secondary = { label: "تماس با مشاور سفر" }, sticky = true, callHref, className }: NavbarProps) {
+/* حکم ۱۵ design-ir (۲۰ مهر ۱۴۰۵، لازم‌الاجرا): پیش‌فرض ثانویه «درخواست تماس»
+   با href به فرم درخواست تماس ‎/contact است، نه «تماس با ما»؛ نیتش («ما به شما
+   زنگ می‌زنیم») با اولیه («شما زنگ بزنید») فرق واقعی دارد (قانون ۳۷ design). */
+export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با مشاور سفر" }, secondary = { label: "درخواست تماس", href: "/contact#callback" }, sticky = true, callHref, className }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
   return (
     <>

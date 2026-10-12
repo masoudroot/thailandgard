@@ -15,8 +15,9 @@ const OG_SLUG_MAP: Record<string, { file: string; alt: string }> = {
     alt: "ساحل پاتونگ پوکت در غروب؛ تور پوکت تایلندگرد",
   },
   "samui-7-days": {
-    file: "images/og-samui-7-days.webp",
-    alt: "ساحل چاونگ سامویی در غروب؛ تور سامویی تایلندگرد",
+    // S-003 (۲۰ مهر ۱۴۰۵): کاور رسمی تور سامویی از کتابخانه (Pexels، مجوز تجاری)
+    file: "images/tour-samui-7-days.webp",
+    alt: "تور سامویی؛ خلیج آرام با نخل‌های ساحلی",
   },
   "bangkok-pattaya-8-days": {
     file: "images/og-bangkok-pattaya-8-days.webp",
@@ -27,12 +28,20 @@ const OG_SLUG_MAP: Record<string, { file: string; alt: string }> = {
     alt: "قایق دم‌بلند در دریای آندامان کرابی؛ تور کرابی تایلندگرد",
   },
   "krabi-vs-phuket": {
-    file: "images/og-krabi-vs-phuket.webp",
-    alt: "صخره‌های آهکی ساحل رایلی کرابی؛ مقایسهٔ کرابی و پوکت",
+    // S-003 (۲۰ مهر ۱۴۰۵): تصویر کرابی موجود از کتابخانه؛
+    // فایل og-krabi-vs-phuket.webp وجود نداشت و به پیش‌فرض خانه می‌افتاد.
+    file: "images/og-krabi-6-days.webp",
+    alt: "مقایسهٔ کرابی و پوکت؛ ساحل صخره‌ای آهکی کرابی",
   },
   "bangkok-world-best-city-2026": {
     file: "images/og-bangkok-world-best-city-2026.webp",
     alt: "چراغ‌های شبانهٔ بانکوک؛ بانکوک بهترین شهر جهان ۲۰۲۶",
+  },
+  // S-048 (۲۰ مهر ۱۴۰۵): گزینهٔ موقت تا ساخت تصویر اختصاصی تور ترکیبی
+  // (سیلوئت وات‌آرون بانکوک؛ دست‌کم چهرهٔ بانکوک را دارد).
+  "bangkok-phuket-8-days": {
+    file: "images/tour-bangkok-pattaya-8-days.webp",
+    alt: "تور ترکیبی بانکوک و پوکت؛ معبد وات‌آرون بانکوک و ساحل پوکت",
   },
 };
 

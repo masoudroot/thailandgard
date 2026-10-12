@@ -50,7 +50,14 @@ export default async function ContactPage() {
         </p>
       </header>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      {/* قاب تایپوگرافیک (اسپک s002 قلم ۳، ۲۰ مهر ۱۴۰۵): تمام‌عرض، بالای گرید دو کارت.
+          عکس واقعی نیست پس ماسک معنا ندارد؛ گرادیان تایپوگرافیک خنثی.
+          تیتر: حکم ۱۴ design-ir («همه‌روزه پاسخ‌گوییم» به‌جای «پاسخ‌گویی همه‌روزه»). */}
+      <div className="mt-8 overflow-hidden rounded-control border border-border bg-frame-typographic px-8 py-10 text-center sm:py-12">
+        <p className="font-display text-2xl text-foreground sm:text-3xl">همه‌روزه پاسخ‌گوییم</p>
+      </div>
+
+      <div id="callback" className="mt-8 grid scroll-mt-24 gap-6 lg:grid-cols-2">
         {/* قلم ۳ لید (سلسله‌مراتب کارت‌ها، حکم مدیر ۱۰:۱۵): «تماس مستقیم» مسیر اصلی است؛
             تیتر حکم مدیر + حاشیهٔ برند تا چشم اول به همین کارت برود؛ بج برند حفظ شد. */}
         <Card className="h-full overflow-hidden border-brand">

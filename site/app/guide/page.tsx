@@ -25,6 +25,8 @@ export default async function GuideIndexPage() {
   const guides = await getGuides();
   // قانون ۳۷ اسکیما: کارت‌ها با عنوان و خلاصه رندر می‌شوند؛ ItemList فقط همان
   // آیتم‌های نمایشی را دارد (نه بیشتر، نه کمتر)؛ از همان getGuides() صفحه.
+  // S-042 (۲۰ مهر ۱۴۰۵): پسوند برند مال تایتل سند است نه name اسکیما؛
+  // عنوان بدون پسوند (همان نمایشی کارت).
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -32,7 +34,7 @@ export default async function GuideIndexPage() {
     itemListElement: guides.map((guide, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      name: guide.title,
+      name: displayTitle(guide.title),
       url: `${SITE_URL}/guide/${guide.slug}`,
     })),
   };
@@ -93,9 +95,10 @@ export default async function GuideIndexPage() {
                     <span className="font-display text-lg text-foreground/70">{displayTitle(guide.title)}</span>
                   </div>
                 )}
-                <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/25 to-transparent" />
+                <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
                 <div className="absolute inset-x-0 bottom-0 p-4">
-                  <Badge variant="brand">{guide.category}</Badge>
+                  {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
+                  <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
                   <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle>
                 </div>
               </div>

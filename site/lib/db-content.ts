@@ -83,6 +83,8 @@ interface TourFaqRow {
 interface GuideRow {
   slug: string;
   title: string;
+  /** ستون h1 (مایگریشن ۰۰۸، با مسعود): تا وقتی ستون نیست، undefined می‌ماند. */
+  h1?: string | null;
   excerpt: string;
   category: string;
   reading_minutes: number;
@@ -225,6 +227,7 @@ function mapGuide(
   return {
     slug: row.slug,
     title: row.title,
+    h1: row.h1 ?? null,
     excerpt: row.excerpt,
     category: row.category,
     readingMinutes: row.reading_minutes,
@@ -269,7 +272,10 @@ export async function getTours(): Promise<Tour[]> {
     return TOURS_FALLBACK;
   }
   const ordered = inFileOrder(rows, TOURS_FALLBACK.map((t) => t.slug));
-  return ordered.map((row) => mapTour(row, dayRows, faqRows));
+  // S-049 (مصوبهٔ ۱۸:۲۰، ۱۴۰۵/۰۷/۲۰): تور غیرفعال (active=false) عرضه نمی‌شود؛
+  // از فهرست /tours، کارت‌ها و generateStaticParams حذف می‌شود.
+  // فالبک (TOURS_FALLBACK) همه active:true دارد؛ رکورد بدون فیلد هم می‌ماند.
+  return ordered.filter((row) => row.active !== false).map((row) => mapTour(row, dayRows, faqRows));
 }
 
 export async function getTour(slug: string): Promise<Tour | undefined> {
@@ -348,7 +354,7 @@ export interface SitemapRows {
 /**
  * ردیف‌های سایت‌مپ با خوانش زندهٔ دیتابیس؛ عمداً `'use cache'` ندارد تا
  * `/sitemap.xml` هر درخواست ربات را تازه بگیرد (معادل Next-16 دستور
- * `export const dynamic = "force-dynamic"` — که در Next 16 با cacheComponents
+ * `export const dynamic = "force-dynamic"` - که در Next 16 با cacheComponents
  * از پیکربندی قطعه حذف شده و خطای کامپایل می‌دهد؛ پس با `connection()` در
  * خود `sitemap.ts` + این خوانش بدون‌کش پیاده می‌شود). فالبک: همان ثابت‌های
  * `sitemap.ts`؛ صفحه‌های استاتیک در خود `sitemap.ts` تعریف می‌شوند.
@@ -362,7 +368,8 @@ export async function getSitemapRows(): Promise<SitemapRows> {
   const base =
     settingRows?.find((r) => r.key === "SITE_URL")?.value?.toString() ||
     SITE_SETTINGS_FALLBACK.SITE_URL;
-  const tours = tourRows ? tourRows.map((t) => t.slug) : [];
+  // S-049: تور غیرفعال از نقشهٔ سایت هم می‌افتد (با getTours هم‌خوان).
+  const tours = tourRows ? tourRows.filter((t) => t.active !== false).map((t) => t.slug) : [];
   const guides = guideRows
     ? guideRows.map((g) => ({ slug: g.slug, updatedFa: g.updated_fa }))
     : [];

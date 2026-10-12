@@ -37,6 +37,24 @@
   --brand: oklch(0.74 0.155 62);
   --brand-foreground: oklch(0.26 0.02 60);
 
+  /* توکن‌های قاب عکس (بریف artdir، اسپک s002، ۲۰ مهر ۱۴۰۵):
+     ماسک گرادیان از پایین برای متن روی عکس + گرادیان تایپوگرافیک
+     برای نقاط بی‌عکس. هیچ رنگ خامی؛ همه از توکن‌های تم. */
+  --frame-mask-card: linear-gradient(to top,
+    oklch(0.982 0.0035 90 / 0.7) 0%,
+    oklch(0.982 0.0035 90 / 0.25) 45%,
+    transparent 82%);
+
+  --frame-mask-deep: linear-gradient(to top,
+    oklch(0.982 0.0035 90) 0%,
+    oklch(0.982 0.0035 90 / 0.82) 30%,
+    oklch(0.982 0.0035 90 / 0.35) 62%,
+    transparent 92%);
+
+  --frame-typographic: linear-gradient(155deg,
+    oklch(0.993 0.002 90) 0%,
+    oklch(0.955 0.005 90) 100%);
+
   /* زبان طراحی: فونت، فرم، خط، عمق، حرکت */
   --radius: 0.625rem;
   --type-display-weight: 700;
@@ -90,6 +108,11 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-field: var(--field);
+
+  /* نگاشت توکن‌های قاب عکس به یوتیلیتی‌های background-image (اسپک s002) */
+  --background-image-frame-mask-card: var(--frame-mask-card);
+  --background-image-frame-mask-deep: var(--frame-mask-deep);
+  --background-image-frame-typographic: var(--frame-typographic);
 
   /* شکل */
   --radius-control: var(--shape-control);

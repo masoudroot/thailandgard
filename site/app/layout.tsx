@@ -112,7 +112,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }
           links={s.NAV_LINKS}
           primary={{ label: "تماس با مشاور سفر", href: s.PHONE_MOBILE_LINK }}
-          secondary={{ label: "تماس با ما", href: "/contact" }}
           callHref={s.PHONE_MOBILE_LINK}
         />
         <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>

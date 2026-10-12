@@ -5,11 +5,8 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   const s = await getSiteSettings();
   return {
     rules: [{ userAgent: "*", allow: "/" }],
-    sitemap: [
-      `${s.SITE_URL}/sitemap.xml`,
-      `${s.SITE_URL}/sitemaps/pages.xml`,
-      `${s.SITE_URL}/sitemaps/tours.xml`,
-      `${s.SITE_URL}/sitemaps/guides.xml`,
-    ],
+    // S-044 حسابرس (۲۰ مهر ۱۴۰۵): فقط نقشهٔ ریشه اعلام می‌شود؛
+    // sitemap.xml همهٔ URLها را دارد و اعلام تکراری فرزندها خزش را پراکنده می‌کرد.
+    sitemap: [`${s.SITE_URL}/sitemap.xml`],
   };
 }

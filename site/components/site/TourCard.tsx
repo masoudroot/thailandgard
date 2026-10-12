@@ -50,11 +50,13 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
           </div>
         )}
         {/* استثنای design-rules: جهت گرادیان ماسک خاصیت بصری است نه چیدمان */}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/25 to-transparent" />
+        <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
         <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-4">
           <div className="flex items-center justify-between gap-2">
-            {/* بج: برای ترکیبی فقط یک لکهٔ کهربایی «ترکیبی جدید»؛ بج shortTitle نمی‌آید (حکم ۲ بریف) */}
-            <Badge variant="brand">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
+            {/* بج: برای ترکیبی فقط یک لکهٔ کهربایی «ترکیبی جدید»؛ بج shortTitle نمی‌آید (حکم ۲ بریف)
+                یافتهٔ ۲ ممیزی وایب‌فارسی (۲۰ مهر ۱۴۰۵): متن کهرباییِ تنها روی ماسک روشن ممنوع؛
+                فیل کهربایی + متن brand-foreground (اورراید در محل استفاده، قانون ۱۰) */}
+            <Badge variant="brand" className="bg-brand text-brand-foreground">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
             <span className="flex items-center gap-1 text-sm text-muted-foreground">
               <CalendarDays className="size-3.5" />
               {fa(tour.days)} روز و {fa(tour.nights)} شب
