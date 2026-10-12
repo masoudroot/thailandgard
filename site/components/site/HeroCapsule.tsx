@@ -10,7 +10,7 @@ import { BlurText } from "@/components/animations/blur-text";
 import { Meteors } from "@/components/animations/meteors";
 
 /**
- * هیروی خانه — بازسازی ۲۰ مهر ۱۴۰۵ با بلوک رجیستری `hero` وایب‌فارسی
+ * هیروی خانه | بازسازی ۲۰ مهر ۱۴۰۵ با بلوک رجیستری `hero` وایب‌فارسی
  * (از MCP زنده) + نقدهای سه‌گانهٔ همان روز (فارسی‌نویسی، بصری، موشن).
  *
  * نگاشت رجیستری (ایمپورت واقعی):
@@ -26,6 +26,9 @@ import { Meteors } from "@/components/animations/meteors";
  * - نشان «فقط تایلند» (تمایز، نه تکرار تیتر)
  * - شهاب‌ها تک‌اجرا هستند تا با CTA رقابت نکنند
  * - زیرتیتر min-height دارد تا تعویض مقصد چیدمان را نپراند
+ * - امضای ایرانی (۱۴۰۵/۰۷/۲۰، نبض دیزاین): خط‌حایل مویی با لوزی کهربایی
+ *   + جملهٔ انسانی زیر دکمه‌ها؛ نزدیک‌ترین زبان رجیستری: همان بلوک hero،
+ *   بدون کامپوننت تازه؛ لحن خاکیِ برند («آدم جواب می‌دهد، نه ربات»)
  */
 const DESTINATIONS = [
   {
@@ -76,7 +79,7 @@ export function HeroCapsule({
 
   return (
     <section className="relative overflow-hidden px-6 py-20 text-center sm:py-28">
-      {/* شبکهٔ محو از بالا — عین بلوک رجیستری hero (ماسک بازتر برای موبایل) */}
+      {/* شبکهٔ محو از بالا | عین بلوک رجیستری hero (ماسک بازتر برای موبایل) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_80%)]"
@@ -134,6 +137,19 @@ export function HeroCapsule({
               </a>
             </Button>
           </div>
+        </Reveal>
+
+        {/* امضای ایرانی: خط‌حایل مویی با لوزی کهربایی + جملهٔ انسانی.
+            لهجهٔ کوچکِ برند، نه تزئین اضافه (حکم برندینگ: شعارزدگی ممنوع) */}
+        <Reveal delay={950} durationMs={200} className="mt-10">
+          <div aria-hidden className="mx-auto flex max-w-xs items-center gap-3">
+            <span className="h-px flex-1 bg-foreground/10" />
+            <span className="text-[10px] leading-none text-brand">◆</span>
+            <span className="h-px flex-1 bg-foreground/10" />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            اینجا یک آدم جواب می‌دهد، نه ربات
+          </p>
         </Reveal>
       </div>
     </section>
