@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
         destination: "/phuket-october",
         permanent: true,
       },
+      // ریدایرکت دائمی ‎/guides‎ به ‎/guide‎ (ممیزی سخت‌گیرانهٔ ۱۶:۳۰؛
+      // مسیر جمع اشتباه است، مسیر درست ‎/guide‎ است).
+      {
+        source: "/guides",
+        destination: "/guide",
+        permanent: true,
+      },
     ];
   },
   cacheComponents: true,
