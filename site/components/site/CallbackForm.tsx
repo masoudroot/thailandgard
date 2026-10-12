@@ -239,7 +239,7 @@ export function CallbackForm({
           </p>
         )}
       </Field>
-      <Field label="شمارهٔ موبایل" htmlFor="cb-mobile" hint="به همین شماره زنگ می‌زنیم">
+      <Field label="شمارهٔ موبایل" htmlFor="cb-mobile">
         <PhoneInput id="cb-mobile" forceError={mobileForceError} onFocus={() => trackFieldStart("mobile")} onChange={(digits, valid) => { setMobile(digits); setMobileValid(valid); if (mobileForceError && valid) setMobileForceError(false); }} />
       </Field>
       {/* خط اطمینان (دستور تیزشدهٔ لید، ۱۹ مهر ۱۴۰۵): کاهش‌دهندهٔ ریسک با بافت
