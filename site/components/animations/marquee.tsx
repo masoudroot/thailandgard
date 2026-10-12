@@ -12,7 +12,15 @@ import { cn } from "@/lib/utils";
 export function Marquee({ children, duration = 30, gap = "1rem", className }: { children: React.ReactNode; duration?: number; gap?: string; className?: string }) {
   return (
     <div className={cn("w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]", className)} dir="ltr">
-      <div className="flex w-max" style={{ animation: `marquee ${duration}s linear infinite` }}>
+      <div
+        className="flex w-max"
+        style={
+          {
+            animation: `marquee ${duration}s linear infinite`,
+            "--marquee-duration": `${duration}s`,
+          } as React.CSSProperties
+        }
+      >
         <div className="flex shrink-0 items-center" style={{ gap, paddingRight: gap }} dir="rtl">{children}</div>
         <div className="flex shrink-0 items-center" style={{ gap, paddingRight: gap }} dir="rtl" aria-hidden>{children}</div>
       </div>

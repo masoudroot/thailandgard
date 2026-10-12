@@ -30,7 +30,14 @@ import { Meteors } from "@/components/animations/meteors";
  *   + جملهٔ انسانی زیر دکمه‌ها؛ نزدیک‌ترین زبان رجیستری: همان بلوک hero،
  *   بدون کامپوننت تازه؛ لحن خاکیِ برند («آدم جواب می‌دهد، نه ربات»)
  */
+/* ترتیب راست‌به‌چپ (دستور مسعود، ۱۴۰۵/۰۷/۲۰): گزینهٔ پیش‌فرض «بانکوک و پوکت»
+   اول می‌آید تا در چیدمان راست‌چین، راست‌ترین (نقطهٔ شروع خواندن) باشد. */
 const DESTINATIONS = [
+  {
+    value: "combo",
+    label: "بانکوک و پوکت",
+    suggestion: "هشت روز بانکوک و پوکت؛ شهر و ساحل در یک سفر. پرواز داخلی هم دارد.",
+  },
   {
     value: "bangkok",
     label: "بانکوک",
@@ -46,11 +53,6 @@ const DESTINATIONS = [
     label: "پاتایا",
     suggestion: "دو شب پاتایا؛ ساحل جومتین و واکینگ استریت، دو ساعتی بانکوک.",
   },
-  {
-    value: "combo",
-    label: "بانکوک و پوکت",
-    suggestion: "هشت روز بانکوک و پوکت؛ شهر و ساحل در یک سفر. پرواز داخلی هم دارد.",
-  },
 ] as const;
 
 type DestinationValue = (typeof DESTINATIONS)[number]["value"];
@@ -65,7 +67,7 @@ export function HeroCapsule({
   whatsappHref: string;
 }) {
   const [destination, setDestination] = React.useState<DestinationValue>("combo");
-  const active = DESTINATIONS.find((d) => d.value === destination) ?? DESTINATIONS[3];
+  const active = DESTINATIONS.find((d) => d.value === destination) ?? DESTINATIONS[0];
   const capsuleWrap = React.useRef<HTMLDivElement>(null);
 
   // موبایل (۳۶۰px): گزینهٔ فعال (مثل «بانکوک و پوکت») ممکن است بیرون دید باشد؛

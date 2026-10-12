@@ -241,8 +241,12 @@ h3,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* نوار اعلان عمداً از این قاعده مستثناست (دستور مسعود، ۱۴۰۵/۰۷/۲۰):
+     تی‌کر خبر محتوای تحریریه است نه تزئین؛ باید مثل تیتر اخبار حرکت کند.
+     قانون کلی * مدت‌زمان را صفر می‌کند، پس این‌جا shorthand کامل با
+     همان مدت‌زمان inline بازنویسی می‌شود تا بچربد. */
   [data-marquee-track] > div > div {
-    animation: none !important;
+    animation: marquee var(--marquee-duration, 30s) linear infinite !important;
   }
 }
 
