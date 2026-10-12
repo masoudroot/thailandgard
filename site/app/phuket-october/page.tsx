@@ -137,7 +137,7 @@ export default async function PhuketOctoberPage() {
       </section>
 
       <div className="mx-auto max-w-6xl px-6 pb-sticky-bar-october-clearance md:pb-16">
-        <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
+        <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
           <div className="min-w-0">
             {/* سکشن ۲: سه کارت «چرا الان» */}
             <section>
@@ -157,7 +157,7 @@ export default async function PhuketOctoberPage() {
             </section>
 
             {/* سکشن ۳: تورهای همین پنجره */}
-            <section id="october-tours" className="mt-14 scroll-mt-24">
+            <section id="october-tours" className="mt-12 scroll-mt-24">
               <h2 className="text-2xl sm:text-3xl">تورهای همین پنجره</h2>
               <div className="mt-8 max-w-md">
                 <TourCard tour={tour} />
@@ -165,7 +165,7 @@ export default async function PhuketOctoberPage() {
             </section>
 
             {/* سکشن ۵: پرسش‌های متداول ← blocks/faq (فقط ستون آکاردئون) */}
-            <section className="mt-14">
+            <section className="mt-12">
               <h2 className="text-2xl sm:text-3xl">پرسش‌های پرتکرار</h2>
               <Accordion
                 className="mt-8"
@@ -179,7 +179,7 @@ export default async function PhuketOctoberPage() {
             </section>
 
             {/* سکشن ۶: پانوشت صداقت؛ دستور وایب‌فارسی ۱۲:۰۵: متن سادهٔ تک‌خط، نه الگوی خط کپی‌رایت blocks/footer */}
-            <p className="mt-14 text-center text-xs text-muted-foreground">
+            <p className="mt-12 text-center text-xs text-muted-foreground">
               سفرهای دریایی اول فصل بیشتر در معرض موج موسمی‌اند.
             </p>
           </div>
@@ -218,14 +218,14 @@ export default async function PhuketOctoberPage() {
                 {/* گاردریل فاصلهٔ خط کنسلی (نقد ۲ artdir، ۱۳:۰۵): جداکنندهٔ مویی + دست‌کم mt-6 بالای خط */}
                 <Separator className="mt-5 mb-6" />
                 <p className="text-xs leading-6 text-muted-foreground">
-                  تور چارتر و غیرقابل کنسلی است
+                  این تور چارتر است و کنسلی ندارد.
                 </p>
 
                 <div className="mt-6 flex flex-col gap-2">
                   <Button asChild size="lg" variant="brand" className="active:scale-[0.98]">
                     <a href={s.PHONE_MOBILE_LINK} data-call-context="phuket-sidebar">
                       <Phone />
-                      تماس با کارشناس
+                      تماس با مشاور سفر
                     </a>
                   </Button>
                   <Button asChild size="lg" variant="outline">

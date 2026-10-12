@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 export default async function ContactPage() {
   const s = await getSiteSettings();
   return (
-    <main className="mx-auto max-w-5xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-12">
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
           <Phone className="size-4" />
@@ -50,7 +50,7 @@ export default async function ContactPage() {
         </p>
       </header>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {/* قلم ۳ لید (سلسله‌مراتب کارت‌ها، حکم مدیر ۱۰:۱۵): «تماس مستقیم» مسیر اصلی است؛
             تیتر حکم مدیر + حاشیهٔ برند تا چشم اول به همین کارت برود؛ بج برند حفظ شد. */}
         <Card className="overflow-hidden border-brand">

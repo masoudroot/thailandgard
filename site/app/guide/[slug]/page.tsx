@@ -164,7 +164,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
         isVisaStepsSection(guide.slug, section.heading) ? (
           <StepsBlock key={section.heading} title={section.heading} steps={VISA_STEPS} />
         ) : (
-          <section key={section.heading} className="mt-10">
+          <section key={section.heading} className="mt-8">
             <h2 className="text-2xl sm:text-3xl">{section.heading}</h2>
             <div className="mt-4 space-y-4">{renderGuideBlocks(section.paragraphs)}</div>
           </section>
@@ -172,7 +172,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       )}
 
       {relatedTours.length > 0 && relatedBlock && (
-        <section className="mt-10 rounded-surface border border-border bg-card p-6">
+        <section className="mt-8 rounded-surface border border-border bg-card p-6">
           <h2 className="text-2xl sm:text-3xl">قدم بعدی</h2>
           <p className="mt-3 leading-[1.9] text-foreground/90">
             {relatedBlock.lead}{" "}
@@ -203,7 +203,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       <section id="callback" className="mt-4 rounded-surface border border-border bg-card p-6 sm:p-8">
         <h2 className="text-2xl sm:text-3xl">سؤالی داری؟</h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
-          راهنما همه‌چیز را نگفت؟ کارشناس فروش ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و
+          راهنما همه‌چیز را نگفت؟ کارشناس مقصد ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و
           دقیقاً برای سفر خودت مشاوره بگیر.
         </p>
         <div className="mt-5">

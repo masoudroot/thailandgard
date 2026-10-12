@@ -118,7 +118,7 @@ export default async function TourPage({ params }: Props) {
   if (priceFresh && priceUpdatedAtOk && tour.priceFrom != null) {
     faqs.unshift({
       question: `قیمت تور ${tour.title} چقدر است؟`,
-      answer: `شروع قیمت از ${faNumber(tour.priceFrom)} تومان؛ آخرین به‌روزرسانی: ${formatJalali(priceUpdatedAt as Date)}. برای قیمت به‌روز، با کارشناس فروش تماس بگیرید.`,
+      answer: `شروع قیمت از ${faNumber(tour.priceFrom)} تومان؛ آخرین به‌روزرسانی: ${formatJalali(priceUpdatedAt as Date)}. برای قیمت به‌روز، با کارشناس مقصد تماس بگیرید.`,
     });
   }
 
@@ -215,18 +215,18 @@ export default async function TourPage({ params }: Props) {
 
         <Alert variant="info" className="mt-4">
           قیمت‌ها «شروع قیمت» و تقریبی‌اند و با توجه به تاریخ سفر و ظرفیت هتل کمی تغییر می‌کنند.
-          قیمت دقیق را کارشناس فروش موقع تماس می‌گوید.
+          قیمت دقیق را کارشناس مقصد موقع تماس می‌گوید.
         </Alert>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" variant="brand">
             <a href={s.PHONE_MOBILE_LINK} data-call-context="tour-page">
               <Phone />
-              تماس با کارشناس مقصد
+              تماس با مشاور سفر
             </a>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <a href="#callback">درخواست تماس</a>
+            <a href="#callback">تماس با مشاور سفر</a>
           </Button>
         </div>
 
@@ -234,7 +234,7 @@ export default async function TourPage({ params }: Props) {
 
         <Separator className="my-8" />
 
-        <section className="mt-10">
+        <section className="mt-8">
           <h2 className="text-center text-2xl sm:text-start sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
@@ -246,7 +246,7 @@ export default async function TourPage({ params }: Props) {
           </ul>
         </section>
 
-        <section className="mt-12">
+        <section className="mt-10">
           <h2 className="text-2xl sm:text-3xl">دربارهٔ تور {tour.shortTitle}</h2>
           <div className="mt-5 space-y-5">
             {tour.description.slice(0, 3).map((p, i) => (
@@ -266,7 +266,7 @@ export default async function TourPage({ params }: Props) {
           </div>
         </section>
 
-        <section className="mt-10">
+        <section className="mt-8">
           <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
           <Accordion
             className="mt-5"
@@ -282,7 +282,7 @@ export default async function TourPage({ params }: Props) {
         {/* بلوک «پرسش‌های پرتکرار تور» (اسپک design، ۲۰ مهر ۱۴۰۵): داخل ستون
             محتوا، بلافاصله بعد از «برنامهٔ روزبه‌روز»؛ کارت‌های شامل/شامل‌نمی‌شود
             سر جای فعلی‌شان (بعد از FAQ) می‌مانند. */}
-        <Separator className="my-12" />
+        <Separator className="my-10" />
         <div className="-mx-6">
           <FaqBlock
             title="پرسش‌های پرتکرار تور"
@@ -298,7 +298,15 @@ export default async function TourPage({ params }: Props) {
           />
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+        {/* خط حقوقی لازم‌الاجرا (حکم برندینگ ۱۶:۰۰ + تصمیم مشترک artdir/vibefarsi):
+            همیشه‌مرئی، خط جدا زیر بلوک FAQ، بیرون آکاردئون (ضد الگوی تاریک).
+            متن نهایی: «این تور چارتر است و کنسلی ندارد.»
+            وابستگی بیرونی: چارتر بودن هر ۴ تور هنوز نیازمند تأیید صریح فروش است. */}
+        <p className="mt-8 border-t border-border pt-4 text-sm text-muted-foreground">
+          این تور چارتر است و کنسلی ندارد.
+        </p>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>شامل می‌شود</CardTitle>
@@ -333,7 +341,7 @@ export default async function TourPage({ params }: Props) {
       </div>
 
       {relatedGuides.length > 0 && guideBlock && (
-        <section className="mx-auto mt-10 max-w-5xl px-6">
+        <section className="mx-auto mt-8 max-w-5xl px-6">
           <Card>
             <CardContent className="pt-6">
               <p className="leading-[1.8] text-foreground/90">
@@ -356,7 +364,7 @@ export default async function TourPage({ params }: Props) {
         </section>
       )}
 
-      <div id="callback" className="mx-auto mt-16 max-w-5xl scroll-mt-24 px-6 pb-sticky-bar-clearance md:pb-16">
+      <div id="callback" className="mx-auto mt-12 max-w-5xl scroll-mt-24 px-6 pb-sticky-bar-clearance md:pb-16">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
@@ -370,7 +378,7 @@ export default async function TourPage({ params }: Props) {
           <Card>
             <CardHeader>
               <CardTitle>ترجیح می‌دهید خودتان زنگ بزنید؟</CardTitle>
-              <CardDescription>مستقیم با کارشناس فروش صحبت کنید یا در واتس‌اپ پیام بدهید.</CardDescription>
+              <CardDescription>مستقیم با کارشناس مقصد صحبت کنید یا در واتس‌اپ پیام بدهید.</CardDescription>
             </CardHeader>
             <CardContent>
               <CallButtons />
