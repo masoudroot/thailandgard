@@ -69,7 +69,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           # اگر ریپو در کنسول پریزما وصل نیست، این خط را فعال کنید و
           # PRISMA_SERVICE_TOKEN را در Actions secrets بسازید:
-          # PRISMA_SERVICE_TOKEN: ${{ secrets.PRISMA_SERVICE_TOKEN }}
+          PRISMA_SERVICE_TOKEN: ${{ secrets.PRISMA_SERVICE_TOKEN }}
 
   teardown:
     # حذف پریویو وقتی برنچ پاک می‌شود. فعلاً mode: destroy با CLI فعلی
