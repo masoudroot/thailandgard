@@ -103,7 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </span>
           }
           links={s.NAV_LINKS}
-          primary={{ label: "تماس با کارشناس فروش", href: s.PHONE_MOBILE_LINK }}
+          primary={{ label: "تماس با کارشناس مقصد", href: s.PHONE_MOBILE_LINK }}
           secondary={{ label: "درخواست تماس", href: "/contact" }}
           callHref={s.PHONE_MOBILE_LINK}
         />
@@ -127,7 +127,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {
               title: "تماس",
               links: [
-                { label: (<>{s.CONTACT_NAME}: <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span></>), href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با کارشناس فروش تایلندگرد" },
+                { label: (<>{s.CONTACT_NAME}: <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span></>), href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با کارشناس مقصد تایلندگرد" },
                 { label: (<>تلفن ثابت: <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span></>), href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد" },
               ],
             },

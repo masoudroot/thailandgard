@@ -35,7 +35,7 @@ export async function PillarHero({ badge, title, description, readingMinutes, up
           <Button asChild size="lg" variant="brand" className="rounded-full">
             <a href={PHONE_MOBILE_LINK} data-call-context="pillar-hero">
               <Phone />
-              تماس با کارشناس فروش
+              تماس با کارشناس مقصد
             </a>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-full">

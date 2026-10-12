@@ -9,7 +9,7 @@ import { PHONE_MOBILE_LINK, WHATSAPP_LINK } from "@/lib/site";
  * نوار CTA چسبان صفحهٔ تور (M3؛ بریف اجرایی artdir، ۱۹ مهر ۱۴۰۵، ساعت ۱۹؛
  * بازحکم ۲۰ مهر :۳۵: واتس‌اپ فقط CTA دوم فرعی).
  * فقط موبایل (md:hidden)؛ فقط از پایان هیرو به بعد (نگهبان #tour-hero-end)؛
- * دکمهٔ برند «تماس با کارشناس فروش» اول و پررنگ (~۷۰٪ عرض) + دکمهٔ دوم
+ * دکمهٔ برند «تماس با کارشناس مقصد» اول و پررنگ (~۷۰٪ عرض) + دکمهٔ دوم
  * «واتس‌اپ» (variant=secondary، آیکون MessageCircle، ~۳۰٪ عرض)؛ هم‌وزن ممنوع؛
  * بدون قیمت، بدون دکمهٔ بستن؛ max-h-[20vh]، گوشه‌های بالایی ۸،
  * کادر مویی ۱px در بالا، بدون سایه، env(safe-area-inset-bottom)؛
@@ -45,7 +45,7 @@ export function TourStickyBar() {
           <Button asChild variant="brand" className="h-11 px-6 text-base gap-2.5">
             <a href={PHONE_MOBILE_LINK} data-call-context="sticky-bar">
               <Phone />
-              تماس با کارشناس فروش
+              تماس با کارشناس مقصد
             </a>
           </Button>
           <Button asChild variant="secondary" className="h-11 px-6 text-base gap-2.5">

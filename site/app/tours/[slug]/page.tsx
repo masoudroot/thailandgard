@@ -222,7 +222,7 @@ export default async function TourPage({ params }: Props) {
           <Button asChild size="lg" variant="brand">
             <a href={s.PHONE_MOBILE_LINK} data-call-context="tour-page">
               <Phone />
-              تماس با کارشناس فروش
+              تماس با کارشناس مقصد
             </a>
           </Button>
           <Button asChild size="lg" variant="outline">

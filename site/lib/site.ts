@@ -8,7 +8,7 @@ export const SITE_LATIN = "ThailandGard";
 export const SITE_SLOGAN = "متخصص تور تایلند";
 export const SITE_TAGLINE = "فقط تور تایلند، با مشاورهٔ تلفنی کارشناسان مقصد";
 
-/** کارشناس فروش */
+/** کارشناس مقصد */
 export const CONTACT_NAME = "غزل عینی";
 export const CONTACT_TITLE = "متخصص و مشاور تورهای تایلند";
 
