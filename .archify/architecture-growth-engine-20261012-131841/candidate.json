@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "موتور رشد خودگردان تایلندگرد — نسخهٔ ۲ (با ۷ قفل)",
+    "output": "growth-engine.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "benchmarks", "type": "external", "label": "بنچمارک‌ها", "sublabel": "بهترین آژانس‌های تایلند", "pos": [40, 60], "size": [150, 70] },
+    { "id": "standard", "type": "database", "label": "استاندارد", "sublabel": "دانش «خوب‌بودن»", "pos": [270, 60], "size": [180, 70], "tag": "دانش واجب" },
+    { "id": "sense", "type": "backend", "label": "حس", "sublabel": "ممیزی هفتگی عمیق", "pos": [270, 280], "size": [160, 70], "tag": "شناسه‌دار" },
+    { "id": "decide", "type": "backend", "label": "تصمیم", "sublabel": "اولویت‌بندی (مدیر کسب‌وکار)", "pos": [580, 280], "size": [180, 70] },
+    { "id": "build", "type": "backend", "label": "ساخت", "sublabel": "۱۳ تیم اجرایی", "pos": [840, 280], "size": [180, 70] },
+    { "id": "site", "type": "cloud", "label": "سایت زنده", "sublabel": "www.thailandgard.ir", "pos": [840, 490], "size": [180, 70] },
+    { "id": "verify", "type": "security", "label": "راستی‌آزمایی", "sublabel": "qa + بازرس + شاهد زنده", "pos": [580, 490], "size": [180, 70] },
+    { "id": "calltrack", "type": "database", "label": "ردیاب تماس", "sublabel": "کلیک tel: + فرم", "pos": [840, 630], "size": [180, 70], "tag": "سنجهٔ صادق" },
+    { "id": "masoud", "type": "external", "label": "مسعود", "sublabel": "فقط خروجی + تصمیم", "pos": [40, 490], "size": [150, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "حلقهٔ خودگردان — بدون دخالت مسعود", "wraps": ["standard", "sense", "decide", "build", "site", "verify", "calltrack"] }
+  ],
+  "connections": [
+    { "id": "b-to-s", "from": "benchmarks", "to": "standard", "label": "بنچمارک", "variant": "dashed" },
+    { "id": "s-to-se", "from": "standard", "to": "sense", "label": "معیار" },
+    { "id": "se-to-d", "from": "sense", "to": "decide", "label": "شکاف‌های شناسه‌دار", "variant": "emphasis" },
+    { "id": "d-to-b", "from": "decide", "to": "build", "label": "نقشهٔ راه", "variant": "emphasis" },
+    { "id": "b-to-site", "from": "build", "to": "site", "label": "دپلوی" },
+    { "id": "site-to-se", "from": "site", "to": "sense", "label": "خزش و ممیزی" },
+    { "id": "site-to-v", "from": "site", "to": "verify", "label": "بررسی زنده" },
+    { "id": "site-to-ct", "from": "site", "to": "calltrack", "label": "کلیک‌ها", "variant": "dashed" },
+    { "id": "ct-to-d", "from": "calltrack", "to": "decide", "label": "سنجهٔ صادقانه", "variant": "dashed" },
+    { "id": "v-to-s", "from": "verify", "to": "standard", "label": "آموخته‌ها", "variant": "dashed" },
+    { "id": "v-to-d", "from": "verify", "to": "decide", "label": "نتیجه", "variant": "dashed" },
+    { "id": "d-to-m", "from": "decide", "to": "masoud", "label": "خروجی هفتگی", "variant": "dashed" },
+    { "id": "m-to-d", "from": "masoud", "to": "decide", "label": "تأیید", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "حلقه", "items": ["حس ← تصمیم ← ساخت ← راستی‌آزمایی؛ مداوم", "خط سریع: ایراد بدیهی همان هفته درست می‌شود", "نوبت عمیق هفتگی برای کارهای چندساعته، جدا از چرخهٔ نیم‌ساعته"] },
+    { "dot": "emerald", "title": "دانش واجب", "items": ["استاندارد = بنچمارک + فهرست صفحه‌ها + چک‌لیست تبدیل", "سئو و استراتژیست محتوا فهرست را می‌دهند، نه مسعود"] },
+    { "dot": "rose", "title": "۷ قفل داوری", "items": ["حس سازوکار شد: مالک، ابزار، تناوب، خروجی شناسه‌دار", "نقشهٔ راه فقط از شناسهٔ حس", "«بهتر شد» فقط با شاهد زنده", "سنجهٔ صادق: کلیک tel: + فرم", "بدون گیت تأیید مسعود", "خط سریع برای بدیهی‌ها"] }
+  ]
+}

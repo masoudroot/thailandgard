@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "70f67209-35a9-448e-8b3c-1e423fd93986",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/candidate.json",
+  "output": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.html",
+  "specification": {
+    "sha256": "1c3213bb42ceae41c14fad9c875f8ee48174b1637648783685c105d25113e0a1",
+    "bytes": 4371
+  },
+  "artifact": {
+    "sha256": "eb1f7995d8c79d8a5cc9ec6642400563c2da6926389ff9f3b0f0ddeb9e354361",
+    "bytes": 769879
+  }
+}
