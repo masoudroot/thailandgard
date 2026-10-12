@@ -39,7 +39,7 @@ export default async function GuideIndexPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <main className="mx-auto max-w-5xl px-6 py-16">
+      <main className="mx-auto max-w-5xl px-6 py-12">
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
           <BookOpenText className="size-4" />
@@ -52,7 +52,7 @@ export default async function GuideIndexPage() {
         </p>
       </header>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {guides.map((guide) => (
           <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block">
             <Card className="flex h-full flex-col transition-colors group-hover:border-brand/60">
