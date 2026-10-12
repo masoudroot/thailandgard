@@ -53,7 +53,7 @@ interface TourRow {
   days: number;
   nights: number;
   route: string;
-  price_from: number;
+  price_from: number | null;
   /** اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵): «تازگی قیمت»؛ NULL یعنی نامشخص صادقانه */
   price_updated_at: string | null;
   tourist_type: string;

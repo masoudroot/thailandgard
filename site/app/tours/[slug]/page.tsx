@@ -84,7 +84,7 @@ export default async function TourPage({ params }: Props) {
     tour.priceFrom != null &&
     priceUpdatedAtOk &&
     Date.now() - (priceUpdatedAt as Date).getTime() <= 7 * 24 * 60 * 60 * 1000;
-  if (priceFresh && priceUpdatedAtOk) {
+  if (priceFresh && priceUpdatedAtOk && tour.priceFrom != null) {
     faqs.unshift({
       question: `قیمت تور ${tour.title} چقدر است؟`,
       answer: `شروع قیمت از ${faNumber(tour.priceFrom)} تومان؛ آخرین به‌روزرسانی: ${formatJalali(priceUpdatedAt as Date)}. برای قیمت به‌روز، با کارشناس فروش تماس بگیرید.`,

@@ -19,7 +19,7 @@ export interface Tour {
   days: number;
   nights: number;
   route: string;
-  priceFrom: number; // تومان
+  priceFrom: number | null; // تومان؛ null یعنی «تماس بگیرید» (دستور مسعود، ۱۴۰۵/۰۷/۲۰)
   /** اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵): تاریخ به‌روزرسانی قیمت (ISO)؛ نامشخص = null */
   priceUpdatedAt?: string | null;
   /** نوع گردشگر واقعی از روی محتوای همین تور (نه کلیشه)؛ در اسکیمای TouristTrip استفاده می‌شود */
