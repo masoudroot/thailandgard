@@ -33,6 +33,7 @@ route پیشنهادی: `/tours/bangkok-phuket` (نهایی با seo).
 نزدیک‌ترین آیتم: components/**timeline** (ریل در شروع خط: `ol class="relative space-y-4 border-s border-border ps-5"`).
 
 - ۸ آیتم با عناوین روزهای اسکلت محتوا؛ شمارهٔ روز با ارقام فارسی (`fa(i+1)`)، الگوی blocks/steps.
+- **ترتیب DOM (حکم F-075، بازحکم ۲ artdir):** عنوان روز اول، شمارهٔ روز دوم؛ بدون `order` در هیچ نما (قاعدهٔ «عدد-مقدار در برابر عدد-ایندکس»).
 - نقطه‌ها: خنثی ۸px (`size-2.5 rounded-full bg-muted-foreground/50 border-2 border-background` از سورس timeline)؛ خط مویی ۱px پیوسته (`border-s border-border`)؛ نه خط‌چین.
 - **نقطهٔ پیش‌رو:** آیتم «پرواز داخلی به پوکت» (روز ۴) با `bg-brand` (تنها کهربایی این سکشن؛ حکم ۴ بریف).
 - **نشانگر گذر (حکم artdir):** بین روز ۳ و ۴ یک خط تایپوگرافیک خنثی: «پرواز داخلی؛ تغییر ضرب‌آهنگ از معبد به موج»؛ بدون کهربایی، `text-sm text-muted-foreground`.
