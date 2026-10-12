@@ -121,7 +121,7 @@ export default async function PhuketOctoberPage() {
             <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:[transform:var(--press)]">
               <a href={s.PHONE_MOBILE_LINK}>
                 مشاوره با {s.CONTACT_NAME}
-                <ArrowLeft />
+                <Phone />
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full px-6">

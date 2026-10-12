@@ -79,7 +79,7 @@ export default async function HomePage() {
       {/* بنر الف (کمپین «پنجرهٔ اکتبر») در اسلات هیروی خانه؛ حکم ۳ */}
       <OctoberBanner />
 
-      <section className="mx-auto max-w-6xl px-6 py-14">
+      <section className="mx-auto max-w-6xl px-6 pt-14">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl sm:text-3xl">تورهای پیشنهادی</h2>
@@ -104,7 +104,7 @@ export default async function HomePage() {
       </section>
 
       {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}
-      <div className="pb-14">
+      <div className="py-14">
         <SeasonBanner />
       </div>
 
@@ -178,7 +178,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-20">
+      <section className="mx-auto max-w-6xl px-6 pb-14">
         <Card className="overflow-hidden">
           <div className="bg-brand/10 px-6 py-10 text-center sm:px-10">
             <h2 className="text-2xl sm:text-3xl">

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
  */
 export function OctoberBanner() {
   return (
-    <section className="px-6 pt-10">
+    <section className="px-6 pt-14">
       <div className="mx-auto max-w-6xl rounded-surface border border-border bg-card px-6 py-12 text-center sm:py-16">
         <p className="text-sm text-muted-foreground">۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر)</p>
         <h1 className="mt-3 font-display text-4xl sm:text-5xl">

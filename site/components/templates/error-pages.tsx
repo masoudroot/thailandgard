@@ -19,6 +19,10 @@ import { cn } from "@/lib/utils";
  *   §۵ — جعبهٔ مرده از نبودش بدتر است؛ با آمدن جست‌وجو برمی‌گردد.
  * - CTAها در سطح استفاده داده می‌شوند (tel با asChild + آیکون Phone)؛
  *   فایل آیتم دست نخورده می‌ماند.
+ * - ترتیب CTAهای ۵۰۰: «تماس با کارشناس» اول (تل، آیکون Phone) و «تلاش دوباره»
+ *   دوم (ghost، آیکون RefreshCw)؛ طبق اسپک error-pages §۳ و متن نهایی محتوا —
+ *   مدل فروش تلفنی است و retry به‌تنهایی کاربر را گم می‌کند. این ترتیب عین
+ *   پیاده‌سازی پیش از mount تمپلیت بود و mount ۰۹ آن را برعکس کرده بود.
  * - ref نمونهٔ تمپلیت با «کد پیگیری» واقعی (digest) جایگزین می‌شود.
  *
  * هستهٔ آیتم دست‌نخورده: کد بزرگ محو (ارقام فارسی)، تیتر خبری، بدنهٔ دو جمله‌ای
@@ -29,7 +33,7 @@ export type ErrorKind = "404" | "500" | "offline" | "empty";
 
 const COPY: Record<ErrorKind, { code?: string; icon: React.ComponentType<{ className?: string }>; title: string; body: string; primary: string; secondary?: string }> = {
   "404": { code: "۴۰۴", icon: SearchX, title: "این صفحه وجود ندارد", body: "شاید لینک قدیمی باشد یا آدرس اشتباه تایپ شده. از صفحهٔ اصلی ادامه دهید.", primary: "صفحهٔ اصلی", secondary: "راهنمای سفر" },
-  "500": { code: "۵۰۰", icon: ServerCrash, title: "مشکلی پیش آمد", body: "نتوانستیم این صفحه را بارگذاری کنیم. چند لحظهٔ دیگر دوباره امتحان کنید؛ اگر خطا ادامه داشت، با کارشناس ما تماس بگیرید.", primary: "تلاش دوباره", secondary: "تماس با کارشناس" },
+  "500": { code: "۵۰۰", icon: ServerCrash, title: "مشکلی پیش آمد", body: "نتوانستیم این صفحه را بارگذاری کنیم. چند لحظهٔ دیگر دوباره امتحان کنید؛ اگر خطا ادامه داشت، با کارشناس ما تماس بگیرید.", primary: "تماس با کارشناس", secondary: "تلاش دوباره" },
   offline: { icon: WifiOff, title: "اینترنت قطع است", body: "اتصال‌تان را بررسی کنید. تغییرات ذخیره‌نشده تا وصل شدن دوباره نگه داشته می‌شود.", primary: "تلاش دوباره" },
   empty: { icon: Inbox, title: "هنوز چیزی این‌جا نیست", body: "اولین مورد را اضافه کنید تا این صفحه پر شود. بعداً می‌توانید فیلتر و مرتب کنید.", primary: "افزودن مورد جدید", secondary: "راهنما" },
 };
@@ -67,15 +71,15 @@ export function ErrorPage({
         {search && <div className="mx-auto mt-6 max-w-xs"><Input placeholder="جست‌وجو در سایت…" /></div>}
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
           {primaryHref ? (
-            <Button asChild><Link href={primaryHref}>{kind === "404" ? <Home /> : <RefreshCw />}{c.primary}</Link></Button>
+            <Button asChild><Link href={primaryHref}>{kind === "404" ? <Home /> : kind === "500" ? <Phone /> : <RefreshCw />}{c.primary}</Link></Button>
           ) : (
-            <Button onClick={onPrimary}>{kind === "404" ? <Home /> : <RefreshCw />}{c.primary}</Button>
+            <Button onClick={onPrimary}>{kind === "404" ? <Home /> : kind === "500" ? <Phone /> : <RefreshCw />}{c.primary}</Button>
           )}
           {c.secondary && (
             secondaryHref ? (
               <Button asChild variant="outline"><Link href={secondaryHref}>{kind === "404" ? <ArrowLeft /> : <Phone />}{c.secondary}</Link></Button>
             ) : (
-              <Button variant="outline" onClick={onSecondary}>{kind === "404" ? <ArrowLeft /> : <Phone />}{c.secondary}</Button>
+              <Button variant={kind === "500" ? "ghost" : "outline"} onClick={onSecondary}>{kind === "404" ? <ArrowLeft /> : kind === "500" ? <RefreshCw /> : <Phone />}{c.secondary}</Button>
             )
           )}
         </div>
