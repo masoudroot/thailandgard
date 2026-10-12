@@ -177,7 +177,7 @@ export default async function TourPage({ params }: Props) {
         <Separator className="my-6" />
 
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="text-sm text-muted-foreground">شروع قیمت از</p>
+          <p className="text-sm text-muted-foreground">شروع قیمت</p>
           <Price amount={tour.priceFrom} size="lg" />
         </div>
 

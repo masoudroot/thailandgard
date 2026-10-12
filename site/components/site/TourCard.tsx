@@ -43,7 +43,7 @@ export function TourCard({ tour }: { tour: Tour }) {
       </CardHeader>
       <CardContent className="mt-auto space-y-4 pt-2">
         <Separator />
-        {/* ردیف قیمت: برای ترکیبی (بدون عدد) Price و لیبل «شروع قیمت از» نمی‌آیند؛
+        {/* ردیف قیمت: برای ترکیبی (بدون عدد) Price و لیبل «شروع قیمت» نمی‌آیند؛
             میکروکپی ثابت در همان کانتینر می‌نشیند تا هم‌قدی کارت‌ها حفظ شود (قلم ۳ اسپک).
             با رسیدن عدد مسعود: Price + برچسب «اعتبار نرخ تا» (در این اسپک پیاده نمی‌شود). */}
         <div className="flex flex-nowrap items-baseline justify-between gap-3">
@@ -51,7 +51,7 @@ export function TourCard({ tour }: { tour: Tour }) {
             <span className="text-sm text-muted-foreground">قیمت روز بر اساس تاریخ سفر و هتل انتخابی؛ تلفنی</span>
           ) : (
             <>
-              <span className="text-sm text-muted-foreground">شروع قیمت از</span>
+              <span className="text-sm text-muted-foreground">شروع قیمت</span>
               <Price amount={tour.priceFrom} size="md" />
             </>
           )}
