@@ -20,12 +20,17 @@
  * - guide_faq.insert            درج سؤال تازه در guide_faqs (موج واکنشی dev ۰۴:۰۵، ۱۴۰۵/۰۷/۲۰)
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
  * - tour_faq.insert             درج سؤال تازه در tour_faqs (موج واکنشی dev ۱۱:۰۵، ۱۴۰۵/۰۷/۲۰؛ آینهٔ guide_faq.insert)
+ * - tour.insert                 ساخت رکورد تازه در tours (هندآف مدیر ۱۲:۴۰، ۱۴۰۵/۰۷/۲۰؛ RLS کلید ایجنت روی tours بسته است)
+ * - lead_alert.backfill         آشتی‌جویی ردیف‌های lead-alert برای لیدهای N ساعت اخیر
+ *                               (یافتهٔ باز qa، ۲۰ مهر ۱۴۰۵: رویداد لید بدون ردیف ماند)
  *
  * بدنه: { dry_run?: boolean, ops: Op[] }
  * dry_run=true فقط اعتبارسنجی می‌کند و چیزی نمی‌نویسد (برای qa).
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { shortLeadId, nextTouch } from "@/lib/lead-alert";
+import { getTour } from "@/lib/tours";
 
 // نکته: این route از هدر درخواست می‌خواند، پس خودبه‌خود داینامیک است.
 // پیکربندی‌های قطعه (runtime/dynamic) با cacheComponents در Next.js ۱۶
@@ -43,7 +48,9 @@ type OpCode =
   | "guide_faq.insert"
   | "tour.set_summary"
   | "tour_faq.update"
-  | "tour_faq.insert";
+  | "tour_faq.insert"
+  | "tour.insert"
+  | "lead_alert.backfill";
 
 interface SyncOp {
   op: unknown;
@@ -56,12 +63,24 @@ interface SyncOp {
   updated_fa?: unknown;
   guide_slug?: unknown;
   tour_slug?: unknown;
+  short_title?: unknown;
+  days?: unknown;
+  nights?: unknown;
+  route?: unknown;
+  price_from?: unknown;
+  tourist_type?: unknown;
+  active?: unknown;
+  description?: unknown;
+  highlights?: unknown;
+  includes?: unknown;
+  excludes?: unknown;
   position?: unknown;
   to_position?: unknown;
   heading?: unknown;
   paragraphs?: unknown;
   question?: unknown;
   answer?: unknown;
+  hours?: unknown;
 }
 
 const MAX_OPS = 20;
@@ -164,6 +183,36 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
         return { ok: false, error: "position نامعتبر است." };
       return { ok: true, op: raw };
+    case "tour.insert":
+      // هندآف مدیر ۱۲:۴۰، ۱۴۰۵/۰۷/۲۰: ساخت رکورد تور ترکیبی؛ RLS کلید ایجنت روی tours بسته است (۴۲۵۰۱).
+      if (!isSlug(raw.slug)) return { ok: false, error: "slug نامعتبر است." };
+      if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
+      if (!isText(raw.short_title, 60)) return { ok: false, error: "short_title نامعتبر است." };
+      if (!Number.isInteger(raw.days) || (raw.days as number) < 1 || (raw.days as number) > 60)
+        return { ok: false, error: "days نامعتبر است." };
+      if (!Number.isInteger(raw.nights) || (raw.nights as number) < 1 || (raw.nights as number) > 60)
+        return { ok: false, error: "nights نامعتبر است." };
+      if (!isText(raw.route, 200)) return { ok: false, error: "route نامعتبر است." };
+      if (raw.price_from !== null && (typeof raw.price_from !== "number" || (raw.price_from as number) < 0))
+        return { ok: false, error: "price_from باید null یا عدد نامنفی باشد." };
+      if (!isText(raw.tourist_type, 120)) return { ok: false, error: "tourist_type نامعتبر است." };
+      if (typeof raw.active !== "boolean") return { ok: false, error: "active باید boolean باشد." };
+      if (!isText(raw.summary, 600)) return { ok: false, error: "summary نامعتبر است." };
+      if (!isParagraphs(raw.description)) return { ok: false, error: "description نامعتبر است." };
+      if (!isParagraphs(raw.highlights)) return { ok: false, error: "highlights نامعتبر است." };
+      if (!isParagraphs(raw.includes)) return { ok: false, error: "includes نامعتبر است." };
+      if (!isParagraphs(raw.excludes)) return { ok: false, error: "excludes نامعتبر است." };
+      return { ok: true, op: raw };
+    case "lead_alert.backfill": {
+      // آشتی‌جویی ردیف‌های lead-alert (یافتهٔ باز qa، ۲۰ مهر ۱۴۰۵):
+      // خلاصه‌نویس inline گاهی بی‌صدا رد می‌شود (فقط console.warn) و هیچ‌وقت
+      // خودش را اعلام نمی‌کند؛ این op از سمت سرور (کلید سرویس) لیدهای بازه را
+      // با ردیف‌های موجود تطبیق می‌دهد و گمشده‌ها را بدون PII می‌سازد.
+      const hours = raw.hours === undefined ? 24 : raw.hours;
+      if (!Number.isInteger(hours) || (hours as number) < 1 || (hours as number) > 168)
+        return { ok: false, error: "hours باید عدد صحیح ۱ تا ۱۶۸ باشد." };
+      return { ok: true, op: { ...raw, hours } };
+    }
     default:
       return { ok: false, error: `عملیات مجاز نیست: ${String(raw.op)}` };
   }
@@ -276,6 +325,113 @@ async function moveSection(
   };
 }
 
+/**
+ * بک‌فیل lead-alert (یافتهٔ باز qa، ۲۰ مهر ۱۴۰۵؛ مالک dev/intel).
+ *
+ * قرارداد داده همان ران‌بوک SLA تیم لید است: ردیف بدون PII در intel_feed با
+ * tags=["lead-alert"]، title «لید تازه #<۵ کاراکتر>» یا «تغییر وضعیت لید #<۵ کاراکتر>»
+ * و summary به‌صورت JSON (همان کلیدهای lib/lead-alert.ts: lead_id، status،
+ * created_at، changed_at، source، tour، preferred_call_time، next_touch).
+ *
+ * منطق:
+ * - لیدهای `hours` ساعت اخیر خوانده می‌شوند (سرورساید، کلید سرویس).
+ * - ردیف‌های lead-alert همان بازه خوانده و با شناسهٔ کوتاه تطبیق داده می‌شوند.
+ * - لیدی که هیچ ردیفی ندارد: یک ردیف ثبت می‌گیرد (با وضعیت فعلی‌اش).
+ * - لیدی که آخرین ردیفش با وضعیت فعلی‌اش فرق دارد: یک ردیف «تغییر وضعیت» می‌گیرد.
+ *   (تغییر وضعیت‌ها از داشبورد سوپابیس می‌آیند و هیچ مسیر سروری ندارند؛
+ *    پس این تنها جایی است که ردیف تغییر وضعیت ساخته می‌شود.)
+ *
+ * پاسخ هرگز PII ندارد: فقط شمارش و شناسه‌های کوتاه (همان چیزی که تیم لید
+ * از خود intel_feed می‌خواند).
+ */
+interface BackfillLead {
+  id: string;
+  status: string;
+  created_at: string;
+  source: string | null;
+  tour_slug: string | null;
+}
+
+async function backfillLeadAlerts(
+  cfg: DbCfg,
+  hours: number
+): Promise<{ matched: number; note: string }> {
+  const since = new Date(Date.now() - hours * 3600_000).toISOString();
+  const encSince = encodeURIComponent(since);
+
+  const { rows: leadRows } = await postgrest(
+    cfg,
+    "GET",
+    `leads?select=id,status,created_at,source,tour_slug&created_at=gte.${encSince}&order=created_at.asc&limit=200`
+  );
+  const leads = (leadRows as BackfillLead[]).filter(
+    (l) => typeof l.id === "string" && typeof l.created_at === "string"
+  );
+
+  const { rows: alertRows } = await postgrest(
+    cfg,
+    "GET",
+    `intel_feed?select=title,summary,collected_at&tags=cs.{lead-alert}&collected_at=gte.${encSince}&order=collected_at.asc&limit=500`
+  );
+  const alerts = alertRows as Array<{ title: string; summary: string | null; collected_at: string }>;
+
+  // آخرین وضعیت ثبت‌شدهٔ هر لید از روی ردیف‌های موجود (تطبیق با شناسهٔ کوتاه در title).
+  const latestByShort = new Map<string, { status: string; collected_at: string }>();
+  for (const a of alerts) {
+    const m = /#([0-9a-f-]{5})/i.exec(a.title ?? "");
+    if (!m) continue;
+    const short = m[1];
+    let status = "";
+    try {
+      const s = JSON.parse(a.summary ?? "{}") as { status?: unknown };
+      if (typeof s.status === "string") status = s.status;
+    } catch {
+      /* summary خراب؛ نادیده */
+    }
+    const prev = latestByShort.get(short);
+    if (!prev || a.collected_at > prev.collected_at) {
+      latestByShort.set(short, { status, collected_at: a.collected_at });
+    }
+  }
+
+  const wrote: string[] = [];
+  for (const lead of leads) {
+    const short = shortLeadId(lead.id);
+    const known = latestByShort.get(short);
+    const currentStatus = ["new", "contacted", "done"].includes(lead.status) ? lead.status : "new";
+    if (known && known.status === currentStatus) continue; // ردیف به‌روز هست
+
+    const isRegistration = !known;
+    const title = isRegistration ? `لید تازه #${short}` : `تغییر وضعیت لید #${short}`;
+    const summary: Record<string, string> = {
+      lead_id: short,
+      status: currentStatus,
+      created_at: lead.created_at,
+    };
+    if (!isRegistration) summary.changed_at = new Date().toISOString();
+    if (lead.source) summary.source = lead.source;
+    const tourTitle = lead.tour_slug ? getTour(lead.tour_slug)?.title : undefined;
+    if (tourTitle) summary.tour = tourTitle;
+    const touchesDone = currentStatus === "new" ? 0 : currentStatus === "contacted" ? 1 : 6;
+    const nt = nextTouch(lead.created_at, touchesDone);
+    summary.next_touch = nt ? JSON.stringify({ touch: nt.touch, due_at: nt.dueAt }) : "nurture";
+
+    await postgrest(cfg, "POST", "intel_feed", {
+      title,
+      summary: JSON.stringify(summary),
+      tags: ["lead-alert"],
+    });
+    wrote.push(`${short}:${isRegistration ? "new" : "change"}`);
+    // حافظهٔ محلی به‌روز می‌شود تا لید تکراری در همین اجرا دوباره ردیف نگیرد.
+    latestByShort.set(short, { status: currentStatus, collected_at: new Date().toISOString() });
+  }
+
+  return {
+    matched: wrote.length,
+    note: `بک‌فیل lead-alert: ${leads.length} لیدِ ${hours} ساعت اخیر بررسی شد، ${wrote.length} ردیف تازه${wrote.length ? ` (${wrote.join("، ")})` : ""}.`,
+  };
+}
+
 async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note: string }> {
   switch (op.op as OpCode) {
     case "guide.insert": {
@@ -368,6 +524,31 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
         answer: op.answer,
       });
       return { matched: rows.length, note: `درج سؤال تازه در tour_faqs (position=${op.position})` };
+    }
+    case "tour.insert": {
+      const exists = await postgrest(cfg, "GET", `tours?slug=eq.${encodeURIComponent(String(op.slug))}&select=slug`);
+      if (exists.rows.length > 0) throw new Error("توری با این slug از قبل هست.");
+      const { rows } = await postgrest(cfg, "POST", "tours", {
+        slug: op.slug,
+        title: op.title,
+        short_title: op.short_title,
+        days: op.days,
+        nights: op.nights,
+        route: op.route,
+        price_from: op.price_from ?? null,
+        tourist_type: op.tourist_type,
+        active: op.active,
+        summary: op.summary,
+        description: op.description,
+        highlights: op.highlights,
+        includes: op.includes,
+        excludes: op.excludes,
+        price_updated_at: null,
+      });
+      return { matched: rows.length, note: `ساخت رکورد تازه در tours (slug=${op.slug})` };
+    }
+    case "lead_alert.backfill": {
+      return backfillLeadAlerts(cfg, Number(op.hours));
     }
   }
   throw new Error("عملیات ناشناخته.");
