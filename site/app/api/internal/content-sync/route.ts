@@ -17,6 +17,7 @@
  * - guide_section.set_title     تغییر تیتر (heading) یک بخش موجود
  * - guide_section.move          جابه‌جایی بخش به position تازه (بازشماری تراکنشی همهٔ بخش‌های راهنما)
  * - guide_faq.update            به‌روزرسانی جواب سؤال موجود در guide_faqs
+ * - guide_faq.insert            درج سؤال تازه در guide_faqs (موج واکنشی dev ۰۴:۰۵، ۱۴۰۵/۰۷/۲۰)
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
  *
  * بدنه: { dry_run?: boolean, ops: Op[] }
@@ -38,6 +39,7 @@ type OpCode =
   | "guide_section.set_title"
   | "guide_section.move"
   | "guide_faq.update"
+  | "guide_faq.insert"
   | "tour.set_summary"
   | "tour_faq.update";
 
@@ -138,6 +140,14 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
       if (!isText(raw.question, 300)) return { ok: false, error: "question نامعتبر است." };
       if (!isText(raw.answer, 6000)) return { ok: false, error: "answer نامعتبر است." };
+      return { ok: true, op: raw };
+    case "guide_faq.insert":
+      // هندآف محتوای ۲۳:۰۵، ۱۴۰۵/۰۷/۱۹: افزودن ردیف تازه (نه به‌روزرسانی موجود).
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (!isText(raw.question, 300)) return { ok: false, error: "question نامعتبر است." };
+      if (!isText(raw.answer, 6000)) return { ok: false, error: "answer نامعتبر است." };
+      if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
+        return { ok: false, error: "position نامعتبر است." };
       return { ok: true, op: raw };
     case "tour_faq.update":
       if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
@@ -316,6 +326,23 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       const { rows } = await postgrest(cfg, "PATCH", q, { answer: op.answer });
       if (rows.length === 0) throw new Error("سؤالی با این متن در guide_faqs پیدا نشد.");
       return { matched: rows.length, note: "به‌روزرسانی جواب guide_faqs" };
+    }
+    case "guide_faq.insert": {
+      const encSlug = encodeURIComponent(String(op.guide_slug));
+      // نگهبان تکرار (هندآف بریف ۲۳:۰۵): همان سؤال دوبار درج نشود.
+      const dup = await postgrest(
+        cfg,
+        "GET",
+        `guide_faqs?guide_slug=eq.${encSlug}&question=eq.${encodeURIComponent(String(op.question))}&select=position`
+      );
+      if (dup.rows.length > 0) throw new Error("این سؤال قبلاً در guide_faqs ثبت شده است.");
+      const { rows } = await postgrest(cfg, "POST", "guide_faqs", {
+        guide_slug: op.guide_slug,
+        position: op.position,
+        question: op.question,
+        answer: op.answer,
+      });
+      return { matched: rows.length, note: `درج سؤال تازه در guide_faqs (position=${op.position})` };
     }
     case "tour_faq.update": {
       const q = `tour_faqs?tour_slug=eq.${encodeURIComponent(String(op.tour_slug))}&question=eq.${encodeURIComponent(String(op.question))}`;

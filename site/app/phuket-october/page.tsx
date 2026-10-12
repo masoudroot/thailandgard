@@ -110,15 +110,15 @@ export default async function PhuketOctoberPage() {
       <section className="px-6 pt-14 text-center sm:pt-20">
         <div className="mx-auto max-w-3xl">
           <Badge variant="brand">رویدادهای تقویمی پوکت</Badge>
-          <h1 className="mt-5 font-display text-4xl">
+          <h1 className="mt-5 font-display text-4xl sm:text-5xl">
             پوکت؛ نیمهٔ دوم اکتبر
           </h1>
           {/* زیرتیتر موقت تا بازبینی ۲۱:۰۰ تیم محتوا */}
-          <p className="mx-auto mt-5 max-w-xl leading-[1.8] text-muted-foreground">
+          <p className="mx-auto mt-5 max-w-xl text-muted-foreground">
             ۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر): جشنوارهٔ گیاه‌خواران، بازگشایی سیمیلان، پرواز مستقیم هیترو
           </p>
           <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
-            <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:scale-[0.98]">
+            <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:[transform:var(--press)]">
               <a href={s.PHONE_MOBILE_LINK}>
                 مشاوره با {s.CONTACT_NAME}
                 <ArrowLeft />
@@ -136,7 +136,7 @@ export default async function PhuketOctoberPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-6 pb-sticky-bar-clearance md:pb-16">
+      <div className="mx-auto max-w-6xl px-6 pb-sticky-bar-october-clearance md:pb-16">
         <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
           <div className="min-w-0">
             {/* سکشن ۲: سه کارت «چرا الان» */}

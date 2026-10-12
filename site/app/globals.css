@@ -57,6 +57,9 @@
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
   /* فاصلهٔ خالی زیر سکشن پایانی صفحه‌هایی که نوار چسبان موبایل دارند (تصمیم آرت‌دایرکشن ۱۴۰۵/۰۷/۱۹) */
   --sticky-bar-clearance: 7.5rem;
+  /* فاصلهٔ خالی زیر سکشن پایانی لندینگ اکتبر (موبایل):
+     ارتفاع نوار دو ردیفه (~۱۱۰px با حکم h-11) + safe-area ناچ (تا ۳۴px) + تنفس ۱۶px (بازحکم artdir، ۱۴۰۵/۰۷/۲۰) */
+  --sticky-bar-october-clearance: 10rem; /* ۱۶۰px */
 }
 
 @theme inline {
@@ -106,6 +109,7 @@
   /* حرکت و فونت */
   --ease-motion: var(--motion-ease);
   --spacing-sticky-bar-clearance: var(--sticky-bar-clearance);
+  --spacing-sticky-bar-october-clearance: var(--sticky-bar-october-clearance);
   --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-pinar), var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
 
