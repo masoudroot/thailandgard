@@ -20,7 +20,7 @@ export function SeasonBanner() {
             href="/phuket-october"
             className="font-semibold text-foreground underline decoration-border decoration-1 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-foreground sm:ms-2"
           >
-            دیدن پنجرهٔ اکتبر
+            جزئیات پروازهای اکتبر
             <ArrowLeft aria-hidden className="ms-1 inline size-4" />
           </Link>
         </p>
