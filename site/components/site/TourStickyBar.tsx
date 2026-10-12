@@ -38,15 +38,17 @@ export function TourStickyBar() {
     <div className="fixed inset-x-0 bottom-0 z-40 max-h-[20vh] overflow-hidden rounded-t-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       <div className="mx-auto max-w-5xl px-4 py-3">
         {/* بازحکم M3 (۰۹:۳۵): دو دکمهٔ h-11 هم‌ارتفاع یک دکمهٔ تمام‌عرض؛
-            برند اول (~۷۰٪)، واتس‌اپِ فرعی دوم (~۳۰٪)؛ سقف ارتفاع تکان نخورد */}
+            برند اول (~۷۰٪)، واتس‌اپِ فرعی دوم (~۳۰٪)؛ سقف ارتفاع تکان نخورد.
+            h-11 صریح در className است (نه size="lg" + اورراید) چون در سیستم
+            سایز دکمه هیچ سایزی دقیقاً h-11 نیست؛ ابعاد lg دستی تکرار شده. */}
         <div className="grid grid-cols-[7fr_3fr] gap-2">
-          <Button asChild size="lg" variant="brand" className="h-11">
+          <Button asChild variant="brand" className="h-11 px-6 text-base gap-2.5">
             <a href={PHONE_MOBILE_LINK}>
               <Phone />
               تماس با کارشناس فروش
             </a>
           </Button>
-          <Button asChild size="lg" variant="secondary" className="h-11">
+          <Button asChild variant="secondary" className="h-11 px-6 text-base gap-2.5">
             <a href={WHATSAPP_LINK}>
               <MessageCircle />
               واتس‌اپ
