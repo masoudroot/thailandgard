@@ -11,6 +11,34 @@ import Link from "next/link";
  */
 const INLINE_LINK_RE = /\[\[([^|[\]]+)\|(\/[^[\]]*)\]\]/g;
 
+/**
+ * ایزولهٔ LTR واژه‌ها و URLهای لاتین در متن فارسی (F-091، ممیزی farsiui).
+ *
+ * واژهٔ TDAC و دامنه‌ها/URLهای لاتین (مثل tdac.immigration.go.th) را با
+ * <bdi dir="ltr"> می‌پیچد تا در خط راست‌چین نشکنند. فقط روی متن‌های نمایشی
+ * اعمال می‌شود، نه متن‌های خام (JSON-LD/DB دست نمی‌خورند).
+ */
+const LTR_TERM_RE = /(TDAC|[A-Za-z0-9][\w.-]*\.[a-zA-Z]{2,})/g;
+
+export function wrapLatinTerms(text: string): ReactNode {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  LTR_TERM_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = LTR_TERM_RE.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(
+      <bdi dir="ltr" key={key++}>
+        {m[0]}
+      </bdi>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
+
 export function renderInlineLinks(text: string): ReactNode {
   const parts: ReactNode[] = [];
   let last = 0;
@@ -18,15 +46,15 @@ export function renderInlineLinks(text: string): ReactNode {
   INLINE_LINK_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = INLINE_LINK_RE.exec(text)) !== null) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
+    if (m.index > last) parts.push(wrapLatinTerms(text.slice(last, m.index)));
     parts.push(
       <Link key={key++} href={m[2]} className="font-semibold underline underline-offset-4">
-        {m[1]}
+        {wrapLatinTerms(m[1])}
       </Link>,
     );
     last = m.index + m[0].length;
   }
-  if (last < text.length) parts.push(text.slice(last));
+  if (last < text.length) parts.push(wrapLatinTerms(text.slice(last)));
   return <>{parts}</>;
 }
 
