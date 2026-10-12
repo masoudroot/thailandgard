@@ -144,7 +144,7 @@ export function HeroCapsule({
         <Reveal delay={950} durationMs={200} className="mt-10">
           <div aria-hidden className="mx-auto flex max-w-xs items-center gap-3">
             <span className="h-px flex-1 bg-foreground/10" />
-            <span className="text-[10px] leading-none text-brand">◆</span>
+            <span className="text-[10px] leading-none text-brand-foreground">◆</span>
             <span className="h-px flex-1 bg-foreground/10" />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
