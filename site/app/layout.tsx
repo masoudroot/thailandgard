@@ -125,8 +125,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {
               title: "تماس",
               links: [
-                { label: `${s.CONTACT_NAME}: ${s.PHONE_MOBILE_DISPLAY}`, href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با کارشناس فروش تایلندگرد" },
-                { label: `تلفن ثابت: ${s.PHONE_LANDLINE_DISPLAY}`, href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد" },
+                { label: (<>{s.CONTACT_NAME}: <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span></>), href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با کارشناس فروش تایلندگرد" },
+                { label: (<>تلفن ثابت: <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span></>), href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد" },
               ],
             },
           ]}

@@ -19,6 +19,7 @@
  * - guide_faq.update            به‌روزرسانی جواب سؤال موجود در guide_faqs
  * - guide_faq.insert            درج سؤال تازه در guide_faqs (موج واکنشی dev ۰۴:۰۵، ۱۴۰۵/۰۷/۲۰)
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
+ * - tour_faq.insert             درج سؤال تازه در tour_faqs (موج واکنشی dev ۱۱:۰۵، ۱۴۰۵/۰۷/۲۰؛ آینهٔ guide_faq.insert)
  *
  * بدنه: { dry_run?: boolean, ops: Op[] }
  * dry_run=true فقط اعتبارسنجی می‌کند و چیزی نمی‌نویسد (برای qa).
@@ -41,7 +42,8 @@ type OpCode =
   | "guide_faq.update"
   | "guide_faq.insert"
   | "tour.set_summary"
-  | "tour_faq.update";
+  | "tour_faq.update"
+  | "tour_faq.insert";
 
 interface SyncOp {
   op: unknown;
@@ -153,6 +155,14 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
       if (!isText(raw.question, 300)) return { ok: false, error: "question نامعتبر است." };
       if (!isText(raw.answer, 6000)) return { ok: false, error: "answer نامعتبر است." };
+      return { ok: true, op: raw };
+    case "tour_faq.insert":
+      // هندآف on-page سامویی ۱۱:۰۵، ۱۴۰۵/۰۷/۲۰: آینهٔ دقیق guide_faq.insert برای جدول tour_faqs.
+      if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
+      if (!isText(raw.question, 300)) return { ok: false, error: "question نامعتبر است." };
+      if (!isText(raw.answer, 6000)) return { ok: false, error: "answer نامعتبر است." };
+      if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
+        return { ok: false, error: "position نامعتبر است." };
       return { ok: true, op: raw };
     default:
       return { ok: false, error: `عملیات مجاز نیست: ${String(raw.op)}` };
@@ -349,6 +359,15 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       const { rows } = await postgrest(cfg, "PATCH", q, { answer: op.answer });
       if (rows.length === 0) throw new Error("سؤالی با این متن در tour_faqs پیدا نشد.");
       return { matched: rows.length, note: "به‌روزرسانی جواب tour_faqs" };
+    }
+    case "tour_faq.insert": {
+      const { rows } = await postgrest(cfg, "POST", "tour_faqs", {
+        tour_slug: op.tour_slug,
+        position: op.position,
+        question: op.question,
+        answer: op.answer,
+      });
+      return { matched: rows.length, note: `درج سؤال تازه در tour_faqs (position=${op.position})` };
     }
   }
   throw new Error("عملیات ناشناخته.");

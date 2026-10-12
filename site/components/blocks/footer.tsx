@@ -5,7 +5,7 @@
  */
 import { fa } from "@/lib/utils";
 
-export interface FooterColumn { title: string; links: { label: string; href: string; ariaLabel?: string }[] }
+export interface FooterColumn { title: string; links: { label: React.ReactNode; href: string; ariaLabel?: string }[] }
 
 export interface FooterProps {
   logo: React.ReactNode;
@@ -32,7 +32,7 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
           <nav key={c.title} aria-label={c.title}>
             <h3 className="text-sm font-semibold">{c.title}</h3>
             <ul className="mt-3 space-y-2">
-              {c.links.map((l) => <li key={l.label}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a></li>)}
+              {c.links.map((l) => <li key={l.href}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a></li>)}
             </ul>
           </nav>
         ))}
