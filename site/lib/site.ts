@@ -25,7 +25,8 @@ export const PHONE_LANDLINE_LINK = "tel:+982633350139";
 
 export const PHONE_CHANNELS_NOTE = "واتس‌اپ";
 
-export const SITE_URL = "https://thailandgard.vercel.app";
+/* دستور سئو D-action، ۲۰ مهر ۱۴۰۵: دامنهٔ نهایی سایت؛ کنونیکال و og:url همگی از همین تغذیه می‌شوند. */
+export const SITE_URL = "https://www.thailandgard.ir";
 
 export const NAV_LINKS = [
   { label: "خانه", href: "/" },

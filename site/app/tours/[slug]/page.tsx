@@ -62,6 +62,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return meta;
 }
 
+/**
+ * تمپلیت تایپوگرافیک عمدی است (حکم آرت‌دایرکشن F-015، ۲۰ مهر ۱۴۰۵):
+ * عکس فقط واقعی؛ تا رسیدن عکس‌های content هیچ تصویری «قرض» نمی‌شود.
+ * اسلات تصویری با رسیدن عکس‌ها به همین تمپلیت اضافه می‌شود.
+ */
 export default async function TourPage({ params }: Props) {
   const { slug } = await params;
   const tour = await getTour(slug);
