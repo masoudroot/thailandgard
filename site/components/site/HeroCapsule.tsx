@@ -1,10 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Reveal } from "@/components/animations/reveal";
 import { BlurText } from "@/components/animations/blur-text";
 import { Meteors } from "@/components/animations/meteors";
@@ -25,38 +23,12 @@ import { Meteors } from "@/components/animations/meteors";
  * - تگ‌لاین «تایلند را درست ببین» حذف شد (موعظه‌ای + آویزان)
  * - نشان «فقط تایلند» (تمایز، نه تکرار تیتر)
  * - شهاب‌ها تک‌اجرا هستند تا با CTA رقابت نکنند
- * - زیرتیتر min-height دارد تا تعویض مقصد چیدمان را نپراند
+ * - زیرتیتر برند ثابت است (تصمیم مستقیم مسعود، ۱۴۰۵/۰۷/۲۰): کپسول انتخاب
+ *   مقصد حذف شد چون با زیرتیتر ثابت بی‌معنا می‌شد.
  * - امضای ایرانی (۱۴۰۵/۰۷/۲۰، نبض دیزاین): خط‌حایل مویی با لوزی کهربایی
  *   + جملهٔ انسانی زیر دکمه‌ها؛ نزدیک‌ترین زبان رجیستری: همان بلوک hero،
  *   بدون کامپوننت تازه؛ لحن خاکیِ برند («آدم جواب می‌دهد، نه ربات»)
  */
-/* ترتیب راست‌به‌چپ (دستور مسعود، ۱۴۰۵/۰۷/۲۰): گزینهٔ پیش‌فرض «بانکوک و پوکت»
-   اول می‌آید تا در چیدمان راست‌چین، راست‌ترین (نقطهٔ شروع خواندن) باشد. */
-const DESTINATIONS = [
-  {
-    value: "combo",
-    label: "بانکوک و پوکت",
-    suggestion: "هشت روز بانکوک و پوکت؛ شهر و ساحل در یک سفر. پرواز داخلی هم دارد.",
-  },
-  {
-    value: "bangkok",
-    label: "بانکوک",
-    suggestion: "سه شب بانکوک کافی است؛ معابد و بازار شناور با گشت فارسی‌زبان.",
-  },
-  {
-    value: "phuket",
-    label: "پوکت",
-    suggestion: "پنج شب پوکت؛ ساحل، جزیره‌گردی و غروب خلیج فانگ‌نگا.",
-  },
-  {
-    value: "pattaya",
-    label: "پاتایا",
-    suggestion: "دو شب پاتایا؛ ساحل جومتین و واکینگ استریت، دو ساعتی بانکوک.",
-  },
-] as const;
-
-type DestinationValue = (typeof DESTINATIONS)[number]["value"];
-
 export function HeroCapsule({
   phoneHref,
   phoneLabel,
@@ -66,19 +38,6 @@ export function HeroCapsule({
   phoneLabel: string;
   whatsappHref: string;
 }) {
-  const [destination, setDestination] = React.useState<DestinationValue>("combo");
-  const active = DESTINATIONS.find((d) => d.value === destination) ?? DESTINATIONS[0];
-  const capsuleWrap = React.useRef<HTMLDivElement>(null);
-
-  // موبایل (۳۶۰px): گزینهٔ فعال (مثل «بانکوک و پوکت») ممکن است بیرون دید باشد؛
-  // آن را به مرکز اسکرولر بیاور. فقط محور افقی؛ صفحه عمودی نمی‌پرد.
-  React.useEffect(() => {
-    const btn = capsuleWrap.current?.querySelector<HTMLElement>(
-      `[data-value="${CSS.escape(destination)}"]`,
-    );
-    btn?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [destination]);
-
   return (
     <section className="relative overflow-hidden px-6 py-20 text-center sm:py-28">
       {/* شبکهٔ محو از بالا | عین بلوک رجیستری hero (ماسک بازتر برای موبایل) */}
@@ -98,34 +57,17 @@ export function HeroCapsule({
           <Badge variant="brand">فقط تایلند</Badge>
         </Reveal>
 
-        {/* S-026 (هندآف سئو ۱۹:۰۰): h1 = کلمهٔ کلیدی هدف صفحه («تور تایلند») اول؛
-            شعار «همسفر بلد تایلند» دوم می‌ماند تا برندینگ تصمیم نهایی را بگیرد */}
+        {/* تیتر و زیرتیتر برند (تصمیم مستقیم مسعود، ۱۴۰۵/۰۷/۲۰):
+            جایگزین تیتر سئومحور قبلی («تور تایلند با همسفر بلد تایلند...») شد.
+            نکته: کلمهٔ کلیدی «تور تایلند» دیگر در h1 نیست؛ در title صفحه هست. */}
         <h1 className="font-display mt-5 text-4xl leading-[1.35] sm:text-5xl">
-          <BlurText text="تور تایلند با همسفر بلد تایلند؛ مشاورهٔ تلفنی تخصصی" delay={60} durationMs={300} />
+          <BlurText text="تایلند رو با متخصصش بگرد." delay={60} durationMs={300} />
         </h1>
 
         <Reveal delay={450} durationMs={200}>
-          <p
-            key={destination}
-            className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg min-h-[3.75rem] sm:min-h-[4.25rem] animate-[fade-swap_200ms_ease-out]"
-          >
-            {active.suggestion}
+          <p className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg">
+            ما فقط تایلند می‌بریم؛ همین یک کشور رو مثل کف دست می‌شناسیم تا خیالت راحت باشه.
           </p>
-        </Reveal>
-
-        {/* کپسول انتخاب مقصد؛ اسکرول افقی در موبایل تا قیچی نشود.
-            تب فعال پس‌زمینهٔ کرم پررنگ دارد (یافتهٔ M6 ممیزی ۱۶:۳۰) تا خواننده
-            بفهمد کدام مقصد را می‌خواند */}
-        <Reveal delay={650} durationMs={200} className="mt-8">
-          <div ref={capsuleWrap} className="mx-auto max-w-full overflow-x-auto pb-1">
-            <SegmentedControl
-              options={DESTINATIONS.map((d) => ({ value: d.value, label: d.label }))}
-              value={destination}
-              onChange={(v) => setDestination(v as DestinationValue)}
-              aria-label="انتخاب مقصد"
-              className="w-max min-w-full [&>span[aria-hidden]]:bg-[color-mix(in_oklch,var(--brand)_26%,var(--background))] [&>span[aria-hidden]]:ring-brand/50"
-            />
-          </div>
         </Reveal>
 
         <Reveal delay={800} durationMs={200} className="mt-8">
