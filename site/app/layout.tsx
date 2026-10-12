@@ -6,6 +6,7 @@ import "./globals.css";
 import { Navbar } from "@/components/blocks/navbar";
 import { AnnouncementMarquee } from "@/components/site/AnnouncementMarquee";
 import { FooterBlock } from "@/components/blocks/footer";
+import { CallTracker } from "@/components/call-tracker";
 import { getSiteSettings, getTours } from "@/lib/db-content";
 import { defaultOgImages } from "@/lib/og";
 
@@ -90,6 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="flex min-h-screen flex-col">
+        <CallTracker />
         <AnnouncementMarquee />
         <Navbar
           logo={
