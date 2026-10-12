@@ -43,7 +43,8 @@ export default async function ToursPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="mx-auto max-w-6xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-10">
+      {/* قانون تراکم فارسی (۱۴۰۵/۰۷/۱۱): متن فارسی پرحجم‌تر است؛ فاصله‌های بادکردهٔ معیار انگلیسی در فارسی شل می‌شود؛ ریتم عمودی جمع‌وجور. */}
       <header className="max-w-3xl space-y-4">
         <h1 className="text-3xl md:text-4xl">تورهای تایلند</h1>
         <p className="leading-[1.8] text-muted-foreground">
@@ -57,18 +58,18 @@ export default async function ToursPage() {
         </p>
       </header>
 
-      <section className="mt-10">
+      <section className="mt-8">
         <TourBanner tour={tours[0]} />
       </section>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
         {tours.map((tour) => (
           <TourCard key={tour.slug} tour={tour} />
         ))}
       </div>
 
       {/* بلوک «هزینهٔ تور تایلند چقدر است؟»؛ بریف seocontent ۲۰ مهر ۱۴۰۵، ۱۰:۰۰، اسنیپت پاراگرافی */}
-      <section className="mt-10 max-w-3xl space-y-4">
+      <section className="mt-8 max-w-3xl space-y-4">
         <h2 className="text-2xl">هزینهٔ تور تایلند چقدر است؟</h2>
         <p className="leading-[1.8] text-muted-foreground">
           هزینهٔ تور تایلند عدد ثابتی ندارد و به پنج عامل بستگی دارد: فصل سفر، درجهٔ هتل، مدت اقامت، مقصد انتخابی و پرواز مستقیم یا با توقف. تورهای تایلندگرد فروش تلفنی دارند و قیمت دقیق هر پکیج را کارشناس فروش بر اساس همین عوامل مشخص می‌کند؛ برای مقایسهٔ دو تور، هر پنج عامل را کنار هم بگذارید.
@@ -76,7 +77,7 @@ export default async function ToursPage() {
       </section>
 
       {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}
-      <div className="mt-10">
+      <div className="mt-8">
         <SeasonBanner />
       </div>
 
