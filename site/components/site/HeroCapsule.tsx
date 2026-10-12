@@ -98,8 +98,10 @@ export function HeroCapsule({
           <Badge variant="brand">فقط تایلند</Badge>
         </Reveal>
 
+        {/* S-026 (هندآف سئو ۱۹:۰۰): h1 = کلمهٔ کلیدی هدف صفحه («تور تایلند») اول؛
+            شعار «همسفر بلد تایلند» دوم می‌ماند تا برندینگ تصمیم نهایی را بگیرد */}
         <h1 className="font-display mt-5 text-4xl leading-[1.35] sm:text-5xl">
-          <BlurText text="همسفر بلد تایلند" delay={60} durationMs={300} />
+          <BlurText text="تور تایلند با همسفر بلد تایلند؛ مشاورهٔ تلفنی تخصصی" delay={60} durationMs={300} />
         </h1>
 
         <Reveal delay={450} durationMs={200}>

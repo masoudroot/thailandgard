@@ -54,7 +54,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
             <dd>{tour.route}</dd>
           </div>
           <div className="flex items-center gap-2">
-            <dt>شروع قیمت</dt>
+            <dt>قیمت پایه</dt>
             <Price amount={tour.priceFrom} size="md" />
           </div>
         </dl>

@@ -11,6 +11,9 @@ import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { pageSeo, brandTitle, displayTitle } from "@/lib/og";
+import { ogImageForSlug } from "@/lib/og-slugs";
+import { GUIDE_COVERS } from "@/lib/guide-covers";
+import { CoverImage } from "@/components/site/CoverImage";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { renderGuideBlocks } from "@/lib/guide-tables";
@@ -57,18 +60,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!guide) return { title: "راهنما پیدا نشد" };
   // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
   // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
-  return pageSeo({
+  // + نقشهٔ سراسری og (S-003): مثل صفحهٔ تور، اگر فایل اختصاصی بود همان.
+  const s = await getSiteSettings();
+  const meta = pageSeo({
     title: brandTitle(guide.title),
     description: guide.excerpt,
     canonical: `/guide/${guide.slug}`,
     type: "article",
   });
+  const slugOg = ogImageForSlug(s.SITE_URL, slug);
+  if (slugOg) {
+    meta.openGraph = { ...meta.openGraph, images: [slugOg] };
+    meta.twitter = { ...meta.twitter, images: [slugOg.url] };
+  }
+  return meta;
 }
 
 export default async function GuideDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const guide = await getGuide(slug);
   if (!guide) notFound();
+
+  // کاور قاب قهرمان (اسپک mount §۲): اگر نگاشت نداشت، جای‌نگه‌دار
+  // تایپوگرافیکِ هم‌شکل (۱۳ راهنمای بدون کاور؛ عکس ناجور ممنوع).
+  const guideCover = GUIDE_COVERS[guide.slug];
+  const isPillar = guide.slug === "thailand-tour-complete-guide";
 
   // لینک‌های داخلی به تورهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
   const [{ guideToTours }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
@@ -112,7 +128,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "خانه", item: `${s.SITE_URL}/` },
+          { "@type": "ListItem", position: 1, name: "خانه", item: `${s.SITE_URL}` },
           { "@type": "ListItem", position: 2, name: "راهنمای سفر", item: `${s.SITE_URL}/guide` },
           { "@type": "ListItem", position: 3, name: guide.title, item: `${s.SITE_URL}/guide/${guide.slug}` },
         ],
@@ -132,7 +148,36 @@ export default async function GuideDetailPage({ params }: PageProps) {
         ]}
       />
 
-      {guide.slug === "thailand-tour-complete-guide" ? (
+      {/* قاب قهرمان راهنما (اسپک mount §۲، ۲۰ مهر ۱۴۰۵): یک قاب ۱۶:۱۰ زیر
+          Breadcrumb، بالای هدر متنی. بج دسته + h1 روی ماسک؛ متای خوانش و
+          excerpt زیر قاب می‌مانند. سئو: فقط یک h1. مورد خاص ستون:
+          چون PillarHero خودش h1 دارد، روی قابِ جای‌نگه‌دارش متنی روی
+          ماسک نمی‌آید. */}
+      <div className="relative mt-6 aspect-[16/10] overflow-hidden rounded-surface border border-border">
+        {guideCover ? (
+          <CoverImage
+            src={guideCover.src}
+            alt={guideCover.alt}
+            width={guideCover.w}
+            height={guideCover.h}
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        ) : (
+          // جای‌نگه‌دار هم‌شکل تایپوگرافیک (راهنمای بدون کاور)
+          <div className="flex size-full items-center justify-center bg-secondary/50 p-6 text-center">
+            <span className="font-display text-2xl text-foreground/70">{displayTitle(guide.title)}</span>
+          </div>
+        )}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/25 to-transparent" />
+        {!isPillar && (
+          <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
+            <Badge variant="brand">{guide.category}</Badge>
+            <h1 className="font-display text-2xl text-foreground md:text-4xl">{displayTitle(guide.title)}</h1>
+          </div>
+        )}
+      </div>
+
+      {isPillar ? (
         <PillarHero
           badge="راهنمای کامل"
           title={displayTitle(guide.title)}
@@ -143,8 +188,9 @@ export default async function GuideDetailPage({ params }: PageProps) {
         />
       ) : (
         <header className="mt-6">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            <Badge variant="brand">{guide.category}</Badge>
+          {/* دیف A5 ممیزی design: gap-y-3 برای ریتم عمودی هم‌خانواده با افقی
+              در شکست دوخطی موبایل */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Clock className="size-4" />
               {fa(guide.readingMinutes)} دقیقه مطالعه
@@ -154,8 +200,8 @@ export default async function GuideDetailPage({ params }: PageProps) {
               به‌روزرسانی: {guide.updatedFa}
             </span>
           </div>
-          <h1 className="mt-4 text-3xl md:text-4xl">{displayTitle(guide.title)}</h1>
-          <p className="mt-4 text-lg leading-9">{guide.excerpt}</p>
+          {/* دیف A1 ممیزی design: leading خوانش بلند فارسی ۱٫۹ */}
+          <p className="mt-4 text-lg leading-[1.9]">{guide.excerpt}</p>
           <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
         </header>
       )}
@@ -201,7 +247,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       </div>
 
       <section id="callback" className="mt-4 rounded-surface border border-border bg-card p-6 sm:p-8">
-        <h2 className="text-2xl sm:text-3xl">سؤالی داری؟</h2>
+        <h2 className="text-2xl sm:text-3xl">سؤالی دارید؟</h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
           راهنما همه‌چیز را نگفت؟ کارشناس مقصد ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و
           دقیقاً برای سفر خودت مشاوره بگیر.

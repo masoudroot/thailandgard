@@ -41,7 +41,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description:
       "تایلندگرد فقط تور تایلند برگزار می‌کند: پوکت، بانکوک، پاتایا، سامویی و کرابی. مشاوره و رزرو فقط با تماس تلفنی.",
-    keywords: ["تور تایلند", "تور پوکت", "تور بانکوک", "تور پاتایا", "تور سامویی", "تور کرابی", "قیمت تور تایلند"],
+    // S-033 (هندآف سئو ۱۹:۰۰): تگ meta keywords قالبی حذف شد؛ گوگل آن را
+    // نادیده می‌گیرد و boilerplate یکسان در همهٔ صفحه‌ها سیگنال ضعیف می‌سازد.
     openGraph: {
       type: "website",
       locale: "fa_IR",
@@ -111,7 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }
           links={s.NAV_LINKS}
           primary={{ label: "تماس با مشاور سفر", href: s.PHONE_MOBILE_LINK }}
-          secondary={{ label: "درخواست تماس", href: "/contact" }}
+          secondary={{ label: "تماس با ما", href: "/contact" }}
           callHref={s.PHONE_MOBILE_LINK}
         />
         <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>

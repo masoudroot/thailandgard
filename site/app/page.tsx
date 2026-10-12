@@ -45,7 +45,7 @@ const WHY_US = [
   {
     icon: ShieldCheck,
     title: "بدون پرداخت آنلاین",
-    text: "رزرو فقط با تماس انجام می‌شود و پولی را اینترنتی نمی‌گیریم. هر چه هست شفاف است و سندش را هم می‌گیرید.",
+    text: "رزرو فقط تلفنی است؛ اینترنتی پول نمی‌گیریم. هر چه هست شفاف است و سندش را هم می‌گیرید.",
   },
 ];
 
@@ -89,7 +89,7 @@ export default async function HomePage() {
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl sm:text-3xl">تورهای پیشنهادی</h2>
             <p className="mt-2 text-muted-foreground">
-              محبوب‌ترین تورهای تایلند، با قیمت شروع و جزئیات کامل هر سفر.
+              محبوب‌ترین تورهای تایلند، با قیمت پایه و جزئیات کامل هر سفر.
             </p>
           </div>
           <Button asChild variant="outline" className="shrink-0">
@@ -187,10 +187,10 @@ export default async function HomePage() {
         <Card className="overflow-hidden">
           <div className="bg-brand/10 px-6 py-10 text-center sm:px-10">
             <h2 className="text-2xl sm:text-3xl">
-              برای رزرو، فقط کافی است زنگ بزنی
+              برای رزرو، فقط کافی است زنگ بزنید
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              {s.CONTACT_NAME}، {s.CONTACT_TITLE.toLowerCase()}، خودش پاسخ‌گوی توست؛
+              {s.CONTACT_NAME}، {s.CONTACT_TITLE.toLowerCase()}، خودش پاسخ‌گوی شماست؛
               از انتخاب تور تا روز پرواز.
             </p>
           </div>

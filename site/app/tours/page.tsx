@@ -3,48 +3,64 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { getTours, getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
-import { defaultOgImages } from "@/lib/og";
+import { pageSeo } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { TourCard } from "@/components/site/TourCard";
 import { TourBanner } from "@/components/site/TourBanner";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { CtaBlock } from "@/components/blocks/cta";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
-export const metadata: Metadata = {
-  title: "تورهای تایلند؛ مقایسه و انتخاب تور",
+export const metadata: Metadata = pageSeo({
+  // ماتریس OG (هندآف seocontent ۱۷:۰۰؛ S-006/S-014): هر سه صفحهٔ استاتیک
+  // از هلپر مشترک می‌آیند تا og:title/url/locale/type هیچ‌وقت جا نماند.
+  title: "تورهای تایلند؛ مقایسه و انتخاب تور؛ تایلندگرد",
   description:
-    "همهٔ تورهای تایلندگرد را مقایسه کن؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
-  openGraph: {
-    title: "تورهای تایلند؛ پوکت، بانکوک، سامویی، کرابی؛ تایلندگرد",
-    description:
-      "همهٔ تورهای تایلندگرد را مقایسه کن؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «شروع قیمت» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
-    // باریک‌شدهٔ سئو ۱۲:۳۷ (یافتهٔ :۳۵): مثل contact، og:url اضافه شد.
-    url: "/tours",
-    images: defaultOgImages(SITE_URL),
-  },
-  alternates: { canonical: "/tours" },
-};
+    "همهٔ تورهای تایلندگرد را مقایسه کن؛ پوکت، بانکوک و پاتایا، سامویی و کرابی. قیمت‌ها «قیمت پایه» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
+  canonical: "/tours",
+  type: "website",
+});
 
 export default async function ToursPage() {
   const tours = await getTours();
   const s = await getSiteSettings();
-  // قانون ۳۷ اسکیما: گرید تورها از getTours() رندر می‌شود؛ ItemList همان
-  // آیتم‌های نمایشی را دارد (نه بیشتر، نه کمتر).
+  // S-020 (هندآف seocontent ۱۹:۰۰): تور «منتخب این هفته» بنر از گرید حذف
+  // می‌شود تا هدینگ تکراری (h2 بنر + h3 کارت با متن یکسان) نماند.
+  const [featuredTour, ...gridTours] = tours;
+  // قانون ۳۷ اسکیما: ItemList همان آیتم‌های نمایشی گرید را دارد (نه بیشتر،
+  // نه کمتر)؛ بنر «منتخب» جدا از گرید است و در اسکیما نمی‌آید.
+  // قانون ۳۷ اسکیما: کارت‌ها با عنوان و خلاصه رندر می‌شوند؛ ItemList فقط همان
+  // آیتم‌های نمایشی گرید را دارد (نه بیشتر، نه کمتر)؛ از همان getTours() صفحه.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "تورهای تایلند",
-    itemListElement: tours.map((tour, index) => ({
+    itemListElement: gridTours.map((tour, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: tour.title,
       url: `${SITE_URL}/tours/${tour.slug}`,
     })),
   };
+  // بردکرامب (S-009 حسابرس): آینهٔ بصری (nav با aria-label «مسیر») + JSON-LD؛
+  // آیتم «خانه» بدون اسلش انتهایی تا با کنونیکال یکی باشد (S-005).
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "تورهای تایلند", item: `${SITE_URL}/tours` },
+    ],
+  };
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="mx-auto max-w-6xl px-6 py-10">
+      <Breadcrumb
+        className="mb-6"
+        items={[{ label: "خانه", href: "/" }, { label: "تورهای تایلند" }]}
+      />
       {/* قانون تراکم فارسی (۱۴۰۵/۰۷/۱۱): متن فارسی پرحجم‌تر است؛ فاصله‌های بادکردهٔ معیار انگلیسی در فارسی شل می‌شود؛ ریتم عمودی جمع‌وجور. */}
       <header className="max-w-3xl space-y-4">
         <h1 className="text-3xl md:text-4xl">تورهای تایلند</h1>
@@ -58,17 +74,19 @@ export default async function ToursPage() {
               </Link>
             </Fragment>
           ))}.
-          قیمت‌هایی که می‌بینی «شروع قیمت»‌اند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.
+          قیمت‌هایی که می‌بینی «قیمت پایه»‌اند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.
           رزرو هم فقط با تماس تلفنی انجام می‌شود؛ پرداخت آنلاین نداریم.
         </p>
       </header>
 
-      <section className="mt-8">
-        <TourBanner tour={tours[0]} />
-      </section>
+      {featuredTour && (
+        <section className="mt-8">
+          <TourBanner tour={featuredTour} />
+        </section>
+      )}
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-        {tours.map((tour) => (
+        {gridTours.map((tour) => (
           <TourCard key={tour.slug} tour={tour} />
         ))}
       </div>
