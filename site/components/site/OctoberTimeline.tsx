@@ -43,8 +43,20 @@ export function OctoberTimeline() {
           // شمارش معکوس پویا برای ایستگاه میانی (به‌جای «۵ روز بعد» ثابت که با
           // گذر روزها غلط می‌شد؛ امروز ۲۰ مهر: ۳ روز مانده). با سپری‌شدن، نامرئی
           // می‌ماند تا ریتم مساوی فاصله‌ها (قلم ۵ artdir) به‌هم نریزد.
+          // D-075: تفاضل روی مرز روز تقویمی حساب می‌شود، نه میلی‌ثانیهٔ خام؛
+          // وگرنه ceil در ساعت‌های پایانی روز یک روز اضافه نشان می‌داد
+          // (مثلاً شب ۲۰ مهر «۴ روز بعد» به‌جای ۳ روز مانده تا ۲۳ مهر).
+          const startOfDay = (t: number) => {
+            const d = new Date(t);
+            d.setHours(0, 0, 0, 0);
+            return d.getTime();
+          };
           const daysLeft =
-            now === null ? null : Math.ceil((st.date.getTime() - now) / 86400000);
+            now === null
+              ? null
+              : Math.round(
+                  (startOfDay(st.date.getTime()) - startOfDay(now)) / 86400000,
+                );
           return (
             <li key={st.gLabel} className="flex w-28 flex-col items-center">
               <span
