@@ -91,6 +91,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="flex min-h-screen flex-col">
+        {/* D-013: اسکیپ‌لینک؛ اولین عنصر صفحه، فقط برای کیبورد/صفحه‌خوان */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-[100] focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:font-semibold focus:text-brand-foreground"
+        >
+          پرش به محتوای اصلی
+        </a>
         <CallTracker />
         <AnnouncementMarquee />
         <Navbar
@@ -103,11 +110,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </span>
           }
           links={s.NAV_LINKS}
-          primary={{ label: "تماس با کارشناس مقصد", href: s.PHONE_MOBILE_LINK }}
-          secondary={{ label: "درخواست تماس", href: "/contact" }}
+          primary={{ label: "تماس با مشاور سفر", href: s.PHONE_MOBILE_LINK }}
+          secondary={{ label: "تماس با مشاور سفر", href: "/contact" }}
           callHref={s.PHONE_MOBILE_LINK}
         />
-        <main className="flex-1">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
         <FooterBlock
           logo={<span className="font-display">{s.SITE_NAME} | {s.SITE_LATIN}</span>}
           description={`${s.SITE_TAGLINE}. فروش ما فقط تلفنی است؛ هیچ پرداخت آنلاینی نداریم.`}
@@ -127,7 +134,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {
               title: "تماس",
               links: [
-                { label: (<>{s.CONTACT_NAME}: <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span></>), href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با کارشناس مقصد تایلندگرد" },
+                { label: (<>{s.CONTACT_NAME}: <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span></>), href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با مشاور سفر تایلندگرد" },
                 { label: (<>تلفن ثابت: <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span></>), href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد" },
               ],
             },
