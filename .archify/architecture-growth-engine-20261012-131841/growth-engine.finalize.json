@@ -5,16 +5,16 @@
   "status": "pass",
   "type": "architecture",
   "quality": "showcase",
-  "startedAt": "2026-10-12T09:48:58.977Z",
+  "startedAt": "2026-10-12T09:53:00.571Z",
   "specification": {
     "path": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/candidate.json",
-    "sha256": "1c3213bb42ceae41c14fad9c875f8ee48174b1637648783685c105d25113e0a1",
-    "bytes": 4371
+    "sha256": "53b0b40504a975cc116d1bb95e3f90a11cd071c628e8b0024eddf8bb8144e4b1",
+    "bytes": 5876
   },
   "artifact": {
     "path": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.html",
-    "sha256": "eb1f7995d8c79d8a5cc9ec6642400563c2da6926389ff9f3b0f0ddeb9e354361",
-    "bytes": 769879
+    "sha256": "6608a4ad2007c9cf0d71d2f3edae276ea496d54287ca6037c4e4c4bdac97d5b8",
+    "bytes": 769921
   },
   "stages": {
     "validate": {
@@ -38,8 +38,8 @@
         "ok": true,
         "command": "validate",
         "specification": {
-          "sha256": "1c3213bb42ceae41c14fad9c875f8ee48174b1637648783685c105d25113e0a1",
-          "bytes": 4371
+          "sha256": "53b0b40504a975cc116d1bb95e3f90a11cd071c628e8b0024eddf8bb8144e4b1",
+          "bytes": 5876
         },
         "validation": {
           "checksPassed": 9,
@@ -54,7 +54,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 2484,
+      "durationMs": 2608,
       "command": [
         "/usr/bin/node",
         "/home/hatch/workspace/skills/archify/pkg/bin/archify.mjs",
@@ -68,19 +68,19 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "70f67209-35a9-448e-8b3c-1e423fd93986",
+        "receiptId": "11a5cbc2-fb49-43e5-a78f-8d5502e9784c",
         "ok": true,
         "command": "deliver",
         "type": "architecture",
         "input": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/candidate.json",
         "output": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.html",
         "specification": {
-          "sha256": "1c3213bb42ceae41c14fad9c875f8ee48174b1637648783685c105d25113e0a1",
-          "bytes": 4371
+          "sha256": "53b0b40504a975cc116d1bb95e3f90a11cd071c628e8b0024eddf8bb8144e4b1",
+          "bytes": 5876
         },
         "artifact": {
-          "sha256": "eb1f7995d8c79d8a5cc9ec6642400563c2da6926389ff9f3b0f0ddeb9e354361",
-          "bytes": 769879
+          "sha256": "6608a4ad2007c9cf0d71d2f3edae276ea496d54287ca6037c4e4c4bdac97d5b8",
+          "bytes": 769921
         },
         "validation": {
           "checksPassed": 9,
@@ -106,7 +106,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 362,
+      "durationMs": 320,
       "command": [
         "/usr/bin/node",
         "/home/hatch/workspace/skills/archify/pkg/bin/archify.mjs",
@@ -118,8 +118,8 @@
         "ok": true,
         "file": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.html",
         "artifact": {
-          "sha256": "eb1f7995d8c79d8a5cc9ec6642400563c2da6926389ff9f3b0f0ddeb9e354361",
-          "bytes": 769879
+          "sha256": "6608a4ad2007c9cf0d71d2f3edae276ea496d54287ca6037c4e4c4bdac97d5b8",
+          "bytes": 769921
         },
         "checks": [
           {
@@ -186,7 +186,7 @@
             "containerBorderRuns": 0,
             "labelRouteClearanceIssues": 0,
             "labelCanvasOverflowIssues": 0,
-            "minLabelRouteClearance": 4,
+            "minLabelRouteClearance": 5,
             "desktopReadabilityIssues": 0,
             "viewportHeightIssues": 0,
             "minProjectedNodeTextPx": 6.666666666666667,
@@ -356,7 +356,7 @@
                   "id": "m-to-d",
                   "from": "masoud",
                   "to": "decide",
-                  "label": "تأیید",
+                  "label": "اطلاع یک‌خطی",
                   "collectionIndex": 12,
                   "artifactIndex": 13
                 },
@@ -450,13 +450,13 @@
           "issues": []
         },
         "provenance": "current",
-        "deliveryReceiptId": "70f67209-35a9-448e-8b3c-1e423fd93986"
+        "deliveryReceiptId": "11a5cbc2-fb49-43e5-a78f-8d5502e9784c"
       }
     },
     "browser-check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 5903,
+      "durationMs": 8594,
       "command": [
         "/usr/bin/node",
         "/home/hatch/workspace/skills/archify/pkg/bin/archify.mjs",
@@ -474,11 +474,11 @@
         "status": "pass",
         "visualReview": "not-requested",
         "provenance": "current",
-        "deliveryReceiptId": "70f67209-35a9-448e-8b3c-1e423fd93986",
+        "deliveryReceiptId": "11a5cbc2-fb49-43e5-a78f-8d5502e9784c",
         "artifact": {
           "path": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.html",
-          "sha256": "eb1f7995d8c79d8a5cc9ec6642400563c2da6926389ff9f3b0f0ddeb9e354361",
-          "bytes": 769879
+          "sha256": "6608a4ad2007c9cf0d71d2f3edae276ea496d54287ca6037c4e4c4bdac97d5b8",
+          "bytes": 769921
         },
         "state": {
           "detail": "read",
@@ -1196,8 +1196,8 @@
     "browserCheckReceipt": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.browser-check.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-10-12T09:49:09.342Z",
-  "durationMs": 10365,
+  "finishedAt": "2026-10-12T09:53:14.584Z",
+  "durationMs": 14013,
   "update": {
     "status": "current",
     "installedVersion": "3.0.1",

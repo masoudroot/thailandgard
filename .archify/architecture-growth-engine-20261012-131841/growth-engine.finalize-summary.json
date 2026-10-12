@@ -7,13 +7,13 @@
   "quality": "showcase",
   "specification": {
     "path": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/candidate.json",
-    "sha256": "1c3213bb42ceae41c14fad9c875f8ee48174b1637648783685c105d25113e0a1",
-    "bytes": 4371
+    "sha256": "53b0b40504a975cc116d1bb95e3f90a11cd071c628e8b0024eddf8bb8144e4b1",
+    "bytes": 5876
   },
   "artifact": {
     "path": "/home/hatch/workspace/thailandgard/.archify/architecture-growth-engine-20261012-131841/growth-engine.html",
-    "sha256": "eb1f7995d8c79d8a5cc9ec6642400563c2da6926389ff9f3b0f0ddeb9e354361",
-    "bytes": 769879
+    "sha256": "6608a4ad2007c9cf0d71d2f3edae276ea496d54287ca6037c4e4c4bdac97d5b8",
+    "bytes": 769921
   },
   "gates": {
     "validate": "pass",
@@ -43,7 +43,7 @@
     "noticeText": null
   },
   "visualReview": "not-requested",
-  "durationMs": 10365,
+  "durationMs": 14013,
   "visualReviewRecommendation": {
     "action": "inspect-route-readability",
     "signals": {
@@ -201,7 +201,7 @@
             "id": "m-to-d",
             "from": "masoud",
             "to": "decide",
-            "label": "تأیید",
+            "label": "اطلاع یک‌خطی",
             "collectionIndex": 12,
             "artifactIndex": 13
           },
