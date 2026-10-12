@@ -44,7 +44,7 @@ export function MobileOctoberBar({
   if (!pastHero) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 max-h-[20vh] overflow-hidden rounded-t-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <div role="region" aria-label="اقدام سریع" className="fixed inset-x-0 bottom-0 z-40 max-h-[20vh] overflow-hidden rounded-t-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       {/* M5 (جهت artdir ۱۹ مهر ۱۴۰۵ :۳۵): دو ردیف در کل بازهٔ موبایل؛ قیمت از
           ردیف دکمه‌ها جدا شد چون در ۳۶۰px زیر کف خوانایی بود. بودجهٔ ارتفاع:
           pt-2 + ردیف قیمت + gap-1.5 + ردیف دکمه‌ها (h-11) + pb-2 + safe-area. */}
