@@ -110,15 +110,15 @@ export function ComboTourCard({ tour }: { tour: Tour }) {
 |---|---|---|
 | بدنه | `Card` سایت (`rounded-surface` = ۲۲px، `border-border` خط مویی، `bg-card`) | صفر کلاس دستی برای کادر |
 | چیدمان | `grid gap-6 md:grid-cols-[1fr_16rem]`؛ پنل در DOM اول (صفر order موبایل)؛ ستون متن `md:order-1`؛ پنل `md:order-2` | موبایل: پنل بالا؛ دسکتاپ: پنل چپ (پایان خواندن)؛ ترتیب DOM = ترتیب خوانش موبایل (اصلاح یافتهٔ ۱ farsiui، اجرای ۰۶:۳۵) |
-| بج | `Badge variant="secondary"` (خنثی) | انتخاب آگاهانه: تنها کهربایی کارت فیل CTA است (قانون ۱۵)؛ بج خنثی می‌ماند |
+| بج | `Badge variant="secondary"` (خنثی) | انتخاب آگاهانه: کهربایی کارت فقط فیل CTA تماس + نقطهٔ هایلایت کوچک پنل است (هر دو فیل/هایلایت کوچک مجازند)؛ بج خنثی می‌ماند (اصلاح ۰۷:۳۵: بستن دستور ۲ وایب‌فارسی) |
 | تیتر | `font-display text-2xl sm:text-3xl font-bold leading-snug`، تگ `h2` با `aria-labelledby` | یک پله کوچک‌تر از بنر (نقش ویترین، نه پوستر)؛ نسبت خط ۱٫۳۵ تیترها |
 | خلاصه | `text-base leading-8`، رنگ متن اصلی | قانون: خلاصه متن بدنه است، نه muted |
 | ردیف داده‌ها | `dl` با `text-sm text-muted-foreground`؛ آیکون `size-4 shrink-0`؛ مسیر چندخطی با `items-start` + `mt-0.5` | قانون آیکون چندخطی |
 | قیمت | `Price size="lg"` + لیبل «شروع قیمت از» راست، عدد چپ | قانون عدد و لیبل در راست‌چین |
-| CTA اصلی | `Button variant="brand" size="lg"` (۴۸px؛ بالای کف ۴۴px) | تنها کهربایی کارت؛ لینک `PHONE_MOBILE_LINK` |
+| CTA اصلی | `Button variant="brand" size="lg"` (۴۸px؛ بالای کف ۴۴px) | کهربایی اصلی کارت؛ نقطهٔ هایلایت کوچک پنل هم کهربایی است (اصلاح ۰۷:۳۵)؛ لینک `PHONE_MOBILE_LINK` |
 | CTA ثانویه | `Button variant="secondary" size="lg"` به `/tours/{slug}` | آیکون `ArrowLeft` (جلو در راست‌چین) |
 | پنل مسیر | نام مقصد `font-display text-4xl sm:text-5xl` + خط مویی `h-px w-12` + نقطهٔ کهربایی `size-2.5` | امضای بصری؛ زیرنویس «دو شهر، یک سفر» با `text-muted-foreground` |
-| حرکت | ورود: `animations/reveal` (fade + translateY ‏۱۲px، ‏۲۰۰ms، `ease-motion`، یک‌بار)؛ هاور دسکتاپ: `hover:-translate-y-0.5` با همان ۲۰۰ms؛ فشردن از واریانت دکمه | صفر keyframes تازه؛ `prefers-reduced-motion`: ورود حذف می‌شود |
+| حرکت | ورود (اختیاری): `animations/reveal` بایت‌به‌بایت از رجیستری؛ مدت واقعی سورس **۷۰۰ms** است (`duration-700`، ‏`translate-y-4`)، نه ۲۰۰ms؛ اورراید به `duration-(--motion)` فقط با ردیف ثبت‌شده در `agents/vibefarsi/DEVIATIONS.md`؛ هاور دسکتاپ: `hover:-translate-y-0.5` با ۲۰۰ms توکنی؛ فشردن از واریانت دکمه | صفر keyframes تازه؛ `prefers-reduced-motion`: ورود حذف می‌شود؛ (اصلاح ۰۷:۳۵: بستن دستور ۱ وایب‌فارسی؛ ادعای ۲۰۰ms پس گرفته شد) |
 
 صفر هگز خام؛ صفر arbitrary؛ همه از توکن‌های graphite-soft.
 
@@ -155,9 +155,9 @@ export function ComboTourCard({ tour }: { tour: Tour }) {
 
 ۱. بدون هیچ تصویری «تمام‌شده» به نظر می‌رسد؛ حس «به‌زودی عکس می‌آید» نیست.
 ۲. همهٔ ارقام فارسی؛ جداکنندهٔ هزارگان «٬»؛ واحد «تومان» بعد از عدد (از کامپوننت `Price`).
-۳. فقط یک کهربایی: فیل CTA تماس؛ `grep` صفر مورد `text-brand` تنها؛ بج خنثی است.
+۳. کهربایی کارت: فیل CTA تماس + نقطهٔ هایلایت کوچک `bg-brand` پنل (هر دو فیل/هایلایت کوچک مجازند؛ اصلاح ۰۷:۳۵)؛ `grep` صفر مورد `text-brand` تنها؛ بج خنثی است.
 ۴. راست‌چین: دسکتاپ پنل چپ، موبایل پنل بالا؛ لیبل «شروع قیمت از» راست، عدد چپ.
-۵. حرکت: ورود ۲۰۰ms یک‌بار؛ `prefers-reduced-motion` ورود را حذف می‌کند؛ هاور فقط دسکتاپ.
+۵. حرکت: ورود reveal بایت‌به‌بایت (۷۰۰ms واقعی سورس؛ اصلاح ۰۷:۳۵) یک‌بار؛ `prefers-reduced-motion` ورود را حذف می‌کند؛ هاور فقط دسکتاپ.
 ۶. صفر هگز خام؛ گوشه‌ها فقط `rounded-surface`؛ خطوط فقط `border-border`.
 ۷. کپی‌ها دقیقاً: «ترکیبی جدید»، «دو شهر، یک سفر»، «تماس با کارشناس»، «مشاهدهٔ جزئیات تور».
 ۸. با `priceFrom <= 0` یا `active: false` رندر نمی‌شود (منتظر قیمت واقعی مسعود؛ هیچ عدد ساخته‌ای).

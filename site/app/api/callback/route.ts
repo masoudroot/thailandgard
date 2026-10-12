@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callbackStore } from "@/lib/callback-store";
-import { isIranMobile, normalizeIranMobile } from "@/lib/persian";
 import { en } from "@/lib/utils";
 
 interface CallbackBody {
@@ -9,6 +8,19 @@ interface CallbackBody {
   tourSlug?: unknown;
   source?: unknown;
   preferredCallTime?: unknown;
+}
+
+/**
+ * نرمالایز سخت: همان پیشوندهای معتبر (۰ / ۹۸ / 0098) را می‌پذیرد ولی برش
+ * خاموش ندارد؛ ارقام خام پس از جداکردن پیشوند باید دقیقاً «9 + ۹ رقم» باشند.
+ * هر رقم اضافه (مثل «09123456789012») سازگار نیست و null می‌دهد.
+ */
+function strictMobile(input: string): string | null {
+  let d = en(input).replace(/\D/g, "");
+  if (d.startsWith("0098")) d = d.slice(4);
+  else if (d.startsWith("98") && d.length > 10) d = d.slice(2);
+  if (d.startsWith("0")) d = d.slice(1);
+  return /^9\d{9}$/.test(d) ? d : null;
 }
 
 export async function POST(req: NextRequest) {
@@ -20,12 +32,13 @@ export async function POST(req: NextRequest) {
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  // سخت‌سازی سرورساید (تست ۲۰ مهر): normalizeIranMobile ورودی خیلی‌بلند را به ۱۰ رقم
-  // می‌برد و isIranMobile قبول می‌کند؛ پس شمار ارقام خام هم چک می‌شود (سقف ۱۴ =
-  // 0098 + ۱۰ رقم). فرم کلاینت خودش ورودی را نرمال می‌کند، این فقط برای فراخوان مستقیم است.
+  // سخت‌سازی سرورساید (فیکس یافتهٔ ۱، ۲۰ مهر): نرمالایز lib با برش خاموش
+  // ورودی‌های ۱۱ تا ۱۴ رقمی را به ۱۰ رقم می‌برد و isIranMobile قبول می‌کرد.
+  // پس اینجا ارقام خام باید دقیقاً با شمارهٔ نهایی سازگار باشند: پیشوند مجاز
+  // (۰ / ۹۸ / 0098) جدا می‌شود و بعد باید دقیقاً ۱۰ رقم 9xxxxxxxxx بماند؛
+  // هر رقم اضافه یعنی «برش خاموش» و ۴۰۰ برمی‌گرداند. سقف ۱۴ هم لازم نیست.
   const rawMobile = typeof body.mobile === "string" ? body.mobile : "";
-  const rawDigitsLen = en(rawMobile).replace(/\D/g, "").length;
-  const mobile = normalizeIranMobile(rawMobile);
+  const mobile = strictMobile(rawMobile);
   const tourSlug = typeof body.tourSlug === "string" ? body.tourSlug : undefined;
   const rawSource = typeof body.source === "string" ? body.source : "";
   // قاعدهٔ «خالی نماندن» قرارداد ثبت منبع: اگر کلاینت قدیمی یا دستی مقداری
@@ -35,7 +48,7 @@ export async function POST(req: NextRequest) {
   if (name.length < 2) {
     return NextResponse.json({ ok: false, error: "نام را کامل وارد کنید." }, { status: 400 });
   }
-  if (!isIranMobile(mobile) || rawDigitsLen > 14) {
+  if (!mobile) {
     return NextResponse.json({ ok: false, error: "شمارهٔ موبایل معتبر نیست." }, { status: 400 });
   }
 
