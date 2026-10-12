@@ -10,7 +10,7 @@ import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
-import { pageSeo, brandTitle } from "@/lib/og";
+import { pageSeo, brandTitle, displayTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { renderGuideBlocks } from "@/lib/guide-tables";
@@ -128,14 +128,14 @@ export default async function GuideDetailPage({ params }: PageProps) {
         items={[
           { label: "خانه", href: "/" },
           { label: "راهنمای سفر", href: "/guide" },
-          { label: guide.title },
+          { label: displayTitle(guide.title) },
         ]}
       />
 
       {guide.slug === "thailand-tour-complete-guide" ? (
         <PillarHero
           badge="راهنمای کامل"
-          title={guide.title}
+          title={displayTitle(guide.title)}
           description={guide.excerpt}
           readingMinutes={guide.readingMinutes}
           updatedFa={guide.updatedFa}
@@ -154,7 +154,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
               به‌روزرسانی: {guide.updatedFa}
             </span>
           </div>
-          <h1 className="mt-4 text-3xl md:text-4xl">{guide.title}</h1>
+          <h1 className="mt-4 text-3xl md:text-4xl">{displayTitle(guide.title)}</h1>
           <p className="mt-4 text-lg leading-9">{guide.excerpt}</p>
           <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
         </header>

@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getTours, getGuides, getSiteSettings } from "@/lib/db-content";
-import { pageSeo } from "@/lib/og";
+import { pageSeo, displayTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = pageSeo({
@@ -166,7 +166,7 @@ export default async function HomePage() {
                 <CardHeader>
                   <Badge variant="brand">{guide.category}</Badge>
                   <CardTitle className="mt-3 text-xl">
-                    {guide.title}
+                    {displayTitle(guide.title)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="mt-auto">

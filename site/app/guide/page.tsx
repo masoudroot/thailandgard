@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getGuides } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
-import { defaultOgImages } from "@/lib/og";
+import { defaultOgImages, displayTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -58,7 +58,7 @@ export default async function GuideIndexPage() {
             <Card className="flex h-full flex-col transition-colors group-hover:border-brand/60">
               <CardHeader>
                 <Badge variant="brand">{guide.category}</Badge>
-                <CardTitle className="mt-2 text-xl">{guide.title}</CardTitle>
+                <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col gap-4">
                 <p className="text-sm leading-7 text-muted-foreground">{guide.excerpt}</p>
