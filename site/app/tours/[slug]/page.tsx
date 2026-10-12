@@ -266,18 +266,20 @@ export default async function TourPage({ params }: Props) {
           </div>
         </section>
 
-        <section className="mt-8">
-          <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
-          <Accordion
-            className="mt-5"
-            defaultOpen={["day-1"]}
-            items={tour.itinerary.map((d) => ({
-              id: `day-${d.day}`,
-              title: `روز ${fa(d.day)} | ${d.title}`,
-              content: d.description,
-            }))}
-          />
-        </section>
+        {tour.itinerary.length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
+            <Accordion
+              className="mt-5"
+              defaultOpen={["day-1"]}
+              items={tour.itinerary.map((d) => ({
+                id: `day-${d.day}`,
+                title: `روز ${fa(d.day)} | ${d.title}`,
+                content: d.description,
+              }))}
+            />
+          </section>
+        )}
 
         {/* بلوک «پرسش‌های پرتکرار تور» (اسپک design، ۲۰ مهر ۱۴۰۵): داخل ستون
             محتوا، بلافاصله بعد از «برنامهٔ روزبه‌روز»؛ کارت‌های شامل/شامل‌نمی‌شود
