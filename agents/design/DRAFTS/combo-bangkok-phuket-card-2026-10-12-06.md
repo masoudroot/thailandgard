@@ -2,6 +2,8 @@
 
 مبنا: پلن ساعتی تیم طراحی (ساعت ۰۶: طراحی کارت/بنر تور تازه). این سند فقط طرح است؛ اجرای کد با dev و هیچ فایل `site/` در این اجرا دست نخورده.
 
+> اصلاح ۰۶:۳۵ (یافتهٔ ۱ تیم فارسی‌یوآی): پنل مسیر در DOM هم اول گذاشته شد تا «ترتیب DOM = ترتیب خوانش» برقرار باشد؛ کلاس‌های `order-1`/`order-2` موبایل حذف شدند و فقط `md:order` دسکتاپ ماند. پنل هیچ عنصر فوکوس‌پذیر ندارد، پس ترتیب تب روی دسکتاپ سالم می‌ماند.
+
 ## ۱. هدف و جای قرارگیری
 
 کارت ویترین تک‌ایستا برای **تور ترکیبی بانکوک و پوکت** که ۱۴۰۵/۰۷/۱۹ به سبد اضافه شد. نقشش با `TourCard.tsx` فرق دارد: تورکارد عضو گرید فهرست است، این کارت «ویترین» بالای همان گرید (`/tours`) یا سکشن ویژهٔ خانه است؛ برای همین دو CTA دارد (تماس + جزئیات) در حالی که تورکارد یک CTA دارد. با `TourBanner.tsx` (درفت ۰۶ دیروز) هم فرق دارد: بنر پوستر تایپوگرافیک بدون قیمت است، این کارت ویترین فروش است با ردیف قیمت کامل.
@@ -39,8 +41,18 @@ export function ComboTourCard({ tour }: { tour: Tour }) {
       aria-labelledby={titleId}
       className="combo-tour-card grid gap-6 p-6 transition-transform duration-(--motion) ease-motion hover:-translate-y-0.5 sm:p-8 md:grid-cols-[1fr_16rem]"
     >
-      {/* ستون متن: موبایل پایین، دسکتاپ راست (ابتدای خواندن) */}
-      <div className="order-2 flex flex-col gap-5 md:order-1">
+      {/* پنل مسیر: در DOM هم اول است؛ موبایل بالا (ابتدای خوانش)، دسکتاپ ستون چپ (پایان خوانش) */}
+      <div className="flex flex-col justify-center border-b border-border pb-6 md:order-2 md:border-b-0 md:border-s md:pb-0 md:ps-6">
+        <span aria-hidden className="block h-px w-12 bg-border" />
+        <p className="mt-4 font-display text-4xl font-bold leading-snug sm:text-5xl">
+          {tour.shortTitle}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">دو شهر، یک سفر</p>
+        <span aria-hidden className="mt-4 block size-2.5 shrink-0 rounded-full bg-brand" />
+      </div>
+
+      {/* ستون متن: موبایل بعد از پنل، دسکتاپ راست (ابتدای خواندن) */}
+      <div className="flex flex-col gap-5 md:order-1">
         <div className="space-y-3">
           <Badge variant="secondary">ترکیبی تازه</Badge>
           <h2 id={titleId} className="font-display text-2xl font-bold leading-snug sm:text-3xl">
@@ -87,15 +99,6 @@ export function ComboTourCard({ tour }: { tour: Tour }) {
         </CardContent>
       </div>
 
-      {/* پنل مسیر: موبایل بالا، دسکتاپ ستون چپ (پایان خواندن) */}
-      <div className="order-1 flex flex-col justify-center border-b border-border pb-6 md:order-2 md:border-b-0 md:border-s md:pb-0 md:ps-6">
-        <span aria-hidden className="block h-px w-12 bg-border" />
-        <p className="mt-4 font-display text-4xl font-bold leading-snug sm:text-5xl">
-          {tour.shortTitle}
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">دو شهر، یک سفر</p>
-        <span aria-hidden className="mt-4 block size-2.5 shrink-0 rounded-full bg-brand" />
-      </div>
     </Card>
   );
 }
@@ -106,7 +109,7 @@ export function ComboTourCard({ tour }: { tour: Tour }) {
 | المان | کلاس/توکن | توضیح |
 |---|---|---|
 | بدنه | `Card` سایت (`rounded-surface` = ۲۲px، `border-border` خط مویی، `bg-card`) | صفر کلاس دستی برای کادر |
-| چیدمان | `grid gap-6 md:grid-cols-[1fr_16rem]`؛ ستون متن `order-2 md:order-1`؛ پنل `order-1 md:order-2` | موبایل: پنل بالا؛ دسکتاپ: پنل چپ (پایان خواندن) |
+| چیدمان | `grid gap-6 md:grid-cols-[1fr_16rem]`؛ پنل در DOM اول (صفر order موبایل)؛ ستون متن `md:order-1`؛ پنل `md:order-2` | موبایل: پنل بالا؛ دسکتاپ: پنل چپ (پایان خواندن)؛ ترتیب DOM = ترتیب خوانش موبایل (اصلاح یافتهٔ ۱ farsiui، اجرای ۰۶:۳۵) |
 | بج | `Badge variant="secondary"` (خنثی) | انتخاب آگاهانه: تنها کهربایی کارت فیل CTA است (قانون ۱۵)؛ بج خنثی می‌ماند |
 | تیتر | `font-display text-2xl sm:text-3xl font-bold leading-snug`، تگ `h2` با `aria-labelledby` | یک پله کوچک‌تر از بنر (نقش ویترین، نه پوستر)؛ نسبت خط ۱٫۳۵ تیترها |
 | خلاصه | `text-base leading-8`، رنگ متن اصلی | قانون: خلاصه متن بدنه است، نه muted |
