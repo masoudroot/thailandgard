@@ -36,7 +36,7 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
           <nav key={c.title} aria-label={c.title}>
             <h3 className="text-sm font-semibold">{c.title}</h3>
             <ul className="mt-3 space-y-2.5">
-              {c.links.map((l) => <li key={l.href}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-all hover:-translate-x-0.5 hover:text-brand-foreground">{l.label}</a></li>)}
+              {c.links.map((l) => <li key={l.href}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-[color,transform] hover:-translate-x-0.5 hover:text-brand-foreground">{l.label}</a></li>)}
             </ul>
           </nav>
         ))}

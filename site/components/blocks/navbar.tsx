@@ -67,7 +67,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
       <Sheet open={open} onOpenChange={setOpen} title={logo}>
         <ul className="flex flex-col p-2">
           {links.map((l) => (
-            <li key={l.label}><a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("block rounded-md px-3 py-2.5 text-sm hover:bg-accent", l.active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
+            <li key={l.label}><a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("block rounded-md px-3 py-3 text-sm hover:bg-accent", l.active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
           ))}
         </ul>
         <div className="mt-auto flex flex-col gap-2 border-t border-border p-4">
