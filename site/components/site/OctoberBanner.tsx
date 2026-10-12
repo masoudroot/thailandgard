@@ -22,7 +22,7 @@ export function OctoberBanner() {
         </p>
         <Button asChild size="lg" variant="brand" className="mt-8 rounded-full px-7">
           <Link href="/phuket-october">
-            دیدن پنجرهٔ اکتبر
+            جزئیات پروازهای اکتبر
             <ArrowLeft />
           </Link>
         </Button>
