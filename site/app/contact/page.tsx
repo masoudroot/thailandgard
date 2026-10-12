@@ -67,7 +67,9 @@ export default async function ContactPage() {
             <CallButtons compact />
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
               <MessageCircle className="mt-0.5 size-4 shrink-0" />
-              واتس‌اپ در ساعت کاری فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
+              {/* D-050 (نبض دیزاین): کانال‌های پیام‌رسان از تک‌منبع DB می‌آیند تا خانه و تماس
+                  همیشه یکدست بمانند («بله» فقط روی خانه بود) */}
+              {s.PHONE_CHANNELS_NOTE} در ساعت کاری فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
             </p>
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
               <Clock className="mt-0.5 size-4 shrink-0" />
@@ -78,7 +80,7 @@ export default async function ContactPage() {
 
         <Card className="h-full">
           <CardHeader className="border-b border-border bg-muted/40">
-            <h2 className="text-xl font-semibold">درخواست تماس</h2>
+            <h2 className="text-xl font-semibold">تماس با مشاور سفر</h2>
             {/* قلم ۳ لید: کارت دوم خنثی و ثانویه؛ بدون بج؛ متن حکم مدیر. */}
             <CardDescription>
               وقت ندارید؟ شماره‌تان را بگذارید، ما زنگ می‌زنیم.
