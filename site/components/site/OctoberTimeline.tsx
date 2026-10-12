@@ -52,9 +52,10 @@ export function OctoberTimeline() {
               <span className="mt-1 line-clamp-2 text-center text-sm leading-6 text-muted-foreground">
                 {st.label}
               </span>
-              {/* قلم ۵ artdir (۰۹:۰۵): برچسب فاصله زیر ایستگاه میانی؛ فاصله‌های ایستگاه‌ها مساوی می‌مانند */}
+              {/* قلم ۵ artdir (۰۹:۰۵): برچسب فاصله زیر ایستگاه میانی؛ فاصله‌های ایستگاه‌ها مساوی می‌مانند؛
+                  حکم ۲ artdir (۰۹:۳۵): کف text-sm؛ برگشت به text-xs بدون حکم تازه ممنوع */}
               {i === 1 && (
-                <span className="mt-1 text-xs text-muted-foreground">۵ روز بعد</span>
+                <span className="mt-1 text-sm text-muted-foreground">۵ روز بعد</span>
               )}
             </li>
           );

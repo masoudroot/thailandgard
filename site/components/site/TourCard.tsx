@@ -3,13 +3,14 @@
  * برای ویترین فروشگاه است نه تور؛ این کارت با ترکیب کامپوننت‌های
  * رجیستری (Card، Price، Badge) ساخته شده ولی ساختار فروش تور را دارد.
  */
-import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Price } from "@/components/ui/price";
 import { Separator } from "@/components/ui/separator";
+import { PHONE_MOBILE_LINK } from "@/lib/site";
 import { fa } from "@/lib/utils";
 import type { Tour } from "@/lib/tours";
 
@@ -55,12 +56,21 @@ export function TourCard({ tour }: { tour: Tour }) {
             </>
           )}
         </div>
-        <Button asChild variant="secondary" className="w-full">
-          <Link href={`/tours/${tour.slug}`}>
-            مشاهدهٔ جزئیات تور {tour.shortTitle}
-            <ArrowLeft aria-hidden />
-          </Link>
-        </Button>
+        {/* حکم ۱ artdir (۰۹:۳۵، اسپک design قلم ۲): ردیف CTA دوتایی؛
+            جزئیات اول (flex-1)، دکمهٔ آیکونی تماس دوم (outline، ۴۴px) */}
+        <div className="flex gap-2">
+          <Button asChild variant="secondary" className="flex-1">
+            <Link href={`/tours/${tour.slug}`}>
+              مشاهدهٔ جزئیات تور {tour.shortTitle}
+              <ArrowLeft aria-hidden />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="icon" className="size-11 shrink-0" aria-label="تماس با کارشناس فروش">
+            <a href={PHONE_MOBILE_LINK}>
+              <Phone />
+            </a>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
