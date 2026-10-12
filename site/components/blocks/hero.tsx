@@ -24,7 +24,7 @@ export interface HeroBlockProps {
  * framed panel (restaurant-site registry precedent) instead of full-bleed:
  * the copy keeps full contrast on theme tokens, no invented scrim needed.
  */
-export function HeroBlock({ badge, title, description, primary = { label: "تماس با کارشناس مقصد" }, secondary = { label: "مشاهدهٔ جزئیات تور" }, proof }: HeroBlockProps) {
+export function HeroBlock({ badge, title, description, primary = { label: "تماس با مشاور سفر" }, secondary = { label: "مشاهدهٔ جزئیات تور" }, proof }: HeroBlockProps) {
   return (
     <section className="relative overflow-hidden px-6 pt-14 text-center sm:pt-20">
       <div className="relative mx-auto max-w-3xl">

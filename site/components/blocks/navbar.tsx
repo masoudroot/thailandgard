@@ -29,7 +29,7 @@ export interface NavbarProps {
 }
 
 /** نوار بالا. Logo on the right, links in the middle, actions on the left; a sheet from the right on mobile. */
-export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با کارشناس مقصد" }, secondary = { label: "درخواست تماس" }, sticky = true, callHref, className }: NavbarProps) {
+export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با مشاور سفر" }, secondary = { label: "تماس با مشاور سفر" }, sticky = true, callHref, className }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
   return (
     <>
@@ -57,7 +57,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
           </div>
           <div className="flex items-center gap-1 md:hidden">
             {callHref && (
-              <Button asChild variant="ghost" size="icon" className="size-11" aria-label="تماس با کارشناس مقصد">
+              <Button asChild variant="ghost" size="icon" className="size-11" aria-label="تماس با مشاور سفر">
                 <a href={callHref}><Phone /></a>
               </Button>
             )}

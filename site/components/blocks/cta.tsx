@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
  * - actionHref اختیاری برای لینک واقعی دکمه (مثل tel:)؛ بدون آن دکمه مثل آیتم است
  * - دکمه در موبایل تمام‌عرض (w-full sm:w-auto)؛ حکم بریف ۳
  */
-export function CtaBlock({ title, description, action = "تماس با کارشناس مقصد", actionHref, note, callContext }: { title: string; description?: string; action?: React.ReactNode; actionHref?: string; note?: string; callContext?: string }) {
+export function CtaBlock({ title, description, action = "تماس با مشاور سفر", actionHref, note, callContext }: { title: string; description?: string; action?: React.ReactNode; actionHref?: string; note?: string; callContext?: string }) {
   const inner = (
     <>
       {action}

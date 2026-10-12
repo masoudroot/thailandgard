@@ -43,6 +43,7 @@ import {
   TOUR_TO_GUIDES as TOUR_TO_GUIDES_FALLBACK,
   type InlineLinkBlock,
 } from "./related";
+import { cacheTag } from "next/cache";
 
 /* ---------- شکل سطرهای دیتابیس (ستون‌ها snake_case) ---------- */
 
@@ -254,6 +255,10 @@ function inFileOrder<T extends { slug: string }>(rows: T[], fileOrder: string[])
 
 export async function getTours(): Promise<Tour[]> {
   'use cache';
+  // یافتهٔ F-092 بازرس (۲۰ مهر ۱۴۰۵): هر op محتواییِ DB باید کش سرور را باطل
+  // کند؛ وگرنه صفحه‌های استاتیک متای قدیم سرو می‌کنند. تگ‌ها این‌جا می‌نشینند
+  // و روت content-sync پس از هر op موفق revalidateTag می‌زند.
+  cacheTag('tours');
   const [rows, dayRows, faqRows] = await Promise.all([
     fetchTable<TourRow>("tours"),
     fetchTable<TourDayRow>("tour_days"),
@@ -273,6 +278,7 @@ export async function getTour(slug: string): Promise<Tour | undefined> {
 
 export async function getGuides(): Promise<Guide[]> {
   'use cache';
+  cacheTag('guides');
   const [rows, sectionRows, faqRows] = await Promise.all([
     fetchTable<GuideRow>("guides"),
     fetchTable<GuideSectionRow>("guide_sections"),
@@ -302,6 +308,7 @@ export async function getGuide(slug: string): Promise<Guide | undefined> {
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   'use cache';
+  cacheTag('site-settings');
   const rows = await fetchTable<SettingRow>("site_settings");
   if (!rows) {
     console.warn("[db-content] getSiteSettings: دیتابیس در دسترس نیست؛ فالبک site.ts");
@@ -364,6 +371,7 @@ export async function getSitemapRows(): Promise<SitemapRows> {
 
 export async function getRelatedLinks(): Promise<RelatedLinks> {
   'use cache';
+  cacheTag('related-links');
   const rows = await fetchTable<RelatedRow>("related_links");
   if (!rows) {
     console.warn("[db-content] getRelatedLinks: دیتابیس در دسترس نیست؛ فالبک related.ts");

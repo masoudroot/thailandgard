@@ -57,7 +57,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
           <Button asChild variant="brand" size="lg">
             <a href={PHONE_MOBILE_LINK} data-call-context="tour-banner">
               <Phone aria-hidden />
-              تماس با کارشناس مقصد
+              تماس با مشاور سفر
             </a>
           </Button>
           <Button asChild variant="secondary" size="lg">
