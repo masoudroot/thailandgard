@@ -246,3 +246,12 @@ h3,
   }
 }
 
+/* D-012: حلقهٔ focus-visible کهربایی یکدست برای لینک‌های تعاملی.
+ * دکمه‌ها و فیلدها حلقهٔ خود را از روی کلاس‌ها دارند (ring-ring = توکن کهربایی)؛
+ * این قانون فقط لینک‌های متنی را پوشش می‌دهد و با :where اولویت صفر دارد. */
+:where(a[href]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
