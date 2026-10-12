@@ -19,6 +19,9 @@ export const metadata: Metadata = {
     title: "تماس و مشاورهٔ تلفنی تور تایلند",
     description:
       "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
+    // هندآف سئو ۱۲:۰۸ (قانون ۴۶): صفحهٔ تماس og:url نداشت؛ مثل pageSeo اضافه شد.
+    url: "/contact",
+    locale: "fa_IR",
     images: defaultOgImages(SITE_URL),
   },
   twitter: {
