@@ -220,6 +220,21 @@ h3,
   to { transform: translateX(0); }
 }
 
+/* بارش شهاب رجیستری (animations/meteors): رگه‌ها از بالا-راست به پایین-چپ.
+ * rotate(215deg) + translateX منفی طبق پرامپت آیتم؛ فاصله به واحد vmin تا در
+ * همهٔ نماها از کادر خارج شوند. */
+@keyframes meteor {
+  0% { transform: rotate(215deg) translateX(0); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: rotate(215deg) translateX(-55vmax); opacity: 0; }
+}
+
+/* تعویض نرم زیرتیتر هیرو هنگام عوض شدن مقصد (نقد بصری ۲۰ مهر). */
+@keyframes fade-swap {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
 /* توقف نوار با هاور: div میانی آیتم (همان که animation اینلاین دارد). */
 [data-marquee-track]:hover > div > div {
   animation-play-state: paused;

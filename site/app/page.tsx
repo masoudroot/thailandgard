@@ -80,7 +80,7 @@ export default async function HomePage() {
           بنر الف (کمپین «پنجرهٔ اکتبر») فعلاً از اسلات خارج شد؛ فایل OctoberBanner سر جایش است. */}
       <HeroCapsule
         phoneHref={s.PHONE_MOBILE_LINK}
-        phoneLabel="تماس با کارشناس فروش"
+        phoneLabel="تماس با کارشناس"
         whatsappHref={s.WHATSAPP_LINK}
       />
 
