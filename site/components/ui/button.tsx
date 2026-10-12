@@ -31,7 +31,8 @@ export function Button({ asChild, className, variant = "default", size = "md", t
     // Shape, depth, press and motion come from the design-system tokens.
     "inline-flex items-center justify-center whitespace-nowrap rounded-control font-semibold transition-all duration-(--motion) ease-motion",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-    "disabled:pointer-events-none disabled:opacity-50 active:[transform:var(--press)]",
+    "disabled:pointer-events-none disabled:opacity-50 hover:-translate-y-px active:[transform:var(--press)]",
+    "motion-reduce:hover:translate-none",
     "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
     variants[variant],
     sizes[size],
