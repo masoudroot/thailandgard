@@ -39,7 +39,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
           <ul className="hidden items-center gap-1 md:flex">
             {links.map((l) => (
               <li key={l.label}>
-                <a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent", l.active ? "text-foreground" : "text-muted-foreground")}>{l.label}</a>
+                <a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent focus-visible:bg-accent", l.active ? "text-foreground" : "text-muted-foreground")}>{l.label}</a>
               </li>
             ))}
           </ul>
@@ -67,7 +67,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
       <Sheet open={open} onOpenChange={setOpen} title={logo}>
         <ul className="flex flex-col p-2">
           {links.map((l) => (
-            <li key={l.label}><a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("block rounded-md px-3 py-3 text-sm hover:bg-accent", l.active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
+            <li key={l.label}><a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("block rounded-md px-3 py-3 text-sm hover:bg-accent focus-visible:bg-accent", l.active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
           ))}
         </ul>
         <div className="mt-auto flex flex-col gap-2 border-t border-border p-4">
