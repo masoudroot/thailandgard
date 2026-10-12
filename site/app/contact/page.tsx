@@ -53,7 +53,7 @@ export default async function ContactPage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {/* قلم ۳ لید (سلسله‌مراتب کارت‌ها، حکم مدیر ۱۰:۱۵): «تماس مستقیم» مسیر اصلی است؛
             تیتر حکم مدیر + حاشیهٔ برند تا چشم اول به همین کارت برود؛ بج برند حفظ شد. */}
-        <Card className="overflow-hidden border-brand">
+        <Card className="h-full overflow-hidden border-brand">
           <CardHeader className="border-b border-border bg-muted/40">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -76,7 +76,7 @@ export default async function ContactPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="h-full">
           <CardHeader className="border-b border-border bg-muted/40">
             <h2 className="text-xl font-semibold">درخواست تماس</h2>
             {/* قلم ۳ لید: کارت دوم خنثی و ثانویه؛ بدون بج؛ متن حکم مدیر. */}
