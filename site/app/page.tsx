@@ -144,7 +144,8 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl sm:text-3xl">راهنمای سفر تایلند</h2>
+            {/* D-095: تیتر بخش با محتوای واقعی‌اش یکی شد (راهنما + اخبار سفر) */}
+            <h2 className="text-2xl sm:text-3xl">راهنما و اخبار سفر تایلند</h2>
             <p className="mt-2 text-muted-foreground">
               قبل از سفر بخوان؛ از{" "}
               <Link href="/guide/best-time-to-visit-thailand" className="underline decoration-brand/60 underline-offset-4">بهترین زمان سفر به تایلند</Link>{" "}
