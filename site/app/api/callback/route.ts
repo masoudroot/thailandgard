@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const mobile = normalizeIranMobile(typeof body.mobile === "string" ? body.mobile : "");
   const tourSlug = typeof body.tourSlug === "string" ? body.tourSlug : undefined;
-  const source = typeof body.source === "string" ? body.source : "site-form";
+  const rawSource = typeof body.source === "string" ? body.source : "";
+  // قاعدهٔ «خالی نماندن» قرارداد ثبت منبع: اگر کلاینت قدیمی یا دستی مقداری
+  // خارج از قالب «کانال|صفحه|کمپین» فرستاد، unknown ثبت می‌شود نه رشتهٔ بی‌قالب.
+  const source = rawSource.includes("|") ? rawSource : "unknown|unknown|none";
 
   if (name.length < 2) {
     return NextResponse.json({ ok: false, error: "نام را کامل وارد کنید." }, { status: 400 });

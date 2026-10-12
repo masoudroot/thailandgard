@@ -28,6 +28,63 @@ function isWithinWorkingHours(): boolean {
   return weekday !== "Fri" && hour >= 9 && hour < 21;
 }
 
+/** کلید first-touch در localStorage (هندآف تحلیل ۲۰ مهر ۱۴۰۵). */
+const FIRST_TOUCH_KEY = "tg_first_touch";
+
+interface FirstTouch {
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_content: string;
+  utm_term: string;
+  landing: string;
+  saved_at: string;
+}
+
+function readFirstTouch(): FirstTouch | null {
+  try {
+    const raw = window.localStorage.getItem(FIRST_TOUCH_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<FirstTouch>;
+    return {
+      utm_source: p.utm_source ?? "",
+      utm_medium: p.utm_medium ?? "",
+      utm_campaign: p.utm_campaign ?? "",
+      utm_content: p.utm_content ?? "",
+      utm_term: p.utm_term ?? "",
+      landing: p.landing ?? "",
+      saved_at: p.saved_at ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** ساخت source سه‌بخشی «کانال|صفحه|کمپین» طبق قرارداد SOURCE-TRACKING.md */
+function buildSource(tourSlug?: string): string {
+  const params = new URLSearchParams(window.location.search);
+  let utmMedium = (params.get("utm_medium") || "").toLowerCase();
+  let utmCampaign = params.get("utm_campaign") || "none";
+  // اگر این صفحه UTM نداشت، ورودی اول (first-touch) را از localStorage بردار؛
+  // یعنی اگر کاربر از صفحه‌ای بدون UTM فرم را فرستاد، مقدار ورودی اول حفظ می‌شود.
+  if (!params.get("utm_source") && !params.get("utm_medium") && !params.get("utm_campaign")) {
+    const ft = readFirstTouch();
+    if (ft) {
+      utmMedium = ft.utm_medium.toLowerCase();
+      utmCampaign = ft.utm_campaign || "none";
+    }
+  }
+
+  let channel = "direct";
+  const ref = document.referrer;
+  if (utmMedium.includes("cpc") || utmMedium.includes("paid") || utmMedium === "ad") channel = "ad";
+  else if (/google\.|bing\.com|duckduckgo\./.test(ref)) channel = "organic";
+  else if (ref) channel = "referral";
+
+  const page = tourSlug ? `tour/${tourSlug}` : window.location.pathname.replace(/^\//, "") || "home";
+  return `${channel}|${page}|${utmCampaign}`;
+}
+
 /** فرم «درخواست تماس»: نام + موبایل، با اعتبارسنجی ایرانی. */
 export function CallbackForm({
   tourSlug,
@@ -66,6 +123,31 @@ export function CallbackForm({
     setWithinHours(isWithinWorkingHours());
     clarityEvent("callback_view", { tourSlug });
   }, [tourSlug]);
+  // first-touch (هندآف تحلیل ۲۰ مهر): اگر ورود با UTM بود، همان‌جا ذخیره شود تا
+  // فرم در صفحه‌ای بدون UTM هم منبع ورودی اول را نگه دارد.
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const hasUtm = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"].some(
+        (k) => params.get(k),
+      );
+      if (!hasUtm) return;
+      window.localStorage.setItem(
+        FIRST_TOUCH_KEY,
+        JSON.stringify({
+          utm_source: params.get("utm_source") || "",
+          utm_medium: params.get("utm_medium") || "",
+          utm_campaign: params.get("utm_campaign") || "",
+          utm_content: params.get("utm_content") || "",
+          utm_term: params.get("utm_term") || "",
+          landing: window.location.pathname,
+          saved_at: new Date().toISOString(),
+        } satisfies FirstTouch),
+      );
+    } catch {
+      // localStorage در دسترس نیست؛ منبع همان «direct» می‌ماند
+    }
+  }, []);
   const outsideHours = withinHours === false;
 
   // پس از «ثبت شد» یا خطای سرور، فوکس به پیام وضعیت می‌رود (مدیریت فوکس)
@@ -96,7 +178,7 @@ export function CallbackForm({
           name: name.trim(),
           mobile,
           tourSlug,
-          source: "site-form",
+          source: buildSource(tourSlug),
           ...(callTime ? { preferredCallTime: callTime } : {}),
         }),
       });

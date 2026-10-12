@@ -140,7 +140,7 @@ html {
 
 /* شکاف آیتم (قید artdir قدم ۵): خود رجیستری reduced-motion ندارد؛ پس این‌جا صفرش می‌کنیم. */
 @media (prefers-reduced-motion: reduce) {
-  .blur-text span { animation: none; opacity: 1; filter: none; transform: none; }
+  .blur-text span { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; }
 }
 
 body {
