@@ -63,13 +63,6 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
                 {PHONE_CHANNELS_NOTE}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {/* D-034 (نبض دیزاین): لینک کناری هم مثل بقیهٔ شماره‌ها لیبل «ثابت» گرفت (قلم F-005) */}
-              ثابت:{" "}
-              <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-side" className="font-semibold text-foreground underline underline-offset-4">
-                <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
-              </a>
-            </p>
           </div>
           </CardContent>
         </Card>
