@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, fa } from "@/lib/utils";
 import { formatJalali } from "@/lib/jalali";
 
 /**
@@ -40,6 +40,11 @@ export function OctoberTimeline() {
       <ol className="relative flex items-start justify-between">
         {STATIONS.map((st, i) => {
           const elapsed = i < activeIndex;
+          // شمارش معکوس پویا برای ایستگاه میانی (به‌جای «۵ روز بعد» ثابت که با
+          // گذر روزها غلط می‌شد؛ امروز ۲۰ مهر: ۳ روز مانده). با سپری‌شدن، نامرئی
+          // می‌ماند تا ریتم مساوی فاصله‌ها (قلم ۵ artdir) به‌هم نریزد.
+          const daysLeft =
+            now === null ? null : Math.ceil((st.date.getTime() - now) / 86400000);
           return (
             <li key={st.gLabel} className="flex w-28 flex-col items-center">
               <span
@@ -54,8 +59,16 @@ export function OctoberTimeline() {
               </span>
               {/* قلم ۵ artdir (۰۹:۰۵): برچسب فاصله زیر ایستگاه میانی؛ فاصله‌های ایستگاه‌ها مساوی می‌مانند؛
                   حکم ۲ artdir (۰۹:۳۵): کف text-sm؛ برگشت به text-xs بدون حکم تازه ممنوع */}
-              {i === 1 && (
-                <span className="mt-1 text-sm text-muted-foreground">۵ روز بعد</span>
+              {i === 1 && daysLeft !== null && (
+                <span
+                  className={cn(
+                    "mt-1 text-sm text-muted-foreground",
+                    (elapsed || daysLeft <= 0) && "invisible"
+                  )}
+                  aria-hidden={elapsed || daysLeft <= 0}
+                >
+                  {fa(Math.max(daysLeft, 1))} روز بعد
+                </span>
               )}
             </li>
           );
