@@ -194,7 +194,6 @@ export default async function PhuketOctoberPage() {
               <CardContent className="p-6">
                 <dl className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="text-sm text-muted-foreground">شروع از</dt>
                     <dd className="flex items-baseline gap-1.5">
                       <Price amount={tour.priceFrom} size="md" />
                       <span className="text-xs text-muted-foreground">هر نفر</span>
