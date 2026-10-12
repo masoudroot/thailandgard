@@ -23,8 +23,23 @@ export const metadata: Metadata = {
 
 export default async function GuideIndexPage() {
   const guides = await getGuides();
+  // قانون ۳۷ اسکیما: کارت‌ها با عنوان و خلاصه رندر می‌شوند؛ ItemList فقط همان
+  // آیتم‌های نمایشی را دارد (نه بیشتر، نه کمتر)؛ از همان getGuides() صفحه.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "راهنمای سفر تایلند",
+    itemListElement: guides.map((guide, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: guide.title,
+      url: `${SITE_URL}/guide/${guide.slug}`,
+    })),
+  };
   return (
-    <main className="mx-auto max-w-5xl px-6 py-16">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
           <BookOpenText className="size-4" />
@@ -66,6 +81,7 @@ export default async function GuideIndexPage() {
           </Link>
         ))}
       </div>
-    </main>
+      </main>
+    </>
   );
 }

@@ -25,8 +25,23 @@ export const metadata: Metadata = {
 export default async function ToursPage() {
   const tours = await getTours();
   const s = await getSiteSettings();
+  // قانون ۳۷ اسکیما: گرید تورها از getTours() رندر می‌شود؛ ItemList همان
+  // آیتم‌های نمایشی را دارد (نه بیشتر، نه کمتر).
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "تورهای تایلند",
+    itemListElement: tours.map((tour, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: tour.title,
+      url: `${SITE_URL}/tours/${tour.slug}`,
+    })),
+  };
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <div className="mx-auto max-w-6xl px-6 py-12">
       <header className="max-w-3xl space-y-4">
         <h1 className="text-3xl md:text-4xl">تورهای تایلند</h1>
         <p className="leading-[1.8] text-muted-foreground">
@@ -64,6 +79,7 @@ export default async function ToursPage() {
         actionHref={s.PHONE_MOBILE_LINK}
         note="زمان ترجیحی تماس را شما می‌گویید"
       />
-    </div>
+      </div>
+    </>
   );
 }

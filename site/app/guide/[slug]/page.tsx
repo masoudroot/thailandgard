@@ -13,6 +13,7 @@ import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "
 import { pageSeo, brandTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
+import { updatedFaToIso } from "@/lib/jalali";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -77,6 +78,9 @@ export default async function GuideDetailPage({ params }: PageProps) {
       ).filter((t): t is NonNullable<typeof t> => t !== undefined)
     : [];
 
+  // قانون ۳۷ اسکیما: dateModified از همان رشته‌ای می‌آید که صفحه نمایش می‌دهد
+  // (خط «به‌روزرسانی: {guide.updatedFa}»)؛ datePublished داده نداریم پس عمداً نیست.
+  const dateModified = updatedFaToIso(guide.updatedFa);
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -87,6 +91,14 @@ export default async function GuideDetailPage({ params }: PageProps) {
         inLanguage: "fa",
         url: `${s.SITE_URL}/guide/${guide.slug}`,
         mainEntityOfPage: `${s.SITE_URL}/guide/${guide.slug}`,
+        ...(dateModified ? { dateModified } : {}),
+        author: { "@type": "Organization", name: s.SITE_NAME, url: s.SITE_URL },
+        publisher: {
+          "@type": "Organization",
+          name: `${s.SITE_NAME} (${s.SITE_LATIN})`,
+          url: s.SITE_URL,
+          telephone: s.PHONE_MOBILE_LINK.replace("tel:", ""),
+        },
       },
       {
         "@type": "FAQPage",

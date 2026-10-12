@@ -117,3 +117,18 @@ export function formatJalaliNumeric(date: Date) {
   const { jy, jm, jd } = toJalali(date);
   return faDigits(`${jy}/${String(jm).padStart(2, "0")}/${String(jd).padStart(2, "0")}`);
 }
+
+/**
+ * پارس «۱۹ مهر ۱۴۰۵» (ارقام فارسی) → «YYYY-MM-DD» میلادی.
+ * برای اسکیمای Article (dateModified) از همان رشته‌ای می‌خواند که صفحه نمایش می‌دهد
+ * (قانون ۳۷ اسکیما: آینهٔ دادهٔ نمایشی). null یعنی داده قابل‌پارس نیست.
+ */
+export function updatedFaToIso(updatedFa: string): string | null {
+  const m = updatedFa.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/(\d+)\s+(\S+)\s+(\d+)/);
+  if (!m) return null;
+  const jm = JALALI_MONTHS.indexOf(m[2]) + 1;
+  if (!jm) return null;
+  const g = toGregorian(Number(m[3]), jm, Number(m[1]));
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${g.getFullYear()}-${p(g.getMonth() + 1)}-${p(g.getDate())}`;
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callbackStore } from "@/lib/callback-store";
 import { isIranMobile, normalizeIranMobile } from "@/lib/persian";
+import { en } from "@/lib/utils";
 
 interface CallbackBody {
   name?: unknown;
@@ -19,7 +20,12 @@ export async function POST(req: NextRequest) {
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  const mobile = normalizeIranMobile(typeof body.mobile === "string" ? body.mobile : "");
+  // سخت‌سازی سرورساید (تست ۲۰ مهر): normalizeIranMobile ورودی خیلی‌بلند را به ۱۰ رقم
+  // می‌برد و isIranMobile قبول می‌کند؛ پس شمار ارقام خام هم چک می‌شود (سقف ۱۴ =
+  // 0098 + ۱۰ رقم). فرم کلاینت خودش ورودی را نرمال می‌کند، این فقط برای فراخوان مستقیم است.
+  const rawMobile = typeof body.mobile === "string" ? body.mobile : "";
+  const rawDigitsLen = en(rawMobile).replace(/\D/g, "").length;
+  const mobile = normalizeIranMobile(rawMobile);
   const tourSlug = typeof body.tourSlug === "string" ? body.tourSlug : undefined;
   const rawSource = typeof body.source === "string" ? body.source : "";
   // قاعدهٔ «خالی نماندن» قرارداد ثبت منبع: اگر کلاینت قدیمی یا دستی مقداری
@@ -29,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (name.length < 2) {
     return NextResponse.json({ ok: false, error: "نام را کامل وارد کنید." }, { status: 400 });
   }
-  if (!isIranMobile(mobile)) {
+  if (!isIranMobile(mobile) || rawDigitsLen > 14) {
     return NextResponse.json({ ok: false, error: "شمارهٔ موبایل معتبر نیست." }, { status: 400 });
   }
 
