@@ -109,7 +109,9 @@ export function HeroCapsule({
           </p>
         </Reveal>
 
-        {/* کپسول انتخاب مقصد؛ اسکرول افقی در موبایل تا قیچی نشود */}
+        {/* کپسول انتخاب مقصد؛ اسکرول افقی در موبایل تا قیچی نشود.
+            تب فعال پس‌زمینهٔ کرم پررنگ دارد (یافتهٔ M6 ممیزی ۱۶:۳۰) تا خواننده
+            بفهمد کدام مقصد را می‌خواند */}
         <Reveal delay={650} durationMs={200} className="mt-8">
           <div ref={capsuleWrap} className="mx-auto max-w-full overflow-x-auto pb-1">
             <SegmentedControl
@@ -117,7 +119,7 @@ export function HeroCapsule({
               value={destination}
               onChange={(v) => setDestination(v as DestinationValue)}
               aria-label="انتخاب مقصد"
-              className="w-max min-w-full"
+              className="w-max min-w-full [&>span[aria-hidden]]:bg-[color-mix(in_oklch,var(--brand)_26%,var(--background))] [&>span[aria-hidden]]:ring-brand/50"
             />
           </div>
         </Reveal>
