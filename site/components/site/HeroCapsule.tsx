@@ -123,19 +123,22 @@ export function HeroCapsule({
         </Reveal>
 
         <Reveal delay={800} durationMs={200} className="mt-8">
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-3">
             <Button asChild size="lg" variant="brand" className="rounded-full px-7">
               <a href={phoneHref} data-call-context="hero">
                 <Phone />
                 {phoneLabel}
               </a>
             </Button>
-            <Button asChild size="lg" variant="secondary" className="rounded-full px-7">
-              <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                <MessageCircle />
-                مشاوره واتس‌اپی
-              </a>
-            </Button>
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline decoration-foreground/20 underline-offset-4 transition-colors hover:text-foreground"
+            >
+              <MessageCircle className="size-4" />
+              یا در واتس‌اپ پیام بدهید
+            </a>
           </div>
         </Reveal>
 

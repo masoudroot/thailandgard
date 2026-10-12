@@ -128,7 +128,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               links: [
                 { label: "فهرست تورها", href: "/tours" },
                 { label: "راهنمای سفر تایلند", href: "/guide" },
-                { label: "تماس و درخواست تماس", href: "/contact" },
+                { label: "تماس با مشاور سفر", href: "/contact" },
               ],
             },
             {
