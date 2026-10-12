@@ -73,6 +73,10 @@ export function CallTracker() {
       if (!anchor) return;
       const href = anchor.getAttribute("href") ?? "";
       if (!href.startsWith("tel:")) return;
+      // پیشنهاد ۱ لید (۲۰ مهر ۱۴۰۵): تگ زمینهٔ دکمه؛ هر لینک tel: می‌تواند
+      // data-call-context داشته باشد (مثل hero-home، sticky-tour) تا ردیاب
+      // بگوید «کدام دکمه» کلیک شد. بدون تگ، رشتهٔ خالی می‌رود؛ UX دست نمی‌خورد.
+      const callContext = (anchor.getAttribute("data-call-context") ?? "").slice(0, 32);
       try {
         navigator.sendBeacon(
           "/api/track-call",
@@ -80,6 +84,7 @@ export function CallTracker() {
             href: href.slice(0, 64),
             page: window.location.pathname.slice(0, 128),
             source: buildSource().slice(0, 128),
+            context: callContext,
           }),
         );
       } catch {

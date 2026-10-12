@@ -6,7 +6,7 @@
  */
 
 import * as React from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface AccordionItem {
@@ -23,10 +23,20 @@ export interface AccordionProps {
   multiple?: boolean;
   defaultOpen?: string[];
   className?: string;
+  /**
+   * آیکون باز/بسته (اسپک FAQ تور، ۲۰ مهر ۱۴۰۵): پیش‌فرض شورون؛
+   * plus-minus پلاس/منهای خطی خنثی می‌گذارد (text-muted-foreground، بدون چرخش/جابه‌جایی افقی).
+   */
+  toggleIcon?: "chevron" | "plus-minus";
+  /**
+   * رپر محتوای آیتم (یافتهٔ vibefarsi، ۲۰ مهر ۱۴۰۵): پیش‌فرض p است؛ وقتی محتوا
+   * بلوک است (مثل ul بولت‌های FAQ تور) باید div باشد وگرنه HTML نامعتبر می‌شود.
+   */
+  contentBlock?: boolean;
 }
 
 /** آکاردئون. Chevron at the inline-end; height animates with CSS grid, no measuring. */
-export function Accordion({ items, multiple, defaultOpen = [], className }: AccordionProps) {
+export function Accordion({ items, multiple, defaultOpen = [], className, toggleIcon = "chevron", contentBlock = false }: AccordionProps) {
   const [open, setOpen] = React.useState<string[]>(defaultOpen);
   const toggle = (id: string) =>
     setOpen((o) => (o.includes(id) ? o.filter((x) => x !== id) : multiple ? [...o, id] : [id]));
@@ -44,16 +54,28 @@ export function Accordion({ items, multiple, defaultOpen = [], className }: Acco
                 aria-controls={`acc-${it.id}`}
                 disabled={it.disabled}
                 onClick={() => toggle(it.id)}
-                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-start text-sm font-medium transition-colors hover:bg-accent/40 disabled:pointer-events-none disabled:opacity-50"
+                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-start text-sm font-medium transition-colors hover:bg-accent/40 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {it.title}
-                <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
+                {toggleIcon === "plus-minus" ? (
+                  isOpen ? (
+                    <Minus aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <Plus aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+                  )
+                ) : (
+                  <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
+                )}
               </button>
             </h3>
             <div id={`acc-${it.id}`} className={cn("grid transition-[grid-template-rows] duration-200 ease-out", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
               <div className="overflow-hidden">
                 {/* مشخصات seocontent (۱۲:۲۵): جواب FAQ در رندر، پاراگراف معنایی است */}
-                <p className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</p>
+                {contentBlock ? (
+                  <div className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</div>
+                ) : (
+                  <p className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</p>
+                )}
               </div>
             </div>
           </div>

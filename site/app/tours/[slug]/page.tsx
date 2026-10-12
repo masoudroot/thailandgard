@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
@@ -22,6 +23,36 @@ import { Price } from "@/components/ui/price";
 import { Separator } from "@/components/ui/separator";
 
 type Props = { params: Promise<{ slug: string }> };
+
+/**
+ * رندر جواب FAQ تور (اسپک §۳، ۲۰ مهر ۱۴۰۵): اگر جواب چندخطی است، بولت‌های
+ * تک‌خطی با جداکنندهٔ مویی (نشانگر سمت راست، شروع خط در RTL)؛ وگرنه همان
+ * پاراگراف. ارقام فارسی و رجیستر «شما» با دادهٔ tour_faqs می‌آید
+ * (مالکیت محتوا: content)؛ این‌جا فقط اسکلت است.
+ */
+function renderFaqAnswer(answer: string): ReactNode {
+  const lines = answer.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) return renderInlineLinks(answer);
+  return (
+    <ul className="divide-y divide-border">
+      {lines.map((l, j) => (
+        <li key={j} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
+          <span aria-hidden className="mt-3 size-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
+          <span className="leading-7">{renderInlineLinks(l)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * JSON امن برای تزریق در ‎<script type="application/ld+json">‎: اگر متن DB
+ * دنبالهٔ «<» خام داشته باشد (مثل ‎</script>‎)، می‌تواند تگ اسکریپت را بشکند؛
+ * پس همهٔ «<»ها به ‎\u003c‎ تبدیل می‌شوند (چک امنیتی، ۲۰ مهر ۱۴۰۵).
+ */
+function jsonLdScript(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
 
 export async function generateStaticParams() {
   return (await getTours()).map((tour) => ({ slug: tour.slug }));
@@ -72,7 +103,7 @@ export default async function TourPage({ params }: Props) {
   const tour = await getTour(slug);
   if (!tour) notFound();
 
-  // اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵) — قانون «تازگی قیمت»:
+  // اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵)، قانون «تازگی قیمت»:
   // قیمت «نامشخص» است اگر price_from یا price_updated_at برابر NULL باشد یا
   // به‌روزرسانی قدیمی‌تر از ۷ روز باشد؛ در این حالت هیچ آیتم FAQ قیمتی
   // رندر نمی‌شود (نه در HTML، نه در اسکیمای FAQPage). فقط قیمت تازه،
@@ -132,7 +163,8 @@ export default async function TourPage({ params }: Props) {
     mainEntity: faqs.map((f) => ({
       "@type": "Question",
       name: f.question,
-      acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(f.answer) },
+      // اسپک §۳: خط‌تیره‌های متن جواب در اسکیما به «؛» تبدیل می‌شوند
+      acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(f.answer).replace(/-/g, "؛") },
     })),
   };
 
@@ -150,9 +182,9 @@ export default async function TourPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tripJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(tripJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }} />
 
       <div className="mx-auto max-w-5xl px-6 py-12">
         <Breadcrumb
@@ -247,6 +279,25 @@ export default async function TourPage({ params }: Props) {
           />
         </section>
 
+        {/* بلوک «پرسش‌های پرتکرار تور» (اسپک design، ۲۰ مهر ۱۴۰۵): داخل ستون
+            محتوا، بلافاصله بعد از «برنامهٔ روزبه‌روز»؛ کارت‌های شامل/شامل‌نمی‌شود
+            سر جای فعلی‌شان (بعد از FAQ) می‌مانند. */}
+        <Separator className="my-12" />
+        <div className="-mx-6">
+          <FaqBlock
+            title="پرسش‌های پرتکرار تور"
+            description="هر سؤالی که دربارهٔ این تور دارید، این‌جا جوابش را می‌بینید. اگر نبود، همان پایین شماره‌تان را بگذارید."
+            defaultOpen={[]}
+            toggleIcon="plus-minus"
+            contentBlock
+            items={faqs.slice(0, priceFresh ? 4 : 5).map((f, i) => ({
+              id: `faq-${i}`,
+              title: f.question,
+              content: renderFaqAnswer(f.answer),
+            }))}
+          />
+        </div>
+
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -280,15 +331,6 @@ export default async function TourPage({ params }: Props) {
           </Card>
         </div>
       </div>
-
-      <FaqBlock
-        description="هر سؤالی که دربارهٔ این تور دارید، این‌جا جوابش را می‌بینید. اگر نبود، همان پایین شماره‌تان را بگذارید."
-        items={faqs.map((f, i) => ({
-          id: `faq-${i}`,
-          title: f.question,
-          content: renderInlineLinks(f.answer),
-        }))}
-      />
 
       {relatedGuides.length > 0 && guideBlock && (
         <section className="mx-auto mt-10 max-w-5xl px-6">

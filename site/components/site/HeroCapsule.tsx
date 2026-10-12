@@ -91,7 +91,8 @@ export function HeroCapsule({
               {phoneLabel}
             </a>
           </Button>
-          <Button asChild size="lg" variant="outline" className="rounded-full px-7">
+          {/* دستور ۳ ممیزی ۱۳:۳۵ (۲۰ مهر ۱۴۰۵): secondary نه outline (§۲ اسپک کپسول) */}
+          <Button asChild size="lg" variant="secondary" className="rounded-full px-7">
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
               <MessageCircle />
               مشاوره در واتس‌اپ
