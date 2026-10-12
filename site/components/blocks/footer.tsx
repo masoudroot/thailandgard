@@ -21,7 +21,9 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
   // سال شمسی ثابت است چون new Date() در پیش‌رندر استاتیک Next مجاز نیست؛ هر نوروز به‌روز شود.
   const year = fa(1405);
   return (
-    <footer className="border-t border-border bg-card px-6 py-12">
+    <footer className="relative bg-card px-6 py-14">
+      {/* خط مویی گرم برند به‌جای مرز سرد بالا: ورود نرم به فوتر */}
+      <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-brand/50 to-transparent" />
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
         <div className="col-span-2 sm:col-span-3 lg:col-span-2">
           <div className="text-base font-bold">{logo}</div>
@@ -31,15 +33,18 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
         {columns.map((c) => (
           <nav key={c.title} aria-label={c.title}>
             <h3 className="text-sm font-semibold">{c.title}</h3>
-            <ul className="mt-3 space-y-2">
-              {c.links.map((l) => <li key={l.href}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a></li>)}
+            <ul className="mt-3 space-y-2.5">
+              {c.links.map((l) => <li key={l.href}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-colors hover:text-brand-foreground">{l.label}</a></li>)}
             </ul>
           </nav>
         ))}
       </div>
-      <div className="mx-auto mt-10 flex max-w-6xl flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto mt-12 flex max-w-6xl flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>{copyright ?? `© ${year} تمام حقوق محفوظ است.`}</p>
-        <p>ساخته‌شده با وایب‌فارسی</p>
+        <p className="inline-flex items-center gap-2">
+          <span aria-hidden className="inline-block size-1.5 rounded-full bg-brand" />
+          <span className="text-brand-foreground">همسفر بلد تایلند شما</span>
+        </p>
       </div>
     </footer>
   );
