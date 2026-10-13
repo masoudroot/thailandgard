@@ -141,7 +141,7 @@ export default async function ToursPage() {
             <tbody>
               {[
                 {
-                  label: "قیمت پایهٔ نمایشی",
+                  label: "قیمت پایه",
                   cells: ["۱۰۲٬۶۸۷٬۰۰۰ تومان", "۴۲٬۹۰۰٬۰۰۰ تومان", "۴۸٬۵۰۰٬۰۰۰ تومان"],
                 },
                 {
