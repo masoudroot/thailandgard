@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
  * - action از نوع ReactNode تا شماره تلفن با dir="ltr" بیاید (دستور اصلاح ۲ farsiui)
  * - actionHref اختیاری برای لینک واقعی دکمه (مثل tel:)؛ بدون آن دکمه مثل آیتم است
  * - دکمه در موبایل تمام‌عرض (w-full sm:w-auto)؛ حکم بریف ۳
+ * - D-112 (۱۴۰۵/۰۷/۲۱): دکمهٔ اصلی مسیر فروش variant="brand"؛ پنجمین نمونهٔ خانوادهٔ D-109
+ *   (هدر، هیرو، صفحهٔ تور، کارت تماس، نوار چسبان) که همگی کهربایی solid شدند.
  */
 export function CtaBlock({ title, description, action = "تماس با مشاور سفر", actionHref, note, callContext }: { title: string; description?: string; action?: React.ReactNode; actionHref?: string; note?: string; callContext?: string }) {
   const inner = (
@@ -24,11 +26,11 @@ export function CtaBlock({ title, description, action = "تماس با مشاو�
           <h2 className="text-3xl sm:text-4xl">{title}</h2>
           {description && <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{description}</p>}
           {actionHref ? (
-            <Button asChild size="lg" className="mt-8 w-full rounded-full px-7 sm:w-auto">
+            <Button asChild size="lg" variant="brand" className="mt-8 w-full rounded-full px-7 sm:w-auto">
               <a href={actionHref} data-call-context={callContext}>{inner}</a>
             </Button>
           ) : (
-            <Button size="lg" className="mt-8 w-full rounded-full px-7 sm:w-auto">{inner}</Button>
+            <Button size="lg" variant="brand" className="mt-8 w-full rounded-full px-7 sm:w-auto">{inner}</Button>
           )}
           {note && <p className="mt-4 text-xs text-muted-foreground">{note}</p>}
         </div>
