@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Vazirmatn } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
@@ -14,11 +13,26 @@ import { defaultOgImages } from "@/lib/og";
 /** همهٔ مسیرها استاتیک‌اند؛ هر رندر درخواستیِ آینده بیلد را قرمز می‌کند. */
 export const ensureStatic = "navigation";
 
-const vazirmatn = Vazirmatn({
+const vazirmatn = localFont({
   variable: "--font-vazirmatn",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
+  src: [
+    {
+      path: "./fonts/vazirmatn/Vazirmatn-arabic.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "./fonts/vazirmatn/Vazirmatn-latin.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "./fonts/vazirmatn/Vazirmatn-latin-ext.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
 });
 
 const pinar = localFont({
