@@ -53,7 +53,8 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
         ))}
       </div>
       <div className="mx-auto mt-12 flex max-w-6xl flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>{copyright ?? `© ${year} تمام حقوق محفوظ است.`}</p>
+        {/* D-227: ترتیب منطقی «© ۱۴۰۵» با bdi تا در راست‌چین به‌صورت «۱۴۰۵©» رندر نشود */}
+        <p>{copyright ?? <><bdi>© {year}</bdi> تمام حقوق محفوظ است.</>}</p>
         <p className="inline-flex items-center gap-2">
           <span aria-hidden className="inline-block size-1.5 rounded-full bg-brand" />
           <span className="text-brand-foreground">همسفر بلد تایلند شما</span>
