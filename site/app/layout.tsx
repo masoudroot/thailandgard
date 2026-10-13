@@ -58,6 +58,9 @@ export async function generateMetadata(): Promise<Metadata> {
       "تایلندگرد فقط تور تایلند برگزار می‌کند: پوکت، بانکوک، پاتایا، سامویی و کرابی. مشاوره و رزرو فقط با تماس تلفنی.",
     // S-033 (هندآف سئو ۱۹:۰۰): تگ meta keywords قالبی حذف شد؛ گوگل آن را
     // نادیده می‌گیرد و boilerplate یکسان در همهٔ صفحه‌ها سیگنال ضعیف می‌سازد.
+    // D-489 (نبض دیزاین ۰۰:۲۹): آیکون لمسی iOS؛ فایل ۱۸۰×۱۸۰ بازسازی تیز
+    // نشان «N» فاوآیکون روی رنگ جوهر گرافیت (--foreground) است.
+    icons: { apple: "/apple-touch-icon.png" },
     openGraph: {
       type: "website",
       locale: "fa_IR",
