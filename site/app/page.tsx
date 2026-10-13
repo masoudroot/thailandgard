@@ -334,7 +334,7 @@ export default async function HomePage() {
                     <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
                     {/* D-121: روی کارت‌های متنی تیتر فقط در پوستر تایپوگرافیک D-117 می‌آید؛
                         رندر دوم این‌جا حذف شد تا همان متن دو بار رندر نشود */}
-                    {cover ? <CardTitle className="mt-2 text-xl text-white">{displayTitle(guide.title)}</CardTitle> : null}
+                    {cover ? <CardTitle className="mt-2 text-balance text-xl text-white">{displayTitle(guide.title)}</CardTitle> : null}
                   </div>
                 </div>
                 <CardContent className="flex flex-1 flex-col gap-4 p-5">

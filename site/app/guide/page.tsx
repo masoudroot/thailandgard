@@ -100,7 +100,7 @@ export default async function GuideIndexPage() {
                 <div className="absolute inset-x-0 bottom-0 p-4">
                   {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
                   <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
-                  <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle>
+                  <CardTitle className="mt-2 text-balance text-xl">{displayTitle(guide.title)}</CardTitle>
                 </div>
               </div>
               <CardContent className="flex flex-1 flex-col gap-4 p-5">
