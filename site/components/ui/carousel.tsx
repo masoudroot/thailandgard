@@ -66,7 +66,9 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
       {showDots && (
         <div className="mt-3 flex justify-center gap-1.5">
           {Array.from({ length: count }, (_, i) => (
-            <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} title={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className={cn("h-1.5 cursor-pointer rounded-full transition-all", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/50")} />
+            <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} title={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className="group -m-2 cursor-pointer p-2" /* D-343: تارگت لمسی ۲۲px با ظاهر بدون تغییر (نقطهٔ ۶px روی span) */>
+              <span className={cn("block h-1.5 rounded-full transition-all", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 group-hover:bg-foreground/50")} />
+            </button>
           ))}
         </div>
       )}
