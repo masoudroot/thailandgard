@@ -129,7 +129,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           primary={{ label: "تماس با مشاور سفر", href: s.PHONE_MOBILE_LINK }}
           callHref={s.PHONE_MOBILE_LINK}
         />
-        <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
+        {/* D-250: هدف اسکیپ‌لینک؛ scroll-mt-24 تا با «پرش به محتوا» سر صفحه زیر نوبار چسبان نرود (قرارداد سکشن‌های سایت) */}
+        <main id="main-content" tabIndex={-1} className="flex-1 scroll-mt-24">{children}</main>
         <FooterBlock
           logo={<span className="font-display">{s.SITE_NAME} | {s.SITE_LATIN}</span>}
           description={`${s.SITE_TAGLINE}. فروش ما فقط تلفنی است؛ هیچ پرداخت آنلاینی نداریم.`}
