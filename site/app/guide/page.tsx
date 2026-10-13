@@ -59,7 +59,7 @@ export default async function GuideIndexPage() {
       />
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
-          <BookOpenText className="size-4" />
+          <BookOpenText className="size-3.5" />
           راهنمای سفر
         </p>
         <h1 className="mt-3 text-3xl md:text-4xl">راهنمای سفر تایلند</h1>
