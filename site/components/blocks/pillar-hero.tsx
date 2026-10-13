@@ -40,7 +40,7 @@ export async function PillarHero({ badge, title, description, readingMinutes, up
             </a>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-full">
-            <a href="#callback">تماس با مشاور سفر</a>
+            <a href="#callback">درخواست تماس</a>
           </Button>
         </div>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
