@@ -12,7 +12,7 @@ export function StatsBlock({ items, className }: { items: StatItem[]; className?
             <dt className="order-2 mt-1 text-sm text-muted-foreground">{s.label}</dt>
             <dd className="order-1 text-3xl font-bold tabular-nums">{s.value}</dd>
             {s.hint && (
-              <dd className="order-3 mt-1 text-xs text-muted-foreground/70">{s.hint}</dd>
+              <dd className="order-3 mt-1 text-xs text-muted-foreground">{s.hint}</dd>
             )}
           </div>
         ))}
