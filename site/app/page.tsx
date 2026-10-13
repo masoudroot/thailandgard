@@ -126,7 +126,7 @@ export default async function HomePage() {
           <Button asChild variant="outline" className="shrink-0">
             <Link href="/tours">
               همهٔ تورها
-              <ArrowLeft />
+              <ArrowLeft aria-hidden />
             </Link>
           </Button>
         </div>
@@ -188,14 +188,14 @@ export default async function HomePage() {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Button asChild variant="brand">
             <a href={s.PHONE_MOBILE_LINK} data-call-context="home-combo">
-              <Phone />
+              <Phone aria-hidden />
               تماس با مشاور سفر
             </a>
           </Button>
           <Button asChild variant="outline">
             <Link href="/tours/bangkok-phuket-8-days">
               جزئیات تور
-              <ArrowLeft />
+              <ArrowLeft aria-hidden />
             </Link>
           </Button>
         </div>
@@ -260,14 +260,14 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild variant="brand">
             <a href={s.PHONE_MOBILE_LINK} data-call-context="home-steps">
-              <Phone />
+              <Phone aria-hidden />
               تماس با مشاور سفر
             </a>
           </Button>
           <Button asChild variant="outline">
             <Link href="/contact">
               درخواست مشاوره
-              <ArrowLeft />
+              <ArrowLeft aria-hidden />
             </Link>
           </Button>
         </div>
@@ -291,7 +291,7 @@ export default async function HomePage() {
           <Button asChild variant="outline" className="shrink-0">
             <Link href="/guide">
               همهٔ راهنماها
-              <ArrowLeft />
+              <ArrowLeft aria-hidden />
             </Link>
           </Button>
         </div>
@@ -341,11 +341,11 @@ export default async function HomePage() {
                   <p className="text-sm leading-7 text-muted-foreground">{guide.excerpt}</p>
                   <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
-                      <Clock className="size-3.5" />
+                      <Clock aria-hidden className="size-3.5" />
                       {fa(guide.readingMinutes)} دقیقه مطالعه
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <CalendarDays className="size-3.5" />
+                      <CalendarDays aria-hidden className="size-3.5" />
                       به‌روزرسانی: {guide.updatedFa}
                     </span>
                   </div>
