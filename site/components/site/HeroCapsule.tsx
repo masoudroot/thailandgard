@@ -92,7 +92,7 @@ export function HeroCapsule({
           <div className="flex flex-col items-center justify-center gap-3">
             <Button asChild size="lg" variant="brand" className="rounded-full px-7">
               <a href={phoneHref} data-call-context="hero">
-                <Phone />
+                <Phone aria-hidden />
                 {phoneLabel}
               </a>
             </Button>
@@ -102,7 +102,7 @@ export function HeroCapsule({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline decoration-foreground/20 underline-offset-4 transition-colors hover:text-foreground"
             >
-              <MessageCircle className="size-4" />
+              <MessageCircle aria-hidden className="size-4" />
               یا در واتس‌اپ پیام بدهید
             </a>
           </div>
