@@ -185,7 +185,9 @@ export default async function PhuketOctoberPage() {
           </div>
 
           {/* سکشن ۴: پنل تصمیم */}
-          <aside className="lg:sticky lg:top-6 lg:self-start">
+          {/* نبض دیزاین (D-331، ۱۴۰۵/۰۷/۲۱): top-24 تا زیر نوبار چسبان (h-16) نرود؛
+              قرارداد scroll-mt-24 سکشن‌های سایت (پیش‌تر top-6 بود و ~۴۰px زیر نوبار می‌رفت). */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
             {/*
               دلیل گوشه‌های ۲۲ (rounded-surface): یکدستی با سه کارت «چرا الان» همین لندینگ.
               دستور وایب‌فارسی ۱۲:۰۵؛ نه rounded-2xl الگوی checkout.
