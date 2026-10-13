@@ -13,10 +13,12 @@ import { Button } from "@/components/ui/button";
  *   (هدر، هیرو، صفحهٔ تور، کارت تماس، نوار چسبان) که همگی کهربایی solid شدند.
  */
 export function CtaBlock({ title, description, action = "تماس با مشاور سفر", actionHref, note, callContext }: { title: string; description?: string; action?: React.ReactNode; actionHref?: string; note?: string; callContext?: string }) {
+  // D-209 (۱۴۰۵/۰۷/۲۱): آیکون در ابتدای خط (سمت راست در RTL)؛ هم‌خوان با
+  // CallButtons (همان لیبل «تماس با مشاور سفر»)؛ قرارداد آیکونِ پیشرو.
   const inner = (
     <>
-      {action}
       <Phone />
+      {action}
     </>
   );
   return (
