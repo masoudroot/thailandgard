@@ -109,7 +109,7 @@ export function renderGuideBlocks(paragraphs: string[]): ReactNode {
       );
     }
     return (
-      <p key={i} className="leading-[1.9] text-foreground/90">
+      <p key={i} className="text-pretty leading-[1.9] text-foreground/90">
         {renderInlineLinks(block.text)}
       </p>
     );
