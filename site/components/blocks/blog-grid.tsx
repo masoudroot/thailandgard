@@ -19,7 +19,7 @@ export interface Post {
 export function BlogGrid({ title = "آخرین مطالب", posts }: { title?: string; posts: Post[] }) {
   return (
     <section className="px-6 py-16">
-      <div className="mx-auto mb-8 flex max-w-5xl items-center justify-between"><h2 className="text-2xl font-bold">{title}</h2><a href="/guide" className="text-sm text-muted-foreground hover:text-foreground">همه‌ی مطالب</a></div>
+      <div className="mx-auto mb-8 flex max-w-5xl items-center justify-between"><h2 className="text-balance text-2xl font-bold">{title}</h2><a href="/guide" className="text-sm text-muted-foreground hover:text-foreground">همه‌ی مطالب</a></div>
       <ul className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
         {posts.map((p) => (
           <li key={p.title}>
