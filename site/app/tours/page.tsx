@@ -54,7 +54,7 @@ export default async function ToursPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL },
+      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL.replace(/\/+$/, "") }, // S-005: بدون اسلش انتهایی، هم‌خوان با کنونیکال
       { "@type": "ListItem", position: 2, name: "تورهای تایلند", item: `${SITE_URL}/tours` },
     ],
   };
@@ -194,9 +194,10 @@ export default async function ToursPage() {
         <ul className="mt-3 space-y-2 text-muted-foreground">
           <li>اولین سفرتان به تایلند است و می‌خواهید همه‌چیز را ببینید: <strong className="text-foreground">تور ترکیبی بانکوک و پوکت</strong>؛ شهر و جزیره در یک سفر.</li>
           <li>با خانواده و بچه سفر می‌کنید: <strong className="text-foreground">بانکوک و پاتایا</strong>؛ متنوع‌ترین برنامه با کمترین قیمت پایه.</li>
-          <li>ماه‌عسل است یا آرامش مطلق می‌خواهید: <strong className="text-foreground">سامویی</strong>؛ جزیرهٔ آرام خلیج تایلند.</li>
-          <li>عاشق طبیعت و قایق‌سواری‌اید: <strong className="text-foreground">کرابی</strong>؛ چهار جزیره در شش روز.</li>
           <li>کلاسیک و مطمئن می‌خواهید: <strong className="text-foreground">پوکت</strong>؛ فی‌فی و فانگ‌نا که همه می‌شناسند.</li>
+          {/* S-049 (غیرفعال‌سازی سامویی/کرابی، ۱۱:۱۰، ۲۱ مهر ۱۴۰۵): دو قلم توصیهٔ
+              «سامویی» و «کرابی» حذف شد چون تورشان فعال نیست؛ با متن تازهٔ content
+              جایگزین می‌شود. */}
         </ul>
         <p className="mt-4 text-sm text-muted-foreground">
           قیمت پایه یعنی شروع قیمت نمایشی؛ عدد نهایی هر تور با تماس مشخص می‌شود. در تور ترکیبی، پرواز بین‌المللی جداگانه حساب می‌شود.
