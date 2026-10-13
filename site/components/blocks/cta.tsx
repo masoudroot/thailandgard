@@ -25,7 +25,7 @@ export function CtaBlock({ title, description, action = "تماس با مشاو�
   );
   return (
     <section className="px-6 py-8">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-border bg-card px-6 py-10 text-center sm:px-12">
+      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-surface border border-border bg-card px-6 py-10 text-center sm:px-12">
         <div className="relative">
           <h2 className="text-3xl sm:text-4xl">{title}</h2>
           {description && <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{description}</p>}
