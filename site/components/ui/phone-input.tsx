@@ -69,7 +69,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus,
           aria-invalid={showError ? true : undefined}
           aria-describedby={hintId}
         />
-        {valid && <Check className="size-4 text-success-text" />}
+        {valid && <Check aria-hidden className="size-4 text-success-text" />}
       </div>
       <p id={hintId} className="text-sm text-muted-foreground">
         {forceError ? <span role="alert" className="text-destructive">لطفاً شمارهٔ موبایل را کامل و درست وارد کنید.</span> : op ? `اپراتور: ${op}` : valid ? "شماره معتبر است" : digits.length === 10 && !valid ? <span role="alert" className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}

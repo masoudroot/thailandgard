@@ -62,8 +62,8 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
           </div>
         ))}
       </div>
-      <button type="button" aria-label="قبلی" title="قبلی" onClick={() => go(index - 1)} disabled={index === 0} className={cn(nav, "start-2")}><ChevronRight className="size-4" /></button>
-      <button type="button" aria-label="بعدی" title="بعدی" onClick={() => go(index + 1)} disabled={index >= count - 1} className={cn(nav, "end-2")}><ChevronLeft className="size-4" /></button>
+      <button type="button" aria-label="قبلی" title="قبلی" onClick={() => go(index - 1)} disabled={index === 0} className={cn(nav, "start-2")}><ChevronRight aria-hidden className="size-4" /></button>
+      <button type="button" aria-label="بعدی" title="بعدی" onClick={() => go(index + 1)} disabled={index >= count - 1} className={cn(nav, "end-2")}><ChevronLeft aria-hidden className="size-4" /></button>
       {showDots && (
         <div className="mt-3 flex justify-center gap-1.5">
           {Array.from({ length: count }, (_, i) => (

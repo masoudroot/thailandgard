@@ -165,7 +165,7 @@ export function Sheet({
             className="relative ms-auto flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground before:absolute before:-inset-1.5 before:content-['']"
             title="بستن"
           >
-            <X className="size-4" />
+            <X aria-hidden className="size-4" />
           </button>
         </div>
         <div className="flex flex-1 flex-col overflow-auto p-4">{children}</div>

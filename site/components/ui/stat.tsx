@@ -25,7 +25,7 @@ export function Stat({ label, value, unit, delta, deltaLabel = "نسبت به د
         </p>
         {delta !== undefined && (
           <span className={cn("inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold", up ? "text-success-text" : "text-destructive")} title={String(deltaLabel)}>
-            {up ? <ArrowUpLeft className="size-3.5" /> : <ArrowDownLeft className="size-3.5" />}
+            {up ? <ArrowUpLeft aria-hidden className="size-3.5" /> : <ArrowDownLeft aria-hidden className="size-3.5" />}
             {faPercent(Math.abs(delta))}
           </span>
         )}
