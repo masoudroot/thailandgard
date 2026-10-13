@@ -221,7 +221,8 @@ export default async function ToursPage() {
       {/* بلوک «هزینهٔ تور تایلند چقدر است؟»؛ بریف seocontent ۲۰ مهر ۱۴۰۵، ۱۰:۰۰، اسنیپت پاراگرافی */}
       <section className="mt-8 max-w-3xl space-y-4">
         <h2 className="text-balance text-2xl sm:text-3xl">هزینهٔ تور تایلند چقدر است؟</h2>
-        <p className="leading-[1.8] text-muted-foreground">
+        {/* D-318 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): text-pretty روی پاراگراف بلند (۵۶ کلمه)؛ ادامهٔ کمپین D-298/D-301/D-303 */}
+        <p className="leading-[1.8] text-pretty text-muted-foreground">
           هزینهٔ تور تایلند عدد ثابتی ندارد و به پنج عامل بستگی دارد: فصل سفر، درجهٔ هتل، مدت اقامت، مقصد انتخابی و پرواز مستقیم یا با توقف. تورهای تایلندگرد فروش تلفنی دارند و قیمت دقیق هر پکیج را کارشناس مقصد بر اساس همین عوامل مشخص می‌کند؛ برای مقایسهٔ دو تور، هر پنج عامل را کنار هم بگذارید.
         </p>
       </section>
