@@ -12,6 +12,9 @@ export interface Guide {
   /** تیتر نمایشی h1 (بریف تک‌قانونی h1، ۲۰ مهر ۱۴۰۵): اگر ستون h1 در DB پر بود
       همان می‌آید، وگرنه displayTitle(title). کلمهٔ کلیدی صفحه، نه تکرار تایتل. */
   h1?: string | null;
+  /** تاریخ انتشار ISO (کلاس S-015/S-031): اگر ستون published_at در DB پر بود
+      در datePublished اسکیمای Article می‌نشیند. */
+  publishedAt?: string | null;
   excerpt: string;
   category: string;
   readingMinutes: number;

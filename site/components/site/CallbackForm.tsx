@@ -9,24 +9,7 @@ import { Alert } from "@/components/ui/alert";
 import { LoadingDots } from "@/components/animations/loading-dots";
 import { WHATSAPP_LINK, PHONE_MOBILE_LINK } from "@/lib/site";
 import { clarityEvent } from "@/lib/clarity";
-
-/**
- * ساعت‌آگاهی (پیشنهاد ۱ لید، ساعت ۱۴): فرم ۲۴ساعته باز است ولی ساعت کاری
- * «شنبه تا پنجشنبه، ۹ صبح تا ۹ شب» است؛ پیام موفقیت طبق ساعت تهران تصمیم می‌گیرد
- * تا «به‌زودی»ی که نیمه‌شب دروغ می‌شد، تکرار نشود.
- */
-function isWithinWorkingHours(): boolean {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Tehran",
-    hour: "numeric",
-    hourCycle: "h23",
-    weekday: "short",
-  }).formatToParts(new Date());
-  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
-  const weekday = parts.find((p) => p.type === "weekday")?.value;
-  // جمعه = تعطیل؛ بقیهٔ روزها فقط ۹ تا ۲۱
-  return weekday !== "Fri" && hour >= 9 && hour < 21;
-}
+import { isWithinWorkingHours, nextCallbackDayName, callbackSlotLabel } from "@/lib/working-hours";
 
 /** کلید first-touch در localStorage (هندآف تحلیل ۲۰ مهر ۱۴۰۵). */
 const FIRST_TOUCH_KEY = "tg_first_touch";
@@ -162,7 +145,8 @@ export function CallbackForm({
     e.preventDefault();
     clarityEvent("callback_submit_attempt", { tourSlug });
     if (name.trim().length < 2) {
-      setNameError("نام را کامل وارد کنید.");
+      // حکم ۵ برندینگ: خطا «چرا» را هم می‌گوید، نه فقط امر.
+      setNameError("نام را کامل وارد کنید؛ بدون نام نمی‌توانیم با شما تماس بگیریم.");
       clarityEvent("callback_validation_fail", { ...extra, field: "name" });
       return;
     }
@@ -193,7 +177,7 @@ export function CallbackForm({
       setStatus("done");
       clarityEvent("callback_submit_success", { tourSlug });
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "درخواستتان ثبت نشد؛ یک بار دیگر تلاش کنید.");
+      setServerError(err instanceof Error ? err.message : "یک بار دیگر تلاش کنید؛ درخواستتان ثبت نشد.");
       setStatus("error");
       clarityEvent("callback_server_error", { ...extra, code: statusCode > 0 ? String(statusCode) : "network" });
     }
@@ -204,14 +188,18 @@ export function CallbackForm({
       <Alert ref={statusAlertRef} tabIndex={-1} variant="success" title="درخواستتان ثبت شد">
         {outsideHours ? (
           <>
-            درخواستتان ثبت شد. ساعت کاری ما شنبه تا پنجشنبه، ۹ صبح تا ۹ شب است؛ در روز کاری بعد با شما تماس می‌گیریم. اگر عجله دارید،{" "}
+            {/* حکم ۱۶ design-ir: قول «روز معلوم» به‌جای «روز کاری بعد»؛ نام روز
+                با همان منطق isWithinWorkingHours (جمعه‌شب ← شنبه) و بازهٔ
+                پیش‌فرض «بین ۹ تا ۱۲»، مگر بازهٔ انتخابی خود کاربر. */}
+            درخواستتان ثبت شد. {nextCallbackDayName()} {callbackSlotLabel(callTime)} زنگ می‌زنیم. اگر عجله دارید،{" "}
             <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
             </a>
             .
           </>
         ) : (
-          "ممنون؛ همین امروز در ساعت کاری (۹ صبح تا ۹ شب) با شما تماس می‌گیریم. اگر عجله دارید، مستقیم زنگ بزنید."
+          // حکم ۷ برندینگ: «ممنون؛» اضافی حذف شد (تیتر Alert همان را می‌گوید).
+          "امروز در ساعت کاری (۹ صبح تا ۹ شب) با شما تماس می‌گیریم. اگر عجله دارید، مستقیم زنگ بزنید."
         )}
       </Alert>
     );
@@ -219,6 +207,28 @@ export function CallbackForm({
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
+      {/* پیام ساعت‌کاری بالای فرم (حکم ۱۶/۱۷/۱۸ design-ir): در خارج ساعت، اول
+          «چرا» (رفتار دکمهٔ تلفنی بی‌توضیح «ترفند» خوانده می‌شود)، بعد قول
+          «روز معلوم»، بعد لینک واتس‌اپ به‌عنوان راه «الان». بالای فرم است تا
+          با اسکرولِ خارج‌ساعتِ لینک‌های tel: بی‌درنگ دیده شود.
+          یافتهٔ لید (نیمه‌شب SSR): تا hydrate نشده، پیام خنثی بدون «امروز»
+          است تا قولِ دروغِ نیمه‌شب داده نشود. */}
+      <p id="callback-hours-notice" className="text-sm text-muted-foreground">
+        {outsideHours ? (
+          <>
+            الان خارج از ساعت کاری هستیم و کسی پشت خط نیست. شماره‌تان را بگذارید؛{" "}
+            {nextCallbackDayName()} {callbackSlotLabel(callTime)} زنگ می‌زنیم. اگر عجله دارید،{" "}
+            <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
+              در واتس‌اپ پیام بدهید
+            </a>
+            .
+          </>
+        ) : withinHours === null ? (
+          "با ثبت این فرم، در ساعت کاری (۹ صبح تا ۹ شب) با شما تماس می‌گیریم."
+        ) : (
+          "با ثبت این فرم، امروز در ساعت کاری (۹ صبح تا ۹ شب) با شما تماس می‌گیریم."
+        )}
+      </p>
       <Field label="نام و نام خانوادگی" htmlFor="cb-name">
         <Input
           id="cb-name"
@@ -285,17 +295,18 @@ export function CallbackForm({
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}
-          <a href={PHONE_MOBILE_LINK} data-call-context="form" className="underline" onClick={() => clarityEvent("tel_fallback_click", extra)}>
+          <a href={PHONE_MOBILE_LINK} data-call-context="form" className="underline" onClick={() => clarityEvent("tel_fallback_click", { ...extra, source: buildSource(tourSlug) })}>
             مستقیم زنگ بزنید
           </a>
           .
         </Alert>
       )}
       <Button type="submit" size="lg" className="w-full" disabled={status === "busy"}>
-        <PhoneCall />
+        <PhoneCall aria-hidden />
         {status === "busy" ? (
           <>
-            در حال ارسال…
+            {/* حکم ۴ برندینگ: الگوی بارگذاری محور ششم؛ رجیستر «شما»، نه ربات. */}
+            یک لحظه صبر کنید؛ داریم درخواستتان را ثبت می‌کنیم
             {/* انحراف از دستور اجرایی (loading-dots + aria-hidden): پراپ aria-hidden در
                 API آیتم رجیستری نیست و کامپایل نمی‌شود؛ نقطه‌های داخلی خود آیتم
                 aria-hidden‌اند و role=status روی wrapper خالی است، پس متن دکمه
@@ -308,11 +319,6 @@ export function CallbackForm({
           "درخواست تماس"
         )}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">
-        {outsideHours
-          ? "با ثبت این فرم، در روز کاری بعد (شنبه تا پنجشنبه، ۹ صبح تا ۹ شب) با شما تماس می‌گیریم."
-          : "با ثبت این فرم، امروز در ساعت کاری (۹ صبح تا ۹ شب) با شما تماس می‌گیریم."}
-      </p>
     </form>
   );
 }

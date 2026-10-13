@@ -3,8 +3,9 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { getTours, getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
-import { pageSeo } from "@/lib/og";
+import { pageSeo, displayTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 import { TourCard } from "@/components/site/TourCard";
 import { TourBanner } from "@/components/site/TourBanner";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
@@ -58,7 +59,7 @@ export default async function ToursPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-6 py-10">
       <Breadcrumb
         className="mb-6"
         items={[{ label: "خانه", href: "/" }, { label: "تورهای تایلند" }]}
@@ -116,7 +117,31 @@ export default async function ToursPage() {
         callContext="tours-cta"
         note="زمان ترجیحی تماس را شما می‌گویید"
       />
-      </div>
+
+      {/* S-090 (بریف seo ۰۳:۳۵، قانون ۶۴): لینک زمینه‌ای هاب راهنماها از داخل
+          main همین صفحه؛ فقط در main (نه لی‌اوت سراسری). انکر = عنوان نمایشی
+          راهنما (همان displayTitle کارت‌ها). */}
+      <section className="mt-8">
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-2xl sm:text-3xl">راهنمای سفر</h2>
+            <ul className="mt-4 space-y-3">
+              {[
+                { slug: "thailand-visa-guide", title: "ویزای تایلند برای ایرانیان؛ مدارک، هزینه و زمان صدور" },
+                { slug: "thailand-trip-cost", title: "هزینهٔ سفر به تایلند در ۱۴۰۵؛ راهنمای کامل بودجهٔ سفر" },
+                { slug: "best-time-to-visit-thailand", title: "بهترین زمان سفر به تایلند" },
+              ].map((g) => (
+                <li key={g.slug}>
+                  <Link href={`/guide/${g.slug}`} className="font-semibold underline underline-offset-4">
+                    {displayTitle(g.title)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </section>
+      </main>
     </>
   );
 }

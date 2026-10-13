@@ -11,6 +11,7 @@ import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { pageSeo, brandTitle, displayTitle } from "@/lib/og";
+import { resolveH1 } from "@/lib/seo-h1";
 import { ogImageForSlug } from "@/lib/og-slugs";
 import { GUIDE_COVERS } from "@/lib/guide-covers";
 import { CoverImage } from "@/components/site/CoverImage";
@@ -56,12 +57,13 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const guide = await getGuide(slug);
+  // S-001: دو خوانش مستقل موازی‌اند تا روی رندر سرد یک راندتریپ ذخیره شود
+  // (هر دو 'use cache' دارند؛ روی کش گرم فرقی نمی‌کند).
+  const [guide, s] = await Promise.all([getGuide(slug), getSiteSettings()]);
   if (!guide) return { title: "راهنما پیدا نشد" };
   // قاعدهٔ og.ts: صفحه‌ای که openGraph خودش را دارد باید pageSeo را صدا بزند
   // (یافتهٔ S2 سئو: url و locale و بلوک twitter در همهٔ صفحه‌ها)
   // + نقشهٔ سراسری og (S-003): مثل صفحهٔ تور، اگر فایل اختصاصی بود همان.
-  const s = await getSiteSettings();
   const meta = pageSeo({
     title: brandTitle(guide.title),
     description: guide.excerpt,
@@ -96,14 +98,15 @@ export default async function GuideDetailPage({ params }: PageProps) {
       ).filter((t): t is NonNullable<typeof t> => t !== undefined && t.active)
     : [];
 
-  // بریف تک‌قانونی h1 (۲۰ مهر ۱۴۰۵، یافتهٔ seo/seocontent/content):
-  // h1 کلمهٔ کلیدی صفحه است نه تکرار تایتل؛ اگر ستون h1 در DB پر بود همان،
-  // وگرنه displayTitle(title) مثل قبل.
-  const h1 = guide.h1?.trim() ? guide.h1 : displayTitle(guide.title);
+  // بریف تک‌قانونی h1 (الگوی صفحهٔ تور): ترتیب حل در lib/seo-h1.ts است؛
+  // ستون h1 دیتابیس، بعد نگاشت H1_OVERRIDES، بعد مشتق‌سازی از title.
+  const h1 = resolveH1(guide.slug, guide.title, guide.h1);
 
   // قانون ۳۷ اسکیما: dateModified از همان رشته‌ای می‌آید که صفحه نمایش می‌دهد
-  // (خط «به‌روزرسانی: {guide.updatedFa}»)؛ datePublished داده نداریم پس عمداً نیست.
+  // (خط «به‌روزرسانی: {guide.updatedFa}»).
   const dateModified = updatedFaToIso(guide.updatedFa);
+  // کلاس S-015/S-031: datePublished وقتی ستون guides.published_at آمد خودکار
+  // در اسکیما می‌نشیند (سیم‌کشی مدل در db-content.ts)؛ تا آن موقع غایب است.
   // S-045 (کلاس؛ ۲۰ مهر ۱۴۰۵): بلاک FAQPage خالی نویز ساخت‌یافته است؛
   // فقط وقتی راهنما سؤال واقعی دارد در گراف می‌آید.
   const faqBlock =
@@ -124,12 +127,15 @@ export default async function GuideDetailPage({ params }: PageProps) {
     "@graph": [
       {
         "@type": "Article",
-        headline: guide.title,
+        headline: h1,
         description: guide.excerpt,
         inLanguage: "fa",
         url: `${s.SITE_URL}/guide/${guide.slug}`,
         mainEntityOfPage: `${s.SITE_URL}/guide/${guide.slug}`,
         ...(dateModified ? { dateModified } : {}),
+        // S-085 (ب): datePublished از ستون guides.published_at می‌آید؛
+        // تا وقتی ستون نیست، کلید صادر نمی‌شود.
+        ...(guide.publishedAt ? { datePublished: guide.publishedAt } : {}),
         author: { "@type": "Organization", name: s.SITE_NAME, url: s.SITE_URL },
         publisher: {
           "@type": "Organization",
@@ -195,7 +201,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       {isPillar ? (
         <PillarHero
           badge="راهنمای کامل"
-          title={displayTitle(guide.title)}
+          title={h1}
           description={guide.excerpt}
           readingMinutes={guide.readingMinutes}
           updatedFa={guide.updatedFa}

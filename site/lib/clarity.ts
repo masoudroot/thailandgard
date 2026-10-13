@@ -28,7 +28,10 @@ function deviceKind(): string {
  * callback_submit_attempt | callback_submit_success | callback_server_error |
  * tel_fallback_click
  */
-export function clarityEvent(name: string, extra?: { field?: string; code?: string; tourSlug?: string }): void {
+export function clarityEvent(
+  name: string,
+  extra?: { field?: string; code?: string; tourSlug?: string; source?: string; context?: string },
+): void {
   if (typeof window === "undefined") return;
   const c = window.clarity;
   if (typeof c !== "function") return;
@@ -39,4 +42,7 @@ export function clarityEvent(name: string, extra?: { field?: string; code?: stri
   if (extra?.tourSlug) c("set", "tour_slug", extra.tourSlug);
   if (extra?.field) c("set", "field", extra.field);
   if (extra?.code) c("set", "code", extra.code);
+  // بُعدهای یافتهٔ ۳۴ تحلیل (۲۱ مهر ۱۴۰۵): منبع سه‌بخشی تماس و زمینهٔ رویداد
+  if (extra?.source) c("set", "source", extra.source);
+  if (extra?.context) c("set", "context", extra.context);
 }

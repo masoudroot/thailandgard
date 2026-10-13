@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSiteSettings } from "@/lib/db-content";
 
-/** دکمه‌های تماس فروش: موبایل اصلی، ثابت دوم، و واتس‌اپ. */
+/** دکمه‌های تماس فروش: موبایل اصلی، ثابت دوم، و مشاوره واتس‌اپی. */
 export async function CallButtons({ compact = false }: { compact?: boolean }) {
   const s = await getSiteSettings();
   const CONTACT_NAME = s.CONTACT_NAME;
@@ -25,7 +25,7 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
       <Button asChild size="lg" className="w-full" variant="secondary">
         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
           <MessageCircle />
-          واتس‌اپ
+          مشاوره واتس‌اپی
         </a>
       </Button>
       {compact && (

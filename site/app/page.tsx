@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock, Compass, PhoneCall, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { TourCard, COMBO_SLUG } from "@/components/site/TourCard";
+import { FeatureSplit } from "@/components/blocks/feature-split";
+import { StepsBlock } from "@/components/blocks/steps-block";
+import { Separator } from "@/components/ui/separator";
 import { CoverImage } from "@/components/site/CoverImage";
 import { GUIDE_COVERS } from "@/lib/guide-covers";
 import { Reveal } from "@/components/animations/reveal";
@@ -110,6 +113,61 @@ export default async function HomePage() {
         </Reveal>
       </section>
 
+      {/* سکشن «تور ترکیبی بانکوک و پوکت» (اسپک ۱۴۰۵/۰۷/۲۱ §۱؛ حکم‌های ۲۱ و ۲۲ design-ir):
+          تیتر «بانکوک و پوکت.»، description با «در یک سفر». */}
+      <FeatureSplit items={[{
+        eyebrow: "ترکیبی جدید",
+        title: "بانکوک و پوکت.",
+        description: "۸ روز و ۷ شب در یک سفر: ۳ شب بانکوک با ضرب‌آهنگ شهر، ۴ شب پوکت با ضرب‌آهنگ ساحل.",
+        bullets: [
+          "۳ شب بانکوک، ۴ شب پوکت؛ یک سفر، دو حال‌وهوا",
+          "مشاورهٔ رایگان پیش از خرید",
+          "قیمت شفاف، بدون هزینهٔ پنهان",
+          "پشتیبانی فارسی‌زبان در مقصد",
+        ],
+        media: (
+          <img
+            src="/images/hero-phuket-sunset.webp"
+            alt="غروب ساحل پوکت"
+            loading="lazy"
+            className="size-full object-cover"
+          />
+        ),
+      }]} />
+      {/* بلوک قیمت + CTA + بلوک حقوقی (اسپک §۱.۴): زیر ردیف ترکیبی؛ قانون
+          عدد/لیبل (لیبل «از» راست، عدد چپ). قیمت هیچ لهجهٔ کهربایی ندارد. */}
+      <div className="mx-auto max-w-5xl px-6 pb-16">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-sm text-muted-foreground">از</span>
+          <span className="text-2xl tabular-nums">۱۰۲٬۶۸۷٬۰۰۰</span>
+          <span className="text-sm text-muted-foreground">تومان</span>
+          <span className="text-sm text-muted-foreground">هر نفر</span>
+        </div>
+        {/* برچسب خنثی زیر قیمت (حکم ۲۳ design-ir؛ پیشنهاد برندینگ تا متن تازه) */}
+        <p className="mt-2 text-xs text-muted-foreground">قیمت با نرخ روز دلار به‌روز می‌شود</p>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Button asChild variant="brand">
+            <a href={s.PHONE_MOBILE_LINK} data-call-context="home-combo">
+              <Phone />
+              تماس با مشاور سفر
+            </a>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/tours/bangkok-phuket-8-days">
+              جزئیات تور
+              <ArrowLeft />
+            </Link>
+          </Button>
+        </div>
+        {/* بلوک حقوقی (متن لازم‌الاجرای برندینگ): mt-6 و جداکنندهٔ مویی بالای بلوک */}
+        <div className="mt-6">
+          <Separator />
+          <p className="mt-4 text-sm text-muted-foreground">
+            این تور چارتر است و کنسلی ندارد. پرواز رفت‌وبرگشت جداگانه محاسبه می‌شود.
+          </p>
+        </div>
+      </div>
+
       {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}
       <div className="py-10">
         <SeasonBanner />
@@ -140,6 +198,37 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* بلوک «رزرو تلفنی در سه قدم» (اسپک ۱۴۰۵/۰۷/۲۱ §۴؛ حکم ۱۹ design-ir:
+          متن‌ها عین وایرفریم با رجیستر «تو» پیاده می‌شوند؛ پرچم: منتظر متن
+          تازه از content/branding) */}
+      <StepsBlock
+        eyebrow="رزرو تلفنی"
+        title="رزرو سفر در سه قدم"
+        gridClassName="md:grid-cols-3"
+        steps={[
+          { title: "تماس با مشاور", description: "شماره را بگیر؛ مشاور فارسی‌زبان، تورِ مناسب را با تاریخ و بودجه‌ات می‌سنجد." },
+          { title: "انتخاب تور و تاریخ", description: "قیمت روز و ظرفیت چارتر را شفاف می‌شنوی؛ هیچ هزینه‌ای پنهان نیست." },
+          { title: "ثبت و پرداخت", description: "رزروت ثبت می‌شود؛ پرداخت را با رسید رسمی نهایی می‌کنی و واچر سفر را می‌گیری." },
+        ]}
+      />
+      {/* CTA زیر قدم‌ها (وسط‌چین؛ حکم ۲۰: لیبل واحد «تماس با مشاور سفر») */}
+      <div className="mx-auto max-w-5xl px-6 pb-16">
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild variant="brand">
+            <a href={s.PHONE_MOBILE_LINK} data-call-context="home-steps">
+              <Phone />
+              تماس با مشاور سفر
+            </a>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/contact">
+              درخواست مشاوره
+              <ArrowLeft />
+            </Link>
+          </Button>
+        </div>
+      </div>
 
       <section className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">

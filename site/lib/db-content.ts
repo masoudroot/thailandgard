@@ -59,6 +59,8 @@ interface TourRow {
   price_updated_at: string | null;
   tourist_type: string;
   active: boolean;
+  /** ستون h1 (مایگریشن با مسعود): تا وقتی ستون نیست، undefined می‌ماند (الگوی راهنما) */
+  h1?: string | null;
   summary: string;
   description: string[];
   highlights: string[];
@@ -85,6 +87,8 @@ interface GuideRow {
   title: string;
   /** ستون h1 (مایگریشن ۰۰۸، با مسعود): تا وقتی ستون نیست، undefined می‌ماند. */
   h1?: string | null;
+  /** ستون published_at: تا وقتی ستون نیست، undefined می‌ماند (الگوی h1). */
+  published_at?: string;
   excerpt: string;
   category: string;
   reading_minutes: number;
@@ -203,6 +207,7 @@ function mapTour(row: TourRow, dayRows: TourDayRow[], faqRows: TourFaqRow[]): To
     priceUpdatedAt: row.price_updated_at,
     touristType: row.tourist_type,
     active: row.active,
+    h1: row.h1 ?? null,
     summary: row.summary,
     description: row.description,
     highlights: row.highlights,
@@ -228,6 +233,7 @@ function mapGuide(
     slug: row.slug,
     title: row.title,
     h1: row.h1 ?? null,
+    publishedAt: row.published_at ?? null,
     excerpt: row.excerpt,
     category: row.category,
     readingMinutes: row.reading_minutes,

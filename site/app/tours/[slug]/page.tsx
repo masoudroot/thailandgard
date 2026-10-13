@@ -6,14 +6,16 @@ import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { pageSeo, brandTitle } from "@/lib/og";
 import { ogImageForSlug } from "@/lib/og-slugs";
-import { TOUR_COVERS } from "@/lib/tour-covers";
+import { TOUR_COVERS, TOUR_BODY_IMAGES } from "@/lib/tour-covers";
 import { fa, faNumber } from "@/lib/utils";
 import { formatJalali } from "@/lib/jalali";
+import { resolveH1 } from "@/lib/seo-h1";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import { CoverImage } from "@/components/site/CoverImage";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { SmartTelLink } from "@/components/site/SmartTelLink";
 import { TourStickyBar } from "@/components/site/TourStickyBar";
 import { FaqBlock } from "@/components/blocks/faq";
 import { Accordion } from "@/components/ui/accordion";
@@ -109,6 +111,12 @@ export default async function TourPage({ params }: Props) {
   // کاور قاب قهرمان (اسپک mount §۳): اگر نگاشت نداشت، جای‌نگه‌دار
   // تایپوگرافیکِ هم‌شکل (تور ترکیبی؛ عکس ناجور ممنوع).
   const heroCover = TOUR_COVERS[tour.slug];
+  // قانون تک‌قانونی h1 (۲۱ مهر ۱۴۰۵): h1 کلمهٔ کلیدی صفحه است نه تکرار تایتل؛
+  // اول ستون h1 دیتابیس، بعد نگاشت تأییدشده، وگرنه قاعدهٔ مشتق‌سازی.
+  const h1 = resolveH1(tour.slug, tour.title, tour.h1);
+  // اسلات تصویری بدنه MOB-S2 (اسپک موبایل ۲۱ مهر ۱۴۰۵): فقط با عکس واقعی
+  // رندر می‌شود؛ فعلاً برای هیچ توری عکسی نیست (S-002 باز).
+  const bodyImage = TOUR_BODY_IMAGES[tour.slug];
 
   // اقدام ۱ بریف آمیتیس (۲۰ مهر ۱۴۰۵)، قانون «تازگی قیمت»:
   // قیمت «نامشخص» است اگر price_from یا price_updated_at برابر NULL باشد یا
@@ -146,6 +154,8 @@ export default async function TourPage({ params }: Props) {
     touristType: tour.touristType,
     // S-046 حسابرس (۲۰ مهر ۱۴۰۵): itinerary خالی (numberOfItems: 0) ساختار مرده است؛
     // وقتی دادهٔ برنامهٔ روزبه‌روز هنوز نوشته نشده، کلید کلاً حذف می‌شود.
+    // بلوکر (۲۱ مهر ۱۴۰۵): جدول tour_legs روی پروداکشن نیست (مایگریشن ۰۰۷ با
+    // مدیر/مسعود)؛ «دادهٔ برنامهٔ روزبه‌روز از تیم محتوا نرسیده».
     ...(tour.itinerary.length > 0
       ? {
           itinerary: {
@@ -160,25 +170,47 @@ export default async function TourPage({ params }: Props) {
           },
         }
       : {}),
-    // قیمت از اسکیما حذف شد: صفحه خودش می‌گوید قیمت‌ها «قیمت پایه» و تقریبی‌اند
-    // و با تاریخ سفر و ظرفیت هتل تغییر می‌کنند؛ پس validFrom/priceValidUntil واقعی
-    // وجود ندارد و نگه‌داشتن price گمراه‌کننده بود. قیمت نمایشی HTML سر جایش است.
+    // S-046 (بخش دوم؛ ۲۱ مهر ۱۴۰۵): آفر بدون قیمت شانس rich result قیمت را صفر
+    // می‌کرد؛ حالا قیمت واقعی نمایشی صفحه (همان priceFrom) با واحد تومان
+    // می‌نشیند. وقتی قیمت null است آفر فقط availability و url دارد.
     offers: {
       "@type": "Offer",
       availability: tour.active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       url: `${s.SITE_URL}/tours/${tour.slug}`,
+      ...(tour.priceFrom != null
+        ? { price: tour.priceFrom, priceCurrency: "IRT" }
+        : {}),
     },
   };
+
+  // باکس «پاسخ مستقیم» فیچر اسنیپت (کارت چرخهٔ ۰۶، بریف seocontent ۰۳:۳۵،
+  // ۲۱ مهر ۱۴۰۵): فقط روی صفحهٔ تور ترکیبی؛ هم‌زمان در HTML و FAQPage.
+  // بدون سطر تازه در tour_faqs تا در آکاردئون «پرسش‌های پرتکرار» تکرار نشود.
+  const SNIPPET_QUESTION = "تور ترکیبی بانکوک و پوکت چند روزه است؟";
+  const SNIPPET_ANSWER =
+    "تور ترکیبی بانکوک و پوکت تایلندگرد ۸ روزه و ۷ شبه است؛ سه شب بانکوک با گشت شهری و بازار، چهار شب پوکت با ساحل و جزیره‌گردی. پرواز داخلی بانکوک به پوکت و ترانسفرها داخل پکیج است. قیمت صفحه فقط بخش دلاری را نشان می‌دهد و پرواز رفت‌وبرگشت تهران جدا حساب می‌شود.";
 
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((f) => ({
-      "@type": "Question",
-      name: f.question,
-      // اسپک §۳: خط‌تیره‌های متن جواب در اسکیما به «؛» تبدیل می‌شوند
-      acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(f.answer).replace(/-/g, "؛") },
-    })),
+    mainEntity: [
+      ...faqs.map((f) => ({
+        "@type": "Question",
+        name: f.question,
+        // اسپک §۳: خط‌تیره‌های متن جواب در اسکیما به «؛» تبدیل می‌شوند
+        acceptedAnswer: { "@type": "Answer", text: stripInlineLinkMarkers(f.answer).replace(/-/g, "؛") },
+      })),
+      // آیتم اسنیپت تور ترکیبی (بایت‌به‌بایت بریف)؛ فقط برای همین اسلاگ.
+      ...(slug === "bangkok-phuket-8-days"
+        ? [
+            {
+              "@type": "Question",
+              name: SNIPPET_QUESTION,
+              acceptedAnswer: { "@type": "Answer", text: SNIPPET_ANSWER },
+            },
+          ]
+        : []),
+    ],
   };
 
   // بردکرامب JSON-LD: آینهٔ همان سه سطح بردکرامب بصری (خانه ← تورها ← عنوان کوتاه تور)
@@ -187,7 +219,8 @@ export default async function TourPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "خانه", item: `${s.SITE_URL}` },
+      // S-005 (۲۱ مهر ۱۴۰۵): اسلش انتهایی برداشته شد تا با کنونیکال یکدست شود.
+      { "@type": "ListItem", position: 1, name: "خانه", item: s.SITE_URL.replace(/\/+$/, "") },
       { "@type": "ListItem", position: 2, name: "تورها", item: `${s.SITE_URL}/tours` },
       { "@type": "ListItem", position: 3, name: tour.shortTitle, item: `${s.SITE_URL}/tours/${tour.slug}` },
     ],
@@ -226,9 +259,14 @@ export default async function TourPage({ params }: Props) {
               sizes="(max-width: 1024px) 100vw, 1024px"
             />
           ) : (
-            // جای‌نگه‌دار هم‌شکل تایپوگرافیک (تور بدون کاور؛ عکس ناجور ممنوع)
-            <div className="flex size-full items-center justify-center bg-secondary/50 p-6 text-center">
-              <span className="font-display text-3xl text-foreground/70">{tour.shortTitle}</span>
+            // جای‌نگه‌دار تایپوگرافیک (بند ۷ artdir + قلم ۲ اسپک موبایل، ۲۱ مهر ۱۴۰۵):
+            // هیچ متن خوانایی ندارد؛ فقط موتیف تزئینی «حرف اول» نام تور با
+            // aria-hidden (نه تیتر)؛ select-none تا انتخاب متن نشود (T-2 وایب‌فارسی).
+            // پس‌زمینه توکن bg-frame-typographic است، نه گرادیان ادهاک.
+            <div className="flex size-full select-none items-center justify-center bg-frame-typographic p-6 text-center">
+              <span aria-hidden="true" className="font-display text-7xl text-foreground/15">
+                {tour.shortTitle.trim().charAt(0)}
+              </span>
             </div>
           )}
           {/* استثنای design-rules: جهت گرادیان ماسک خاصیت بصری است نه چیدمان */}
@@ -236,7 +274,7 @@ export default async function TourPage({ params }: Props) {
           <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
             {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
             <Badge variant="brand" className="bg-brand text-brand-foreground">{tour.shortTitle}</Badge>
-            <h1 className="font-display text-2xl text-foreground md:text-4xl">{tour.title}</h1>
+            <h1 className="font-display text-2xl text-foreground md:text-4xl">{h1}</h1>
           </div>
         </div>
         <header className="space-y-4">
@@ -266,17 +304,28 @@ export default async function TourPage({ params }: Props) {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" variant="brand">
-            <a href={s.PHONE_MOBILE_LINK} data-call-context="tour-page">
-              <Phone />
+            {/* قلم ۳ اسپک موبایل (۲۱ مهر ۱۴۰۵): خارج از ساعت کاری شماره‌گیری
+                نمی‌کند؛ اسکرول نرم به فرم #callback. */}
+            <SmartTelLink href={s.PHONE_MOBILE_LINK} callContext="tour-page">
+              <Phone aria-hidden />
               تماس با مشاور سفر
-            </a>
+            </SmartTelLink>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <a href="#callback">تماس با مشاور سفر</a>
+            {/* قلم ۱ اسپک موبایل (قانون ۳۷ + حکم ۱۵ design-ir): برچسب فرعی
+                «درخواست تماس» است، نه تکرار «تماس با مشاور سفر». */}
+            <a href="#callback">درخواست تماس</a>
           </Button>
         </div>
 
         <div id="tour-hero-end" aria-hidden className="h-px" />
+
+        {/* تاریخ انقضا: به‌روزرسانی هفتگی با content */}
+        {slug === "bangkok-pattaya-8-days" && (
+          <Alert variant="info" title="وضعیت امروز پاتایا" className="mt-8">
+            ساحل پاتایا پس از سیل تابستان پاک‌سازی و برای پذیرش گردشگر آماده اعلام شده است. این اطلاعیه در ۲۱ مهر ۱۴۰۵ نوشته شده و هر هفته با تورسینک به‌روزرسانی می‌شود؛ پیش از رزرو، آخرین وضعیت را از کارشناس مقصد بپرسید.
+          </Alert>
+        )}
 
         <Separator className="my-8" />
 
@@ -313,6 +362,31 @@ export default async function TourPage({ params }: Props) {
             )}
           </div>
         </section>
+
+        {/* اسلات تصویری بدنه MOB-S2 (اسپک موبایل ۲۱ مهر ۱۴۰۵): قاب ۱۶:۱۰
+            تمام‌عرض بین «دربارهٔ تور» و «برنامهٔ روزبه‌روز»؛ فقط وقتی عکس
+            واقعی رسید رندر می‌شود وگرنه هیچ فضایی رزرو نمی‌شود. */}
+        {bodyImage && (
+          <figure className="mt-10 overflow-hidden rounded-surface border border-border">
+            <CoverImage
+              src={bodyImage.src}
+              alt={bodyImage.alt}
+              width={bodyImage.w}
+              height={bodyImage.h}
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              className="aspect-[16/10] w-full"
+            />
+          </figure>
+        )}
+
+        {/* باکس «پاسخ مستقیم» فیچر اسنیپت (بریف seocontent ۰۳:۳۵): همیشه‌مرئی،
+            بین «دربارهٔ تور» و «برنامهٔ روزبه‌روز»؛ فقط برای همین اسلاگ. */}
+        {slug === "bangkok-phuket-8-days" && (
+          <section className="mt-10">
+            <h2 className="text-2xl sm:text-3xl">{SNIPPET_QUESTION}</h2>
+            <p className="mt-5 leading-[1.9] text-foreground/90">{SNIPPET_ANSWER}</p>
+          </section>
+        )}
 
         {tour.itinerary.length > 0 && (
           <section className="mt-8">

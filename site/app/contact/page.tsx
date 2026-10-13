@@ -16,17 +16,21 @@ export const metadata: Metadata = {
   description:
     "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
   openGraph: {
-    title: "تماس و مشاورهٔ تلفنی تور تایلند",
+    title: "تماس و مشاورهٔ تلفنی تور تایلند؛ تایلندگرد",
     description:
       "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
     // هندآف سئو ۱۲:۰۸ (قانون ۴۶): صفحهٔ تماس og:url نداشت؛ مثل pageSeo اضافه شد.
+    // S-017 (۲۱ مهر ۱۴۰۵): og:type غایب بود؛ صریح «website» تا بلوک OG کامل باشد.
     url: "/contact",
+    type: "website",
     locale: "fa_IR",
     images: defaultOgImages(SITE_URL),
   },
   twitter: {
     card: "summary_large_image",
-    title: "تماس و مشاورهٔ تلفنی تور تایلند",
+    // S-006 (۲۱ مهر ۱۴۰۵): پسوند برند صریح در کد، چون تمپلیت عنوان
+    // روی openGraph/twitter اعمال نمی‌شود؛ metadata.title دست نخورد.
+    title: "تماس و مشاورهٔ تلفنی تور تایلند؛ تایلندگرد",
     description:
       "فروش تایلندگرد فقط تلفنی است؛ پرداخت آنلاین نداریم. با غزل عینی، متخصص و مشاور تورهای تایلند، تماس بگیرید یا درخواست تماس ثبت کنید.",
     images: defaultOgImages(SITE_URL),
@@ -67,7 +71,7 @@ export default async function ContactPage() {
                 <h2 className="text-xl font-semibold">خودتان زنگ بزنید؛ سریع‌ترین راه است</h2>
                 <CardDescription className="mt-1">{s.CONTACT_TITLE}</CardDescription>
               </div>
-              <Badge variant="brand">پاسخگوی فروش</Badge>
+              <Badge variant="brand">کارشناس مقصد</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-5">

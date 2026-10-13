@@ -26,6 +26,8 @@ export interface Tour {
   touristType: string;
   /** تور فعال و قابل فروش است یا نه؛ اسکیمای offers از روی همین ساخته می‌شود */
   active: boolean;
+  /** ستون h1 (مایگریشن با مسعود): تا وقتی ستون نیست، undefined می‌ماند (الگوی راهنما) */
+  h1?: string | null;
   summary: string;
   description: string[];
   highlights: string[];
