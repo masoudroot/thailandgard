@@ -271,6 +271,7 @@ export default async function TourPage({ params }: Props) {
               width={heroCover.w}
               height={heroCover.h}
               sizes="(max-width: 1024px) 100vw, 1024px"
+              eager
             />
           ) : (
             // جای‌نگه‌دار تایپوگرافیک (بند ۷ artdir + قلم ۲ اسپک موبایل، ۲۱ مهر ۱۴۰۵):

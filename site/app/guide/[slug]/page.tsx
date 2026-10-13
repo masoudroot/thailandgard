@@ -185,6 +185,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
             width={guideCover.w}
             height={guideCover.h}
             sizes="(max-width: 768px) 100vw, 768px"
+            eager
           />
         ) : (
           // جای‌نگه‌دار هم‌شکل تایپوگرافیک (راهنمای بدون کاور)
