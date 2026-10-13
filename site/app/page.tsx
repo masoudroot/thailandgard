@@ -26,8 +26,11 @@ import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = pageSeo({
   title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
+  // S-083 (هندآف seocontent، اجرای ۰۵): متای تازهٔ ۱۵۳ کاراکتری؛ هر ۵ تور
+  // زنده را نام می‌برد. شرط انقضا: با اعمال مصوبهٔ S-049 (غیرفعال‌سازی
+  // سامویی/کرابی) این متا بازنویسی می‌شود.
   description:
-    "تور تایلند تخصصی از تهران؛ پوکت، بانکوک، سامویی و کرابی با لیدر فارسی‌زبان. مشاورهٔ تلفنی بگیرید و با راهنمایی گام‌به‌گام کارشناسان ما رزرو کنید.",
+    "تور تایلند تخصصی از تهران؛ پوکت، بانکوک، بانکوک و پوکت، سامویی و کرابی با لیدر فارسی‌زبان. برای مشاورهٔ تلفنی با کارشناس مقصد ما تماس بگیرید و رزرو کنید.",
   canonical: "/",
 });
 
@@ -76,12 +79,24 @@ export default async function HomePage() {
       url: `${s.SITE_URL}/tours/${tour.slug}`,
     })),
   };
+  // S-105 (حسابرس سئو، ۲۱ مهر ۱۴۰۵): خانه BreadcrumbList نداشت درحالی‌که
+  // /tours و صفحهٔ تور و /guide هر سه دارند؛ تک‌آیتمی «خانه» تا نقشهٔ
+  // ناوبری ساخت‌یافته روی مهم‌ترین صفحه هم کامل باشد.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [{ "@type": "ListItem", position: 1, name: "خانه", item: s.SITE_URL }],
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* کپسول عملیاتی هیرو در اسلات هیروی خانه (دستور :۳۵، ۲۰ مهر ۱۴۰۵؛ مأموریت بصری).
@@ -139,15 +154,17 @@ export default async function HomePage() {
       }]} />
       {/* بلوک قیمت + CTA + بلوک حقوقی (اسپک §۱.۴): زیر ردیف ترکیبی؛ قانون
           عدد/لیبل (لیبل «از» راست، عدد چپ). قیمت هیچ لهجهٔ کهربایی ندارد. */}
-      <div className="mx-auto max-w-5xl px-6 pb-16">
+      <div className="mx-auto max-w-5xl px-6 pb-16 -mt-8">
+        {/* چسبندگی قیمت به سکشن (قاعدهٔ ممیزی ۰۵:۰۵، ایراد ۵): بلوک قیمتِ سکشن
+            حداکثر mt-8 از بدنهٔ همان سکشن فاصله می‌گیرد. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-sm text-muted-foreground">از</span>
           <span className="text-2xl tabular-nums">۱۰۲٬۶۸۷٬۰۰۰</span>
           <span className="text-sm text-muted-foreground">تومان</span>
           <span className="text-sm text-muted-foreground">هر نفر</span>
         </div>
-        {/* برچسب خنثی زیر قیمت (حکم ۲۳ design-ir؛ پیشنهاد برندینگ تا متن تازه) */}
-        <p className="mt-2 text-xs text-muted-foreground">قیمت با نرخ روز دلار به‌روز می‌شود</p>
+        {/* برچسب خنثی زیر قیمت (حکم برندینگ چرخهٔ ۰۹، یافتهٔ ۵؛ جانشین حکم ۲۳ design-ir) */}
+        <p className="mt-2 text-sm text-muted-foreground">قیمت را هر روز با نرخ دلار به‌روز می‌کنیم.</p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Button asChild variant="brand">
             <a href={s.PHONE_MOBILE_LINK} data-call-context="home-combo">
@@ -165,7 +182,7 @@ export default async function HomePage() {
         {/* بلوک حقوقی (متن لازم‌الاجرای برندینگ): mt-6 و جداکنندهٔ مویی بالای بلوک */}
         <div className="mt-6">
           <Separator />
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-6 text-sm text-muted-foreground">
             این تور چارتر است و کنسلی ندارد. پرواز رفت‌وبرگشت جداگانه محاسبه می‌شود.
           </p>
         </div>
@@ -273,8 +290,13 @@ export default async function HomePage() {
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                     />
                   ) : (
-                    <div className="flex size-full items-center justify-center bg-secondary/50 p-6 text-center">
-                      <span className="font-display text-lg text-foreground/70">{displayTitle(guide.title)}</span>
+                    <div className="flex size-full flex-col items-center justify-center gap-3 bg-secondary/40 p-6 text-center">
+                      {/* D-117: پوستر تایپوگرافیک عمدی با همان ریتم قاب عکسی
+                          (لوزی کهربایی + عنوان نمایشی + خط‌حایل مویی) تا دو
+                          تیمار کارت‌های بخش یکی شود و حس نیمه‌تمام برود */}
+                      <span className="size-1.5 rotate-45 bg-brand/60" />
+                      <span className="font-display text-2xl leading-relaxed text-foreground/55">{displayTitle(guide.title)}</span>
+                      <span className="h-px w-12 bg-border" />
                     </div>
                   )}
                   <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
