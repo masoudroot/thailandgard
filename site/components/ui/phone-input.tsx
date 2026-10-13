@@ -56,6 +56,9 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus,
           id={id}
           type="tel"
           inputMode="tel"
+          // D-401 (نبض دیزاین ۲۲:۴۴): کلید «بعدی» کیبورد موبایل به‌جای return؛
+          // بعد از موبایل، گروه زمان تماس می‌آید.
+          enterKeyHint="next"
           autoComplete="tel-national"
           autoFocus={autoFocus}
           value={formatIranMobile(digits)}

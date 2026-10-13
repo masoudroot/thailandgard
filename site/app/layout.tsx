@@ -72,6 +72,10 @@ export async function generateMetadata(): Promise<Metadata> {
     // همان توکن --background (oklch(0.982 0.0035 90) ≈ #FAF9F6) تا با
     // پس‌زمینهٔ صفحه یکدست شود. سایت light-only است (color-scheme: light).
     themeColor: "#FAF9F6",
+    // D-398 (نبض دیزاین ۲۲:۴۴): خاموش کردن تشخیص خودکار شماره‌تلفن در iOS؛
+    // سافاری موبایل شماره‌ها را با استایل پیش‌فرض (آبی و زیرخط‌دار) می‌کرد و
+    // زبان graphite را می‌شکست. شماره‌های تماس عمداً با SmartTelLink لینک‌اند.
+    formatDetection: { telephone: false },
   };
 }
 
