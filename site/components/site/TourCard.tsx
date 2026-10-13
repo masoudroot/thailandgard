@@ -81,7 +81,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
               {fa(tour.days)} روز و {fa(tour.nights)} شب
             </span>
           </div>
-          <CardTitle className="text-xl">{tour.title}</CardTitle>
+          <CardTitle className="text-balance text-xl">{tour.title}</CardTitle>
           {/* ردیف قیمت روی ماسک (حکم ۹ design-ir: لیبل در سمت راست/start، عدد در سمت چپ/end).
               الگوی یکسان هر ۵ کارت (D-056): بی‌قیمت هم همان ردیف لیبل+مقدار را دارد؛
               Price خودش «تماس بگیرید» رندر می‌کند (دستور مسعود، ۱۴۰۵/۰۷/۲۰). */}
