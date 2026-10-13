@@ -18,13 +18,13 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
     <div className={compact ? "flex flex-wrap items-center gap-3" : "grid gap-4 sm:grid-cols-2"}>
       <Button asChild size="lg" className="w-full" variant="brand">
         <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-main">
-          <Phone />
+          <Phone aria-hidden="true" />
           تماس با مشاور سفر
         </a>
       </Button>
       <Button asChild size="lg" className="w-full" variant="secondary">
         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-          <MessageCircle />
+          <MessageCircle aria-hidden="true" />
           مشاوره واتس‌اپی
         </a>
       </Button>
