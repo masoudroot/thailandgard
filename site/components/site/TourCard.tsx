@@ -129,11 +129,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
               <ArrowLeft aria-hidden />
             </Link>
           </Button>
-          <Button asChild variant="outline" size="icon" className="size-11 shrink-0" aria-label="تماس با مشاور سفر">
-            <a href={PHONE_MOBILE_LINK} data-call-context="tour-card">
-              <Phone />
-            </a>
-          </Button>
+          <Button asChild variant="outline" size="icon" className="size-11 shrink-0" aria-label={`تماس با مشاور سفر؛ تور ${tour.shortTitle}`}><a href={PHONE_MOBILE_LINK} data-call-context="tour-card"><Phone aria-hidden /></a></Button>
         </div>
       </CardContent>
     </Card>
