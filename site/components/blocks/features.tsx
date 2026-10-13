@@ -9,7 +9,7 @@ export function FeaturesBlock({ eyebrow, title, features, columns = 3 }: { eyebr
       {(eyebrow || title) && (
         <div className="mx-auto mb-10 max-w-2xl text-center">
           {eyebrow && <p className="text-sm font-semibold text-brand">{eyebrow}</p>}
-          {title && <h2 className="mt-2 text-3xl font-bold">{title}</h2>}
+          {title && <h2 className="text-balance mt-2 text-3xl font-bold">{title}</h2>}
         </div>
       )}
       <ul className={cn("mx-auto grid max-w-5xl grid-cols-1 gap-px overflow-hidden rounded-surface border border-border bg-border sm:grid-cols-2", columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4")}>

@@ -107,7 +107,7 @@ export default async function ToursPage() {
           هر ۳ لینک تور با SELECT زندهٔ tours راستی شد (قانون «اول رکورد، بعد لینک»).
           همهٔ عددها از درفت ۴۱ (SELECT زندهٔ ۰۵:۱۰)؛ حدس نیست. */}
       <section className="mt-8">
-        <h2 className="text-2xl sm:text-3xl">مقایسهٔ تورهای تایلندگرد؛ هر ۳ تور کنار هم</h2>
+        <h2 className="text-balance text-2xl sm:text-3xl">مقایسهٔ تورهای تایلندگرد؛ هر ۳ تور کنار هم</h2>
         <div dir="rtl" className="mt-4 overflow-x-auto rounded-surface border border-border">
           <table className="w-full min-w-[720px] border-collapse text-sm">
             <thead>
@@ -220,7 +220,7 @@ export default async function ToursPage() {
 
       {/* بلوک «هزینهٔ تور تایلند چقدر است؟»؛ بریف seocontent ۲۰ مهر ۱۴۰۵، ۱۰:۰۰، اسنیپت پاراگرافی */}
       <section className="mt-8 max-w-3xl space-y-4">
-        <h2 className="text-2xl sm:text-3xl">هزینهٔ تور تایلند چقدر است؟</h2>
+        <h2 className="text-balance text-2xl sm:text-3xl">هزینهٔ تور تایلند چقدر است؟</h2>
         <p className="leading-[1.8] text-muted-foreground">
           هزینهٔ تور تایلند عدد ثابتی ندارد و به پنج عامل بستگی دارد: فصل سفر، درجهٔ هتل، مدت اقامت، مقصد انتخابی و پرواز مستقیم یا با توقف. تورهای تایلندگرد فروش تلفنی دارند و قیمت دقیق هر پکیج را کارشناس مقصد بر اساس همین عوامل مشخص می‌کند؛ برای مقایسهٔ دو تور، هر پنج عامل را کنار هم بگذارید.
         </p>
@@ -248,7 +248,7 @@ export default async function ToursPage() {
       <section className="mt-8 max-w-3xl">
         <Card>
           <CardContent className="pt-6 text-center">
-            <h2 className="text-2xl sm:text-3xl">راهنمای سفر</h2>
+            <h2 className="text-balance text-2xl sm:text-3xl">راهنمای سفر</h2>
             <ul className="mt-4 space-y-3">
               {[
                 { slug: "thailand-visa-guide", title: "ویزای تایلند برای ایرانیان؛ مدارک، هزینه و زمان صدور" },

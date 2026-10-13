@@ -118,7 +118,7 @@ export default async function HomePage() {
             {/* S-102 (هندآف seo، اجرای ۰۸، ۲۱ مهر ۱۴۰۵): «تور تایلند» در
                 اولین h2 و لید خانه؛ h1 («تایلند رو با متخصصش بگرد.») دست
                 نخورد (تصمیم مسعود). */}
-            <h2 className="text-2xl sm:text-3xl">پیشنهادهای تور تایلند</h2>
+            <h2 className="text-balance text-2xl sm:text-3xl">پیشنهادهای تور تایلند</h2>
             <p className="mt-2 text-muted-foreground">
               تور تایلند، تخصص تایلندگرد است؛ محبوب‌ترین تورها را با قیمت پایه و جزئیات کامل هر سفر ببینید.
             </p>
@@ -216,7 +216,7 @@ export default async function HomePage() {
       <section className="border-y border-border bg-muted/40">
         {/* D-258 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با سکشن‌های خانه (D-195/D-245) */}
         <div className="mx-auto max-w-6xl px-6 py-12">
-          <h2 className="text-center text-2xl sm:text-3xl">
+          <h2 className="text-balance text-center text-2xl sm:text-3xl">
             چرا تایلندگرد
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">
@@ -278,7 +278,7 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
             {/* D-095: تیتر بخش با محتوای واقعی‌اش یکی شد (راهنما + اخبار سفر) */}
-            <h2 className="text-2xl sm:text-3xl">راهنما و اخبار سفر تایلند</h2>
+            <h2 className="text-balance text-2xl sm:text-3xl">راهنما و اخبار سفر تایلند</h2>
             <p className="mt-2 text-muted-foreground">
               قبل از سفر بخوان؛ از{" "}
               <Link href="/guide/best-time-to-visit-thailand" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">بهترین زمان سفر به تایلند</Link>{" "}
@@ -366,7 +366,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-12">
         <Card className="overflow-hidden">
           <div className="bg-brand/10 px-6 py-10 text-center sm:px-10">
-            <h2 className="text-2xl sm:text-3xl">
+            <h2 className="text-balance text-2xl sm:text-3xl">
               برای رزرو، فقط کافی است زنگ بزنید
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">

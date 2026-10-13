@@ -344,7 +344,7 @@ export default async function TourPage({ params }: Props) {
         <Separator className="my-8" />
 
         <section className="mt-10">
-          <h2 className="text-center text-2xl sm:text-start sm:text-3xl">چرا این تور؟</h2>
+          <h2 className="text-balance text-center text-2xl sm:text-start sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
               <li key={h} className="flex items-start gap-2">
@@ -365,7 +365,7 @@ export default async function TourPage({ params }: Props) {
         </section>
 
         <section className="mt-10">
-          <h2 className="text-2xl sm:text-3xl">دربارهٔ تور {tour.shortTitle}</h2>
+          <h2 className="text-balance text-2xl sm:text-3xl">دربارهٔ تور {tour.shortTitle}</h2>
           <div className="mt-5 space-y-5">
             {tour.description.slice(0, 3).map((p, i) => (
               // چتر دیف A1 (یادداشت F-B4 ممیزی وایب‌فارسی): پاراگراف‌های بدنهٔ
@@ -406,7 +406,7 @@ export default async function TourPage({ params }: Props) {
             بین «دربارهٔ تور» و «برنامهٔ روزبه‌روز»؛ فقط برای همین اسلاگ. */}
         {slug === "bangkok-phuket-8-days" && (
           <section className="mt-10">
-            <h2 className="text-2xl sm:text-3xl">{SNIPPET_QUESTION}</h2>
+            <h2 className="text-balance text-2xl sm:text-3xl">{SNIPPET_QUESTION}</h2>
             <p className="mt-5 leading-[1.9] text-foreground/90">{SNIPPET_ANSWER}</p>
           </section>
         )}
@@ -416,7 +416,7 @@ export default async function TourPage({ params }: Props) {
             فقط روی همین اسلاگ؛ بالای بخش روزبه‌روز. */}
         {slug === "bangkok-phuket-8-days" && (
           <section aria-label="مسیر سفر" className="mt-10">
-            <h2 className="text-2xl sm:text-3xl">مسیر این تور</h2>
+            <h2 className="text-balance text-2xl sm:text-3xl">مسیر این تور</h2>
             <div className="mt-5">
               <RouteStrip dayCount={tour.itinerary.length} />
             </div>
@@ -425,7 +425,7 @@ export default async function TourPage({ params }: Props) {
 
         {tour.itinerary.length > 0 && (
           <section id="itinerary" className="mt-10 scroll-mt-24">
-            <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
+            <h2 className="text-balance text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
             <Accordion
               className="mt-5"
               defaultOpen={["day-1"]}

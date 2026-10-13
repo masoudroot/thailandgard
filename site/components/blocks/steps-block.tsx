@@ -27,7 +27,7 @@ export function StepsBlock({ eyebrow, title, steps, gridClassName = "md:grid-col
       {(eyebrow || title) && (
         <div className="mx-auto mb-12 max-w-2xl text-center">
           {eyebrow && <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">{eyebrow}</p>}
-          {title && <h2 className="mt-2 text-3xl">{title}</h2>}
+          {title && <h2 className="text-balance mt-2 text-3xl">{title}</h2>}
         </div>
       )}
       <div className="relative mx-auto max-w-5xl">

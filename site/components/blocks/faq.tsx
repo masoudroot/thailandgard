@@ -13,7 +13,7 @@ export function FaqBlock({ title = "پرسش‌های متداول", description
   return (
     <section className="px-6 py-16">
       <div className="mx-auto max-w-5xl">
-        <h2 className="text-2xl sm:text-3xl">{title}</h2>
+        <h2 className="text-balance text-2xl sm:text-3xl">{title}</h2>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">{description}</p>
         {/* یافتهٔ F-089 (farsiui): واژه‌های لاتین تیتر پرسش (مثل TDAC) ایزولهٔ LTR می‌گیرند؛
             همان قاعدهٔ F-091 که روی جواب‌ها اعمال می‌شود. */}

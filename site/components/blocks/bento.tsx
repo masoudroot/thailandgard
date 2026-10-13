@@ -21,7 +21,7 @@ export function BentoGrid({ eyebrow, title, cells }: { eyebrow?: string; title?:
           {/* ایراد ۲ ممیزی ۰۵:۰۵: الگوی پل برای روتیتر (text-brand تنها روی روشن ممنوع) */}
           {eyebrow && <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">{eyebrow}</p>}
           {/* ایراد ۲ ممیزی ۰۵:۰۵: وزن نمایشی از توکن (font-bold دستی ممنوع) */}
-          {title && <h2 className="mt-2 text-2xl sm:text-3xl">{title}</h2>}
+          {title && <h2 className="text-balance mt-2 text-2xl sm:text-3xl">{title}</h2>}
         </div>
       )}
       <ul className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
