@@ -46,7 +46,8 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
     el.scrollTo({ left: -target * step(), behavior: "smooth" }); // negative = toward the left in RTL
   };
 
-  const nav = "absolute top-1/2 z-10 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur transition-opacity hover:bg-accent disabled:opacity-30";
+  // D-408 (نبض دیزاین): ناحیهٔ لمس نامرئی (‎-inset-1‎) تا تارگت ۴۴px شود؛ ظاهر size-9 بدون تغییر.
+  const nav = "absolute top-1/2 z-10 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur transition-opacity hover:bg-accent disabled:opacity-30 before:absolute before:-inset-1 before:content-['']";
 
   return (
     <div className={cn("relative", className)} role="region" aria-roledescription="carousel" aria-label="اسلایدر">
