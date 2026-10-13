@@ -563,7 +563,7 @@ export default async function TourPage({ params }: Props) {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>تماس با مشاور سفر برای تور {tour.shortTitle}</CardTitle>
+              <CardTitle className="text-balance">تماس با مشاور سفر برای تور {tour.shortTitle}</CardTitle>
               <CardDescription>شماره‌تان را وارد کنید؛ در بازه‌ای که می‌گویید با شما تماس می‌گیریم.</CardDescription>
             </CardHeader>
             <CardContent>
