@@ -312,12 +312,18 @@ export default async function HomePage() {
                       <span className="h-px w-12 bg-border" />
                     </div>
                   )}
-                  <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
+                  {/* D-207: ماسک روشن تمام‌قاب روی عکس، هالهٔ سفید کثیف دور تیتر می‌ساخت؛
+                      اسکریم تیرهٔ محدود به پایین قاب + تیتر سفید ساده (الگوی Card/Media) */}
+                  {cover ? (
+                    <div aria-hidden className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                  ) : (
+                    <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
+                  )}
                   <div className="absolute inset-x-0 bottom-0 p-4">
                     <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
                     {/* D-121: روی کارت‌های متنی تیتر فقط در پوستر تایپوگرافیک D-117 می‌آید؛
                         رندر دوم این‌جا حذف شد تا همان متن دو بار رندر نشود */}
-                    {cover ? <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle> : null}
+                    {cover ? <CardTitle className="mt-2 text-xl text-white">{displayTitle(guide.title)}</CardTitle> : null}
                   </div>
                 </div>
                 <CardContent className="flex flex-1 flex-col gap-4 p-5">
