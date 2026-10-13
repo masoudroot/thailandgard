@@ -103,7 +103,8 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
               کپی لینک
             </Button>
           </div>
-          <span aria-live="polite" className="text-sm text-muted-foreground">
+          {/* D-157: ارتفاع تثبیت‌شده تا ظاهر شدن «لینک کپی شد» ردیف را نپرد (text-sm با leading پیش‌فرض = ۲۰px) */}
+          <span aria-live="polite" className="min-h-5 text-sm text-muted-foreground">
             {copied ? "لینک کپی شد" : ""}
           </span>
         </>
