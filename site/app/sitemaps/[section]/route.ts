@@ -36,6 +36,13 @@ export async function GET(
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
     `${urls}\n</urlset>`;
   return new Response(xml, {
-    headers: { "Content-Type": "application/xml; charset=utf-8" },
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      // S-106 (۲۱ مهر ۱۴۰۵): تولید هر درخواست از DB زنده کند است (TTFB چندثانیه‌ای).
+      // معماری «خودبه‌روزشونده» (دستور مسعود، ۲۰ مهر) سر جایش می‌ماند؛ فقط
+      // ضربه‌های تکراری ربات‌ها ۵ دقیقه از لبهٔ CDN می‌آید (s-maxage) تا
+      // بودجهٔ خزش هدر نرود. تازگی همچنان بی‌نیاز از دپلوی است.
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900",
+    },
   });
 }

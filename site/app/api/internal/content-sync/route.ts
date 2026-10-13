@@ -57,6 +57,8 @@ type OpCode =
   | "tour.set_summary"
   | "tour.set_highlights"
   | "tour.set_description"
+  | "tour.set_title"
+  | "tour.set_short_title"
   | "setting.set"
   | "tour_faq.update"
   | "tour_faq.insert"
@@ -160,6 +162,16 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       // توسعهٔ S-024 (۲۰ مهر ۱۴۰۵): متن بدنهٔ تور هم «پنج شب پوکت» داشت.
       if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
       if (!isParagraphs(raw.description)) return { ok: false, error: "description نامعتبر است." };
+      return { ok: true, op: raw };
+    case "tour.set_title":
+      // حکم‌های ۲۴/۲۵ design-ir (۲۱ مهر ۱۴۰۵): تیتر و short_title رکورد تور
+      // ترکیبی از مسیر سرور (کلید anon روی tours حق UPDATE ندارد).
+      if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
+      if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
+      return { ok: true, op: raw };
+    case "tour.set_short_title":
+      if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
+      if (!isText(raw.short_title, 60)) return { ok: false, error: "short_title نامعتبر است." };
       return { ok: true, op: raw };
     case "setting.set": {
       // شعار مصوب مسعود ۱۴۰۵/۰۷/۲۰: تنظیمات site_settings فقط ۱۶ کلید شناخته‌شدهٔ site.ts را می‌پذیرد؛
@@ -553,6 +565,18 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی description تور (slug=${op.tour_slug})` };
     }
+    case "tour.set_title": {
+      const q = `tours?slug=eq.${encodeURIComponent(String(op.tour_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { title: op.title });
+      if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی title تور (slug=${op.tour_slug})` };
+    }
+    case "tour.set_short_title": {
+      const q = `tours?slug=eq.${encodeURIComponent(String(op.tour_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { short_title: op.short_title });
+      if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
+      return { matched: rows.length, note: `به‌روزرسانی short_title تور (slug=${op.tour_slug})` };
+    }
     case "setting.set": {
       const q = `site_settings?key=eq.${encodeURIComponent(String(op.key))}`;
       const { rows } = await postgrest(cfg, "PATCH", q, { value: op.value });
@@ -656,6 +680,8 @@ function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
     case "tour.set_summary":
     case "tour.set_highlights":
     case "tour.set_description":
+    case "tour.set_title":
+    case "tour.set_short_title":
     case "tour_faq.update":
     case "tour_faq.insert":
     case "tour.insert":

@@ -10,10 +10,12 @@
  */
 import { ArrowLeft, CalendarDays, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
+import { Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Price } from "@/components/ui/price";
+import { Separator } from "@/components/ui/separator";
 import { PHONE_MOBILE_LINK } from "@/lib/site";
 import { fa } from "@/lib/utils";
 import type { Tour } from "@/lib/tours";
@@ -78,6 +80,28 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
           <MapPin className="size-3.5" />
           {tour.route}
         </p>
+        {/* نوار پاهای تور ترکیبی (اسپک combo-card چرخهٔ ۰۶ §۱، ۲۱ مهر ۱۴۰۵):
+            فقط وقتی تور پا دارد (قید ۱)؛ قرارداد دیداری بدنهٔ خود TourCard
+            (ردیف flex با text-sm)، نه الگوی dl (یافتهٔ F-1 وایب‌فارسی).
+            انحراف آگاهانه از «p» اسپک: جداکنندهٔ عمودی Separator یک div است و
+            div داخل p نامعتبر است (کلاس باگ F-002)؛ پس ردیف div است.
+            حکم ۲۶ design-ir: فقط یک MapPin در start کل ردیف، نه برای هر پا.
+            جداکنندهٔ مویی با aria-hidden (F-096)؛ role="list"/"listitem" برای
+            سمانتیک (F-097). ترتیب DOM = ترتیب سفر (بانکوک اول) تا در RTL
+            راست بنشیند. */}
+        {tour.legs && tour.legs.length > 0 && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground" role="list" aria-label="پاهای تور">
+            <MapPin className="size-3.5" aria-hidden />
+            {tour.legs.map((leg, i) => (
+              <Fragment key={`${leg.destinationName}-${i}`}>
+                {i > 0 && <Separator orientation="vertical" decorative aria-hidden="true" />}
+                <span role="listitem">
+                  {fa(leg.nights)} شب {leg.destinationName}
+                </span>
+              </Fragment>
+            ))}
+          </div>
+        )}
         {/* حکم ۱ artdir (۰۹:۳۵، اسپک design قلم ۲): ردیف CTA دوتایی؛
             جزئیات اول (flex-1)، دکمهٔ آیکونی تماس دوم (outline، ۴۴px) */}
         <div className="mt-auto flex gap-2 pt-2">

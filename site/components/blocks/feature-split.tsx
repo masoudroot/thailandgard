@@ -32,7 +32,7 @@ export function FeatureSplit({ items }: { items: SplitFeature[] }) {
               )}
             </div>
             <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-secondary">
-              {f.media ?? <div aria-hidden className="size-full" style={{ background: "radial-gradient(80% 80% at 30% 20%, oklch(from var(--brand) l c h / 25%), transparent 70%)" }} />}
+              {f.media ?? <div aria-hidden className="size-full" />}
             </div>
           </div>
         ))}

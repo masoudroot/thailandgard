@@ -75,6 +75,15 @@ interface TourDayRow {
   description: string;
 }
 
+/** پاهای تور ترکیبی (مایگریشن ۰۰۷، جدول tour_legs): هنوز روی پروداکشن نیست. */
+interface TourLegRow {
+  tour_slug: string;
+  position: number;
+  destination_slug: string;
+  destination_name: string;
+  nights: number;
+}
+
 interface TourFaqRow {
   tour_slug: string;
   position: number;
@@ -195,7 +204,28 @@ async function fetchTable<T>(tableName: string): Promise<T[] | null> {
 
 /* ---------- نگاشت سطرها به اینترفیس‌های TS ---------- */
 
-function mapTour(row: TourRow, dayRows: TourDayRow[], faqRows: TourFaqRow[]): Tour {
+/**
+ * دادهٔ اندازه‌گیری‌شدهٔ پاهای تور ترکیبی (اسپک combo-card چرخهٔ ۰۶):
+ * تا جدول tour_legs روی پروداکشن بیاید، نوار پاها با همین داده رندر می‌شود.
+ * منبع: بریف seocontent (۳ شب بانکوک + ۴ شب پوکت)؛ حدس نیست.
+ */
+const COMBO_LEGS_FALLBACK: Record<string, { nights: number; destinationName: string }[]> = {
+  "bangkok-phuket-8-days": [
+    { nights: 3, destinationName: "بانکوک" },
+    { nights: 4, destinationName: "پوکت" },
+  ],
+};
+
+function mapTour(row: TourRow, dayRows: TourDayRow[], faqRows: TourFaqRow[], legRows: TourLegRow[]): Tour {
+  // پاهای تور ترکیبی: اول از جدول tour_legs (positionمرتب)؛ اگر جدول هنوز
+  // روی پروداکشن نیست (مایگریشن ۰۰۷ با مدیر/مسعود)، دادهٔ اندازه‌گیری‌شدهٔ
+  // اسپک combo-card چرخهٔ ۰۶ (۳ شب بانکوک + ۴ شب پوکت) می‌نشیند تا نوار پاها
+  // رندر شود؛ با آمدن جدول، همان دادهٔ زنده می‌نشیند.
+  const fromTable = legRows
+    .filter((l) => l.tour_slug === row.slug)
+    .sort((a, b) => a.position - b.position)
+    .map((l) => ({ nights: l.nights, destinationName: l.destination_name }));
+  const legs = fromTable.length > 0 ? fromTable : COMBO_LEGS_FALLBACK[row.slug];
   return {
     slug: row.slug,
     title: row.title,
@@ -221,6 +251,7 @@ function mapTour(row: TourRow, dayRows: TourDayRow[], faqRows: TourFaqRow[]): To
       .filter((f) => f.tour_slug === row.slug)
       .sort((a, b) => a.position - b.position)
       .map((f) => ({ question: f.question, answer: f.answer })),
+    ...(legs ? { legs } : {}),
   };
 }
 
@@ -268,10 +299,13 @@ export async function getTours(): Promise<Tour[]> {
   // کند؛ وگرنه صفحه‌های استاتیک متای قدیم سرو می‌کنند. تگ‌ها این‌جا می‌نشینند
   // و روت content-sync پس از هر op موفق revalidateTag می‌زند.
   cacheTag('tours');
-  const [rows, dayRows, faqRows] = await Promise.all([
+  const [rows, dayRows, faqRows, legRows] = await Promise.all([
     fetchTable<TourRow>("tours"),
     fetchTable<TourDayRow>("tour_days"),
     fetchTable<TourFaqRow>("tour_faqs"),
+    // جدول tour_legs ممکن است هنوز روی پروداکشن نباشد (PGRST205)؛
+    // null بودنش گارد فالبک را نمی‌شکند، فقط نوار پاها از دادهٔ ایستا می‌آید.
+    fetchTable<TourLegRow>("tour_legs"),
   ]);
   if (!rows || !dayRows || !faqRows) {
     console.warn("[db-content] getTours: دیتابیس در دسترس نیست؛ فالبک tours.ts");
@@ -281,7 +315,7 @@ export async function getTours(): Promise<Tour[]> {
   // S-049 (مصوبهٔ ۱۸:۲۰، ۱۴۰۵/۰۷/۲۰): تور غیرفعال (active=false) عرضه نمی‌شود؛
   // از فهرست /tours، کارت‌ها و generateStaticParams حذف می‌شود.
   // فالبک (TOURS_FALLBACK) همه active:true دارد؛ رکورد بدون فیلد هم می‌ماند.
-  return ordered.filter((row) => row.active !== false).map((row) => mapTour(row, dayRows, faqRows));
+  return ordered.filter((row) => row.active !== false).map((row) => mapTour(row, dayRows, faqRows, legRows ?? []));
 }
 
 export async function getTour(slug: string): Promise<Tour | undefined> {

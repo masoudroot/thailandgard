@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ ok: false, error: "بدنهٔ درخواست معتبر نیست." }, { status: 400 });
+    // یافتهٔ ۲ لید (کارت ۰۵): «بدنهٔ درخواست معتبر نیست.» زبان فنی بود و کاربر
+    // را مقصر می‌دانست (خلاف محور ۶ لحن: راه‌حل جلوتر از عذرخواهی، زبان فنی ممنوع).
+    return NextResponse.json({ ok: false, error: "فرم درست ارسال نشد؛ یک بار دیگر تلاش کنید." }, { status: 400 });
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
@@ -49,7 +51,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "نام را کامل وارد کنید." }, { status: 400 });
   }
   if (!mobile) {
-    return NextResponse.json({ ok: false, error: "شمارهٔ موبایل معتبر نیست." }, { status: 400 });
+    // یافتهٔ ۳ لید (کارت ۰۵): پیام سرور با پیام کلاینت یکی شد (قاعدهٔ «یک مفهوم،
+    // یک واژه»): «شمارهٔ موبایل را کامل و درست وارد کنید.»
+    return NextResponse.json({ ok: false, error: "شمارهٔ موبایل را کامل و درست وارد کنید." }, { status: 400 });
   }
 
   try {

@@ -15,11 +15,12 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 export const metadata: Metadata = pageSeo({
   // ماتریس OG (هندآف seocontent ۱۷:۰۰؛ S-006/S-014): هر سه صفحهٔ استاتیک
   // از هلپر مشترک می‌آیند تا og:title/url/locale/type هیچ‌وقت جا نماند.
-  // S-050/S-049 (۲۰ مهر ۱۴۰۵): نسخهٔ پسا-غیرفعال‌سازی سامویی/کرابی؛
-  // فقط ۳ تور فعال نام برده می‌شوند.
+  // S-050 (هندآف seocontent، اجرای ۰۵): متای تازهٔ ۱۵۵ کاراکتری؛ هر ۵ تور
+  // زنده را نام می‌برد. شرط انقضا: با اعمال مصوبهٔ S-049 (غیرفعال‌سازی
+  // سامویی/کرابی) این متا بازنویسی می‌شود.
   title: "تورهای تایلند؛ مقایسه و انتخاب تور؛ تایلندگرد",
   description:
-    "همهٔ تورهای تایلندگرد را مقایسه کنید؛ پوکت، بانکوک و پاتایا و بانکوک و پوکت. قیمت‌ها «قیمت پایه» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
+    "همهٔ تورهای تایلندگرد را کنار هم مقایسه کن؛ پوکت، بانکوک و پاتایا، بانکوک و پوکت، سامویی و کرابی. قیمت‌ها «قیمت پایه» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
   canonical: "/tours",
   type: "website",
 });
@@ -78,7 +79,9 @@ export default async function ToursPage() {
             </Fragment>
           ))}.
           قیمت‌هایی که می‌بینید «قیمت پایه»‌اند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.
-          رزرو هم فقط با تماس تلفنی انجام می‌شود؛ پرداخت آنلاین نداریم.
+          {/* حکم ۳ برندینگ (چرخهٔ ۰۹): مجهول اداری «انجام می‌شود» ممنوع؛
+              «رزرو فقط با تماس تلفنی است.» */}
+          رزرو فقط با تماس تلفنی است؛ پرداخت آنلاین نداریم.
         </p>
       </header>
 
@@ -93,6 +96,117 @@ export default async function ToursPage() {
           <TourCard key={tour.slug} tour={tour} />
         ))}
       </div>
+
+      {/* بلوک مقایسهٔ ۵ تور (درفت ۴۱ content + بریف on-page seocontent، اجرای ۰۵):
+          بلوک داخل /tours (JSX) نه URL تازه؛ پس کنیبالیزیشنی با راهنمای
+          compare-thailand-tours نیست. عبارت هدف «مقایسه تورهای تایلند» در H2.
+          هر ۵ لینک تور با SELECT زندهٔ tours راستی شد (قانون «اول رکورد، بعد لینک»).
+          همهٔ عددها از درفت ۴۱ (SELECT زندهٔ ۰۵:۱۰)؛ حدس نیست. */}
+      <section className="mt-8">
+        <h2 className="text-2xl sm:text-3xl">مقایسهٔ تورهای تایلندگرد؛ هر ۵ تور کنار هم</h2>
+        <div dir="rtl" className="mt-4 overflow-x-auto rounded-surface border border-border">
+          <table className="w-full min-w-[720px] border-collapse text-sm">
+            <thead>
+              <tr className="bg-muted/50">
+                <th scope="col" className="border-b border-border px-4 py-3 text-start">
+                  <span className="sr-only">ویژگی</span>
+                </th>
+                {[
+                  { slug: "bangkok-pattaya-8-days", name: "تور بانکوک و پاتایا ۸ روزه", short: "بانکوک و پاتایا" },
+                  { slug: "bangkok-phuket-8-days", name: "تور ترکیبی بانکوک و پوکت ۸ روزه", short: "بانکوک و پوکت" },
+                  { slug: "phuket-7-days", name: "تور پوکت ۷ روزه", short: "پوکت" },
+                  { slug: "samui-7-days", name: "تور سامویی ۷ روزه", short: "سامویی" },
+                  { slug: "krabi-6-days", name: "تور کرابی ۶ روزه", short: "کرابی" },
+                ].map((t) => (
+                  <th key={t.slug} scope="col" className="border-b border-border px-4 py-3 text-start font-semibold">
+                    {t.name}
+                    <br />
+                    <Link
+                      href={`/tours/${t.slug}`}
+                      className="text-xs font-normal text-foreground underline decoration-brand/60 underline-offset-4"
+                    >
+                      مشاهدهٔ جزئیات تور {t.short}
+                    </Link>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                {
+                  label: "قیمت پایهٔ نمایشی",
+                  cells: ["۴۲٬۹۰۰٬۰۰۰ تومان", "۱۰۲٬۶۸۷٬۰۰۰ تومان", "۴۸٬۵۰۰٬۰۰۰ تومان", "۵۴٬۰۰۰٬۰۰۰ تومان", "۴۵٬۵۰۰٬۰۰۰ تومان"],
+                },
+                {
+                  label: "مدت",
+                  cells: ["۸ روز، ۷ شب", "۸ روز، ۷ شب", "۷ روز، ۶ شب", "۷ روز، ۶ شب", "۶ روز، ۵ شب"],
+                },
+                {
+                  label: "مسیر",
+                  cells: [
+                    "تهران، بانکوک، پاتایا، تهران",
+                    "تهران، بانکوک، پوکت، تهران",
+                    "تهران، پوکت، تهران",
+                    "تهران، بانکوک، سامویی، تهران",
+                    "تهران، کرابی، تهران",
+                  ],
+                },
+                {
+                  label: "مناسب چه کسی",
+                  cells: ["خانواده‌ها", "شهر و ساحل در یک سفر", "جزیره‌گردی کلاسیک", "ماه‌عسل و آرامش", "طبیعت بکر و ماجراجویی"],
+                },
+                {
+                  label: "حال‌وهوای سفر",
+                  cells: [
+                    "معابد و بازار شناور بانکوک + جزیرهٔ مرجان پاتایا",
+                    "معابد بانکوک + ساحل و جزیره‌گردی پوکت",
+                    "فی‌فی و خلیج فانگ‌نا با هتل ساحلی",
+                    "ساحل سفید و ریزورت بوتیک",
+                    "گشت چهار جزیره، ساحل ریلی و استخر زمردی",
+                  ],
+                },
+                {
+                  label: "نکتهٔ مهم",
+                  cells: [
+                    "ارزان‌ترین گزینهٔ فهرست",
+                    "پرواز داخلی بانکوک به پوکت داخل پکیج است",
+                    "لیدر فارسی‌زبان همراه",
+                    "پرواز از مسیر بانکوک",
+                    "کوتاه‌ترین و فشرده‌ترین برنامه",
+                  ],
+                },
+              ].map((row, k) => (
+                <tr key={row.label} className={k % 2 === 1 ? "bg-muted/20" : undefined}>
+                  <th scope="row" className="border-b border-border px-4 py-3 text-start font-semibold">
+                    {row.label}
+                  </th>
+                  {row.cells.map((cell, j) => (
+                    <td key={j} className="border-b border-border px-4 py-3 text-start tabular-nums">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="mt-6 text-xl">اگر این‌طورید، این را انتخاب کنید</h3>
+        <ul className="mt-3 space-y-2 text-muted-foreground">
+          <li>اولین سفرتان به تایلند است و می‌خواهید همه‌چیز را ببینید: <strong className="text-foreground">تور ترکیبی بانکوک و پوکت</strong>؛ شهر و ساحل در یک سفر.</li>
+          <li>با خانواده و بچه سفر می‌کنید: <strong className="text-foreground">بانکوک و پاتایا</strong>؛ متنوع‌ترین برنامه با کمترین قیمت پایه.</li>
+          <li>ماه‌عسل است یا آرامش مطلق می‌خواهید: <strong className="text-foreground">سامویی</strong>؛ جزیرهٔ آرام خلیج تایلند.</li>
+          <li>عاشق طبیعت و قایق‌سواری‌اید: <strong className="text-foreground">کرابی</strong>؛ چهار جزیره در شش روز.</li>
+          <li>کلاسیک و مطمئن می‌خواهید: <strong className="text-foreground">پوکت</strong>؛ فی‌فی و فانگ‌نا که همه می‌شناسند.</li>
+        </ul>
+        <p className="mt-4 text-sm text-muted-foreground">
+          قیمت پایه یعنی شروع قیمت نمایشی؛ عدد نهایی هر تور با تماس مشخص می‌شود. در تور ترکیبی، پرواز بین‌المللی جداگانه حساب می‌شود.
+        </p>
+        <p className="mt-2">
+          <Link href="/guide/compare-thailand-tours" className="font-semibold underline decoration-brand/60 underline-offset-4">
+            مقایسهٔ کامل تورهای تایلند
+          </Link>
+        </p>
+      </section>
 
       {/* بنر ب (بین‌سکشنی)؛ حکم ۴؛ D-106: بالای بخش هزینه تا جریان هزینه→اقدام به CTA نریزد */}
       <div className="mt-8">
@@ -110,7 +224,7 @@ export default async function ToursPage() {
       {/* باند CTA پایانی (بریف ۳ artdir): جایگزین بخش دستی «هنوز تصمیم نگرفته‌اید؟»؛
           حکم مدیر: فقط یک مسیر تماس. کپی نهایی (اجرا ۱۵) اعمال شد؛ شماره فعلاً موقت. */}
       <CtaBlock
-        title="با کارشناس تایلند حرف بزنید"
+        title="با کارشناس مقصد حرف بزنید"
         description="تور موردنظرتان را پیدا نکردید؟ بگویید چه می‌خواهید؛ ما برنامه‌اش را می‌چینیم"
         action={<span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span>}
         actionHref={s.PHONE_MOBILE_LINK}

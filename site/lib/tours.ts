@@ -12,6 +12,11 @@ export interface TourFaq {
   answer: string;
 }
 
+export interface TourLeg {
+  nights: number;
+  destinationName: string;
+}
+
 export interface Tour {
   slug: string;
   title: string;
@@ -28,6 +33,11 @@ export interface Tour {
   active: boolean;
   /** ستون h1 (مایگریشن با مسعود): تا وقتی ستون نیست، undefined می‌ماند (الگوی راهنما) */
   h1?: string | null;
+  /**
+   * پاهای تور ترکیبی (اسپک combo-card چرخهٔ ۰۶، ۲۱ مهر ۱۴۰۵): هر پا یک شب‌ماند
+   * در یک مقصد. undefined/خالی یعنی تور تک‌مقصدی و نوار پاها رندر نمی‌شود.
+   */
+  legs?: TourLeg[];
   summary: string;
   description: string[];
   highlights: string[];
