@@ -153,9 +153,9 @@ export default async function ContactPage() {
           زیر CTA اصلی، جمع‌وجور. */}
       <section className="mt-8">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 text-center">
             <h2 className="text-xl">پیش از تماس</h2>
-            <ul className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
+            <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
               <li>
                 <Link href="/tours" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   تورهای تایلند
