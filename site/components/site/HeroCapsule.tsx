@@ -39,7 +39,7 @@ export function HeroCapsule({
   whatsappHref: string;
 }) {
   return (
-    <section className="relative overflow-hidden px-6 py-20 text-center sm:py-28">
+    <section className="relative overflow-hidden px-6 py-16 text-center sm:py-20">
       {/* شبکهٔ محو از بالا | عین بلوک رجیستری hero (ماسک بازتر برای موبایل) */}
       <div
         aria-hidden
@@ -48,6 +48,17 @@ export function HeroCapsule({
           backgroundImage:
             "linear-gradient(to right, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px), linear-gradient(to bottom, oklch(from var(--foreground) l c h / 6%) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
+        }}
+      />
+      {/* لنگر بصری پایدار (D-119): هالهٔ گرم ملایم پشت تیتر؛ الگوی D-001 فوتر.
+          شهاب‌ها تک‌اجرا محو می‌شوند و شبکه تنها لنگر نمی‌شد؛ کپی دست مسعود
+          دست نخورده، فقط تراکم عمودی جمع‌وجورتر (py-20/sm:py-28 ← py-16/sm:py-20). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[480px]"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 55% at 50% 30%, oklch(from var(--brand) l c h / 10%), transparent 70%)",
         }}
       />
       <Meteors count={6} once className="motion-reduce:hidden" />
@@ -98,7 +109,8 @@ export function HeroCapsule({
             <span className="text-[10px] leading-none text-brand-foreground">◆</span>
             <span className="h-px flex-1 bg-foreground/10" />
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-3 text-sm text-muted-foreground">
+            {/* ایراد ۳ ممیزی ۰۵:۰۵: کف text-sm برای متن کمکی (فارسی ۱۲px خنثی از کنتراست AA می‌افتد) */}
             اینجا یک آدم جواب می‌دهد، نه ربات
           </p>
         </Reveal>
