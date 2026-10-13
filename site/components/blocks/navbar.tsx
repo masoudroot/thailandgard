@@ -48,12 +48,15 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
           </ul>
           {/* D-031: ممیزی ۱۷:۴۶ - روی دسکتاپ دکمهٔ روح «تماس با مشاور سفر» (secondary) حذف شد؛
               همان لیبل با دو استایل متفاوت، کنار «تماس» ناوبری، سه محرک تکراری می‌ساخت.
-              فقط دکمهٔ جوهرینهٔ اصلی می‌ماند؛ secondary در شیت موبایل سر جایش است. */}
+              فقط دکمهٔ اصلی می‌ماند؛ secondary در شیت موبایل سر جایش است.
+              D-109 (۱۴۰۵/۰۷/۲۱): استایل دکمهٔ اصلی هم به brand یکدست شد؛
+              هر پنج «تماس با مشاور سفر» سایت (هدر، هیرو، صفحهٔ تور، کارت تماس، نوار چسبان)
+              حالا کهربایی solid است؛ primary مسیر فروش = variant="brand" (الگوی blocks/hero رجیستری). */}
           <div className="hidden items-center gap-2 md:flex">
             {primary.href ? (
-              <Button asChild size="sm"><a href={primary.href}>{primary.label}</a></Button>
+              <Button asChild size="sm" variant="brand"><a href={primary.href}>{primary.label}</a></Button>
             ) : (
-              <Button size="sm">{primary.label}</Button>
+              <Button size="sm" variant="brand">{primary.label}</Button>
             )}
           </div>
           <div className="flex items-center gap-1 md:hidden">
@@ -75,9 +78,9 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
         </ul>
         <div className="mt-auto flex flex-col gap-2 border-t border-border p-4">
           {primary.href ? (
-            <Button asChild className="w-full"><a href={primary.href} onClick={() => setOpen(false)}>{primary.label}</a></Button>
+            <Button asChild variant="brand" className="w-full"><a href={primary.href} onClick={() => setOpen(false)}>{primary.label}</a></Button>
           ) : (
-            <Button>{primary.label}</Button>
+            <Button variant="brand">{primary.label}</Button>
           )}
           {secondary.href ? (
             <Button asChild variant="outline" className="w-full"><a href={secondary.href} onClick={() => setOpen(false)}>{secondary.label}</a></Button>
