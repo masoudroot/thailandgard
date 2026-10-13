@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
@@ -127,6 +128,13 @@ export default async function TourPage({ params }: Props) {
   // به‌روزرسانی قدیمی‌تر از ۷ روز باشد؛ در این حالت هیچ آیتم FAQ قیمتی
   // رندر نمی‌شود (نه در HTML، نه در اسکیمای FAQPage). فقط قیمت تازه،
   // آیتم اول FAQ می‌گیرد. اسکیمای TouristTrip/Offer دست نمی‌خورد.
+  // نبض دیزاین (۲۱ مهر ۱۴۰۵): قانون «تازگی قیمت» پایین‌تر Date.now را صدا
+  // می‌زند؛ در پرریرندر استاتیک همین صدا خطای بیلد می‌دهد
+  // («unstable value Date.now») و دیپلوی پروداکشن را می‌شکند. راه‌حل استاندارد
+  // مستند Next.js 16 با Cache Components (جایگزین force-dynamic حذف‌شده):
+  // connection()؛ از این‌جا به بعد در زمان درخواست رندر می‌شود و تازگی قیمت
+  // هم در هر درخواست درست حساب می‌شود. بازبینی نهایی با تیم dev.
+  await connection();
   const faqs = [...tour.faqs];
   const priceUpdatedAt = tour.priceUpdatedAt ? new Date(tour.priceUpdatedAt) : null;
   const priceUpdatedAtOk = priceUpdatedAt !== null && !Number.isNaN(priceUpdatedAt.getTime());
