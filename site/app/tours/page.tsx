@@ -62,7 +62,8 @@ export default async function ToursPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-6 py-12">
+      {/* D-261 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با قرارداد main صفحه‌ها (guide، guide/[slug]، contact، tours/[slug] همه py-12) */}
       <Breadcrumb
         className="mb-6"
         items={[{ label: "خانه", href: "/" }, { label: "تورهای تایلند" }]}
