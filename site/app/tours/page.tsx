@@ -88,7 +88,7 @@ export default async function ToursPage() {
       </header>
 
       {featuredTour && (
-        <section className="mt-8">
+      <section className="mt-8">
           <TourBanner tour={featuredTour} />
         </section>
       )}
@@ -239,7 +239,9 @@ export default async function ToursPage() {
       {/* S-090 (بریف seo ۰۳:۳۵، قانون ۶۴): لینک زمینه‌ای هاب راهنماها از داخل
           main همین صفحه؛ فقط در main (نه لی‌اوت سراسری). انکر = عنوان نمایشی
           راهنما (همان displayTitle کارت‌ها). */}
-      <section className="mt-8">
+      {/* D-219 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): کارت تمام‌عرض بود و ~۶۰٪ سمت چپش خالی
+          می‌ماند؛ max-w-3xl هم‌تراز با سکشن «هزینهٔ تور» بالایی. */}
+      <section className="mt-8 max-w-3xl">
         <Card>
           <CardContent className="pt-6">
             <h2 className="text-2xl sm:text-3xl">راهنمای سفر</h2>

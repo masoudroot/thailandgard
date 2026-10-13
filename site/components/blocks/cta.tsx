@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
  * - action از نوع ReactNode تا شماره تلفن با dir="ltr" بیاید (دستور اصلاح ۲ farsiui)
  * - actionHref اختیاری برای لینک واقعی دکمه (مثل tel:)؛ بدون آن دکمه مثل آیتم است
  * - دکمه در موبایل تمام‌عرض (w-full sm:w-auto)؛ حکم بریف ۳
+ * - D-219 (۱۴۰۵/۰۷/۲۱): تراکم ارتفاع (py-12 ‏→ py-8 بیرونی، py-14 ‏→ py-10 درونی)؛
+ *   کارت CTA در /tours فضای خالیِ ناجورِ بالا و پایین داشت (راستی بصری میرزا)
  * - D-112 (۱۴۰۵/۰۷/۲۱): دکمهٔ اصلی مسیر فروش variant="brand"؛ پنجمین نمونهٔ خانوادهٔ D-109
  *   (هدر، هیرو، صفحهٔ تور، کارت تماس، نوار چسبان) که همگی کهربایی solid شدند.
  */
@@ -22,8 +24,8 @@ export function CtaBlock({ title, description, action = "تماس با مشاو�
     </>
   );
   return (
-    <section className="px-6 py-12">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-border bg-card px-6 py-14 text-center sm:px-12">
+    <section className="px-6 py-8">
+      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-border bg-card px-6 py-10 text-center sm:px-12">
         <div className="relative">
           <h2 className="text-3xl sm:text-4xl">{title}</h2>
           {description && <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{description}</p>}
