@@ -33,9 +33,9 @@ export function HeroBlock({ badge, title, description, primary = { label: "تم�
         <p className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg">{description}</p>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           {primary.href ? (
-            <Button asChild size="lg" className="rounded-full px-6"><a href={primary.href}>{primary.label}<ArrowLeft /></a></Button>
+            <Button asChild size="lg" className="rounded-full px-6"><a href={primary.href}>{primary.label}<ArrowLeft aria-hidden /></a></Button>
           ) : (
-            <Button size="lg" className="rounded-full px-6">{primary.label}<ArrowLeft /></Button>
+            <Button size="lg" className="rounded-full px-6">{primary.label}<ArrowLeft aria-hidden /></Button>
           )}
           {secondary.href ? (
             <Button asChild size="lg" variant="outline" className="rounded-full px-6"><a href={secondary.href}>{secondary.label}</a></Button>
