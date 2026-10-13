@@ -44,7 +44,7 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
                       <a href={l.href} aria-label={l.ariaLabel}>{l.label}</a>
                     </Button>
                   ) : (
-                    <a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-[color,transform] hover:-translate-x-0.5 hover:text-brand-foreground">{l.label}</a>
+                    <a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-[color,transform] hover:-translate-x-0.5 hover:text-brand-foreground motion-reduce:transition-none">{l.label}</a>
                   )}
                 </li>
               ))}

@@ -117,7 +117,7 @@ export default async function GuideIndexPage() {
                 </div>
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
                   خواندن راهنما
-                  <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" aria-hidden />
+                  <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden />
                 </span>
               </CardContent>
             </Card>
