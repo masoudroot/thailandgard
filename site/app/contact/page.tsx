@@ -62,7 +62,7 @@ export default async function ContactPage() {
     <main className="mx-auto max-w-5xl px-6 py-12">
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
-          <Phone className="size-3.5" />
+          <Phone aria-hidden className="size-3.5" />
           مشاورهٔ تلفنی
         </p>
         <h1 className="mt-3 text-balance text-3xl md:text-4xl">تماس با تایلندگرد</h1>
@@ -119,13 +119,13 @@ export default async function ContactPage() {
             <LiveStatusChip />
             <CallButtons compact />
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
-              <MessageCircle className="mt-0.5 size-4 shrink-0" />
+              <MessageCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
               {/* D-050 (نبض دیزاین): کانال‌های پیام‌رسان از تک‌منبع DB می‌آیند تا خانه و تماس
                   همیشه یکدست بمانند («بله» فقط روی خانه بود) */}
               {s.PHONE_CHANNELS_NOTE} در ساعت کاری فعال است؛ پیام بدهید، جواب می‌گیرید. با شمارهٔ ثابت هم می‌توانید زنگ بزنید.
             </p>
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Clock className="mt-0.5 size-4 shrink-0" />
+              <Clock aria-hidden className="mt-0.5 size-4 shrink-0" />
               ساعت کاری: شنبه تا پنجشنبه، {fa(9)} صبح تا {fa(9)} شب
             </p>
           </CardContent>
