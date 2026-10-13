@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
-import { TourCard, COMBO_SLUG } from "@/components/site/TourCard";
+import { TourCard, canonicalTourOrder } from "@/components/site/TourCard";
 import { FeatureSplit } from "@/components/blocks/feature-split";
 import { StepsBlock } from "@/components/blocks/steps-block";
 import { Separator } from "@/components/ui/separator";
@@ -60,11 +60,9 @@ const WHY_US = [
 
 export default async function HomePage() {
   const [tours, guides, s] = await Promise.all([getTours(), getGuides(), getSiteSettings()]);
-  // قلم ۴ اسپک خانه (۲۰ مهر): وقتی تور ترکیبی در payload بود، اول می‌نشیند
-  // (راست‌ترین کارت در RTL). تا payload نیامده، رفتار همان slice(0, 3) است.
-  const comboIdx = tours.findIndex((t) => t.slug === COMBO_SLUG);
-  const featuredTours =
-    comboIdx >= 0 ? [tours[comboIdx], ...tours.filter((_, i) => i !== comboIdx)].slice(0, 3) : tours.slice(0, 3);
+  // D-176: همان ترتیب کانونی کارت‌ها که گرید /tours هم دارد (ترکیبی اول)؛
+  // خانه فقط ۳ تای اول را نشان می‌دهد.
+  const featuredTours = canonicalTourOrder(tours).slice(0, 3);
   // D-107: خانه فقط ۶ راهنمای اول را نشان می‌دهد (گرید ۳ ستونه، ۲ ردیف)؛
   // بقیه پشت دکمهٔ «همهٔ راهنماها» در /guide می‌مانند تا سکشن سبک بماند.
   const featuredGuides = guides.slice(0, 6);

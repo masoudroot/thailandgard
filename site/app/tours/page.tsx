@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 import { pageSeo, displayTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { TourCard } from "@/components/site/TourCard";
+import { TourCard, canonicalTourOrder } from "@/components/site/TourCard";
 import { TourBanner } from "@/components/site/TourBanner";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { CtaBlock } from "@/components/blocks/cta";
@@ -15,12 +15,11 @@ import { Breadcrumb } from "@/components/ui/breadcrumb";
 export const metadata: Metadata = pageSeo({
   // ماتریس OG (هندآف seocontent ۱۷:۰۰؛ S-006/S-014): هر سه صفحهٔ استاتیک
   // از هلپر مشترک می‌آیند تا og:title/url/locale/type هیچ‌وقت جا نماند.
-  // S-050 (هندآف seocontent، اجرای ۰۵): متای تازهٔ ۱۵۵ کاراکتری؛ هر ۵ تور
-  // زنده را نام می‌برد. شرط انقضا: با اعمال مصوبهٔ S-049 (غیرفعال‌سازی
-  // سامویی/کرابی) این متا بازنویسی می‌شود.
+  // D-141/S-121 (هندآف content، چرخهٔ ۱۰): متای ۱۴۸ کاراکتری؛ نام سامویی/کرابی
+  // را نمی‌برد پس با مصوبهٔ S-049 نمی‌شکند.
   title: "تورهای تایلند؛ مقایسه و انتخاب تور؛ تایلندگرد",
   description:
-    "همهٔ تورهای تایلندگرد را کنار هم مقایسه کن؛ پوکت، بانکوک و پاتایا، بانکوک و پوکت، سامویی و کرابی. قیمت‌ها «قیمت پایه» و تقریبی‌اند؛ رزرو فقط با تماس تلفنی.",
+    "تورهای تایلندگرد را کنار هم مقایسه کن؛ پوکت، بانکوک و پاتایا و تور ترکیبی بانکوک و پوکت. قیمت‌ها «قیمت پایه» و تقریبی هستند؛ رزرو فقط با تماس تلفنی.",
   canonical: "/tours",
   type: "website",
 });
@@ -30,7 +29,10 @@ export default async function ToursPage() {
   const s = await getSiteSettings();
   // S-020 (هندآف seocontent ۱۹:۰۰): تور «منتخب این هفته» بنر از گرید حذف
   // می‌شود تا هدینگ تکراری (h2 بنر + h3 کارت با متن یکسان) نماند.
-  const [featuredTour, ...gridTours] = tours;
+  const [featuredTour, ...restTours] = tours;
+  // D-176: گرید کارت‌ها همان ترتیب کانونی خانه را دارد (ترکیبی اول)؛
+  // بنر «منتخب این هفته» همان tours[0] می‌ماند و از گرید حذف می‌شود (S-020).
+  const gridTours = canonicalTourOrder(restTours);
   // قانون ۳۷ اسکیما: ItemList همان آیتم‌های نمایشی گرید را دارد (نه بیشتر،
   // نه کمتر)؛ بنر «منتخب» جدا از گرید است و در اسکیما نمی‌آید.
   // قانون ۳۷ اسکیما: کارت‌ها با عنوان و خلاصه رندر می‌شوند؛ ItemList فقط همان
@@ -78,7 +80,7 @@ export default async function ToursPage() {
               </Link>
             </Fragment>
           ))}.
-          قیمت‌هایی که می‌بینید «قیمت پایه»‌اند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.{" "}
+          قیمت‌هایی که می‌بینید «قیمت پایه» هستند و بسته به تاریخ سفر و هتل کمی بالا و پایین می‌شوند.{" "}
           {/* حکم ۳ برندینگ (چرخهٔ ۰۹): مجهول اداری «انجام می‌شود» ممنوع؛
               «رزرو فقط با تماس تلفنی است.» */}
           رزرو فقط با تماس تلفنی است؛ پرداخت آنلاین نداریم.

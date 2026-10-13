@@ -27,6 +27,15 @@ import { TOUR_COVERS } from "@/lib/tour-covers";
     اگر seo اسلاگ نهایی را عوض کرد، فقط همین‌جا عوض می‌شود. */
 export const COMBO_SLUG = "bangkok-phuket-8-days";
 
+/* D-176 (ترتیب کانونی کارت‌ها): خانه و گرید /tours هر دو از همین منطق
+   استفاده می‌کنند؛ تور ترکیبی اول می‌نشیند (راست‌ترین کارت در RTL)،
+   بقیه با همان ترتیب موجود. اگر ترکیبی فعال نباشد، ترتیب دست نمی‌خورد. */
+export function canonicalTourOrder<T extends { slug: string }>(tours: T[]): T[] {
+  const i = tours.findIndex((t) => t.slug === COMBO_SLUG);
+  if (i <= 0) return tours;
+  return [tours[i], ...tours.slice(0, i), ...tours.slice(i + 1)];
+}
+
 /** کارت تور در فهرست و صفحهٔ خانه. */
 export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: string }) {
   const isCombo = tour.slug === COMBO_SLUG;
