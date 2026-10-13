@@ -227,7 +227,7 @@ export default async function HomePage() {
               <Card key={title} className="h-full">
                 <CardHeader>
                   <span className="inline-flex size-11 items-center justify-center rounded-surface bg-brand/15 text-brand-foreground">
-                    <Icon className="size-5" />
+                    <Icon aria-hidden className="size-5" />
                   </span>
                   <CardTitle className="mt-4 text-lg">{title}</CardTitle>
                 </CardHeader>
