@@ -22,7 +22,7 @@ import { cn, fa } from "@/lib/utils";
  * الگوی activeIndex (ایستگاه مبدأ = فعال).
  *
  * ایستگاه‌ها کلیک‌پذیرند و با اسکرول نرم به روز متناظر بخش «برنامهٔ
- * روزبه‌روز» (#acc-day-N؛ آکاردئون id را با پیشوند acc- می‌سازد) می‌روند؛ تا وقتی tour_days برای این تور در DB نیست،
+ * روزبه‌روز» (#item-day-N؛ آکاردئون id انکر را با پیشوند item- روی رپر بیرونی آیتم می‌سازد) می‌روند؛ تا وقتی tour_days برای این تور در DB نیست،
  * ایستگاه لینک نمی‌شود (span) تا کنترل مرده ساخته نشود؛ با نشستن داده،
  * لینک‌ها خودکار فعال می‌شوند.
  */
@@ -77,7 +77,7 @@ export function RouteStrip({ dayCount = 0 }: { dayCount?: number }) {
               <li key={st.label} className="flex snap-start items-start">
                 {hasTarget ? (
                   <a
-                    href={`#acc-day-${st.day}`}
+                    href={`#item-day-${st.day}`}
                     className="rounded-control px-1 py-1 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-brand"
                     aria-label={`${st.label}؛ پرش به روز ${fa(st.day)} برنامهٔ سفر`}
                   >

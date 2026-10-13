@@ -49,7 +49,9 @@ export function Accordion({ items, multiple, defaultOpen = [], className, toggle
       {items.map((it) => {
         const isOpen = open.includes(it.id);
         return (
-          <div key={it.id}>
+          <div key={it.id} id={`item-${it.id}`} className="scroll-mt-24">
+            {/* D-251: انکر اسکرول ایستگاه‌ها روی رپر بیرونی آیتم است (scroll-mt-24 تا سربرگ روز زیر نوبار چسبان نرود)؛
+                id منطقهٔ محتوا (acc-…) برای aria-controls سر جایش می‌ماند. */}
             <h3>
               <button
                 type="button"
