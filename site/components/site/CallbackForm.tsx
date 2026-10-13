@@ -198,6 +198,7 @@ export function CallbackForm({
             {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
             <a href={WHATSAPP_LINK} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
+              <span className="sr-only"> (در تب جدید)</span>
             </a>
             .
           </>
@@ -230,6 +231,7 @@ export function CallbackForm({
             {nextCallbackDayName()} {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
             <a href={WHATSAPP_LINK} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
+              <span className="sr-only"> (در تب جدید)</span>
             </a>
             .
           </>

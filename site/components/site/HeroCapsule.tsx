@@ -104,6 +104,7 @@ export function HeroCapsule({
             >
               <MessageCircle aria-hidden className="size-4" />
               یا در واتس‌اپ پیام بدهید
+              <span className="sr-only"> (در تب جدید)</span>
             </a>
           </div>
         </Reveal>

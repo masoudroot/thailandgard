@@ -26,6 +26,7 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
           <MessageCircle aria-hidden="true" />
           مشاوره واتس‌اپی
+          <span className="sr-only"> (در تب جدید)</span>
         </a>
       </Button>
       {compact && (

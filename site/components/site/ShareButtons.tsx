@@ -81,7 +81,7 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
                 href={telegramHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="اشتراک‌گذاری در تلگرام"
+                aria-label="اشتراک‌گذاری در تلگرام (در تب جدید)"
               >
                 <Send aria-hidden />
                 تلگرام
@@ -92,7 +92,7 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="اشتراک‌گذاری در واتس‌اپ"
+                aria-label="اشتراک‌گذاری در واتس‌اپ (در تب جدید)"
               >
                 <MessageCircle aria-hidden />
                 واتس‌اپ
