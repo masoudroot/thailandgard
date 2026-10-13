@@ -49,7 +49,7 @@ export function ThailandGazeGallery() {
               <img src={f.src} alt={f.caption} loading="lazy" className="size-full object-cover" />
             </div>
             {/* کپشن تک‌خطی زیر قاب، نه روی عکس (بریف؛ حکم ۴۷: فقط نام صحنه، بدون تفسیر) */}
-            <figcaption className="mt-2 truncate text-xs text-muted-foreground">{f.caption}</figcaption>
+            <figcaption title={f.caption} className="mt-2 truncate text-xs text-muted-foreground">{f.caption}</figcaption>
           </figure>
         ))}
       </Carousel>
