@@ -240,10 +240,13 @@ export default async function ToursPage() {
           main همین صفحه؛ فقط در main (نه لی‌اوت سراسری). انکر = عنوان نمایشی
           راهنما (همان displayTitle کارت‌ها). */}
       {/* D-219 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): کارت تمام‌عرض بود و ~۶۰٪ سمت چپش خالی
-          می‌ماند؛ max-w-3xl هم‌تراز با سکشن «هزینهٔ تور» بالایی. */}
+          می‌ماند؛ max-w-3xl هم‌تراز با سکشن «هزینهٔ تور» بالایی.
+          D-238 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): راستی چشمی میرزا روی prod (شات ۱۵:۰۰)
+          خلأ ساختاری نیمهٔ چپ را تأیید کرد (متن فقط سمت راست)؛ محتوای کارت
+          مرکزچین شد، هم‌خوان با کارت «پیش از تماس» /contact (الگوی D-209). */}
       <section className="mt-8 max-w-3xl">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 text-center">
             <h2 className="text-2xl sm:text-3xl">راهنمای سفر</h2>
             <ul className="mt-4 space-y-3">
               {[
