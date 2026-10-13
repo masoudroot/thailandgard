@@ -63,7 +63,11 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
         )}
         {/* استثنای design-rules: جهت گرادیان ماسک خاصیت بصری است نه چیدمان */}
         <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
-        <div className="absolute inset-x-0 bottom-0 space-y-1.5 p-4">
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          {/* صفحهٔ مات روشن پشت نوار متن (D-225): خوانایی تیتر و قیمت روی نواحی
+              روشن و شلوغ عکس؛ ماسک قاب دست نخورد (سقف شدت ۷۰٪، حکم ۶ design-ir)؛
+              گرادیان تیره با تیتر تیره ناسازگار بود پس همین راه‌حل سبک اعمال شد. */}
+          <div className="space-y-1.5 rounded-xl bg-background/60 px-4 py-3 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-2">
             {/* بج: برای ترکیبی فقط یک لکهٔ کهربایی «ترکیبی جدید»؛ بج shortTitle نمی‌آید (حکم ۲ بریف)
                 یافتهٔ ۲ ممیزی وایب‌فارسی (۲۰ مهر ۱۴۰۵): متن کهرباییِ تنها روی ماسک روشن ممنوع؛
@@ -84,6 +88,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
           <div className="flex flex-nowrap items-baseline justify-between gap-3">
             <span className="text-sm text-muted-foreground">قیمت پایه</span>
             <Price amount={tour.priceFrom} size="md" />
+          </div>
           </div>
         </div>
       </div>
