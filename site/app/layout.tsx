@@ -68,6 +68,10 @@ export async function generateMetadata(): Promise<Metadata> {
       images: defaultOgImages(s.SITE_URL),
     },
     robots: { index: true, follow: true },
+    // D-382 (نبض دیزاین ۲۲:۳۰): theme-color برای رنگ نوار مرورگر موبایل؛
+    // همان توکن --background (oklch(0.982 0.0035 90) ≈ #FAF9F6) تا با
+    // پس‌زمینهٔ صفحه یکدست شود. سایت light-only است (color-scheme: light).
+    themeColor: "#FAF9F6",
   };
 }
 
