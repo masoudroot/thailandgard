@@ -258,7 +258,7 @@ export function CallbackForm({
           aria-describedby={nameError ? "cb-name-error" : undefined}
         />
         {nameError && (
-          <p id="cb-name-error" className="text-sm text-destructive">
+          <p id="cb-name-error" role="alert" className="text-sm text-destructive">
             {nameError}
           </p>
         )}
