@@ -47,7 +47,7 @@ export function TourStickyBar() {
             flex-col + gap-2 جای گرید 7fr/3fr؛ ردیف ۱ تمام‌عرض برند h-11،
             ردیف ۲ تمام‌عرض ثانویه h-10؛ ترتیب DOM همان می‌ماند. */}
         <div className="flex flex-col gap-2">
-          <Button asChild variant="brand" className="h-11 w-full px-6 text-base gap-2.5">
+          <Button asChild variant="brand" className="h-11 w-full px-6 text-base">
             {/* قلم ۳ اسپک موبایل (۲۱ مهر ۱۴۰۵): خارج از ساعت کاری شماره‌گیری
                 نمی‌کند؛ اسکرول نرم به فرم #callback. واتس‌اپ دست نمی‌خورد. */}
             <a
@@ -69,7 +69,7 @@ export function TourStickyBar() {
               تماس با مشاور سفر
             </a>
           </Button>
-          <Button asChild variant="secondary" className="h-10 w-full px-6 text-sm gap-2.5">
+          <Button asChild variant="secondary" className="h-10 w-full px-6 text-sm">
             <a href={WHATSAPP_LINK}>
               <MessageCircle aria-hidden />
               مشاوره واتس‌اپی
