@@ -58,7 +58,9 @@ const DESTINATIONS: Destination[] = [
 /** ترتیب DOM = ترتیب دیداری راست‌به‌چپ: بانکوک (راست) ← پوکت ← پاتایا (چپ). */
 export function DestinationCards({ className }: { className?: string }) {
   return (
-    <section aria-label="کجا برویم؟" className={cn("px-6 py-16", className)}>
+    <section aria-label="کجا برویم؟" className={cn("px-6 py-12", className)}>
+      {/* D-245 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-16 ← py-12؛ هم‌ریتم با HeroCapsule پس از تراکم D-195
+          (هیرو py-12، سکشن تورها py-8؛ این سکشن شل‌ترینِ صفحه بود). راستی بصری در ممیزی بعدی. */}
       <div className="mx-auto max-w-5xl">
         <h2 className="text-2xl sm:text-3xl">کجا برویم؟</h2>
         <ul className="mt-8 grid gap-6 md:grid-cols-3">
