@@ -64,7 +64,7 @@ export function OctoberTimeline() {
                 className={cn("size-2 rounded-full", elapsed ? "bg-muted-foreground/40" : "bg-brand")}
               />
               <span className="mt-3 text-sm font-semibold tabular-nums">
-                {formatJalali(st.date, { year: false })} ({st.gLabel})
+                <time dateTime={st.date.toISOString()}>{formatJalali(st.date, { year: false })} ({st.gLabel})</time>
               </span>
               <span className="mt-1 line-clamp-2 text-center text-sm leading-6 text-muted-foreground">
                 {st.label}

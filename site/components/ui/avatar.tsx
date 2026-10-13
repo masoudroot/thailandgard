@@ -24,7 +24,7 @@ export function Avatar({ name, src, size = "md", className }: AvatarProps) {
       )}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- avatars are tiny and often external */}
-      {src ? <img src={src} alt={name} className="size-full rounded-full object-cover" /> : initial}
+      {src ? <img src={src} alt={name} loading="lazy" className="size-full rounded-full object-cover" /> : initial}
     </span>
   );
 }

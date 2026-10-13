@@ -130,7 +130,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           callHref={s.PHONE_MOBILE_LINK}
         />
         {/* D-250: هدف اسکیپ‌لینک؛ scroll-mt-24 تا با «پرش به محتوا» سر صفحه زیر نوبار چسبان نرود (قرارداد سکشن‌های سایت) */}
-        <main id="main-content" tabIndex={-1} className="flex-1 scroll-mt-24">{children}</main>
+        {/* D-359: div است نه main؛ صفحه‌ها خودشان یک main دارند و دو لندمارک main پشت‌سرهم برای صفحه‌خوان ممنوع است */}
+        <div id="main-content" tabIndex={-1} className="flex-1 scroll-mt-24">{children}</div>
         <FooterBlock
           logo={<span className="font-display">{s.SITE_NAME} | {s.SITE_LATIN}</span>}
           description={`${s.SITE_TAGLINE}. فروش ما فقط تلفنی است؛ هیچ پرداخت آنلاینی نداریم.`}
