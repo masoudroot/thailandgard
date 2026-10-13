@@ -77,7 +77,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
                 کم‌کنتراست بود؛ چیپ توپر گرافیتی + متن زمینه (الگوی چیپ
                 تخفیف Price در همین کارت)، خوانا روی عکس‌های روشن. */}
             <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-0.5 text-xs font-medium text-background">
-              <CalendarDays className="size-3.5" />
+              <CalendarDays className="size-3.5" aria-hidden />
               {fa(tour.days)} روز و {fa(tour.nights)} شب
             </span>
           </div>
@@ -95,7 +95,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
       <CardContent className="flex flex-1 flex-col gap-3 p-5">
         <CardDescription className="leading-7">{tour.summary}</CardDescription>
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <MapPin className="size-3.5" />
+          <MapPin className="size-3.5" aria-hidden />
           {tour.route}
         </p>
         {/* نوار پاهای تور ترکیبی (اسپک combo-card چرخهٔ ۰۶ §۱، ۲۱ مهر ۱۴۰۵):
