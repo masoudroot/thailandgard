@@ -246,7 +246,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
             {relatedTours.map((t, i) => (
               <span key={t.slug}>
                 {i > 0 && " و "}
-                <Link href={`/tours/${t.slug}`} className="font-semibold underline underline-offset-4">
+                <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   {t.title}
                 </Link>
               </span>

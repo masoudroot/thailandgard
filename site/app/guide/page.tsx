@@ -141,7 +141,7 @@ export default async function GuideIndexPage() {
                 { slug: "bangkok-phuket-8-days", name: "تور بانکوک و پوکت" },
               ].map((t) => (
                 <li key={t.slug}>
-                  <Link href={`/tours/${t.slug}`} className="font-semibold underline underline-offset-4">
+                  <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                     {t.name}
                   </Link>
                 </li>

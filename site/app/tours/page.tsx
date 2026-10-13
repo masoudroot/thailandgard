@@ -246,7 +246,7 @@ export default async function ToursPage() {
                 { slug: "best-time-to-visit-thailand", title: "بهترین زمان سفر به تایلند" },
               ].map((g) => (
                 <li key={g.slug}>
-                  <Link href={`/guide/${g.slug}`} className="font-semibold underline underline-offset-4">
+                  <Link href={`/guide/${g.slug}`} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                     {displayTitle(g.title)}
                   </Link>
                 </li>
