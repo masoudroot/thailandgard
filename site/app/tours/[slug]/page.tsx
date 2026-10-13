@@ -41,7 +41,7 @@ function renderFaqAnswer(answer: string): ReactNode {
   return (
     <ul className="divide-y divide-border">
       {lines.map((l, j) => (
-        <li key={j} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
+        <li key={j} className="flex items-start gap-2 py-2.5 first:pt-0 last:pb-0">
           <span aria-hidden className="mt-3 size-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
           <span className="leading-7">{renderInlineLinks(l)}</span>
         </li>
@@ -334,7 +334,7 @@ export default async function TourPage({ params }: Props) {
           <h2 className="text-center text-2xl sm:text-start sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
-              <li key={h} className="flex items-start gap-2.5">
+              <li key={h} className="flex items-start gap-2">
                 <Check className="mt-1 size-5 shrink-0 text-success-text" />
                 <span className="leading-7">{h}</span>
               </li>
@@ -439,7 +439,7 @@ export default async function TourPage({ params }: Props) {
             <CardContent>
               <ul className="space-y-2.5">
                 {tour.includes.map((i) => (
-                  <li key={i} className="flex items-start gap-2.5">
+                  <li key={i} className="flex items-start gap-2">
                     <Check className="mt-0.5 size-5 shrink-0 text-success-text" />
                     <span className="text-sm leading-7">{i}</span>
                   </li>
@@ -454,7 +454,7 @@ export default async function TourPage({ params }: Props) {
             <CardContent>
               <ul className="space-y-2.5">
                 {tour.excludes.map((e) => (
-                  <li key={e} className="flex items-start gap-2.5">
+                  <li key={e} className="flex items-start gap-2">
                     <X className="mt-0.5 size-5 shrink-0 text-destructive" />
                     <span className="text-sm leading-7">{e}</span>
                   </li>
