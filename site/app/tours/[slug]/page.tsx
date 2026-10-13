@@ -301,7 +301,7 @@ export default async function TourPage({ params }: Props) {
             </span>
           </div>
           {/* دیف A1 ممیزی design: leading خوانش بلند فارسی ۱٫۹ */}
-          <p className="text-lg leading-[1.9]">{tour.summary}</p>
+          <p className="text-lg leading-[1.9] text-pretty">{tour.summary}</p>
         </header>
 
         <Separator className="my-6" />
@@ -370,14 +370,14 @@ export default async function TourPage({ params }: Props) {
             {tour.description.slice(0, 3).map((p, i) => (
               // چتر دیف A1 (یادداشت F-B4 ممیزی وایب‌فارسی): پاراگراف‌های بدنهٔ
               // «دربارهٔ تور» هم خوانش بلند فارسی‌اند؛ leading ۱٫۹.
-              <p key={i} className="leading-[1.9] text-foreground/90">
+              <p key={i} className="leading-[1.9] text-pretty text-foreground/90">
                 {renderInlineLinks(p)}
               </p>
             ))}
             {tour.description.length > 3 && (
               <Alert variant="info" title="نکتهٔ کارشناس">
                 {tour.description.slice(3).map((p, i) => (
-                  <p key={i} className="leading-[1.9] text-foreground/80">
+                  <p key={i} className="leading-[1.9] text-pretty text-foreground/80">
                     {renderInlineLinks(p)}
                   </p>
                 ))}
