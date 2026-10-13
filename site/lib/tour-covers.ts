@@ -6,6 +6,8 @@
  * اختصاصی (راست: معبد وات‌آرون بانکوک، چپ: ساحل پوکت؛ ۱۲۰۰×۷۵۰) جایگزین
  * hero-phuket-sunset.webp موقت شد؛ مانیفست در
  * agents/design/ASSETS/tour-bangkok-phuket-8-days-SOURCES.md.
+ * بازبینی D-223 (نبض دیزاین): درز ۶ پیکسلی به رنگ کارت تا کلاژ دیپتیک
+ * طراحی‌شده خوانده شود (فیکس D-167 سر جاست).
  */
 export interface TourCover {
   src: string;
