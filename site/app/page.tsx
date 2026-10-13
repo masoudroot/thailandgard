@@ -214,7 +214,8 @@ export default async function HomePage() {
       </div>
 
       <section className="border-y border-border bg-muted/40">
-        <div className="mx-auto max-w-6xl px-6 py-10">
+        {/* D-258 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با سکشن‌های خانه (D-195/D-245) */}
+        <div className="mx-auto max-w-6xl px-6 py-12">
           <h2 className="text-center text-2xl sm:text-3xl">
             چرا تایلندگرد
           </h2>
@@ -272,7 +273,8 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-6xl px-6 py-10">
+      {/* D-258 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با سکشن‌های خانه (D-195/D-245) */}
+      <section className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
             {/* D-095: تیتر بخش با محتوای واقعی‌اش یکی شد (راهنما + اخبار سفر) */}
@@ -360,7 +362,8 @@ export default async function HomePage() {
           بازنویسی نهایی با branding + چک هم‌پوشانی با سکشن «چرا تایلندگرد» (حکم ۵۸). */}
       <TrustStrip />
 
-      <section className="mx-auto max-w-6xl px-6 py-10">
+      {/* D-258 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با سکشن‌های خانه (D-195/D-245) */}
+      <section className="mx-auto max-w-6xl px-6 py-12">
         <Card className="overflow-hidden">
           <div className="bg-brand/10 px-6 py-10 text-center sm:px-10">
             <h2 className="text-2xl sm:text-3xl">
