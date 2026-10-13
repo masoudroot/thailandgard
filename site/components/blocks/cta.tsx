@@ -19,7 +19,7 @@ export function CtaBlock({ title, description, action = "تماس با مشاو�
   // CallButtons (همان لیبل «تماس با مشاور سفر»)؛ قرارداد آیکونِ پیشرو.
   const inner = (
     <>
-      <Phone />
+      <Phone aria-hidden />
       {action}
     </>
   );
