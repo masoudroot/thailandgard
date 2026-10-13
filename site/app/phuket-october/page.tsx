@@ -44,7 +44,7 @@ const WHY_NOW = [
   {
     stat: "۱۸ اکتبر؛ ۳ پرواز هفتگی",
     title: "پرواز مستقیم تازه؛ ۱۸ اکتبر، ۳ پرواز هفتگی",
-    body: "ویرجین آتلانتیک از ۱۸ اکتبر پرواز مستقیم هیترو لندن به پوکت را با بوئینگ ۷۸۷ شروع می‌کند: ۳ پرواز هفتگی، چهارشنبه و جمعه و یکشنبه، تا ۲۷ مارس. این تنها مسیر بدون توقف بین هیترو و پوکت در فصل امسال است؛ یعنی فصل پوکت از ۱۸ اکتبر واقعاً از راه رسیده.",
+    body: "ویرجین آتلانتیک از ۱۸ اکتبر پرواز مستقیم هیثرو لندن به پوکت را با بوئینگ ۷۸۷ شروع می‌کند: ۳ پرواز هفتگی، چهارشنبه و جمعه و یکشنبه، تا ۲۷ مارس. این تنها مسیر بدون توقف بین هیثرو و پوکت در فصل امسال است؛ یعنی فصل پوکت از ۱۸ اکتبر واقعاً از راه رسیده.",
   },
 ];
 
@@ -115,13 +115,13 @@ export default async function PhuketOctoberPage() {
           </h1>
           {/* زیرتیتر موقت تا بازبینی ۲۱:۰۰ تیم محتوا */}
           <p className="mx-auto mt-5 max-w-xl text-muted-foreground">
-            ۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر): جشنوارهٔ گیاه‌خواران، بازگشایی سیمیلان، پرواز مستقیم هیترو
+            ۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر): جشنوارهٔ گیاه‌خواران، بازگشایی سیمیلان، پرواز مستقیم هیثرو
           </p>
           <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
             <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:[transform:var(--press)]">
               <a href={s.PHONE_MOBILE_LINK} data-call-context="phuket-hero">
                 <Phone />
-                مشاوره با {s.CONTACT_NAME}
+                تماس با مشاور سفر
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full px-6 active:[transform:var(--press)]">

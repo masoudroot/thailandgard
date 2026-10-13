@@ -14,7 +14,7 @@ import { Price } from "@/components/ui/price";
  * ردیف ۱ قیمت یک‌خطهٔ کامل («از» + عدد فارسی + «تومان» + «هر نفر»، یا «تماس بگیرید» اگر قیمت null است؛
  * هیچ‌کدام حذف یا collapse نمی‌شوند؛ هرگز wrap نمی‌شود: whitespace-nowrap در هر دو سطح + عدد
  * کمی کوچک‌تر در ۳۶۰px)؛
- * ردیف ۲ دو دکمهٔ flex-1 با h-11 (کف لمسی ۴۴px؛ بازحکم artdir ۱۴۰۵/۰۷/۲۰): «تماس با مشاور» فیل کهربایی (RTL: راست) و
+ * ردیف ۲ دو دکمهٔ flex-1 با h-11 (کف لمسی ۴۴px؛ بازحکم artdir ۱۴۰۵/۰۷/۲۰): «تماس با مشاور سفر» فیل کهربایی (RTL: راست) و
  * «مشاوره واتس‌اپی» outline خنثی (RTL: چپ)؛ بدون دکمهٔ بستن.
  */
 export function MobileOctoberBar({
@@ -57,12 +57,12 @@ export function MobileOctoberBar({
           <Price amount={priceFrom} size="sm" className="[&_.flex-wrap]:flex-nowrap [&_.tabular-nums]:whitespace-nowrap [&_.tabular-nums]:text-sm" />
           {priceFrom != null && <span className="shrink-0 text-sm text-muted-foreground">هر نفر</span>}
         </p>
-        {/* ردیف ۲: دکمه‌ها - RTL: «تماس با مشاور» راست (اول DOM)، «مشاوره واتس‌اپی» چپ */}
+        {/* ردیف ۲: دکمه‌ها - RTL: «تماس با مشاور سفر» راست (اول DOM)، «مشاوره واتس‌اپی» چپ */}
         <div className="flex gap-2">
           <Button asChild size="md" variant="brand" className="flex-1 h-11">
             <a href={phoneHref} data-call-context="mobile-october-bar">
               <Phone />
-              تماس با مشاور
+              تماس با مشاور سفر
             </a>
           </Button>
           <Button asChild size="md" variant="outline" className="flex-1 h-11">
