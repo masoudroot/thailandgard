@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   } catch {
     // یافتهٔ ۲ لید (کارت ۰۵): «بدنهٔ درخواست معتبر نیست.» زبان فنی بود و کاربر
     // را مقصر می‌دانست (خلاف محور ۶ لحن: راه‌حل جلوتر از عذرخواهی، زبان فنی ممنوع).
-    return NextResponse.json({ ok: false, error: "فرم درست ارسال نشد؛ یک بار دیگر تلاش کنید." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "فرم درست ارسال نشد؛ لطفاً یک بار دیگر تلاش کنید." }, { status: 400 });
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";

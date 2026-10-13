@@ -193,6 +193,10 @@ export default async function TourPage({ params }: Props) {
   const SNIPPET_ANSWER =
     "تور ترکیبی بانکوک و پوکت تایلندگرد ۸ روزه و ۷ شبه است؛ سه شب بانکوک با گشت شهری و بازار، چهار شب پوکت با ساحل و جزیره‌گردی. پرواز داخلی بانکوک به پوکت و ترانسفرها داخل پکیج است. قیمت صفحه فقط بخش دلاری را نشان می‌دهد و پرواز رفت‌وبرگشت تهران جدا حساب می‌شود.";
 
+  // حکم ۴۳ design-ir (چرخهٔ ۱۰): جملهٔ اطمینان کنار خط حقوقی چارتر؛
+  // متن نهایی با content است — تا آن موقع null و جمله رندر نمی‌شود.
+  const CHARTER_ASSURANCE_TEXT: string | null = null;
+
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -332,7 +336,7 @@ export default async function TourPage({ params }: Props) {
 
         <Separator className="my-8" />
 
-        <section className="mt-8">
+        <section className="mt-10">
           <h2 className="text-center text-2xl sm:text-start sm:text-3xl">چرا این تور؟</h2>
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
@@ -342,6 +346,15 @@ export default async function TourPage({ params }: Props) {
               </li>
             ))}
           </ul>
+          {/* یافتهٔ ۳ seocontent (چرخهٔ ۱۰): لینک داخلی به راهنمای تصمیم؛
+              انتهای بخش «چرا این تور؟» چون بخش پاراگراف ندارد (لیست هایلایت‌هاست). */}
+          <p className="mt-4 leading-7 text-foreground/90">
+            اگر هنوز بین تورها مرددید،{" "}
+            <Link href="/guide/compare-thailand-tours" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
+              مقایسهٔ کامل تورهای تایلند
+            </Link>{" "}
+            را ببینید.
+          </p>
         </section>
 
         <section className="mt-10">
@@ -397,14 +410,14 @@ export default async function TourPage({ params }: Props) {
         {slug === "bangkok-phuket-8-days" && (
           <section aria-label="مسیر سفر" className="mt-10">
             <h2 className="text-2xl sm:text-3xl">مسیر این تور</h2>
-            <div className="mt-6">
+            <div className="mt-5">
               <RouteStrip dayCount={tour.itinerary.length} />
             </div>
           </section>
         )}
 
         {tour.itinerary.length > 0 && (
-          <section id="itinerary" className="mt-8 scroll-mt-24">
+          <section id="itinerary" className="mt-10 scroll-mt-24">
             <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
             <Accordion
               className="mt-5"
@@ -440,10 +453,17 @@ export default async function TourPage({ params }: Props) {
         {/* خط حقوقی لازم‌الاجرا (حکم برندینگ ۱۶:۰۰ + تصمیم مشترک artdir/vibefarsi):
             همیشه‌مرئی، خط جدا زیر بلوک FAQ، بیرون آکاردئون (ضد الگوی تاریک).
             متن نهایی: «این تور چارتر است و کنسلی ندارد.»
-            وابستگی بیرونی: چارتر بودن هر ۴ تور هنوز نیازمند تأیید صریح فروش است. */}
+            وابستگی بیرونی: چارتر بودن هر ۴ تور هنوز نیازمند تأیید صریح فروش است.
+            حکم ۴۳ design-ir (چرخهٔ ۱۰): کنار خط حقوقی، جملهٔ اطمینان با نامِ
+            دغدغه می‌آید («خیالتان آسوده»)؛ متن نهایی با content است. */}
         <p className="mt-8 border-t border-border pt-4 text-sm text-muted-foreground">
           این تور چارتر است و کنسلی ندارد.
         </p>
+        {CHARTER_ASSURANCE_TEXT && (
+          <p className="mt-2 text-sm leading-7 text-foreground/80">
+            {CHARTER_ASSURANCE_TEXT}
+          </p>
+        )}
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           <Card>
@@ -454,7 +474,7 @@ export default async function TourPage({ params }: Props) {
               <ul className="space-y-2.5">
                 {tour.includes.map((i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className="mt-0.5 size-5 shrink-0 text-success-text" />
+                    <Check className="mt-1 size-5 shrink-0 text-success-text" />
                     <span className="text-sm leading-7">{i}</span>
                   </li>
                 ))}
@@ -469,7 +489,7 @@ export default async function TourPage({ params }: Props) {
               <ul className="space-y-2.5">
                 {tour.excludes.map((e) => (
                   <li key={e} className="flex items-start gap-2">
-                    <X className="mt-0.5 size-5 shrink-0 text-destructive" />
+                    <X className="mt-1 size-5 shrink-0 text-destructive" />
                     <span className="text-sm leading-7">{e}</span>
                   </li>
                 ))}

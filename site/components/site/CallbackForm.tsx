@@ -146,7 +146,7 @@ export function CallbackForm({
     clarityEvent("callback_submit_attempt", { tourSlug });
     if (name.trim().length < 2) {
       // حکم ۵ برندینگ: خطا «چرا» را هم می‌گوید، نه فقط امر.
-      setNameError("نام را کامل وارد کنید؛ بدون نام نمی‌توانیم با شما تماس بگیریم.");
+      setNameError("لطفاً نام را کامل وارد کنید؛ بدون نام نمی‌توانیم با شما تماس بگیریم.");
       clarityEvent("callback_validation_fail", { ...extra, field: "name" });
       // اسپک form-ux قلم ۱ (چرخهٔ ۰۸؛ رأی سبز وایب‌فارسی): فوکس روی خطای نام،
       // یکدست با الگوی mobileForceError (کیبورد: خطا دیده می‌شود).
@@ -180,7 +180,7 @@ export function CallbackForm({
       setStatus("done");
       clarityEvent("callback_submit_success", { tourSlug });
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "یک بار دیگر تلاش کنید؛ درخواستتان ثبت نشد.");
+      setServerError(err instanceof Error ? err.message : "لطفاً یک بار دیگر تلاش کنید؛ درخواستتان ثبت نشد.");
       setStatus("error");
       clarityEvent("callback_server_error", { ...extra, code: statusCode > 0 ? String(statusCode) : "network" });
     }
@@ -256,7 +256,7 @@ export function CallbackForm({
           aria-describedby={nameError ? "cb-name-error" : undefined}
         />
         {nameError && (
-          <p id="cb-name-error" className="text-xs text-destructive">
+          <p id="cb-name-error" className="text-sm text-destructive">
             {nameError}
           </p>
         )}

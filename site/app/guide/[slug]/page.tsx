@@ -122,6 +122,9 @@ export default async function GuideDetailPage({ params }: PageProps) {
           },
         ]
       : [];
+  // S-113 (حسابرس، ۲۱ مهر ۱۴۰۵): کلید image در اسکیمای Article برای rich result
+  // مقاله الزامی است؛ از همان کاور قاب قهرمان (URL مطلق) می‌آید.
+  const articleImage = guideCover ? `${s.SITE_URL}${guideCover.src}` : undefined;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -136,6 +139,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
         // S-085 (ب): datePublished از ستون guides.published_at می‌آید؛
         // تا وقتی ستون نیست، کلید صادر نمی‌شود.
         ...(guide.publishedAt ? { datePublished: guide.publishedAt } : {}),
+        ...(articleImage ? { image: articleImage } : {}),
         author: { "@type": "Organization", name: s.SITE_NAME, url: s.SITE_URL },
         publisher: {
           "@type": "Organization",

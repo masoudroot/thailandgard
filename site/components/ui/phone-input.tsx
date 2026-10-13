@@ -5,6 +5,9 @@
  * نسخهٔ رجیستری placeholder لاتین دارد.
  * انحراف ثبت‌شده (DEVIATIONS.md): پراپ `forceError` در آیتم رجیستری نیست؛
  * برای خطای اجباری روی submit فرم (دیف UX فرم «درخواست تماس»، ۲۰ مهر) اضافه شد.
+ * انحراف دوم (فعال، ۲۱ مهر ۱۴۰۵، حکم نقد ۵ artdir): hint و متن خطا `text-sm`‌اند
+ * (کف ۱۴px برای متن‌های عملکردی فرم)؛ آیتم `text-xs` تجویز می‌کند. پیام خطای امری
+ * با «لطفاً» شروع می‌شود (قاعدهٔ «لطفاً در خطا»، حکم ۴۰ design-ir).
  */
 
 import * as React from "react";
@@ -65,8 +68,8 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus,
         />
         {valid && <Check className="size-4 text-success-text" />}
       </div>
-      <p id={hintId} className="text-xs text-muted-foreground">
-        {forceError ? <span className="text-destructive">شمارهٔ موبایل را کامل و درست وارد کنید.</span> : op ? `اپراتور: ${op}` : digits.length === 10 && !valid ? <span className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}
+      <p id={hintId} className="text-sm text-muted-foreground">
+        {forceError ? <span className="text-destructive">لطفاً شمارهٔ موبایل را کامل و درست وارد کنید.</span> : op ? `اپراتور: ${op}` : digits.length === 10 && !valid ? <span className="text-destructive">شماره باید با ۹ شروع شود و ۱۰ رقم باشد</span> : "بدون صفر اول هم می‌توانید وارد کنید"}
       </p>
     </div>
   );

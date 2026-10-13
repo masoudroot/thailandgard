@@ -2,9 +2,10 @@
  * نگاشت مشترک اسلاگ تور ← کاور کتابخانه (اسپک زبان عکس §۵؛ ابعاد از PHOTO-LIBRARY.md).
  * ماژول واحد برای TourCard و قاب قهرمان صفحهٔ جزئیات تور (پیشنهاد F-B6 ممیزی
  * وایب‌فارسی، ۲۰ مهر ۱۴۰۵): نگاشت یک‌جا نگه‌داری می‌شود، نه کپی در دو فایل.
- * کاور تور ترکیبی (D-127، نبض ۲۱ مهر ۱۴۰۵): همان hero-phuket-sunset.webp بخش
- * ویژهٔ خانه؛ موقت تا عکس اختصاصی ترکیبی برسد (مثل hero.tsx). کاور
- * tour-bangkok-pattaya-8-days مال تور دیگری است و این‌جا نمی‌آید.
+ * کاور تور ترکیبی (اسپک mount کلاژ ۱۶:۱۰، ۲۱ مهر ۱۴۰۵، چرخهٔ ۱۰): کلاژ ۵۰/۵۰
+ * اختصاصی (راست: معبد وات‌آرون بانکوک، چپ: ساحل پوکت؛ ۱۲۰۰×۷۵۰) جایگزین
+ * hero-phuket-sunset.webp موقت شد؛ مانیفست در
+ * agents/design/ASSETS/tour-bangkok-phuket-8-days-SOURCES.md.
  */
 export interface TourCover {
   src: string;
@@ -39,10 +40,10 @@ export const TOUR_COVERS: Record<string, TourCover> = {
     h: 853,
   },
   "bangkok-phuket-8-days": {
-    src: "/images/hero-phuket-sunset.webp",
-    alt: "انعکاس غروب نارنجی خورشید روی آب دریا با سیلوئت تیرهٔ ساحل",
-    w: 2400,
-    h: 1600,
+    src: "/images/tour-bangkok-phuket-8-days-cover.webp",
+    alt: "تور ترکیبی بانکوک و پوکت؛ معبد وات‌آرون بانکوک و ساحل پوکت",
+    w: 1200,
+    h: 750,
   },
 };
 
