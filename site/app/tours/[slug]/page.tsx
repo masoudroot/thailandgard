@@ -250,7 +250,7 @@ export default async function TourPage({ params }: Props) {
       )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }} />
 
-      <div className="mx-auto max-w-5xl px-6 py-12">
+      <main className="mx-auto max-w-5xl px-6 py-12">
         <Breadcrumb
           className="mb-6"
           items={[
@@ -504,7 +504,7 @@ export default async function TourPage({ params }: Props) {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
 
       {relatedGuides.length > 0 && guideBlock && (
         <section className="mx-auto mt-8 max-w-5xl px-6">

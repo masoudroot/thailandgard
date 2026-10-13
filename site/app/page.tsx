@@ -102,6 +102,8 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
+      <main>
+
       {/* کپسول عملیاتی هیرو در اسلات هیروی خانه (دستور :۳۵، ۲۰ مهر ۱۴۰۵؛ مأموریت بصری).
           بنر الف (کمپین «پنجرهٔ اکتبر») فعلاً از اسلات خارج شد؛ فایل OctoberBanner سر جایش است. */}
       <HeroCapsule
@@ -390,6 +392,7 @@ export default async function HomePage() {
           </CardContent>
         </Card>
       </section>
+      </main>
     </>
   );
 }

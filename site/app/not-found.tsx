@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default async function NotFound() {
   const tours = (await getTours()).slice(0, 3);
   return (
-    <>
+    <main>
       <ErrorPage kind="404" search={false} primaryHref="/" secondaryHref="/guide" />
       <section className="mx-auto w-full max-w-5xl px-6 pb-16">
         <h2 className="text-balance text-center text-xl">شاید دنبال یکی از این‌ها بودید</h2>
@@ -39,6 +39,6 @@ export default async function NotFound() {
           <CallButtons compact />
         </div>
       </section>
-    </>
+    </main>
   );
 }
