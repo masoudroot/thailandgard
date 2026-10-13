@@ -7,14 +7,19 @@ import { Price } from "@/components/ui/price";
 import { fa } from "@/lib/utils";
 import { getSiteSettings } from "@/lib/db-content";
 import type { Tour } from "@/lib/tours";
+import { CoverImage } from "@/components/site/CoverImage";
+import { TOUR_COVERS } from "@/lib/tour-covers";
 
 /**
  * بنر «منتخب این هفته» برای بالای /tours (قابل استفاده در خانه).
- * پوستر تایپوگرافیک: نام مقصد جای عکس. هیچ تصویری ندارد.
+ * D-189 (۲۱ مهر ۱۴۰۵): پنل کناری قبلاً فقط واژهٔ تزئینی غول‌پیکر
+ * (shortTitle) بود و جای‌نگه‌دار خوانده می‌شد؛ با کاور واقعی تور
+ * (همان نگاشت TourCard) جایگزین شد. بدون کاور: جای‌نگه‌دار مویی هم‌شکل.
  */
 export async function TourBanner({ tour }: { tour: Tour }) {
   const { PHONE_MOBILE_LINK } = await getSiteSettings();
   const titleId = `tour-banner-${tour.slug}`;
+  const cover = TOUR_COVERS[tour.slug];
   return (
     <Card
       aria-labelledby={titleId}
@@ -81,13 +86,28 @@ export async function TourBanner({ tour }: { tour: Tour }) {
         </div>
       </div>
 
-      {/* پنل تایپوگرافیک مقصد: در موبایل بالا، در دسکتاپ ستون چپ (پایان خواندن) */}
+      {/* پنل تصویری مقصد: در موبایل بالا، در دسکتاپ ستون چپ (پایان خواندن).
+          D-189: کاور واقعی تور به‌جای واژهٔ تزئینی؛ قاب ۱۶:۱۰ + ماسک
+          graphite-soft (همان الگوی TourCard؛ سقف ۷۰٪ حکم ۶ design-ir).
+          استثنای design-rules: جهت گرادیان ماسک خاصیت بصری است نه چیدمان. */}
       <div className="order-1 flex flex-col justify-center border-b border-border pb-6 md:order-2 md:border-b-0 md:border-s md:pb-0 md:ps-8">
-        <span aria-hidden className="block h-px w-16 bg-border" />
-        <p className="mt-4 flex items-baseline justify-end gap-3 font-display text-5xl sm:text-6xl">
-          {tour.shortTitle}
-          <span aria-hidden className="block size-2.5 shrink-0 rounded-full bg-brand" />
-        </p>
+        <figure className="relative aspect-[16/10] overflow-hidden border border-border">
+          {cover ? (
+            <CoverImage
+              src={cover.src}
+              alt={cover.alt}
+              width={cover.w}
+              height={cover.h}
+              sizes="(max-width: 768px) 100vw, 288px"
+            />
+          ) : (
+            // جای‌نگه‌دار مینیمال هم‌شکل (الگوی D-081 در TourCard)
+            <div className="flex size-full flex-col items-center justify-center bg-secondary/50 p-6">
+              <span aria-hidden className="block h-px w-16 bg-border" />
+            </div>
+          )}
+          <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
+        </figure>
       </div>
     </Card>
   );
