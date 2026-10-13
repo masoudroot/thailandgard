@@ -120,8 +120,8 @@ export default async function PhuketOctoberPage() {
           <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
             <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:[transform:var(--press)]">
               <a href={s.PHONE_MOBILE_LINK} data-call-context="phuket-hero">
-                مشاوره با {s.CONTACT_NAME}
                 <Phone />
+                مشاوره با {s.CONTACT_NAME}
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full px-6">

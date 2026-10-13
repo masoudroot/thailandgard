@@ -7,7 +7,8 @@ import Link from "next/link";
  * نشانگر داخل رشته: [[انکر|/مسیر]]؛ فقط مسیرهای داخلی (شروع با /) لینک می‌شوند.
  * امن: متن‌ها از فایل‌های lib خودمان می‌آیند، نه ورودی کاربر؛ ری‌اکت متن را
  * escape می‌کند و href فقط مسیر داخلیِ صریحِ داخل رشته است.
- * استایل لینک عین لینک‌های درون‌متنی موجود («قدم بعدی») است: بدون تغییر بصری.
+ * استایل لینک عین لینک‌های درون‌متنی مصوب D-127 است (مثل «قدم بعدی»):
+ * underline + decoration-brand/60 + هاور، بدون font-semibold.
  */
 const INLINE_LINK_RE = /\[\[([^|[\]]+)\|(\/[^[\]]*)\]\]/g;
 
@@ -48,7 +49,7 @@ export function renderInlineLinks(text: string): ReactNode {
   while ((m = INLINE_LINK_RE.exec(text)) !== null) {
     if (m.index > last) parts.push(wrapLatinTerms(text.slice(last, m.index)));
     parts.push(
-      <Link key={key++} href={m[2]} className="font-semibold underline underline-offset-4">
+      <Link key={key++} href={m[2]} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
         {wrapLatinTerms(m[1])}
       </Link>,
     );

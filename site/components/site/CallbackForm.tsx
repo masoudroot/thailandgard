@@ -196,7 +196,7 @@ export function CallbackForm({
                 کرده (callTime غیرخالی) وگرنه قول کلی «در ساعت کاری». */}
             درخواستتان ثبت شد. {nextCallbackDayName()}{" "}
             {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
-            <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
+            <a href={WHATSAPP_LINK} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
             </a>
             .
@@ -228,7 +228,7 @@ export function CallbackForm({
           <>
             الان خارج از ساعت کاری هستیم و کسی پشت خط نیست. شماره‌تان را بگذارید؛{" "}
             {nextCallbackDayName()} {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
-            <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
+            <a href={WHATSAPP_LINK} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
             </a>
             .
