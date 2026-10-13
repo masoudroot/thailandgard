@@ -348,7 +348,7 @@ export default async function TourPage({ params }: Props) {
           <ul className="mt-5 space-y-3">
             {tour.highlights.map((h) => (
               <li key={h} className="flex items-start gap-2">
-                <Check className="mt-1 size-5 shrink-0 text-success-text" />
+                <Check aria-hidden className="mt-1 size-5 shrink-0 text-success-text" />
                 <span className="leading-7">{h}</span>
               </li>
             ))}
@@ -481,7 +481,7 @@ export default async function TourPage({ params }: Props) {
               <ul className="space-y-2.5">
                 {tour.includes.map((i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className="mt-1 size-5 shrink-0 text-success-text" />
+                    <Check aria-hidden className="mt-1 size-5 shrink-0 text-success-text" />
                     <span className="text-sm leading-7">{i}</span>
                   </li>
                 ))}
@@ -496,7 +496,7 @@ export default async function TourPage({ params }: Props) {
               <ul className="space-y-2.5">
                 {tour.excludes.map((e) => (
                   <li key={e} className="flex items-start gap-2">
-                    <X className="mt-1 size-5 shrink-0 text-destructive" />
+                    <X aria-hidden className="mt-1 size-5 shrink-0 text-destructive" />
                     <span className="text-sm leading-7">{e}</span>
                   </li>
                 ))}
