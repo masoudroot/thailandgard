@@ -158,6 +158,9 @@ export default async function TourPage({ params }: Props) {
     "@type": "TouristTrip",
     name: tour.title,
     description: tour.summary,
+    // S-177/S-174 (۲۱ مهر ۱۴۰۵): کاور اختصاصی تور در اسکیما هم می‌نشیند؛
+    // بدون فیلد image شانس rich result تور کمتر می‌شود. URL مطلق.
+    ...(heroCover ? { image: `${s.SITE_URL}${heroCover.src}` } : {}),
     touristType: tour.touristType,
     // S-046 حسابرس (۲۰ مهر ۱۴۰۵): itinerary خالی (numberOfItems: 0) ساختار مرده است؛
     // وقتی دادهٔ برنامهٔ روزبه‌روز هنوز نوشته نشده، کلید کلاً حذف می‌شود.

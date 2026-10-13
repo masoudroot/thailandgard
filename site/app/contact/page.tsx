@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import { LiveStatusChip } from "@/components/site/LiveStatusChip";
+import { HourAwareCallTitle } from "@/components/site/HourAwareCallTitle";
 import { getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
 import { defaultOgImages } from "@/lib/og";
@@ -97,7 +98,9 @@ export default async function ContactPage() {
           <CardHeader className="border-b border-border bg-muted/40">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold">خودتان زنگ بزنید؛ سریع‌ترین راه است</h2>
+                {/* M-2 (یافتهٔ lead، ۲۱ مهر ۱۴۰۵): تیتر ساعت‌آگاه؛ «سریع‌ترین راه»
+                    فقط داخل ساعت کاری درست است. متن نهایی جایگزین با content. */}
+                <HourAwareCallTitle />
                 <CardDescription className="mt-1">{s.CONTACT_TITLE}</CardDescription>
               </div>
               <Badge variant="brand">کارشناس مقصد</Badge>

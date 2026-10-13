@@ -4,6 +4,8 @@ import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck,
 import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { ThailandGazeGallery } from "@/components/site/ThailandGazeGallery";
+import { DestinationCards } from "@/components/site/DestinationCards";
+import { TrustStrip } from "@/components/site/TrustStrip";
 import { TourCard, canonicalTourOrder } from "@/components/site/TourCard";
 import { FeatureSplit } from "@/components/blocks/feature-split";
 import { StepsBlock } from "@/components/blocks/steps-block";
@@ -134,6 +136,11 @@ export default async function HomePage() {
           ))}
         </Reveal>
       </section>
+
+      {/* بلوک «کجا برویم؟» (اسپک design چرخهٔ ۱۲؛ حکم‌های ۵۲ تا ۵۶ design-ir):
+          mount زیر گرید تورهای خانه، قبل از گالری. کاورها قاب تایپوگرافیک‌اند
+          (حکم ۵۲: بدون فایل تور/گالری)؛ کپی توصیف‌ها موقت و نهایی‌اش با content. */}
+      <DestinationCards />
 
       {/* گالری «تایلند در یک نگاه» (تغییر بصری امروز، ۲۱ مهر ۱۴۰۵؛ اسپک گالری اجرای ۱۱؛
           حکم‌های ۴۶ تا ۴۹ design-ir اعمال شده‌اند). mount بعد از گرید تورها،
@@ -345,6 +352,11 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      {/* نوار اعتماد «چرا تایلندگرد» (اسپک design چرخهٔ ۱۲؛ حکم‌های ۵۷/۵۸ design-ir):
+          mount بلافاصله قبل از سکشن فرم تماس. گزاره‌ها موقت‌اند (جهت‌های design-ir)؛
+          بازنویسی نهایی با branding + چک هم‌پوشانی با سکشن «چرا تایلندگرد» (حکم ۵۸). */}
+      <TrustStrip />
 
       <section className="mx-auto max-w-6xl px-6 py-10">
         <Card className="overflow-hidden">

@@ -134,10 +134,9 @@ export default async function GuideIndexPage() {
             <h2 className="text-xl font-semibold">تورهای مرتبط</h2>
             <ul className="mt-4 space-y-3">
               {[
-                { slug: "samui-7-days", name: "تور سامویی" },
+                // S-163 (۲۱ مهر): samui-7-days و krabi-6-days غیرفعال‌اند (۴۰۴)؛ فقط ۳ تور زنده.
                 { slug: "phuket-7-days", name: "تور پوکت" },
                 { slug: "bangkok-pattaya-8-days", name: "تور بانکوک و پاتایا" },
-                { slug: "krabi-6-days", name: "تور کرابی" },
                 { slug: "bangkok-phuket-8-days", name: "تور بانکوک و پوکت" },
               ].map((t) => (
                 <li key={t.slug}>

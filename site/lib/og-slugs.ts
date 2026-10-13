@@ -12,8 +12,13 @@ import { join } from "node:path";
  */
 const OG_SLUG_MAP: Record<string, { file: string; alt: string; w?: number; h?: number }> = {
   "phuket-7-days": {
-    file: "images/og-phuket-7-days.webp",
-    alt: "ساحل پاتونگ پوکت در غروب؛ تور پوکت تایلندگرد",
+    // S-177 (۲۱ مهر ۱۴۰۵): فایل og-phuket-7-days.webp هرگز ساخته نشد و
+    // راستی وجود فایل، og را به هیروی ژنریک خانه می‌انداخت؛ نگاشت به فایل
+    // اختصاصی واقعی تور (کاور بدنه، ۱۲۸۰×۸۵۳).
+    file: "images/tour-phuket-7-days.webp",
+    alt: "قایق دم‌بلند روی آب فیروزه‌ای پوکت در برابر صخره‌های ساحلی",
+    w: 1280,
+    h: 853,
   },
   "samui-7-days": {
     // S-003 (۲۰ مهر ۱۴۰۵): کاور رسمی تور سامویی از کتابخانه (Pexels، مجوز تجاری)
