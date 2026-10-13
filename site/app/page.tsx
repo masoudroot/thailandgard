@@ -199,8 +199,8 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* بنر ب (بین‌سکشنی)؛ حکم ۴. D-174: py-10 ← py-6 برای ریتم فشرده‌تر. */}
-      <div className="py-6">
+      {/* بنر ب (بین‌سکشنی)؛ حکم ۴. D-174: py-10 ← py-6 برای ریتم فشرده‌تر؛ D-208: کپسول تمام‌عرض ← ستون محتوا (max-w-6xl هم‌تراز سکشن بعدی). */}
+      <div className="mx-auto max-w-6xl px-6 py-6">
         <SeasonBanner />
       </div>
 
