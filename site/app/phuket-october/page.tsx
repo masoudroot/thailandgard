@@ -141,7 +141,7 @@ export default async function PhuketOctoberPage() {
           <div className="min-w-0">
             {/* سکشن ۲: سه کارت «چرا الان» */}
             <section>
-              <h2 className="text-2xl sm:text-3xl">چرا نیمهٔ دوم اکتبر؟</h2>
+              <h2 className="text-balance text-2xl sm:text-3xl">چرا نیمهٔ دوم اکتبر؟</h2>
               <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {WHY_NOW.map((c) => (
                   <Card key={c.title} className="rounded-surface border-border shadow-none">
@@ -158,7 +158,7 @@ export default async function PhuketOctoberPage() {
 
             {/* سکشن ۳: تورهای همین پنجره */}
             <section id="october-tours" className="mt-12 scroll-mt-24">
-              <h2 className="text-2xl sm:text-3xl">تورهای همین پنجره</h2>
+              <h2 className="text-balance text-2xl sm:text-3xl">تورهای همین پنجره</h2>
               <div className="mt-8 max-w-md">
                 <TourCard tour={tour} />
               </div>
@@ -166,7 +166,7 @@ export default async function PhuketOctoberPage() {
 
             {/* سکشن ۵: پرسش‌های متداول ← blocks/faq (فقط ستون آکاردئون) */}
             <section className="mt-12">
-              <h2 className="text-2xl sm:text-3xl">پرسش‌های پرتکرار</h2>
+              <h2 className="text-balance text-2xl sm:text-3xl">پرسش‌های پرتکرار</h2>
               <Accordion
                 className="mt-8"
                 defaultOpen={["october-faq-0"]}

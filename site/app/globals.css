@@ -289,3 +289,10 @@ h3,
   border-radius: var(--radius-control);
 }
 
+/* رنگ انتخاب متن (D-367، نبض دیزاین): توکن برند؛ متن تیره روی کهربایی خواناست
+ * و هویت بصری سایت در حالت انتخاب هم حفظ می‌شود. */
+::selection {
+  background: var(--brand);
+  color: var(--brand-foreground);
+}
+
