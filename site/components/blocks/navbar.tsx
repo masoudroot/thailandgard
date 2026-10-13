@@ -65,7 +65,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
                 <a href={callHref}><Phone aria-hidden /></a>
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="size-11" aria-label="باز کردن منو" title="باز کردن منو" onClick={() => setOpen(true)}><Menu aria-hidden /></Button>
+            <Button variant="ghost" size="icon" className="size-11" aria-label="باز کردن منو" title="باز کردن منو" aria-expanded={open} onClick={() => setOpen(true)}><Menu aria-hidden /></Button>
           </div>
         </nav>
       </header>
