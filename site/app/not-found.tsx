@@ -26,7 +26,7 @@ export default async function NotFound() {
     <>
       <ErrorPage kind="404" search={false} primaryHref="/" secondaryHref="/guide" />
       <section className="mx-auto w-full max-w-5xl px-6 pb-16">
-        <h2 className="text-balance text-center text-xl font-bold">شاید دنبال یکی از این‌ها بودید</h2>
+        <h2 className="text-balance text-center text-xl">شاید دنبال یکی از این‌ها بودید</h2>
         <p className="mt-2 text-center text-sm leading-7 text-muted-foreground">
           تورهای پرطرفدار تایلندگرد:
         </p>
