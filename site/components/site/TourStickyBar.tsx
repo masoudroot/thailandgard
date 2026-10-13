@@ -49,7 +49,7 @@ export function TourStickyBar() {
   return (
     <div role="region" aria-label="اقدام سریع" className="fixed inset-x-0 bottom-0 z-40 max-h-[20vh] overflow-hidden rounded-t-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       <div className="mx-auto max-w-5xl px-4 py-3">
-        {/* بازحکم ساختاری آرت‌دایرکشن (۰۴:۴۵ دور دوم): الگوی MobileOctoberBar —
+        {/* بازحکم ساختاری آرت‌دایرکشن (۰۴:۴۵ دور دوم): الگوی MobileOctoberBar ؛
             flex-col + gap-2 جای گرید 7fr/3fr؛ ردیف ۱ تمام‌عرض برند h-11،
             ردیف ۲ تمام‌عرض ثانویه h-10؛ ترتیب DOM همان می‌ماند. */}
         <div className="flex flex-col gap-2">
