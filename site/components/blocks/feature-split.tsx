@@ -27,7 +27,7 @@ export function FeatureSplit({ items }: { items: SplitFeature[] }) {
               <p className="mt-3 leading-8 text-muted-foreground">{f.description}</p>
               {f.bullets && (
                 <ul className="mt-5 space-y-2 text-sm">
-                  {f.bullets.map((b) => <li key={b} className="flex items-start gap-2"><Check className="mt-1 size-4 shrink-0 text-brand" />{b}</li>)}
+                  {f.bullets.map((b) => <li key={b} className="flex items-start gap-2"><Check aria-hidden className="mt-1 size-4 shrink-0 text-brand" />{b}</li>)}
                 </ul>
               )}
             </div>
