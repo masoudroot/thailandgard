@@ -21,7 +21,7 @@ import { formatJalali } from "@/lib/jalali";
 const STATIONS = [
   { date: new Date("2026-10-10T23:59:59+03:30"), gLabel: "۱۰ اکتبر", label: "جشنوارهٔ گیاه‌خواران" },
   { date: new Date("2026-10-15T23:59:59+03:30"), gLabel: "۱۵ اکتبر", label: "بازگشایی سیمیلان" },
-  { date: new Date("2026-10-18T23:59:59+03:30"), gLabel: "۱۸ اکتبر", label: "پرواز مستقیم هیترو" },
+  { date: new Date("2026-10-18T23:59:59+03:30"), gLabel: "۱۸ اکتبر", label: "پرواز مستقیم هیثرو" },
 ];
 
 export function OctoberTimeline() {
@@ -79,7 +79,7 @@ export function OctoberTimeline() {
                   )}
                   aria-hidden={elapsed || daysLeft <= 0}
                 >
-                  {fa(Math.max(daysLeft, 1))} روز بعد
+                  {fa(Math.max(daysLeft, 1))} روز مانده
                 </span>
               )}
             </li>

@@ -188,10 +188,11 @@ export function CallbackForm({
       <Alert ref={statusAlertRef} tabIndex={-1} variant="success" title="درخواستتان ثبت شد">
         {outsideHours ? (
           <>
-            {/* حکم ۱۶ design-ir: قول «روز معلوم» به‌جای «روز کاری بعد»؛ نام روز
-                با همان منطق isWithinWorkingHours (جمعه‌شب ← شنبه) و بازهٔ
-                پیش‌فرض «بین ۹ تا ۱۲»، مگر بازهٔ انتخابی خود کاربر. */}
-            درخواستتان ثبت شد. {nextCallbackDayName()} {callbackSlotLabel(callTime)} زنگ می‌زنیم. اگر عجله دارید،{" "}
+            {/* حکم ۲۸ design-ir (لازم‌الاجرا؛ جای حکم ۱۶ روی این شاخه): قول «روز
+                معلوم» به‌جای «روز کاری بعد»؛ بازه فقط وقتی خود کاربر انتخاب
+                کرده (callTime غیرخالی) وگرنه قول کلی «در ساعت کاری». */}
+            درخواستتان ثبت شد. {nextCallbackDayName()}{" "}
+            {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
             <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
             </a>
@@ -223,7 +224,7 @@ export function CallbackForm({
         {outsideHours ? (
           <>
             الان خارج از ساعت کاری هستیم و کسی پشت خط نیست. شماره‌تان را بگذارید؛{" "}
-            {nextCallbackDayName()} {callbackSlotLabel(callTime)} زنگ می‌زنیم. اگر عجله دارید،{" "}
+            {nextCallbackDayName()} {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
             <a href={WHATSAPP_LINK} className="underline" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
             </a>
