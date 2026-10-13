@@ -102,7 +102,7 @@ export function ErrorPagesDemo() {
   const [kind, setKind] = React.useState<ErrorKind>("404");
   return (
     <div className="relative">
-      <div className="absolute left-1/2 top-4 z-10 inline-flex -translate-x-1/2 rounded-lg border border-border bg-card p-0.5 text-xs">
+      <div className="absolute start-1/2 top-4 z-10 inline-flex -translate-x-1/2 rounded-lg border border-border bg-card p-0.5 text-xs">
         {(Object.keys(COPY) as ErrorKind[]).map((k) => <button key={k} type="button" onClick={() => setKind(k)} className={cn("cursor-pointer rounded-md px-2.5 py-1 font-mono", kind === k ? "bg-secondary font-semibold" : "text-muted-foreground")}>{k}</button>)}
       </div>
       <ErrorPage kind={kind} />
