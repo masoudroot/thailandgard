@@ -103,7 +103,7 @@ export function ErrorPagesDemo() {
   return (
     <div className="relative">
       <div className="absolute start-1/2 top-4 z-10 inline-flex -translate-x-1/2 rounded-lg border border-border bg-card p-0.5 text-xs">
-        {(Object.keys(COPY) as ErrorKind[]).map((k) => <button key={k} type="button" onClick={() => setKind(k)} className={cn("cursor-pointer rounded-md px-2.5 py-1 font-mono", kind === k ? "bg-secondary font-semibold" : "text-muted-foreground")}>{k}</button>)}
+        {(Object.keys(COPY) as ErrorKind[]).map((k) => <button key={k} type="button" onClick={() => setKind(k)} className={cn("cursor-pointer rounded-md px-2.5 py-1 font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background", kind === k ? "bg-secondary font-semibold" : "text-muted-foreground")}>{k}</button>)}
       </div>
       <ErrorPage kind={kind} />
     </div>
