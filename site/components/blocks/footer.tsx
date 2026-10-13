@@ -4,8 +4,9 @@
  * هر نوروز به‌روز شود.
  */
 import { fa } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
-export interface FooterColumn { title: string; links: { label: React.ReactNode; href: string; ariaLabel?: string }[] }
+export interface FooterColumn { title: string; links: { label: React.ReactNode; href: string; ariaLabel?: string; /** D-104: لینک تماسی که باید دکمه باشد (مثل تلفن ثابت ستون تماس)؛ رندر secondary کوچک به‌جای لینک متنی */ button?: boolean }[] }
 
 export interface FooterProps {
   logo: React.ReactNode;
@@ -36,7 +37,17 @@ export function FooterBlock({ logo, description, columns, seals, copyright }: Fo
           <nav key={c.title} aria-label={c.title}>
             <h3 className="text-sm font-semibold">{c.title}</h3>
             <ul className="mt-3 space-y-2.5">
-              {c.links.map((l) => <li key={l.href}><a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-[color,transform] hover:-translate-x-0.5 hover:text-brand-foreground">{l.label}</a></li>)}
+              {c.links.map((l) => (
+                <li key={l.href}>
+                  {l.button ? (
+                    <Button asChild variant="secondary" size="sm">
+                      <a href={l.href} aria-label={l.ariaLabel}>{l.label}</a>
+                    </Button>
+                  ) : (
+                    <a href={l.href} aria-label={l.ariaLabel} className="text-sm text-muted-foreground transition-[color,transform] hover:-translate-x-0.5 hover:text-brand-foreground">{l.label}</a>
+                  )}
+                </li>
+              ))}
             </ul>
           </nav>
         ))}

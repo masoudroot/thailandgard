@@ -7,6 +7,7 @@ import { Navbar } from "@/components/blocks/navbar";
 import { AnnouncementMarquee } from "@/components/site/AnnouncementMarquee";
 import { FooterBlock } from "@/components/blocks/footer";
 import { CallTracker } from "@/components/call-tracker";
+import { Phone } from "lucide-react";
 import { getSiteSettings, getTours } from "@/lib/db-content";
 import { defaultOgImages } from "@/lib/og";
 
@@ -135,7 +136,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               title: "تماس",
               links: [
                 { label: (<>{s.CONTACT_NAME}: <span dir="ltr">{s.PHONE_MOBILE_DISPLAY}</span></>), href: s.PHONE_MOBILE_LINK, ariaLabel: "تماس با مشاور سفر تایلندگرد" },
-                { label: (<>تلفن ثابت: <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span></>), href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد" },
+                { label: (<><Phone aria-hidden />تلفن ثابت: <span dir="ltr">{s.PHONE_LANDLINE_DISPLAY}</span></>), href: s.PHONE_LANDLINE_LINK, ariaLabel: "تماس با تلفن ثابت تایلندگرد", button: true },
               ],
             },
           ]}
