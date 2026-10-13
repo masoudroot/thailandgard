@@ -38,7 +38,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
               زیر همان h2 بخشی می‌نشیند. */}
           <h3
             id={titleId}
-            className="font-display text-3xl sm:text-4xl"
+            className="font-display text-balance text-3xl sm:text-4xl"
           >
             {tour.title}
           </h3>

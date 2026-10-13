@@ -23,7 +23,7 @@ export function FeatureSplit({ items }: { items: SplitFeature[] }) {
               {f.eyebrow && <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">{f.eyebrow}</p>}
               {/* تطبیق بریف artdir: وزن تیتر از توکن تایپوگرافی font-display می‌آید؛
                   font-bold دستی ممنوع */}
-              <h3 className="mt-2 text-2xl font-display sm:text-3xl">{f.title}</h3>
+              <h3 className="mt-2 text-2xl font-display text-balance sm:text-3xl">{f.title}</h3>
               <p className="mt-3 leading-8 text-muted-foreground">{f.description}</p>
               {f.bullets && (
                 <ul className="mt-5 space-y-2 text-sm">
