@@ -140,7 +140,7 @@ export default async function ContactPage() {
         <Card>
           <CardContent className="pt-6">
             <h2 className="text-xl">پیش از تماس</h2>
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
               <li>
                 <Link href="/tours" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   تورهای تایلند
