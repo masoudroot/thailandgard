@@ -148,6 +148,9 @@ export function CallbackForm({
       // حکم ۵ برندینگ: خطا «چرا» را هم می‌گوید، نه فقط امر.
       setNameError("نام را کامل وارد کنید؛ بدون نام نمی‌توانیم با شما تماس بگیریم.");
       clarityEvent("callback_validation_fail", { ...extra, field: "name" });
+      // اسپک form-ux قلم ۱ (چرخهٔ ۰۸؛ رأی سبز وایب‌فارسی): فوکس روی خطای نام،
+      // یکدست با الگوی mobileForceError (کیبورد: خطا دیده می‌شود).
+      document.getElementById("cb-name")?.focus();
       return;
     }
     if (!mobileValid) {

@@ -388,7 +388,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 export interface SitemapRows {
   base: string;
   guides: { slug: string; updatedFa: string }[];
-  tours: string[];
+  // S-104 (۲۱ مهر ۱۴۰۵): lastmod تورها از سیگنال واقعی price_updated_at می‌آید
+  // (سینک ساعتی تورسنج)؛ تا وقتی null است، ثابت مستند TOURS_LASTMOD.
+  tours: { slug: string; priceUpdatedAt: string | null }[];
 }
 
 /**
@@ -409,7 +411,11 @@ export async function getSitemapRows(): Promise<SitemapRows> {
     settingRows?.find((r) => r.key === "SITE_URL")?.value?.toString() ||
     SITE_SETTINGS_FALLBACK.SITE_URL;
   // S-049: تور غیرفعال از نقشهٔ سایت هم می‌افتد (با getTours هم‌خوان).
-  const tours = tourRows ? tourRows.filter((t) => t.active !== false).map((t) => t.slug) : [];
+  const tours = tourRows
+    ? tourRows
+        .filter((t) => t.active !== false)
+        .map((t) => ({ slug: t.slug, priceUpdatedAt: t.price_updated_at ?? null }))
+    : [];
   const guides = guideRows
     ? guideRows.map((g) => ({ slug: g.slug, updatedFa: g.updated_fa }))
     : [];

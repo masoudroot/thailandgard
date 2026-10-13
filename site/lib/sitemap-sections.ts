@@ -15,10 +15,15 @@ import { getSitemapRows } from "@/lib/db-content";
  * یافتهٔ S1 تیم سئو (۱۹ مهر ۱۴۰۵): lastmod هر مسیر پایدار و معنادار است،
  * نه «همین حالا»:
  * - راهنماها: از فیلد updated_fa رکورد («۱۹ مهر ۱۴۰۵») به میلادی برمی‌گردد.
- * - تورها و مسیرهای استاتیک: تاریخ ثابتِ مستند (رکوردهای tours در دیتابیس
- *   ستون updated_at ندارند؛ با اضافه شدنش، این ثابت‌ها با تاریخ واقعی رکورد
- *   جایگزین می‌شوند).
- *   استثنا: /phuket-october با lastmod واقعی انتشار خودش (۱۹ مهر ۱۴۰۵).
+ * - تورها: از price_updated_at رکورد (سینک ساعتی تورسنج)؛ تا وقتی null است،
+ *   ثابت مستند TOURS_LASTMOD (تاریخ زنده‌شدن سایت). با آمدن ستون
+ *   tours.updated_at (مایگریشن با مدیر/مسعود) همین‌جا جایگزین می‌شود.
+ * - مسیرهای استاتیک: سقف تازگیِ محتوای DBای که همان صفحه نشان می‌دهد —
+ *   خانه: تورها + راهنماها؛ /tours: تورها؛ /guide: راهنماها؛ /contact: ثابت
+ *   (محتوای ثابت، تغییرش با دپلوی کد است)؛ /phuket-october: lastmod واقعی
+ *   انتشار خودش (۱۹ مهر ۱۴۰۵).
+ * رفع ریشه‌ای S-104/S-112 (۲۱ مهر ۱۴۰۵): دیگر lastmod یکسانِ کاذب در
+ * tours.xml/pages.xml نیست؛ هر تاریخ از سیگنال واقعی می‌آید.
  */
 const TOURS_LASTMOD = new Date("2026-10-10T00:00:00+03:30"); // زنده‌شدن سایت (۱۸ مهر ۱۴۰۵)
 const STATIC_LASTMOD = new Date("2026-10-10T00:00:00+03:30"); // زنده‌شدن سایت (۱۸ مهر ۱۴۰۵)
@@ -92,17 +97,38 @@ export interface SitemapSections {
 
 export async function getSitemapSections(): Promise<SitemapSections> {
   const { base, guides, tours } = await getSitemapRows();
+
+  // سیگنال‌های واقعی تازگی (S-104/S-112): تاریخ نامعتبر نادیده گرفته می‌شود.
+  const tourPriceDates = tours
+    .map((t) => (t.priceUpdatedAt ? new Date(t.priceUpdatedAt) : null))
+    .filter((d): d is Date => d !== null && !Number.isNaN(d.getTime()));
+  const guideDates = guides.map((g) => guideLastMod(g.updatedFa));
+  const newest = (baseline: Date, dates: Date[]) =>
+    dates.reduce((m, d) => (d > m ? d : m), baseline);
+
+  // lastmod هر مسیر استاتیک = تازه‌ترین محتوای DBای که همان صفحه نشان می‌دهد.
+  const pageLastMod = (path: string): Date => {
+    if (path === "/phuket-october") return PHUKET_OCTOBER_LASTMOD;
+    if (path === "/tours") return newest(TOURS_LASTMOD, tourPriceDates);
+    if (path === "/guide") return newest(STATIC_LASTMOD, guideDates);
+    if (path === "") return newest(STATIC_LASTMOD, [...guideDates, ...tourPriceDates]);
+    return STATIC_LASTMOD; // /contact: محتوای ثابت
+  };
+
   const pages: MetadataRoute.Sitemap = ["", "/tours", "/guide", "/contact", "/phuket-october"].map(
     (path) => ({
       url: `${base}${path}`,
-      lastModified: path === "/phuket-october" ? PHUKET_OCTOBER_LASTMOD : STATIC_LASTMOD,
+      lastModified: pageLastMod(path),
       changeFrequency: "weekly" as const,
       priority: path === "" ? 1 : 0.8,
     })
   );
-  const tourEntries: MetadataRoute.Sitemap = tours.map((slug) => ({
-    url: `${base}/tours/${slug}`,
-    lastModified: TOURS_LASTMOD,
+  const tourEntries: MetadataRoute.Sitemap = tours.map((t) => ({
+    url: `${base}/tours/${t.slug}`,
+    lastModified:
+      t.priceUpdatedAt && !Number.isNaN(new Date(t.priceUpdatedAt).getTime())
+        ? new Date(t.priceUpdatedAt)
+        : TOURS_LASTMOD,
     changeFrequency: "weekly" as const,
     priority: 0.9,
   }));

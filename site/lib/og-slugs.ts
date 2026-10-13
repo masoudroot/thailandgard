@@ -43,10 +43,11 @@ const OG_SLUG_MAP: Record<string, { file: string; alt: string; w?: number; h?: n
     w: 1600,
     h: 1000,
   },
-  // S-048 (۲۰ مهر ۱۴۰۵): گزینهٔ موقت تا ساخت تصویر اختصاصی تور ترکیبی
-  // (سیلوئت وات‌آرون بانکوک؛ دست‌کم چهرهٔ بانکوک را دارد).
+  // S-048 (۲۱ مهر ۱۴۰۵): تصویر اختصاصی تور ترکیبی رسید
+  // (منشأ: Pexels، مانیفست agents/design/ASSETS/tour-bangkok-phuket-8-days-SOURCES.md)؛
+  // جایگزین موقت tour-bangkok-pattaya-8-days.webp شد.
   "bangkok-phuket-8-days": {
-    file: "images/tour-bangkok-pattaya-8-days.webp",
+    file: "images/tour-bangkok-phuket-8-days.webp",
     alt: "تور ترکیبی بانکوک و پوکت؛ معبد وات‌آرون بانکوک و ساحل پوکت",
   },
   // --- کارت‌های اختصاصی راهنماها (بستهٔ ۲ هندآف ۰۳:۳۵، ۲۱ مهر ۱۴۰۵؛
