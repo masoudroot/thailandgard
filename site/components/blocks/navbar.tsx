@@ -62,10 +62,10 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
           <div className="flex items-center gap-1 md:hidden">
             {callHref && (
               <Button asChild variant="ghost" size="icon" className="size-11" aria-label="تماس با مشاور سفر">
-                <a href={callHref}><Phone /></a>
+                <a href={callHref}><Phone aria-hidden /></a>
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="size-11" aria-label="باز کردن منو" onClick={() => setOpen(true)}><Menu /></Button>
+            <Button variant="ghost" size="icon" className="size-11" aria-label="باز کردن منو" onClick={() => setOpen(true)}><Menu aria-hidden /></Button>
           </div>
         </nav>
       </header>
