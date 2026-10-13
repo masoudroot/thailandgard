@@ -153,7 +153,7 @@ export default async function ToursPage() {
                 },
                 {
                   label: "مناسب چه کسی",
-                  cells: ["خانواده‌ها", "شهر و ساحل در یک سفر", "جزیره‌گردی کلاسیک", "ماه‌عسل و آرامش", "طبیعت بکر و ماجراجویی"],
+                  cells: ["خانواده‌ها", "شهر و جزیره در یک سفر", "جزیره‌گردی کلاسیک", "ماه‌عسل و آرامش", "طبیعت بکر و ماجراجویی"],
                 },
                 {
                   label: "حال‌وهوای سفر",
@@ -192,7 +192,7 @@ export default async function ToursPage() {
         </div>
         <h3 className="mt-6 text-xl">اگر این‌طورید، این را انتخاب کنید</h3>
         <ul className="mt-3 space-y-2 text-muted-foreground">
-          <li>اولین سفرتان به تایلند است و می‌خواهید همه‌چیز را ببینید: <strong className="text-foreground">تور ترکیبی بانکوک و پوکت</strong>؛ شهر و ساحل در یک سفر.</li>
+          <li>اولین سفرتان به تایلند است و می‌خواهید همه‌چیز را ببینید: <strong className="text-foreground">تور ترکیبی بانکوک و پوکت</strong>؛ شهر و جزیره در یک سفر.</li>
           <li>با خانواده و بچه سفر می‌کنید: <strong className="text-foreground">بانکوک و پاتایا</strong>؛ متنوع‌ترین برنامه با کمترین قیمت پایه.</li>
           <li>ماه‌عسل است یا آرامش مطلق می‌خواهید: <strong className="text-foreground">سامویی</strong>؛ جزیرهٔ آرام خلیج تایلند.</li>
           <li>عاشق طبیعت و قایق‌سواری‌اید: <strong className="text-foreground">کرابی</strong>؛ چهار جزیره در شش روز.</li>
