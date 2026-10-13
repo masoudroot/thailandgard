@@ -271,7 +271,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
         />
       </div>
 
-      <section id="callback" className="mt-4 rounded-surface border border-border bg-card p-6 sm:p-8">
+      <section id="callback" className="mt-4 scroll-mt-24 rounded-surface border border-border bg-card p-6 sm:p-8">
         <h2 className="text-2xl sm:text-3xl">سؤالی دارید؟</h2>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
           راهنما همه‌چیز را نگفت؟ کارشناس مقصد ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و
