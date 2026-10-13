@@ -16,8 +16,11 @@ export function SeasonBanner() {
         <p className="text-sm leading-[1.5] text-foreground/90 sm:text-base">
           ۱۸ اکتبر (۲۶ مهر)؛ ۳ پرواز هفتگی جدید به پوکت{" "}
           <br className="sm:hidden" />
+          {/* S-103 (موقت تا انتشار /guide/phuket-in-october): زنجیرهٔ
+              /phuket-october ← راهنما ۴۰۴ است؛ نزدیک‌ترین مقصد زندهٔ هم‌خانواده.
+              با آمدن راهنمای اکتبر، به /phuket-october برگردد (تصمیم کانونیکال ۲۲:۴۵). */}
           <Link
-            href="/phuket-october"
+            href="/guide/phuket-flight-routes"
             className="font-semibold text-foreground underline decoration-border decoration-1 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-foreground sm:ms-2"
           >
             جزئیات پروازهای اکتبر

@@ -11,7 +11,8 @@
  *
  * عملیات مجاز (فقط همین‌ها؛ هیچ نام جدول/ستونی از بیرون نمی‌آید):
  * - guide.insert               ساخت ردیف تازه در guides (راهنمای تازه)
- * - guide.set_excerpt          به‌روزرسانی excerpt (متا) یک راهنمای موجود (۱۵۰ تا ۱۶۵ کاراکتر)
+ * - guide.set_excerpt          به‌روزرسانی excerpt (متا) یک راهنمای موجود (۱۰۰ تا ۱۵۰ کاراکتر؛
+ *                              باند تازه از ۲۱ مهر ۱۴۰۵: هندآف seocontent ۰۶ + یافتهٔ S-089)
  * - guide.set_title            به‌روزرسانی title یک راهنمای موجود
  * - guide.set_h1               به‌روزرسانی ستون h1 یک راهنمای موجود (بریف تک‌قانونی h1، ۲۰ مهر ۱۴۰۵؛
  *                              نیازمند مایگریشن ۰۰۸ ستون h1)
@@ -19,6 +20,7 @@
  * - guide_section.set_paragraphs جایگزینی پاراگراف‌های یک بخش
  * - guide_section.set_title     تغییر تیتر (heading) یک بخش موجود
  * - guide_section.move          جابه‌جایی بخش به position تازه (بازشماری تراکنشی همهٔ بخش‌های راهنما)
+ * - guide_section.set_position    تنظیم مستقیم position یک بخش با id (ترمیم تکراری‌ها؛ ۲۱ مهر ۱۴۰۵)
  * - guide_faq.update            به‌روزرسانی جواب سؤال موجود در guide_faqs
  * - guide_faq.insert            درج سؤال تازه در guide_faqs (موج واکنشی dev ۰۴:۰۵، ۱۴۰۵/۰۷/۲۰)
  * - tour_faq.update             به‌روزرسانی جواب سؤال موجود در tour_faqs
@@ -52,6 +54,7 @@ type OpCode =
   | "guide_section.set_paragraphs"
   | "guide_section.set_title"
   | "guide_section.move"
+  | "guide_section.set_position"
   | "guide_faq.update"
   | "guide_faq.insert"
   | "tour.set_summary"
@@ -90,6 +93,7 @@ interface SyncOp {
   excludes?: unknown;
   position?: unknown;
   to_position?: unknown;
+  section_id?: unknown;
   heading?: unknown;
   paragraphs?: unknown;
   question?: unknown;
@@ -133,8 +137,11 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
       return { ok: true, op: raw };
     case "guide.set_excerpt":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
-      if (typeof raw.excerpt !== "string" || raw.excerpt.length < 150 || raw.excerpt.length > 165)
-        return { ok: false, error: "excerpt باید بین ۱۵۰ تا ۱۶۵ کاراکتر باشد." };
+      // باند تازه (۲۱ مهر ۱۴۰۵): سقف ۱۵۰ چون متای بالای ~۱۵۵ در SERP بریده
+      // می‌شود (S-089 حسابرس)؛ کف ۱۰۰ برای جلوگیری از متای تُهی/کم‌مایه.
+      // مبنا: هندآف seocontent اجرای ۰۶ (۹ متای ۱۱۴ تا ۱۴۶ کاراکتری).
+      if (typeof raw.excerpt !== "string" || raw.excerpt.length < 100 || raw.excerpt.length > 150)
+        return { ok: false, error: "excerpt باید بین ۱۰۰ تا ۱۵۰ کاراکتر باشد." };
       return { ok: true, op: raw };
     case "guide.set_title":
       // بریف seocontent ۰۱:۳۵ (meta-title-exec): تیتر راهنما هم کنار excerpt به‌روز می‌شود.
@@ -214,6 +221,13 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
         return { ok: false, error: "position نامعتبر است." };
       if (!Number.isInteger(raw.to_position) || (raw.to_position as number) < 1 || (raw.to_position as number) > 100)
         return { ok: false, error: "to_position نامعتبر است." };
+      return { ok: true, op: raw };
+    case "guide_section.set_position":
+      if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
+      if (!Number.isInteger(raw.section_id) || (raw.section_id as number) < 1)
+        return { ok: false, error: "section_id نامعتبر است." };
+      if (!Number.isInteger(raw.position) || (raw.position as number) < 1 || (raw.position as number) > 100)
+        return { ok: false, error: "position نامعتبر است." };
       return { ok: true, op: raw };
     case "guide_faq.update":
       if (!isSlug(raw.guide_slug)) return { ok: false, error: "guide_slug نامعتبر است." };
@@ -533,6 +547,14 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
     case "guide_section.move": {
       return moveSection(cfg, String(op.guide_slug), Number(op.position), Number(op.to_position));
     }
+    case "guide_section.set_position": {
+      // ترمیم ۲۱ مهر ۱۴۰۵: تنظیم مستقیم position با id (برای positionهای تکراری
+      // که move نمی‌تواند تفکیک کند). guide_slug فقط برای ابطال کش و گارد است.
+      const q = `guide_sections?id=eq.${Number(op.section_id)}&guide_slug=eq.${encodeURIComponent(String(op.guide_slug))}`;
+      const { rows } = await postgrest(cfg, "PATCH", q, { position: op.position });
+      if (rows.length === 0) throw new Error("بخشی با این شناسه پیدا نشد.");
+      return { matched: rows.length, note: `تنظیم position بخش (id=${op.section_id} ← position=${op.position})` };
+    }
     case "guide.set_title": {
       const q = `guides?slug=eq.${encodeURIComponent(String(op.guide_slug))}`;
       const { rows } = await postgrest(cfg, "PATCH", q, { title: op.title });
@@ -674,6 +696,7 @@ function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
     case "guide_section.set_paragraphs":
     case "guide_section.set_title":
     case "guide_section.move":
+    case "guide_section.set_position":
     case "guide_faq.update":
     case "guide_faq.insert":
       return { tags: ["guides"], paths: [`/guide/${slug}`, "/"] };
