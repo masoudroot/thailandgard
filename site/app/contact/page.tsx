@@ -62,7 +62,7 @@ export default async function ContactPage() {
     <main className="mx-auto max-w-5xl px-6 py-12">
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
-          <Phone className="size-4" />
+          <Phone className="size-3.5" />
           مشاورهٔ تلفنی
         </p>
         <h1 className="mt-3 text-3xl md:text-4xl">تماس با تایلندگرد</h1>
