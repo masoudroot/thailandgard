@@ -1,4 +1,4 @@
-import { Headset, MessagesSquare, ReceiptText } from "lucide-react";
+import { Banknote, FileCheck, ReceiptText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,11 +11,18 @@ import { cn } from "@/lib/utils";
  * حکم ۵۷ design-ir: هر سه گزارهٔ زیر موقت‌اند (جهت‌های design-ir)؛ بازنویسی نهایی
  * با تیم برند. حکم ۵۸: تیم برند در بازنویسی، هم‌پوشانی عبارتی با سکشن موجود
  * «چرا تایلندگرد» را چک کند.
+ *
+ * (۱۴۰۵/۰۷/۲۱ ~۱۳:۴۵، نبض دیزاین: اعمال حکم H-1 برندینگ
+ * (headlines-review-2026-10-13-13؛ لازم‌الاجرا، مالک: dev)؛ متن نهایی چرخهٔ ۱۵
+ * تصمیم مشترک؛ حکم ۵۸ راستی شد: صفر هم‌پوشانی عبارتی عینی با کارت‌های «چرا تایلندگرد»)
  */
 const ITEMS = [
-  { icon: ReceiptText, text: "قیمت روراست؛ بدون خرج اضافه" },
-  { icon: MessagesSquare, text: "اول حرف می‌زنیم، بعد می‌فروشیم" },
-  { icon: Headset, text: "توی سفر تنها نیستید؛ هم‌زبان کنارتان هست." },
+  // H-1 برندینگ: «قیمت را هر روز با نرخ دلار به‌روز می‌کنیم.»؛ بازبینی آیکون design: Banknote
+  { icon: Banknote, text: "قیمت را هر روز با نرخ دلار به‌روز می‌کنیم." },
+  // H-1 برندینگ: «فقط تایلند می‌فروشیم.»؛ ReceiptText برای گزارهٔ ۲ می‌ماند
+  { icon: ReceiptText, text: "فقط تایلند می‌فروشیم." },
+  // H-1 برندینگ: «رسید رسمی و واچر سفر را همان‌جا می‌گیرید.»؛ بازبینی آیکون design: FileCheck
+  { icon: FileCheck, text: "رسید رسمی و واچر سفر را همان‌جا می‌گیرید." },
 ];
 
 export function TrustStrip({ className }: { className?: string }) {

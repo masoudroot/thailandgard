@@ -41,7 +41,11 @@ export function HeroCapsule({
   whatsappHref: string;
 }) {
   return (
-    <section className="relative overflow-hidden px-6 py-16 text-center sm:py-20">
+    <section className="relative overflow-hidden px-6 py-12 text-center">
+      {/* D-195 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): راستی بصری تازه روی شات ۱۴:۲۷: خلأ
+          ~۷۰۰px قدیمی (ممیزی ۱۱:۵۰) پس از تراکم D-119 به ~۲۲۷px رسیده؛ با
+          py-16/sm:py-20 ← py-12 یکدست شد تا ریتم هیرو/تورها از ~۲۲۰ به ~۱۵۰px برسد.
+          امضای ایرانی دست نخورده (حکم D-008). */}
       {/* شبکهٔ محو از بالا | عین بلوک رجیستری hero (ماسک بازتر برای موبایل) */}
       <div
         aria-hidden
@@ -54,7 +58,8 @@ export function HeroCapsule({
       />
       {/* لنگر بصری پایدار (D-119): هالهٔ گرم ملایم پشت تیتر؛ الگوی D-001 فوتر.
           شهاب‌ها تک‌اجرا محو می‌شوند و شبکه تنها لنگر نمی‌شد؛ کپی دست مسعود
-          دست نخورده، فقط تراکم عمودی جمع‌وجورتر (py-20/sm:py-28 ← py-16/sm:py-20). */}
+          دست نخورده، فقط تراکم عمودی جمع‌وجورتر (py-20/sm:py-28 ← py-16/sm:py-20
+          ← py-12 یکدست (D-195، ۲۱ مهر ۱۴۰۵)). */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[480px]"

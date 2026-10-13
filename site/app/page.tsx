@@ -110,7 +110,9 @@ export default async function HomePage() {
         whatsappHref={s.WHATSAPP_LINK}
       />
 
-      <section className="mx-auto max-w-6xl px-6 py-10">
+      {/* D-195 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-8 تا با تراکم تازهٔ هیرو
+          (HeroCapsule py-12) ریتم هیرو/تورها به ~۱۵۰px برسد. */}
+      <section className="mx-auto max-w-6xl px-6 py-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
             {/* S-102 (هندآف seo، اجرای ۰۸، ۲۱ مهر ۱۴۰۵): «تور تایلند» در
