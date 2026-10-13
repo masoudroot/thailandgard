@@ -7,7 +7,9 @@
  * برای خطای اجباری روی submit فرم (دیف UX فرم «درخواست تماس»، ۲۰ مهر) اضافه شد.
  * انحراف دوم (فعال، ۲۱ مهر ۱۴۰۵، حکم نقد ۵ artdir): hint و متن خطا `text-sm`‌اند
  * (کف ۱۴px برای متن‌های عملکردی فرم)؛ آیتم `text-xs` تجویز می‌کند. پیام خطای امری
- * با «لطفاً» شروع می‌شود (قاعدهٔ «لطفاً در خطا»، حکم ۴۰ design-ir).
+ * انحراف سوم (فعال، ۲۲ مهر ۱۴۰۵، نبض دیزاین D-502): متن ورودی و «+98» از
+ * text-sm به text-base رفتند؛ استاندارد iOS (زوم خودکار سافاری زیر ۱۶px) و
+ * سازگار با کف ۱۴px حکم نقد ۵ artdir. hint و خطا text-sm می‌مانند.
  */
 
 import * as React from "react";
@@ -51,7 +53,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus,
     <div className={cn("space-y-1.5", className)}>
       <div className={cn("flex h-10 items-center gap-2 rounded-field border-line-field bg-field shadow-field px-3 transition-colors focus-within:ring-2 focus-within:ring-ring/60", showError ? "border-destructive/60" : "border-input")} dir="ltr">
         {/* پیش‌شماره عمداً لاتین می‌ماند: رجیستری وایب‌فارسی برای فیلد موبایل start addon «+98» را در کانتینر dir="ltr" تجویز می‌کند (design-rules.md) */}
-        <span className="text-sm text-muted-foreground">+98</span>
+        <span className="text-base text-muted-foreground">+98</span>
         <input
           id={id}
           type="tel"
@@ -65,7 +67,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus,
           onChange={(e) => set(e.target.value)}
           onFocus={onFocus}
           placeholder="۹۱۲ ۳۴۵ ۶۷۸۹"
-          className="h-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none placeholder:text-muted-foreground/70"
+          className="h-full min-w-0 flex-1 bg-transparent text-base tabular-nums outline-none placeholder:text-muted-foreground/70"
           aria-invalid={showError ? true : undefined}
           aria-describedby={hintId}
         />

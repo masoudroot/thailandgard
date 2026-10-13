@@ -13,6 +13,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 /**
  * ورودی متن. Persian text is RTL by default; pass `dir="ltr"` for phone
  * numbers, emails and codes so digits keep their natural order.
+ * فونت ورودی text-base (۱۶px) است: استاندارد iOS؛ زیر ۱۶px سافاری روی فوکس
+ * زوم خودکار می‌کند (ممیزی D-469: زوم در viewport غیرفعال نیست). D-502.
  */
 export function Input({ className, type, startAddon, endAddon, error, id, dir, ...props }: InputProps) {
   const grouped = Boolean(startAddon || endAddon);
@@ -23,7 +25,7 @@ export function Input({ className, type, startAddon, endAddon, error, id, dir, .
       dir={grouped ? undefined : dir}
       aria-invalid={error ? true : undefined}
       className={cn(
-        "flex w-full min-w-0 text-sm text-foreground placeholder:text-muted-foreground/70",
+        "flex w-full min-w-0 text-base text-foreground placeholder:text-muted-foreground/70",
         "disabled:cursor-not-allowed disabled:opacity-50",
         grouped
           ? "h-full bg-transparent px-0 outline-none"
@@ -45,7 +47,7 @@ export function Input({ className, type, startAddon, endAddon, error, id, dir, .
     <div
       dir={dir}
       className={cn(
-        "flex h-10 w-full items-center gap-2 rounded-field border-line-field border-input bg-field shadow-field px-3 text-sm transition-colors",
+        "flex h-10 w-full items-center gap-2 rounded-field border-line-field border-input bg-field shadow-field px-3 text-base transition-colors",
         "focus-within:border-transparent focus-within:ring-2 focus-within:ring-ring/60",
         error && "border-destructive/60",
       )}
