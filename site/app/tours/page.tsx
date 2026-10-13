@@ -73,7 +73,7 @@ export default async function ToursPage() {
           {tours.map((t, i) => (
             <Fragment key={t.slug}>
               {i > 0 && (i === tours.length - 1 ? " و " : "، ")}
-              <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4">
+              <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                 تور {t.shortTitle || t.title}
               </Link>
             </Fragment>
@@ -123,7 +123,7 @@ export default async function ToursPage() {
                     <br />
                     <Link
                       href={`/tours/${t.slug}`}
-                      className="text-xs font-normal text-foreground underline decoration-brand/60 underline-offset-4"
+                      className="text-xs font-normal text-foreground underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand"
                     >
                       مشاهدهٔ جزئیات تور {t.short}
                     </Link>
@@ -202,7 +202,7 @@ export default async function ToursPage() {
           قیمت پایه یعنی شروع قیمت نمایشی؛ عدد نهایی هر تور با تماس مشخص می‌شود. در تور ترکیبی، پرواز بین‌المللی جداگانه حساب می‌شود.
         </p>
         <p className="mt-2">
-          <Link href="/guide/compare-thailand-tours" className="font-semibold underline decoration-brand/60 underline-offset-4">
+          <Link href="/guide/compare-thailand-tours" className="font-semibold underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
             مقایسهٔ کامل تورهای تایلند
           </Link>
         </p>

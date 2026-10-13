@@ -257,11 +257,11 @@ export default async function HomePage() {
             <h2 className="text-2xl sm:text-3xl">راهنما و اخبار سفر تایلند</h2>
             <p className="mt-2 text-muted-foreground">
               قبل از سفر بخوان؛ از{" "}
-              <Link href="/guide/best-time-to-visit-thailand" className="underline decoration-brand/60 underline-offset-4">بهترین زمان سفر به تایلند</Link>{" "}
+              <Link href="/guide/best-time-to-visit-thailand" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">بهترین زمان سفر به تایلند</Link>{" "}
               تا{" "}
-              <Link href="/guide/thailand-visa-guide" className="underline decoration-brand/60 underline-offset-4">ویزای تایلند</Link>{" "}
+              <Link href="/guide/thailand-visa-guide" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">ویزای تایلند</Link>{" "}
               و{" "}
-              <Link href="/guide/phuket-vs-samui" className="underline decoration-brand/60 underline-offset-4">مقایسهٔ پوکت و سامویی</Link>.
+              <Link href="/guide/phuket-vs-samui" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">مقایسهٔ پوکت و سامویی</Link>.
             </p>
           </div>
           <Button asChild variant="outline" className="shrink-0">
