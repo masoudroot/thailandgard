@@ -61,12 +61,12 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
           </div>
         ))}
       </div>
-      <button type="button" aria-label="قبلی" onClick={() => go(index - 1)} disabled={index === 0} className={cn(nav, "start-2")}><ChevronRight className="size-4" /></button>
-      <button type="button" aria-label="بعدی" onClick={() => go(index + 1)} disabled={index >= count - 1} className={cn(nav, "end-2")}><ChevronLeft className="size-4" /></button>
+      <button type="button" aria-label="قبلی" title="قبلی" onClick={() => go(index - 1)} disabled={index === 0} className={cn(nav, "start-2")}><ChevronRight className="size-4" /></button>
+      <button type="button" aria-label="بعدی" title="بعدی" onClick={() => go(index + 1)} disabled={index >= count - 1} className={cn(nav, "end-2")}><ChevronLeft className="size-4" /></button>
       {showDots && (
         <div className="mt-3 flex justify-center gap-1.5">
           {Array.from({ length: count }, (_, i) => (
-            <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className={cn("h-1.5 cursor-pointer rounded-full transition-all", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/50")} />
+            <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} title={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className={cn("h-1.5 cursor-pointer rounded-full transition-all", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/50")} />
           ))}
         </div>
       )}
