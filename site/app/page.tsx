@@ -158,7 +158,9 @@ export default async function HomePage() {
       }]} />
       {/* بلوک قیمت + CTA + بلوک حقوقی (اسپک §۱.۴): زیر ردیف ترکیبی؛ قانون
           عدد/لیبل (لیبل «از» راست، عدد چپ). قیمت هیچ لهجهٔ کهربایی ندارد. */}
-      <div className="mx-auto max-w-5xl px-6 pb-16 -mt-8">
+      {/* D-174 (تراکم عمودی ۱۴۰۵/۰۷/۲۱): شکاف ۱۰۴px بین بلوک حقوقی و بنر ب
+          شل بود؛ pb-16 ← pb-8 و رپر بنر py-10 ← py-6 تا ریتم به ~۵۶px برسد. */}
+      <div className="mx-auto max-w-5xl px-6 pb-8 -mt-8">
         {/* چسبندگی قیمت به سکشن (قاعدهٔ ممیزی ۰۵:۰۵، ایراد ۵): بلوک قیمتِ سکشن
             حداکثر mt-8 از بدنهٔ همان سکشن فاصله می‌گیرد. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -192,8 +194,8 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* بنر ب (بین‌سکشنی)؛ حکم ۴ */}
-      <div className="py-10">
+      {/* بنر ب (بین‌سکشنی)؛ حکم ۴. D-174: py-10 ← py-6 برای ریتم فشرده‌تر. */}
+      <div className="py-6">
         <SeasonBanner />
       </div>
 
