@@ -72,9 +72,13 @@ export default async function ContactPage() {
 
       {/* قاب تایپوگرافیک (اسپک s002 قلم ۳، ۲۰ مهر ۱۴۰۵): تمام‌عرض، بالای گرید دو کارت.
           عکس واقعی نیست پس ماسک معنا ندارد؛ گرادیان تایپوگرافیک خنثی.
-          تیتر: حکم ۱۴ design-ir («همه‌روزه پاسخ‌گوییم» به‌جای «پاسخ‌گویی همه‌روزه»). */}
+          تیتر: حکم ۱۴ design-ir («همه‌روزه پاسخ‌گوییم» به‌جای «پاسخ‌گویی همه‌روزه»).
+          D-122: خط پشتیبان زیر تیتر تا قاب خالی/خراب حس نشود. */}
       <div className="mt-8 overflow-hidden rounded-control border border-border bg-frame-typographic px-8 py-10 text-center sm:py-12">
         <p className="font-display text-2xl text-foreground sm:text-3xl">همه‌روزه پاسخ‌گوییم</p>
+        <p className="mt-3 text-sm leading-[1.9] text-muted-foreground">
+          زنگ‌بزنید یا شماره‌تان را بگذارید؛ یک آدم واقعی جواب می‌دهد، نه ربات.
+        </p>
       </div>
 
       <div id="callback" className="mt-8 grid scroll-mt-24 gap-6 lg:grid-cols-2">
