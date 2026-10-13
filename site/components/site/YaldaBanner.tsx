@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSiteSettings } from "@/lib/db-content";
 
 /**
- * بنر یلدا — قالب ب: مستطیلی درون‌صفحه‌ای (تایپوگرافیک خالص، بدون عکس).
+ * بنر یلدا؛ قالب ب: مستطیلی درون‌صفحه‌ای (تایپوگرافیک خالص، بدون عکس).
  *
  * بریف: agents/design/BRIEFS/yalda-banner-mount-addendum-2026-10-13-08.md
  * (الحاقیهٔ اجرای ۰۸) + حکم‌های ۱ تا ۴ برندینگ + حکم‌های ۳۱/۳۲/۳۳ design-ir.
