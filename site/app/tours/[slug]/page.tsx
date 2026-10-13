@@ -475,7 +475,7 @@ export default async function TourPage({ params }: Props) {
                     {i > 0 && " و "}
                     <Link
                       href={`/guide/${g.slug}`}
-                      className="font-semibold underline underline-offset-4"
+                      className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand"
                     >
                       {g.title}
                     </Link>
@@ -498,7 +498,7 @@ export default async function TourPage({ params }: Props) {
               <p className="leading-[1.8] text-foreground/90">
                 <span className="font-semibold">آب‌وهوا و رویدادهای اکتبر در پوکت:</span>{" "}
                 اگر سفرتان به نیمهٔ دوم اکتبر می‌خورد،{" "}
-                <Link href="/guide/phuket-in-october" className="font-semibold underline underline-offset-4">
+                <Link href="/guide/phuket-in-october" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   راهنمای سفر به پوکت در نیمهٔ دوم اکتبر
                 </Link>{" "}
                 را ببینید؛ جشنوارهٔ گیاه‌خواران و بازگشایی سیمیلان همان هفته‌هاست.
