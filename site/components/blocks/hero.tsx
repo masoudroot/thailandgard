@@ -29,7 +29,7 @@ export function HeroBlock({ badge, title, description, primary = { label: "تم�
     <section className="relative overflow-hidden px-6 pt-14 text-center sm:pt-20">
       <div className="relative mx-auto max-w-3xl">
         {badge && <Badge variant="brand">{badge}</Badge>}
-        <h1 className="mt-5 text-4xl sm:text-5xl">{title}</h1>
+        <h1 className="mt-5 text-balance text-4xl sm:text-5xl">{title}</h1>
         <p className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg">{description}</p>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           {primary.href ? (
