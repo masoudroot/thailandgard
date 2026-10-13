@@ -99,13 +99,20 @@ export function Sheet({
     const focusables = panel.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
     );
-    if (focusables.length === 0) return;
+    const active = document.activeElement;
+    if (focusables.length === 0) {
+      // Panel itself is the only stop: swallow Tab so focus cannot escape.
+      e.preventDefault();
+      return;
+    }
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
+    // `active === panel` covers the moment right after open, when focus sits
+    // on the panel itself and neither branch below would catch a Shift+Tab.
+    if (e.shiftKey && (active === first || active === panel)) {
       e.preventDefault();
       last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
+    } else if (!e.shiftKey && active === last) {
       e.preventDefault();
       first.focus();
     }
