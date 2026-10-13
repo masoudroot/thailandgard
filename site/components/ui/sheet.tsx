@@ -162,7 +162,7 @@ export function Sheet({
             type="button"
             aria-label="بستن"
             onClick={() => onOpenChange(false)}
-            className="relative ms-auto flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground before:absolute before:-inset-1.5 before:content-['']"
+            className="relative ms-auto flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground before:absolute before:-inset-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" /* D-506: حلقهٔ focus-visible کهربایی استاندارد (قرارداد D-012/button.tsx) */
             title="بستن"
           >
             <X aria-hidden className="size-4" />

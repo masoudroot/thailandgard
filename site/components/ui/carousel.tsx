@@ -47,7 +47,8 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
   };
 
   // D-408 (نبض دیزاین): ناحیهٔ لمس نامرئی (‎-inset-1‎) تا تارگت ۴۴px شود؛ ظاهر size-9 بدون تغییر.
-  const nav = "absolute top-1/2 z-10 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur transition-opacity hover:bg-accent disabled:opacity-30 before:absolute before:-inset-1 before:content-['']";
+  // D-506 (نبض دیزاین): حلقهٔ focus-visible کهربایی استاندارد (قرارداد D-012/button.tsx) روی دکمه‌های قبلی/بعدی.
+  const nav = "absolute top-1/2 z-10 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur transition-opacity hover:bg-accent disabled:opacity-30 before:absolute before:-inset-1 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
   return (
     <div className={cn("relative", className)} role="region" aria-roledescription="carousel" aria-label="اسلایدر">
@@ -67,8 +68,8 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
       {showDots && (
         <div className="mt-3 flex justify-center gap-1.5">
           {Array.from({ length: count }, (_, i) => (
-            <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} title={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className="group -m-2 cursor-pointer p-2" /* D-343: تارگت لمسی ۲۲px با ظاهر بدون تغییر (نقطهٔ ۶px روی span) */>
-              <span className={cn("block h-1.5 rounded-full transition-all", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 group-hover:bg-foreground/50")} />
+            <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} title={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className="group -m-2 cursor-pointer p-2 focus-visible:outline-none" /* D-343: تارگت لمسی ۲۲px با ظاهر بدون تغییر (نقطهٔ ۶px روی span)؛ D-506: حلقهٔ فوکس روی خود نقطه (group-focus-visible) تا دور ناحیهٔ نامرئی حلقه نکشد */>
+              <span className={cn("block h-1.5 rounded-full transition-all group-focus-visible:outline-none group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-1", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 group-hover:bg-foreground/50")} />
             </button>
           ))}
         </div>
