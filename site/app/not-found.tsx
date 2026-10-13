@@ -1,7 +1,18 @@
+import type { Metadata } from "next";
 import { ErrorPage } from "@/components/templates/error-pages";
 import { CallButtons } from "@/components/site/CallButtons";
 import { TourCard } from "@/components/site/TourCard";
 import { getTours } from "@/lib/db-content";
+
+/**
+ * S-108 (حسابرس، ۲۱ مهر ۱۴۰۵): نکست روی صفحهٔ ۴۰۴ خودش
+ * `<meta name="robots" content="noindex"/>` تزریق می‌کند (داکس not-found.md)؛
+ * robots لی‌اوت (index,follow) تگ دوم متضاد می‌ساخت. این robots جایگزین
+ * لی‌اوت می‌شود تا هر دو تگ یک حرف بزنند: noindex,follow.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
 
 /**
  * صفحهٔ ۴۰۴. ایمپورت واقعی آیتم templates/error-pages رجیستری وایب‌فارسی.

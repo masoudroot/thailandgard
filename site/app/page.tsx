@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
+import { ThailandGazeGallery } from "@/components/site/ThailandGazeGallery";
 import { TourCard, canonicalTourOrder } from "@/components/site/TourCard";
 import { FeatureSplit } from "@/components/blocks/feature-split";
 import { StepsBlock } from "@/components/blocks/steps-block";
@@ -26,12 +27,13 @@ import { fa } from "@/lib/utils";
 
 export const metadata: Metadata = pageSeo({
   title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
-  // S-109 (هندآف content، اجرای ۰۸، ۲۱ مهر ۱۴۰۵): متای نهایی ۱۵۷ کاراکتری؛
-  // «تورهای پوکت، بانکوک، سامویی و کرابی و تور ترکیبی بانکوک و پوکت».
-  // شرط انقضا: با اعمال مصوبهٔ S-049 (غیرفعال‌سازی سامویی/کرابی) این متا
-  // بازنویسی می‌شود.
+  // S-109 (هندآف seocontent، اجرای ۱۱، ۲۱ مهر ۱۴۰۵): پس از بسته‌شدن S-049
+  // (غیرفعال‌سازی سامویی/کرابی، ۱۱:۱۰) هر دو کاندیدای قبلی منقضی شدند؛
+  // متای تازه با تورهای فعال (پوکت، بانکوک و پاتایا، ترکیبی بانکوک و پوکت).
+  // کاندیدای content (توصیهٔ هندآف) با یک جایگزینی: «کارشناس مقصد» ← «مشاور سفر»
+  // طبق تصمیم ایستای مسعود (۱۶:۳۵) و تنش ثبت‌شده (داوری مسعود در انتظار)؛ ۱۴۷ کاراکتر.
   description:
-    "تور تایلند تخصصی از تهران؛ تورهای پوکت، بانکوک، سامویی و کرابی و تور ترکیبی بانکوک و پوکت با لیدر فارسی‌زبان. برای مشاوره و رزرو با کارشناس مقصد تماس بگیرید.",
+    "تور تایلند تخصصی از تهران؛ تورهای پوکت، بانکوک و پاتایا و تور ترکیبی بانکوک و پوکت با لیدر فارسی‌زبان. برای مشاوره و رزرو با مشاور سفر تماس بگیرید.",
   canonical: "/",
 });
 
@@ -84,7 +86,7 @@ export default async function HomePage() {
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [{ "@type": "ListItem", position: 1, name: "خانه", item: s.SITE_URL }],
+    itemListElement: [{ "@type": "ListItem", position: 1, name: "خانه", item: s.SITE_URL.replace(/\/+$/, "") }], // S-005: بدون اسلش انتهایی، هم‌خوان با کنونیکال
   };
 
   return (
@@ -132,6 +134,11 @@ export default async function HomePage() {
           ))}
         </Reveal>
       </section>
+
+      {/* گالری «تایلند در یک نگاه» (تغییر بصری امروز، ۲۱ مهر ۱۴۰۵؛ اسپک گالری اجرای ۱۱؛
+          حکم‌های ۴۶ تا ۴۹ design-ir اعمال شده‌اند). mount بعد از گرید تورها،
+          قبل از سکشن تور ترکیبی؛ تمام‌عرض (تیتر داخل کانتینر خود کامپوننت). */}
+      <ThailandGazeGallery />
 
       {/* سکشن «تور ترکیبی بانکوک و پوکت» (اسپک ۱۴۰۵/۰۷/۲۱ §۱؛ حکم‌های ۲۱ و ۲۲ design-ir):
           تیتر «بانکوک و پوکت.»، description با «در یک سفر». */}

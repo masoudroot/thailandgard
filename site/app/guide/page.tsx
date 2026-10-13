@@ -44,7 +44,7 @@ export default async function GuideIndexPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL },
+      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL.replace(/\/+$/, "") }, // S-005: بدون اسلش انتهایی، هم‌خوان با کنونیکال
       { "@type": "ListItem", position: 2, name: "راهنمای سفر تایلند", item: `${SITE_URL}/guide` },
     ],
   };

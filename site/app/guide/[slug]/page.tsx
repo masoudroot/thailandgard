@@ -152,7 +152,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "خانه", item: `${s.SITE_URL}` },
+          { "@type": "ListItem", position: 1, name: "خانه", item: s.SITE_URL.replace(/\/+$/, "") /* S-005: بدون اسلش انتهایی، هم‌خوان با کنونیکال */ },
           { "@type": "ListItem", position: 2, name: "راهنمای سفر", item: `${s.SITE_URL}/guide` },
           { "@type": "ListItem", position: 3, name: guide.title, item: `${s.SITE_URL}/guide/${guide.slug}` },
         ],

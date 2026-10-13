@@ -13,6 +13,7 @@ import { resolveH1 } from "@/lib/seo-h1";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
+import { LiveStatusChip } from "@/components/site/LiveStatusChip";
 import { CoverImage } from "@/components/site/CoverImage";
 import { RouteStrip } from "@/components/site/RouteStrip";
 import { ShareButtons } from "@/components/site/ShareButtons";
@@ -569,6 +570,8 @@ export default async function TourPage({ params }: Props) {
               <CardDescription>مستقیم با کارشناس مقصد صحبت کنید یا در واتس‌اپ پیام بدهید.</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* نشانگر زندهٔ وضعیت پاسخ‌گویی (پیشنهاد lead، ۲۱ مهر ۱۴۰۵): کنار دکمهٔ تماس. */}
+              <LiveStatusChip className="mb-4" />
               <CallButtons />
             </CardContent>
           </Card>

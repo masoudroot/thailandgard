@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
+import { LiveStatusChip } from "@/components/site/LiveStatusChip";
 import { getSiteSettings } from "@/lib/db-content";
 import { SITE_URL } from "@/lib/site";
 import { defaultOgImages } from "@/lib/og";
@@ -47,7 +48,7 @@ export default async function ContactPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL },
+      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL.replace(/\/+$/, "") }, // S-005: بدون اسلش انتهایی، هم‌خوان با کنونیکال
       { "@type": "ListItem", position: 2, name: "تماس با تایلندگرد", item: `${SITE_URL}/contact` },
     ],
   };
@@ -103,6 +104,9 @@ export default async function ContactPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* نشانگر زندهٔ وضعیت پاسخ‌گویی (پیشنهاد lead، ۲۱ مهر ۱۴۰۵): زیر تیتر کارت،
+                قبل از دکمه‌ها (یادداشت جایگذاری design). */}
+            <LiveStatusChip />
             <CallButtons compact />
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
               <MessageCircle className="mt-0.5 size-4 shrink-0" />
