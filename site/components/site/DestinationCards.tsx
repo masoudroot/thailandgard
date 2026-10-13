@@ -75,6 +75,10 @@ export function DestinationCards({ className }: { className?: string }) {
                 </div>
                 <div className="flex flex-1 flex-col p-5">
                   <h3 className="text-lg font-semibold">{d.name}</h3>
+                  {/* نکتهٔ نبض دیزاین (D-272، ۱۴۰۵/۰۷/۲۱): خلاصه با line-clamp-2 حداکثر ۲ خط نشان می‌دهد؛
+                      اندازه‌گیری با وزیرمتن ۱۴px روی پهنای واقعی کارت: هر سه متن فعلی در ۲ خط جا می‌شوند
+                      (بانکوک لب‌مرز، خط دومش تقریباً پر است). متن نهایی content هم باید در همین حد بماند،
+                      وگرنه وسط جمله بریده می‌شود. */}
                   <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">{d.blurb}</p>
                   <Link
                     href={d.href}
