@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
 import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
+import { isPriceFreshCached } from "@/lib/tours";
 import { pageSeo, brandTitle } from "@/lib/og";
 import { ogImageForSlug } from "@/lib/og-slugs";
 import { TOUR_COVERS, TOUR_BODY_IMAGES } from "@/lib/tour-covers";
@@ -128,24 +128,19 @@ export default async function TourPage({ params }: Props) {
   // به‌روزرسانی قدیمی‌تر از ۷ روز باشد؛ در این حالت هیچ آیتم FAQ قیمتی
   // رندر نمی‌شود (نه در HTML، نه در اسکیمای FAQPage). فقط قیمت تازه،
   // آیتم اول FAQ می‌گیرد. اسکیمای TouristTrip/Offer دست نمی‌خورد.
-  // نبض دیزاین (۲۱ مهر ۱۴۰۵): قانون «تازگی قیمت» پایین‌تر Date.now را صدا
-  // می‌زند؛ در پرریرندر استاتیک همین صدا خطای بیلد می‌دهد
-  // («unstable value Date.now») و دیپلوی پروداکشن را می‌شکند. راه‌حل استاندارد
-  // مستند Next.js 16 با Cache Components (جایگزین force-dynamic حذف‌شده):
-  // connection()؛ از این‌جا به بعد در زمان درخواست رندر می‌شود و تازگی قیمت
-  // هم در هر درخواست درست حساب می‌شود. بازبینی نهایی با تیم dev.
-  await connection();
+  // تیم dev (۲۱ مهر ۱۴۰۵): محاسبهٔ تازگی با isPriceFreshCached انجام می‌شود
+  // (پوشش «use cache» روی تابع خالص isPriceFresh در lib/tours.ts)؛ الگوی
+  // مستند Next.js 16 برای Date.now در Cache Components. مقدار در پرریرندر
+  // محاسبه و کش می‌شود تا روت کاملاً استاتیک بماند؛ با هر دیپلوی تازه
+  // محاسبه می‌شود. connection() در سطح صفحه روت را داینامیک می‌کرد و بیلد
+  // را می‌شکست، پس حذف شد.
   const faqs = [...tour.faqs];
-  const priceUpdatedAt = tour.priceUpdatedAt ? new Date(tour.priceUpdatedAt) : null;
-  const priceUpdatedAtOk = priceUpdatedAt !== null && !Number.isNaN(priceUpdatedAt.getTime());
-  const priceFresh =
-    tour.priceFrom != null &&
-    priceUpdatedAtOk &&
-    Date.now() - (priceUpdatedAt as Date).getTime() <= 7 * 24 * 60 * 60 * 1000;
-  if (priceFresh && priceUpdatedAtOk && tour.priceFrom != null) {
+  const priceFresh = await isPriceFreshCached(tour.priceFrom, tour.priceUpdatedAt);
+  if (priceFresh && tour.priceFrom != null && tour.priceUpdatedAt != null) {
+    const priceUpdatedAt = new Date(tour.priceUpdatedAt);
     faqs.unshift({
       question: `قیمت تور ${tour.title} چقدر است؟`,
-      answer: `قیمت پایه از ${faNumber(tour.priceFrom)} تومان؛ آخرین به‌روزرسانی: ${formatJalali(priceUpdatedAt as Date)}. برای قیمت به‌روز، با کارشناس مقصد تماس بگیرید.`,
+      answer: `قیمت پایه از ${faNumber(tour.priceFrom)} تومان؛ آخرین به‌روزرسانی: ${formatJalali(priceUpdatedAt)}. برای قیمت به‌روز، با کارشناس مقصد تماس بگیرید.`,
     });
   }
 

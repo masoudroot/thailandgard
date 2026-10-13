@@ -47,6 +47,40 @@ export interface Tour {
   faqs: TourFaq[];
 }
 
+/**
+ * گیت «تازگی قیمت» (اقدام ۱ بریف آمیتیس): قیمت تازه است اگر priceFrom موجود و
+ * priceUpdatedAt حداکثر ۷ روز از `now` قدیمی‌تر باشد. تابع خالص است تا در لایهٔ
+ * کش‌داده (زمان ساخت) صدا زده شود؛ صدازدن مستقیم Date.now در کامپوننت سروریِ
+ * مسیر استاتیک بیلد را قرمز می‌کند.
+ */
+export function isPriceFresh(
+  priceFrom: number | null | undefined,
+  priceUpdatedAt: string | null | undefined,
+  now: number,
+): boolean {
+  if (priceFrom == null || !priceUpdatedAt) return false;
+  const t = new Date(priceUpdatedAt).getTime();
+  if (Number.isNaN(t)) return false;
+  return now - t <= 7 * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * پوشش کش‌شدهٔ گیت «تازگی قیمت» برای مسیرهای استاتیک (تیم dev، ۲۱ مهر ۱۴۰۵):
+ * الگوی مستند Next.js 16 برای Date.now در Cache Components
+ * («Random values and timestamps»): مقدار Date.now فقط داخل «use cache»
+ * خوانده می‌شود تا در پرریرندر محاسبه و کش شود و روت کاملاً استاتیک بماند.
+ * با هر دیپلوی مقدار تازه محاسبه می‌شود که با ریتم انتشار پیوستهٔ سایت
+ * همان تازگی موردنظر قانون است. connection() در سطح صفحه روت را داینامیک
+ * می‌کرد و بیلد را می‌شکست، پس این الگو جایگزین آن شد.
+ */
+export async function isPriceFreshCached(
+  priceFrom: number | null | undefined,
+  priceUpdatedAt: string | null | undefined,
+): Promise<boolean> {
+  "use cache";
+  return isPriceFresh(priceFrom, priceUpdatedAt, Date.now());
+}
+
 export const TOURS: Tour[] = [
   {
     slug: "phuket-7-days",
