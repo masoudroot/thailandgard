@@ -135,17 +135,17 @@ export default async function ContactPage() {
             <h2 className="text-xl">پیش از تماس</h2>
             <ul className="mt-3 space-y-2">
               <li>
-                <Link href="/tours" className="font-semibold underline underline-offset-4">
+                <Link href="/tours" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   تورهای تایلند
                 </Link>
               </li>
               <li>
-                <Link href="/guide" className="font-semibold underline underline-offset-4">
+                <Link href="/guide" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   راهنمای سفر به تایلند
                 </Link>
               </li>
               <li>
-                <Link href="/guide/thailand-visa-guide" className="font-semibold underline underline-offset-4">
+                <Link href="/guide/thailand-visa-guide" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
                   ویزای تایلند برای ایرانیان
                 </Link>
               </li>
