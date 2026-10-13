@@ -124,7 +124,7 @@ export default async function PhuketOctoberPage() {
                 مشاوره با {s.CONTACT_NAME}
               </a>
             </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full px-6">
+            <Button asChild size="lg" variant="outline" className="rounded-full px-6 active:[transform:var(--press)]">
               <a href="#october-tours">تورهای همین پنجره</a>
             </Button>
           </div>
@@ -227,7 +227,7 @@ export default async function PhuketOctoberPage() {
                       تماس با مشاور سفر
                     </a>
                   </Button>
-                  <Button asChild size="lg" variant="outline">
+                  <Button asChild size="lg" variant="outline" className="active:scale-[0.98]">
                     <a href={s.WHATSAPP_LINK}>مشاوره در واتس‌اپ</a>
                   </Button>
                 </div>
