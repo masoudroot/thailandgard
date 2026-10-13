@@ -59,7 +59,7 @@ export default async function GuideIndexPage() {
       />
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
-          <BookOpenText className="size-3.5" />
+          <BookOpenText className="size-3.5" aria-hidden />
           راهنمای سفر
         </p>
         <h1 className="mt-3 text-balance text-3xl md:text-4xl">راهنمای سفر تایلند</h1>
@@ -107,17 +107,17 @@ export default async function GuideIndexPage() {
                 <p className="text-sm leading-7 text-muted-foreground">{guide.excerpt}</p>
                 <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
-                    <Clock className="size-3.5" />
+                    <Clock className="size-3.5" aria-hidden />
                     {fa(guide.readingMinutes)} دقیقه مطالعه
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <CalendarDays className="size-3.5" />
+                    <CalendarDays className="size-3.5" aria-hidden />
                     به‌روزرسانی: {guide.updatedFa}
                   </span>
                 </div>
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
                   خواندن راهنما
-                  <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
+                  <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" aria-hidden />
                 </span>
               </CardContent>
             </Card>
