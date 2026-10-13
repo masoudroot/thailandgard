@@ -4,7 +4,7 @@ import { cn, fa } from "@/lib/utils";
 export interface Step { title: string; description: string; icon?: React.ComponentType<{ className?: string }> }
 
 /** مراحل کار. Numbered steps with Persian digits joined by a dashed line on desktop. */
-export function StepsBlock({ eyebrow, title, steps, gridClassName = "md:grid-cols-2 lg:grid-cols-4" }: {
+export function StepsBlock({ eyebrow, title, steps, gridClassName = "md:grid-cols-2 lg:grid-cols-4", connectorClassName = "hidden lg:block" }: {
   eyebrow?: string;
   title?: string;
   steps: Step[];
@@ -14,6 +14,13 @@ export function StepsBlock({ eyebrow, title, steps, gridClassName = "md:grid-col
    * می‌شکند؛ پس گرید فقط از همین پراپ اختیاری رویِ صفحهٔ موردنظر عوض می‌شود.)
    */
   gridClassName?: string;
+  /**
+   * کلاس نمایش خط نقطه‌چین اتصال‌دهندهٔ قدم‌ها؛ پیش‌فرض `hidden lg:block`
+   * با breakpointهای گرید پیش‌فرض جفت است. اگر گریدی با `md:grid-cols-N`
+   * پاس دادی، همین‌جا `hidden md:block` بده تا در تبلت هم خط وصل باشد.
+   * (D-148: دست‌زدن به گرید مشترک ممنوع است؛ فقط این کلاس اختیاری عوض می‌شود.)
+   */
+  connectorClassName?: string;
 }) {
   return (
     <section className="px-6 py-16">
@@ -25,7 +32,7 @@ export function StepsBlock({ eyebrow, title, steps, gridClassName = "md:grid-col
       )}
       <div className="relative mx-auto max-w-5xl">
         {/* خط نقطه‌چین اتصال‌دهنده: بیرون ol است چون فقط li/script/template فرزند معتبر ol هستند (F-002 بازرس) */}
-        <div aria-hidden className="absolute inset-x-[16%] top-6 hidden border-t border-dashed border-border lg:block" />
+        <div aria-hidden className={cn("absolute inset-x-[16%] top-6 border-t border-dashed border-border", connectorClassName)} />
         <ol className={cn("grid gap-10", gridClassName)}>
           {steps.map((s, i) => (
             <li key={s.title} className="relative flex flex-col items-center text-center">
