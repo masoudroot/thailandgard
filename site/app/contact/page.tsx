@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Clock, MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
@@ -40,7 +41,22 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
   const s = await getSiteSettings();
+  // S-088 (حسابرس سئو): صفحهٔ تماس BreadcrumbList نداشت؛ تک‌آیتمی «خانه»
+  // تا با صفحه‌های تور و راهنما یکدست شود.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "تماس با تایلندگرد", item: `${SITE_URL}/contact` },
+    ],
+  };
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     <main className="mx-auto max-w-5xl px-6 py-12">
       <header className="max-w-2xl">
         <p className="inline-flex items-center gap-2 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold text-brand-foreground">
@@ -91,10 +107,13 @@ export default async function ContactPage() {
 
         <Card className="h-full">
           <CardHeader className="border-b border-border bg-muted/40">
-            <h2 className="text-xl font-semibold">تماس با مشاور سفر</h2>
+            {/* D-118 (نبض دیزاین): تیتر کارت فرم برگشت تماس («تماس با مشاور سفر»)
+                عین لیبل دکمهٔ کهربایی مسیر تماس مستقیم بود؛ تمایز با «ما زنگ می‌زنیم»
+                در برابر «خودتان زنگ بزنید» کارت مقابل؛ دکمهٔ سابمیت «درخواست تماس» سر جایش. */}
+            <h2 className="text-xl font-semibold">ما زنگ می‌زنیم</h2>
             {/* قلم ۳ لید: کارت دوم خنثی و ثانویه؛ بدون بج؛ متن حکم مدیر. */}
             <CardDescription>
-              وقت ندارید؟ شماره‌تان را بگذارید، ما زنگ می‌زنیم.
+              وقت ندارید؟ شماره‌تان را بگذارید؛ خودمان با شما تماس می‌گیریم.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,6 +121,35 @@ export default async function ContactPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* باکس «پیش از تماس» (بریف seo، S-101، قانون ۶۵): بدنهٔ main صفحهٔ تماس
+          صفر لینک داخلی داشت. ۳ لینک زمینه‌ای داخل main تا قانون ۶۵ برقرار شود؛
+          زیر CTA اصلی، جمع‌وجور. */}
+      <section className="mt-8">
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-xl">پیش از تماس</h2>
+            <ul className="mt-3 space-y-2">
+              <li>
+                <Link href="/tours" className="font-semibold underline underline-offset-4">
+                  تورهای تایلند
+                </Link>
+              </li>
+              <li>
+                <Link href="/guide" className="font-semibold underline underline-offset-4">
+                  راهنمای سفر به تایلند
+                </Link>
+              </li>
+              <li>
+                <Link href="/guide/thailand-visa-guide" className="font-semibold underline underline-offset-4">
+                  ویزای تایلند برای ایرانیان
+                </Link>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </section>
     </main>
+    </>
   );
 }
