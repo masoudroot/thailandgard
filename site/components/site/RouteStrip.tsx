@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, fa } from "@/lib/utils";
 
 /**
  * نوار افقی مسیر تور ترکیبی (§۶ اسپک s002-s095-bodyimg-exec-2026-10-13-06؛
@@ -79,7 +79,7 @@ export function RouteStrip({ dayCount = 0 }: { dayCount?: number }) {
                   <a
                     href={`#acc-day-${st.day}`}
                     className="rounded-control px-1 py-1 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-brand"
-                    aria-label={`${st.label}؛ پرش به روز ${st.day} برنامهٔ سفر`}
+                    aria-label={`${st.label}؛ پرش به روز ${fa(st.day)} برنامهٔ سفر`}
                   >
                     {station}
                   </a>
