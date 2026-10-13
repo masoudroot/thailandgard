@@ -302,7 +302,9 @@ export default async function HomePage() {
                   <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
                   <div className="absolute inset-x-0 bottom-0 p-4">
                     <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
-                    <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle>
+                    {/* D-121: روی کارت‌های متنی تیتر فقط در پوستر تایپوگرافیک D-117 می‌آید؛
+                        رندر دوم این‌جا حذف شد تا همان متن دو بار رندر نشود */}
+                    {cover ? <CardTitle className="mt-2 text-xl">{displayTitle(guide.title)}</CardTitle> : null}
                   </div>
                 </div>
                 <CardContent className="flex flex-1 flex-col gap-4 p-5">
