@@ -8,7 +8,7 @@ import { CallbackForm } from "@/components/site/CallbackForm";
 import { LiveStatusChip } from "@/components/site/LiveStatusChip";
 import { HourAwareCallTitle } from "@/components/site/HourAwareCallTitle";
 import { getSiteSettings } from "@/lib/db-content";
-import { SITE_URL } from "@/lib/site";
+import { PHONE_LANDLINE_DISPLAY, PHONE_LANDLINE_LINK, PHONE_MOBILE_DISPLAY, PHONE_MOBILE_LINK, SITE_URL } from "@/lib/site";
 import { defaultOgImages } from "@/lib/og";
 import { fa } from "@/lib/utils";
 
@@ -89,6 +89,13 @@ export default async function ContactPage() {
           <span className="text-[10px] leading-none text-brand-foreground">◆</span>
           <span className="h-px flex-1 bg-foreground/10" />
         </div>
+        {/* خط تلفن‌ها (D-229): بدنهٔ قاب تایپوگرافیک خالی می‌خواند؛ شماره‌های
+            تک‌منبع lib/site.ts مسیر تماس را داخل همین قاب زنده می‌کند. */}
+        <p className="mt-5 text-lg font-semibold text-foreground" dir="ltr">
+          <a href={PHONE_MOBILE_LINK} className="underline decoration-brand decoration-2 underline-offset-4">{PHONE_MOBILE_DISPLAY}</a>
+          <span aria-hidden className="mx-3 font-normal text-muted-foreground">·</span>
+          <a href={PHONE_LANDLINE_LINK} className="underline decoration-brand decoration-2 underline-offset-4">{PHONE_LANDLINE_DISPLAY}</a>
+        </p>
       </div>
 
       <div id="callback" className="mt-8 grid scroll-mt-24 gap-6 lg:grid-cols-2">
