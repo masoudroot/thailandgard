@@ -66,7 +66,7 @@ export default async function ContactPage() {
           مشاورهٔ تلفنی
         </p>
         <h1 className="mt-3 text-balance text-3xl md:text-4xl">تماس با تایلندگرد</h1>
-        <p className="mt-4 text-base leading-[1.8] text-muted-foreground">
+        <p className="text-pretty mt-4 text-base leading-[1.8] text-muted-foreground">
           رزرو فقط تلفنی است؛ اینترنتی پول نمی‌گیریم. یک تماس کوتاه، همهٔ ابهام‌های سفرتان
           را برطرف می‌کند.
         </p>
@@ -81,7 +81,7 @@ export default async function ContactPage() {
           خط‌حایل/لوزی الگوی D-008 زیر خط پشتیبان تا نیمهٔ خالی قاب پر شود. */}
       <div className="mt-8 overflow-hidden rounded-control border border-border bg-frame-typographic px-8 py-8 text-center sm:py-10">
         <p className="font-display text-2xl text-foreground sm:text-3xl">در روزهای کاری پاسخ‌گوییم</p>
-        <p className="mt-3 text-sm leading-[1.9] text-muted-foreground">
+        <p className="text-pretty mt-3 text-sm leading-[1.9] text-muted-foreground">
           زنگ بزنید یا شماره‌تان را بگذارید؛ یک آدم واقعی جواب می‌دهد، نه ربات.
         </p>
         <div aria-hidden className="mx-auto mt-6 flex max-w-xs items-center gap-3">

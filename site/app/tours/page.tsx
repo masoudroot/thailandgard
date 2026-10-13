@@ -71,7 +71,7 @@ export default async function ToursPage() {
       {/* قانون تراکم فارسی (۱۴۰۵/۰۷/۱۱): متن فارسی پرحجم‌تر است؛ فاصله‌های بادکردهٔ معیار انگلیسی در فارسی شل می‌شود؛ ریتم عمودی جمع‌وجور. */}
       <header className="max-w-3xl space-y-4">
         <h1 className="text-balance text-3xl md:text-4xl">تورهای تایلند</h1>
-        <p className="leading-[1.8] text-muted-foreground">
+        <p className="text-pretty leading-[1.8] text-muted-foreground">
           در حال حاضر {fa(tours.length)} تور فعال داریم:{" "}
           {tours.map((t, i) => (
             <Fragment key={t.slug}>

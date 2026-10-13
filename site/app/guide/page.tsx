@@ -63,7 +63,7 @@ export default async function GuideIndexPage() {
           راهنمای سفر
         </p>
         <h1 className="mt-3 text-balance text-3xl md:text-4xl">راهنمای سفر تایلند</h1>
-        <p className="mt-4 text-base leading-[1.8] text-muted-foreground">
+        <p className="text-pretty mt-4 text-base leading-[1.8] text-muted-foreground">
           {/* حکم ۲ برندینگ (چرخهٔ ۰۹): رجیستر «شما» (محور ۴ لحن) */}
           این‌جا را تیم محتوا با راهنماهای تازه به‌روز نگه می‌دارد. هر چه برای تصمیم گرفتن
           دربارهٔ سفر تایلند لازم دارید، این‌جا پیدا می‌کنید؛ ساده، به‌روز و بدون حاشیه.

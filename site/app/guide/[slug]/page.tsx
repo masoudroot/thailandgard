@@ -227,7 +227,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
             </span>
           </div>
           {/* دیف A1 ممیزی design: leading خوانش بلند فارسی ۱٫۹ */}
-          <p className="mt-4 text-lg leading-[1.9]">{guide.excerpt}</p>
+          <p className="text-pretty mt-4 text-lg leading-[1.9]">{guide.excerpt}</p>
           <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
         </header>
       )}
@@ -246,7 +246,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
       {relatedTours.length > 0 && relatedBlock && (
         <section className="mt-8 rounded-surface border border-border bg-card p-6">
           <h2 className="text-balance text-2xl sm:text-3xl">قدم بعدی</h2>
-          <p className="mt-3 leading-[1.9] text-foreground/90">
+          <p className="text-pretty mt-3 leading-[1.9] text-foreground/90">
             {relatedBlock.lead}{" "}
             {relatedTours.map((t, i) => (
               <span key={t.slug}>

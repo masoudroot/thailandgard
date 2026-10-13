@@ -408,7 +408,7 @@ export default async function TourPage({ params }: Props) {
         {slug === "bangkok-phuket-8-days" && (
           <section className="mt-10">
             <h2 className="text-balance text-2xl sm:text-3xl">{SNIPPET_QUESTION}</h2>
-            <p className="mt-5 leading-[1.9] text-foreground/90">{SNIPPET_ANSWER}</p>
+            <p className="text-pretty mt-5 leading-[1.9] text-foreground/90">{SNIPPET_ANSWER}</p>
           </section>
         )}
 
@@ -511,7 +511,7 @@ export default async function TourPage({ params }: Props) {
         <section className="mx-auto mt-8 max-w-5xl px-6">
           <Card>
             <CardContent className="pt-6">
-              <p className="leading-[1.8] text-foreground/90">
+              <p className="text-pretty leading-[1.8] text-foreground/90">
                 {guideBlock.lead}{" "}
                 {relatedGuides.map((g, i) => (
                   <span key={g.slug}>
@@ -538,7 +538,7 @@ export default async function TourPage({ params }: Props) {
         <section className="mx-auto mt-8 max-w-5xl px-6">
           <Card>
             <CardContent className="pt-6">
-              <p className="leading-[1.8] text-foreground/90">
+              <p className="text-pretty leading-[1.8] text-foreground/90">
                 <span className="font-semibold">آب‌وهوا و رویدادهای اکتبر در پوکت:</span>{" "}
                 اگر سفرتان به نیمهٔ دوم اکتبر می‌خورد،{" "}
                 <Link href="/guide/phuket-in-october" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">

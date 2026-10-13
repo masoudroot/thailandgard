@@ -46,7 +46,7 @@ export function ThailandGazeGallery() {
         {FRAMES.map((f) => (
           <figure key={f.src}>
             <div className="aspect-[4/3] overflow-hidden rounded-control border border-border">
-              <img src={f.src} alt={f.caption} loading="lazy" className="size-full object-cover" />
+              <img src={f.src} alt={f.caption} loading="lazy" decoding="async" className="size-full object-cover" />
             </div>
             {/* کپشن تک‌خطی زیر قاب، نه روی عکس (بریف؛ حکم ۴۷: فقط نام صحنه، بدون تفسیر) */}
             <figcaption title={f.caption} className="mt-2 truncate text-xs text-muted-foreground">{f.caption}</figcaption>
