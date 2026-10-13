@@ -14,7 +14,9 @@ import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { CallButtons } from "@/components/site/CallButtons";
 import { CallbackForm } from "@/components/site/CallbackForm";
 import { CoverImage } from "@/components/site/CoverImage";
+import { RouteStrip } from "@/components/site/RouteStrip";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { YaldaBanner } from "@/components/site/YaldaBanner";
 import { SmartTelLink } from "@/components/site/SmartTelLink";
 import { TourStickyBar } from "@/components/site/TourStickyBar";
 import { FaqBlock } from "@/components/blocks/faq";
@@ -389,8 +391,20 @@ export default async function TourPage({ params }: Props) {
           </section>
         )}
 
+        {/* نوار افقی مسیر تور ترکیبی (H1 هندآف design، اجرای ۰۸، ۲۱ مهر ۱۴۰۵):
+            mount رجیستری امروز؛ §۶ اسپک + حکم artdir + حکم ۳۴ design-ir.
+            فقط روی همین اسلاگ؛ بالای بخش روزبه‌روز. */}
+        {slug === "bangkok-phuket-8-days" && (
+          <section aria-label="مسیر سفر" className="mt-10">
+            <h2 className="text-2xl sm:text-3xl">مسیر این تور</h2>
+            <div className="mt-6">
+              <RouteStrip dayCount={tour.itinerary.length} />
+            </div>
+          </section>
+        )}
+
         {tour.itinerary.length > 0 && (
-          <section className="mt-8">
+          <section id="itinerary" className="mt-8 scroll-mt-24">
             <h2 className="text-2xl sm:text-3xl">برنامهٔ روزبه‌روز</h2>
             <Accordion
               className="mt-5"
@@ -507,6 +521,15 @@ export default async function TourPage({ params }: Props) {
             </CardContent>
           </Card>
         </section>
+      )}
+
+      {/* بنر یلدا قالب ب (H6 هندآف design، اجرای ۰۸، ۲۱ مهر ۱۴۰۵):
+          مستطیلی درون‌صفحه‌ای؛ فقط روی صفحهٔ تور ترکیبی (۷ شب؛ بانکوک + پوکت)
+          که موضوع بنر است؛ پیش از بخش تماس. */}
+      {slug === "bangkok-phuket-8-days" && (
+        <div className="mx-auto mt-8 max-w-5xl px-6">
+          <YaldaBanner />
+        </div>
       )}
 
       <div id="callback" className="mx-auto mt-12 max-w-5xl scroll-mt-24 px-6 pb-sticky-bar-clearance md:pb-16">

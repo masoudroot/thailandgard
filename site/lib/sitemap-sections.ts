@@ -27,7 +27,6 @@ import { getSitemapRows } from "@/lib/db-content";
  */
 const TOURS_LASTMOD = new Date("2026-10-10T00:00:00+03:30"); // زنده‌شدن سایت (۱۸ مهر ۱۴۰۵)
 const STATIC_LASTMOD = new Date("2026-10-10T00:00:00+03:30"); // زنده‌شدن سایت (۱۸ مهر ۱۴۰۵)
-const PHUKET_OCTOBER_LASTMOD = new Date("2026-10-11T00:00:00+03:30"); // انتشار لندینگ اکتبر (۱۹ مهر ۱۴۰۵)
 
 const FA_MONTHS: Record<string, number> = {
   فروردین: 1,
@@ -108,14 +107,16 @@ export async function getSitemapSections(): Promise<SitemapSections> {
 
   // lastmod هر مسیر استاتیک = تازه‌ترین محتوای DBای که همان صفحه نشان می‌دهد.
   const pageLastMod = (path: string): Date => {
-    if (path === "/phuket-october") return PHUKET_OCTOBER_LASTMOD;
     if (path === "/tours") return newest(TOURS_LASTMOD, tourPriceDates);
     if (path === "/guide") return newest(STATIC_LASTMOD, guideDates);
     if (path === "") return newest(STATIC_LASTMOD, [...guideDates, ...tourPriceDates]);
     return STATIC_LASTMOD; // /contact: محتوای ثابت
   };
 
-  const pages: MetadataRoute.Sitemap = ["", "/tours", "/guide", "/contact", "/phuket-october"].map(
+  // S-107 (۲۱ مهر ۱۴۰۵، اجرای ۰۸): ‎/phuket-october‎ از سایت‌مپ حذف شد؛
+  // مسیر ۳۰۸ است (ریدایرکت به راهنمای زنده) و سایت‌مپ فقط URLهای ۲۰۰ و
+  // کنونیکال را فهرست می‌کند.
+  const pages: MetadataRoute.Sitemap = ["", "/tours", "/guide", "/contact"].map(
     (path) => ({
       url: `${base}${path}`,
       lastModified: pageLastMod(path),

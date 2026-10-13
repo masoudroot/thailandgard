@@ -24,6 +24,10 @@ export async function TourBanner({ tour }: { tour: Tour }) {
       {/* ستون متن: در موبایل زیر پنل، در دسکتاپ راست (ابتدای خواندن) */}
       <div className="order-2 flex flex-col gap-6 md:order-1">
         <div className="space-y-4">
+          {/* اورراید آگاهانهٔ بج (۲۱ مهر ۱۴۰۵، اجرای ۰۸): واریانت brand خود بج
+              پیل ۱۵٪ است (bg-brand/15)؛ این‌جا فیل توپر کهربایی می‌خواهد
+              (bg-brand) چون بج «منتخب این هفته» روی بنر باید از دور خوانده
+              شود، نه مثل بج خنثی روی ماسک عکس. متن همیشه brand-foreground. */}
           <Badge variant="brand" className="bg-brand text-brand-foreground">منتخب این هفته</Badge>
           {/* S-020 (۲۰ مهر ۱۴۰۵): کارت ویژه هم h3 است مثل کارت‌های گرید؛
               زیر همان h2 بخشی می‌نشیند. */}

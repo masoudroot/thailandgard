@@ -27,6 +27,8 @@
  * - tour_faq.insert             درج سؤال تازه در tour_faqs (موج واکنشی dev ۱۱:۰۵، ۱۴۰۵/۰۷/۲۰؛ آینهٔ guide_faq.insert)
  * - tour.set_highlights         به‌روزرسانی هایلایت‌های تور در tours (یافتهٔ S-024 حسابرس سئو، ۱۴۰۵/۰۷/۲۰)
  * - tour.set_description        به‌روزرسانی متن بدنهٔ تور در tours (توسعهٔ S-024، ۱۴۰۵/۰۷/۲۰)
+ * - tour_day.upsert             درج/به‌روزرسانی یک روز از برنامهٔ روزبه‌روز در tour_days
+ *                               (کلید یکتای tour_slug+day؛ گیت H1 نوار مسیر، ۲۱ مهر ۱۴۰۵)
  * - tour.insert                 ساخت رکورد تازه در tours (هندآف مدیر ۱۲:۴۰، ۱۴۰۵/۰۷/۲۰؛ RLS کلید ایجنت روی tours بسته است)
  * - setting.set                 به‌روزرسانی یک کلید site_settings (فقط ۱۶ کلید شناخته‌شده؛ شعار مصوب ۱۴۰۵/۰۷/۲۰)
  * - lead_alert.backfill         آشتی‌جویی ردیف‌های lead-alert برای لیدهای N ساعت اخیر
@@ -62,6 +64,7 @@ type OpCode =
   | "tour.set_description"
   | "tour.set_title"
   | "tour.set_short_title"
+  | "tour_day.upsert"
   | "setting.set"
   | "tour_faq.update"
   | "tour_faq.insert"
@@ -78,6 +81,7 @@ interface SyncOp {
   category?: unknown;
   reading_minutes?: unknown;
   updated_fa?: unknown;
+  day?: unknown;
   guide_slug?: unknown;
   tour_slug?: unknown;
   short_title?: unknown;
@@ -179,6 +183,17 @@ function validateOp(raw: SyncOp): { ok: true; op: SyncOp } | { ok: false; error:
     case "tour.set_short_title":
       if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
       if (!isText(raw.short_title, 60)) return { ok: false, error: "short_title نامعتبر است." };
+      return { ok: true, op: raw };
+    case "tour_day.upsert":
+      // روزبه‌روز تور ترکیبی (پیلود content اجرای ۰۳، ۲۱ مهر ۱۴۰۵؛ گیت H1 نوار
+      // مسیر): upsert روی کلید یکتای (tour_slug, day)؛ اول PATCH، اگر ردیفی
+      // نبود POST. بدون این op، tour_days تور ترکیبی خالی می‌ماند و نوار
+      // مسیر لینک مرده می‌شد.
+      if (!isSlug(raw.tour_slug)) return { ok: false, error: "tour_slug نامعتبر است." };
+      if (!Number.isInteger(raw.day) || (raw.day as number) < 1 || (raw.day as number) > 30)
+        return { ok: false, error: "day باید عدد صحیح ۱ تا ۳۰ باشد." };
+      if (!isText(raw.title, 200)) return { ok: false, error: "title نامعتبر است." };
+      if (!isText(raw.description, 4000)) return { ok: false, error: "description نامعتبر است." };
       return { ok: true, op: raw };
     case "setting.set": {
       // شعار مصوب مسعود ۱۴۰۵/۰۷/۲۰: تنظیمات site_settings فقط ۱۶ کلید شناخته‌شدهٔ site.ts را می‌پذیرد؛
@@ -599,6 +614,29 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
       if (rows.length === 0) throw new Error("توری با این slug پیدا نشد.");
       return { matched: rows.length, note: `به‌روزرسانی short_title تور (slug=${op.tour_slug})` };
     }
+    case "tour_day.upsert": {
+      const day = Number(op.day);
+      const q =
+        `tour_days?tour_slug=eq.${encodeURIComponent(String(op.tour_slug))}` +
+        `&day=eq.${day}`;
+      const patched = await postgrest(cfg, "PATCH", q, {
+        title: op.title,
+        description: op.description,
+      });
+      if (patched.rows.length > 0) {
+        return {
+          matched: patched.rows.length,
+          note: `به‌روزرسانی روز ${day} تور (slug=${op.tour_slug})`,
+        };
+      }
+      const { rows } = await postgrest(cfg, "POST", "tour_days", {
+        tour_slug: op.tour_slug,
+        day,
+        title: op.title,
+        description: op.description,
+      });
+      return { matched: rows.length, note: `درج روز ${day} تور (slug=${op.tour_slug})` };
+    }
     case "setting.set": {
       const q = `site_settings?key=eq.${encodeURIComponent(String(op.key))}`;
       const { rows } = await postgrest(cfg, "PATCH", q, { value: op.value });
@@ -705,6 +743,7 @@ function invalidationFor(op: SyncOp): { tags: string[]; paths: string[] } {
     case "tour.set_description":
     case "tour.set_title":
     case "tour.set_short_title":
+    case "tour_day.upsert":
     case "tour_faq.update":
     case "tour_faq.insert":
     case "tour.insert":
