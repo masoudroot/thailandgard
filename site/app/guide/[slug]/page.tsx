@@ -217,11 +217,11 @@ export default async function GuideDetailPage({ params }: PageProps) {
               در شکست دوخطی موبایل */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <Clock className="size-4" />
+              <Clock className="size-4" aria-hidden="true" />
               {fa(guide.readingMinutes)} دقیقه مطالعه
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-4" />
+              <CalendarDays className="size-4" aria-hidden="true" />
               به‌روزرسانی: {guide.updatedFa}
             </span>
           </div>
