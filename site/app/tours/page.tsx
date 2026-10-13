@@ -194,7 +194,7 @@ export default async function ToursPage() {
             </tbody>
           </table>
         </div>
-        <h3 className="mt-6 text-xl">اگر اینطورید، این را انتخاب کنید</h3>
+        <h3 className="mt-6 text-balance text-xl">اگر اینطورید، این را انتخاب کنید</h3>
         <ul className="mt-3 space-y-2 text-muted-foreground">
           <li>اولین سفرتان به تایلند است و می‌خواهید همه‌چیز را ببینید: <strong className="text-foreground">تور ترکیبی بانکوک و پوکت</strong>؛ شهر و جزیره در یک سفر.</li>
           <li>با خانواده و بچه سفر می‌کنید: <strong className="text-foreground">بانکوک و پاتایا</strong>؛ متنوع‌ترین برنامه با کمترین قیمت پایه.</li>
