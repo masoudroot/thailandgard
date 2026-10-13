@@ -111,7 +111,9 @@ export default async function ToursPage() {
           <table className="w-full min-w-[720px] border-collapse text-sm">
             <thead>
               <tr className="bg-muted/50">
-                <th scope="col" className="border-b border-border px-4 py-3 text-start">
+                {/* D-197: گوشهٔ thead در اسکرول افقی موبایل sticky منطقی (start-0) + z-10 + پس‌زمینهٔ مات؛
+                    الگوی D-184 تا سرستون با سطرهای چسبان هم‌تراز بماند. */}
+                <th scope="col" className="sticky start-0 z-10 border-b border-border bg-muted px-4 py-3 text-start">
                   <span className="sr-only">ویژگی</span>
                 </th>
                 {[
@@ -122,12 +124,13 @@ export default async function ToursPage() {
                   { slug: "phuket-7-days", name: "تور پوکت ۷ روزه", short: "پوکت" },
                   // D-185 (مصوبهٔ S-049، حکم ۰۵:۴۰؛ غیرفعال‌سازی ۱۱:۱۰): سامویی/کرابی از جدول حذف شدند.
                 ].map((t) => (
-                  <th key={t.slug} scope="col" className="border-b border-border px-4 py-3 text-start font-semibold">
-                    {t.name}
-                    <br />
+                  <th key={t.slug} scope="col" className="border-b border-border px-4 py-3 text-start align-top font-semibold">
+                    {/* D-198: ارتفاع سرستون‌ها یکدست؛ نام و لینک هر کدام جعبهٔ دوخطی (min-h بر مبنای lh)
+                        تا نام بلند دوخطی در برابر کوتاه تک‌خطی ارتفاع ناهموار نسازد. */}
+                    <span className="block min-h-[2lh]">{t.name}</span>
                     <Link
                       href={`/tours/${t.slug}`}
-                      className="text-xs font-normal text-foreground underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand"
+                      className="mt-1 block min-h-[2lh] text-xs font-normal text-foreground underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand"
                     >
                       مشاهدهٔ جزئیات تور {t.short}
                     </Link>
