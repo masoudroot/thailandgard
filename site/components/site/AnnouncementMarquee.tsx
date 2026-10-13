@@ -21,7 +21,7 @@ export function AnnouncementMarquee() {
   return (
     <div
       data-marquee-track
-      className="max-h-9 overflow-hidden border-b border-border bg-background text-sm text-muted-foreground"
+      className="min-h-9 overflow-hidden border-b border-border bg-background text-sm text-muted-foreground"
     >
       <Marquee duration={36}>
         {MESSAGES.map((m) => (
