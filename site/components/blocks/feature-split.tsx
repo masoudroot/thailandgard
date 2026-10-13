@@ -6,7 +6,7 @@ export interface SplitFeature {
   title: string;
   description: string;
   bullets?: string[];
-  /** Screenshot or illustration; a soft placeholder is drawn when absent. */
+  /** Screenshot or illustration; a D-117 typographic placeholder is drawn when absent. */
   media?: React.ReactNode;
 }
 
@@ -32,7 +32,15 @@ export function FeatureSplit({ items }: { items: SplitFeature[] }) {
               )}
             </div>
             <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-secondary">
-              {f.media ?? <div aria-hidden className="size-full" />}
+              {f.media ?? (
+                /* D-212 (الگوی جای‌نگه‌دار تایپوگرافیک D-117): اگر مدیا داده نشد،
+                   به‌جای قاب خالی، پوستر تایپوگرافیک عمدی با عنوان خود آیتم */
+                <div aria-hidden className="flex size-full flex-col items-center justify-center gap-4 bg-secondary/40 px-8 text-center">
+                  <span className="size-1.5 rotate-45 bg-brand/60" />
+                  <span className="font-display text-2xl leading-relaxed text-foreground/55">{f.title}</span>
+                  <span className="h-px w-12 bg-border" />
+                </div>
+              )}
             </div>
           </div>
         ))}
