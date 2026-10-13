@@ -110,7 +110,7 @@ export default async function PhuketOctoberPage() {
       <section className="px-6 pt-14 text-center sm:pt-20">
         <div className="mx-auto max-w-3xl">
           <Badge variant="brand">رویدادهای تقویمی پوکت</Badge>
-          <h1 className="mt-5 font-display text-4xl sm:text-5xl">
+          <h1 className="mt-5 text-balance font-display text-4xl sm:text-5xl">
             پوکت؛ نیمهٔ دوم اکتبر
           </h1>
           {/* زیرتیتر موقت تا بازبینی ۲۱:۰۰ تیم محتوا */}

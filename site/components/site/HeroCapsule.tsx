@@ -78,7 +78,7 @@ export function HeroCapsule({
         {/* تیتر و زیرتیتر برند (تصمیم مستقیم مسعود، ۱۴۰۵/۰۷/۲۰):
             جایگزین تیتر سئومحور قبلی («تور تایلند با همسفر بلد تایلند...») شد.
             نکته: کلمهٔ کلیدی «تور تایلند» دیگر در h1 نیست؛ در title صفحه هست. */}
-        <h1 className="font-display mt-5 text-4xl leading-[1.35] sm:text-5xl">
+        <h1 className="font-display mt-5 text-balance text-4xl leading-[1.35] sm:text-5xl">
           <BlurText text="تایلند رو با متخصصش بگرد." delay={60} durationMs={300} />
         </h1>
 
