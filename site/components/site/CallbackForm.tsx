@@ -301,7 +301,9 @@ export function CallbackForm({
           .
         </Alert>
       )}
-      <Button type="submit" size="lg" className="w-full" disabled={status === "busy"}>
+      {/* D-113 (نبض دیزاین): تمایز primary/secondary در کنار CTA کهربایی «تماس با مشاور سفر»
+          (variant="brand" طبق تصمیم D-109)؛ دکمهٔ فرم ثبت درخواست ثانویه است (نزدیک‌ترین آیتم رجیستری: Button). */}
+      <Button type="submit" size="lg" variant="secondary" className="w-full" disabled={status === "busy"}>
         <PhoneCall aria-hidden />
         {status === "busy" ? (
           <>
