@@ -120,7 +120,7 @@ export default async function PhuketOctoberPage() {
           <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
             <Button asChild size="lg" variant="brand" className="rounded-full px-6 active:[transform:var(--press)]">
               <a href={s.PHONE_MOBILE_LINK} data-call-context="phuket-hero">
-                <Phone />
+                <Phone aria-hidden="true" />
                 تماس با مشاور سفر
               </a>
             </Button>
@@ -225,7 +225,7 @@ export default async function PhuketOctoberPage() {
                 <div className="mt-6 flex flex-col gap-2">
                   <Button asChild size="lg" variant="brand" className="active:scale-[0.98]">
                     <a href={s.PHONE_MOBILE_LINK} data-call-context="phuket-sidebar">
-                      <Phone />
+                      <Phone aria-hidden="true" />
                       تماس با مشاور سفر
                     </a>
                   </Button>
