@@ -110,7 +110,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* D-013: اسکیپ‌لینک؛ اولین عنصر صفحه، فقط برای کیبورد/صفحه‌خوان */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-[100] focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:font-semibold focus:text-brand-foreground"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[100] focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:font-semibold focus:text-brand-foreground"
         >
           پرش به محتوای اصلی
         </a>
