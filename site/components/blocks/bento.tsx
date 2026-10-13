@@ -26,7 +26,7 @@ export function BentoGrid({ eyebrow, title, cells }: { eyebrow?: string; title?:
       )}
       <ul className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
         {cells.map((c) => (
-          <li key={c.title} className={cn("flex flex-col overflow-hidden rounded-2xl border border-border bg-card", spans[c.span ?? 2])}>
+          <li key={c.title} className={cn("flex flex-col overflow-hidden rounded-surface border border-border bg-card", spans[c.span ?? 2])}>
             {c.visual && <div className="flex h-36 items-end justify-center overflow-hidden border-b border-border bg-secondary/50 px-5 pt-5">{c.visual}</div>}
             <div className="p-5">
               <div className="flex items-center gap-2">

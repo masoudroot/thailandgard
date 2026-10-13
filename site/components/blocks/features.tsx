@@ -12,7 +12,7 @@ export function FeaturesBlock({ eyebrow, title, features, columns = 3 }: { eyebr
           {title && <h2 className="mt-2 text-3xl font-bold">{title}</h2>}
         </div>
       )}
-      <ul className={cn("mx-auto grid max-w-5xl grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2", columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4")}>
+      <ul className={cn("mx-auto grid max-w-5xl grid-cols-1 gap-px overflow-hidden rounded-surface border border-border bg-border sm:grid-cols-2", columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4")}>
         {features.map((f) => (
           <li key={f.title} className="bg-card p-6">
             <span className="flex size-10 items-center justify-center rounded-lg bg-secondary"><f.icon className="size-5" /></span>
