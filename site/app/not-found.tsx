@@ -30,7 +30,7 @@ export default async function NotFound() {
         <p className="mt-2 text-center text-sm leading-7 text-muted-foreground">
           تورهای پرطرفدار تایلندگرد:
         </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-6 sm:grid-cols-3">
           {tours.map((tour) => (
             <TourCard key={tour.slug} tour={tour} />
           ))}
