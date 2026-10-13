@@ -61,6 +61,9 @@ export default async function HomePage() {
   const comboIdx = tours.findIndex((t) => t.slug === COMBO_SLUG);
   const featuredTours =
     comboIdx >= 0 ? [tours[comboIdx], ...tours.filter((_, i) => i !== comboIdx)].slice(0, 3) : tours.slice(0, 3);
+  // D-107: خانه فقط ۶ راهنمای اول را نشان می‌دهد (گرید ۳ ستونه، ۲ ردیف)؛
+  // بقیه پشت دکمهٔ «همهٔ راهنماها» در /guide می‌مانند تا سکشن سبک بماند.
+  const featuredGuides = guides.slice(0, 6);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -252,7 +255,7 @@ export default async function HomePage() {
           </Button>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {guides.map((guide) => {
+          {featuredGuides.map((guide) => {
             const cover = GUIDE_COVERS[guide.slug];
             return (
             <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block h-full">
