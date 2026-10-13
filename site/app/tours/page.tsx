@@ -181,7 +181,9 @@ export default async function ToursPage() {
                 },
               ].map((row, k) => (
                 <tr key={row.label} className={k % 2 === 1 ? "bg-muted/20" : undefined}>
-                  <th scope="row" className="border-b border-border px-4 py-3 text-start font-semibold">
+                  {/* D-184: سرستون سطرها در اسکرول افقی موبایل sticky منطقی (start-0؛ در راست‌به‌چپ ستون راست)
+                      با پس‌زمینهٔ مات هم‌تراز با ردیف زبرا تا سلول‌های لغزان زیر آن دیده نشوند. */}
+                  <th scope="row" className={`sticky start-0 z-10 border-b border-border px-4 py-3 text-start font-semibold ${k % 2 === 1 ? "bg-muted" : "bg-background"}`}>
                     {row.label}
                   </th>
                   {row.cells.map((cell, j) => (
