@@ -131,7 +131,7 @@ export default async function GuideIndexPage() {
       <section className="mt-12">
         <Card>
           <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold">تورهای مرتبط</h2>
+            <h2 className="text-balance text-xl font-semibold">تورهای مرتبط</h2>
             <ul className="mt-4 space-y-3">
               {[
                 // S-163 (۲۱ مهر): samui-7-days و krabi-6-days غیرفعال‌اند (۴۰۴)؛ فقط ۳ تور زنده.

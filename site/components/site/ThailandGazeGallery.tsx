@@ -39,7 +39,7 @@ export function ThailandGazeGallery() {
   return (
     <section aria-label="گالری تایلند در یک نگاه" className="py-12">
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="text-2xl sm:text-3xl">تایلند در یک نگاه</h2>
+        <h2 className="text-balance text-2xl sm:text-3xl">تایلند در یک نگاه</h2>
         <p className="mt-2 text-muted-foreground">یه نگاه کوتاه به جاهایی که قراره ببریمتون</p>
       </div>
       <Carousel slideWidth={w} showDots={false} className="mt-6">

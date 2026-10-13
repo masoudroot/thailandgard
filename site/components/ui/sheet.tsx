@@ -154,7 +154,7 @@ export function Sheet({
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           {title && (
-            <h2 id={titleId} className="text-sm font-semibold">
+            <h2 id={titleId} className="text-balance text-sm font-semibold">
               {title}
             </h2>
           )}

@@ -136,7 +136,7 @@ export default async function ContactPage() {
             {/* D-118 (نبض دیزاین): تیتر کارت فرم برگشت تماس («تماس با مشاور سفر»)
                 عین لیبل دکمهٔ کهربایی مسیر تماس مستقیم بود؛ تمایز با «ما زنگ می‌زنیم»
                 در برابر «خودتان زنگ بزنید» کارت مقابل؛ دکمهٔ سابمیت «درخواست تماس» سر جایش. */}
-            <h2 className="text-xl font-semibold">ما زنگ می‌زنیم</h2>
+            <h2 className="text-balance text-xl font-semibold">ما زنگ می‌زنیم</h2>
             {/* قلم ۳ لید: کارت دوم خنثی و ثانویه؛ بدون بج؛ متن حکم مدیر. */}
             <CardDescription>
               وقت ندارید؟ شماره‌تان را بگذارید؛ خودمان با شما تماس می‌گیریم.
@@ -154,7 +154,7 @@ export default async function ContactPage() {
       <section className="mt-8">
         <Card>
           <CardContent className="pt-6 text-center">
-            <h2 className="text-xl">پیش از تماس</h2>
+            <h2 className="text-balance text-xl">پیش از تماس</h2>
             <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
               <li>
                 <Link href="/tours" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">

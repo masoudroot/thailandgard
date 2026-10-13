@@ -62,7 +62,7 @@ export function DestinationCards({ className }: { className?: string }) {
       {/* D-245 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-16 ← py-12؛ هم‌ریتم با HeroCapsule پس از تراکم D-195
           (هیرو py-12، سکشن تورها py-8؛ این سکشن شل‌ترینِ صفحه بود). راستی بصری در ممیزی بعدی. */}
       <div className="mx-auto max-w-5xl">
-        <h2 className="text-2xl sm:text-3xl">کجا برویم؟</h2>
+        <h2 className="text-balance text-2xl sm:text-3xl">کجا برویم؟</h2>
         <ul className="mt-8 grid gap-6 md:grid-cols-3">
           {DESTINATIONS.map((d) => (
             <li key={d.name} className="h-full">
