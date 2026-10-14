@@ -66,7 +66,7 @@ export function ShareButtons({ title, path, siteUrl, centered, divider, classNam
       )}
     >
       {nativeShare ? (
-        <Button variant="outline" size="sm" onClick={handleNativeShare}>
+        <Button variant="outline" size="sm" className="min-h-11" onClick={handleNativeShare}>
           <Share2 aria-hidden />
           اشتراک‌گذاری
         </Button>

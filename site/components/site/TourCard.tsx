@@ -95,7 +95,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
       <CardContent className="flex flex-1 flex-col gap-3 p-5">
         <CardDescription className="leading-7">{tour.summary}</CardDescription>
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <MapPin className="size-3.5" aria-hidden />
+          <MapPin className="size-3.5 shrink-0" aria-hidden />
           {tour.route}
         </p>
         {/* نوار پاهای تور ترکیبی (اسپک combo-card چرخهٔ ۰۶ §۱، ۲۱ مهر ۱۴۰۵):
@@ -109,7 +109,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
             راست بنشیند. */}
         {tour.legs && tour.legs.length > 0 && (
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground" role="list" aria-label="پاهای تور">
-            <MapPin className="size-3.5" aria-hidden />
+            <MapPin className="size-3.5 shrink-0" aria-hidden />
             {tour.legs.map((leg, i) => (
               <Fragment key={`${leg.destinationName}-${i}`}>
                 {i > 0 && <Separator orientation="vertical" decorative aria-hidden="true" />}
