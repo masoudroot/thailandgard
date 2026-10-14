@@ -79,7 +79,7 @@ export default async function ContactPage() {
           D-122: خط پشتیبان زیر تیتر تا قاب خالی/خراب حس نشود.
           D-134 (نبض دیزاین): تراکم عمودی (py-10/sm:py-12 ← py-8/sm:py-10) + امضای
           خط‌حایل/لوزی الگوی D-008 زیر خط پشتیبان تا نیمهٔ خالی قاب پر شود. */}
-      <div className="mt-8 overflow-hidden rounded-control border border-border bg-frame-typographic px-8 py-8 text-center sm:py-10">
+      <div className="mt-8 overflow-hidden rounded-surface border border-border bg-frame-typographic px-8 py-8 text-center sm:py-10">
         <p className="font-display text-2xl text-foreground sm:text-3xl">در روزهای کاری پاسخ‌گوییم</p>
         <p className="text-pretty mt-3 text-sm leading-[1.9] text-muted-foreground">
           زنگ بزنید یا شماره‌تان را بگذارید؛ یک آدم واقعی جواب می‌دهد، نه ربات.
