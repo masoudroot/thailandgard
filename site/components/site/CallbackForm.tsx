@@ -247,6 +247,9 @@ export function CallbackForm({
         <Input
           id="cb-name"
           autoComplete="name"
+          // D-706 (نبض دیزاین ۰۷:۴۲): کلید «بعدی» کیبورد موبایل به‌جای return؛
+          // بعد از نام، فیلد موبایل می‌آید (الگوی D-401 روی phone-input).
+          enterKeyHint="next"
           value={name}
           onFocus={() => trackFieldStart("name")}
           onChange={(e) => {
