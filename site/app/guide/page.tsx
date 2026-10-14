@@ -78,7 +78,7 @@ export default async function GuideIndexPage() {
           const cover = GUIDE_COVERS[guide.slug];
           return (
           <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block">
-            <Card className="flex h-full flex-col overflow-hidden transition-colors group-hover:border-brand/60">
+            <Card className="flex h-full flex-col overflow-hidden transition-colors duration-(--motion) group-hover:border-brand/60">
               {/* اسلات تصویری S5: قاب ۱۶:۱۰ + ماسک graphite-soft از پایین
                   (سقف ۷۰٪، حکم ۶)؛ تیتر راهنما روی ماسک */}
               <div className="relative aspect-[16/10] overflow-hidden border-b border-border">
@@ -117,7 +117,7 @@ export default async function GuideIndexPage() {
                 </div>
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
                   خواندن راهنما
-                  <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden />
+                  <ArrowLeft className="size-4 transition-transform duration-(--motion) group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden />
                 </span>
               </CardContent>
             </Card>

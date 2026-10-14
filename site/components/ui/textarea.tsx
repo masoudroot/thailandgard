@@ -38,7 +38,7 @@ export function Textarea({ className, autoResize, showCount, maxLength, onChange
         }}
         className={cn(
           "flex min-h-20 w-full rounded-field border-line-field border-input bg-field shadow-field px-3 py-2 text-base leading-7 text-foreground",
-          "placeholder:text-muted-foreground/70 transition-colors",
+          "placeholder:text-muted-foreground/70 transition-colors duration-(--motion)",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:border-transparent",
           "disabled:cursor-not-allowed disabled:opacity-50",
           autoResize ? "resize-none overflow-hidden" : "resize-y",

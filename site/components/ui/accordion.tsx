@@ -59,7 +59,7 @@ export function Accordion({ items, multiple, defaultOpen = [], className, toggle
                 aria-controls={`acc-${it.id}`}
                 disabled={it.disabled}
                 onClick={() => toggle(it.id)}
-                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-start text-sm font-medium transition-colors hover:bg-accent/40 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-start text-sm font-medium transition-colors duration-(--motion) hover:bg-accent/40 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {it.title}
                 {toggleIcon === "plus-minus" ? (

@@ -42,7 +42,7 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
           <ul className="hidden items-center gap-1 md:flex">
             {links.map((l) => (
               <li key={l.label}>
-                <a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent focus-visible:bg-accent", l.active ? "text-foreground" : "text-muted-foreground")}>{l.label}</a>
+                <a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("rounded-md px-3 py-2 text-sm transition-colors duration-(--motion) hover:bg-accent focus-visible:bg-accent", l.active ? "text-foreground" : "text-muted-foreground")}>{l.label}</a>
               </li>
             ))}
           </ul>

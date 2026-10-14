@@ -100,7 +100,7 @@ export function HeroCapsule({
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline decoration-foreground/20 underline-offset-4 transition-colors hover:text-foreground"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline decoration-foreground/20 underline-offset-4 transition-colors duration-(--motion) hover:text-foreground"
             >
               <MessageCircle aria-hidden className="size-4" />
               یا در واتس‌اپ پیام بدهید

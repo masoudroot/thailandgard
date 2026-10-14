@@ -168,6 +168,7 @@ export default async function HomePage() {
             src="/images/hero-phuket-sunset.webp"
             alt="غروب ساحل پوکت"
             loading="lazy"
+            decoding="async"
             className="size-full object-cover"
           />
         ),
@@ -302,7 +303,7 @@ export default async function HomePage() {
             const cover = GUIDE_COVERS[guide.slug];
             return (
             <Link key={guide.slug} href={`/guide/${guide.slug}`} className="group block h-full" aria-label={displayTitle(guide.title)}>
-              <Card className="flex h-full flex-col overflow-hidden transition-colors group-hover:border-brand/60">
+              <Card className="flex h-full flex-col overflow-hidden transition-colors duration-(--motion) group-hover:border-brand/60">
                 {/* D-083: اسلات تصویری S5 (همان الگوی app/guide/page.tsx): قاب ۱۶:۱۰ +
                     ماسک graphite-soft از پایین؛ راهنمای بدون کاور جای‌نگه‌دار
                     تایپوگرافیک می‌گیرد، عکس ناجور ممنوع */}

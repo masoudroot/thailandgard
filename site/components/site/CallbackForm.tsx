@@ -285,7 +285,7 @@ export function CallbackForm({
             <label
               key={o.value}
               className={
-                "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors " +
+                "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors duration-(--motion) " +
                 (callTime === o.value ? "border-brand bg-brand/10" : "border-border")
               }
             >

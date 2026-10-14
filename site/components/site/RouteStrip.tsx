@@ -78,7 +78,7 @@ export function RouteStrip({ dayCount = 0 }: { dayCount?: number }) {
                 {hasTarget ? (
                   <a
                     href={`#item-day-${st.day}`}
-                    className="rounded-control px-1 py-1 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-brand"
+                    className="rounded-control px-1 py-1 transition-colors duration-(--motion) hover:text-foreground focus-visible:outline-2 focus-visible:outline-brand"
                     aria-label={`${st.label}؛ پرش به روز ${fa(st.day)} برنامهٔ سفر`}
                   >
                     {station}
