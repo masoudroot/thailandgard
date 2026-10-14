@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
@@ -71,16 +71,23 @@ export async function generateMetadata(): Promise<Metadata> {
       images: defaultOgImages(s.SITE_URL),
     },
     robots: { index: true, follow: true },
-    // D-382 (نبض دیزاین ۲۲:۳۰): theme-color برای رنگ نوار مرورگر موبایل؛
-    // همان توکن --background (oklch(0.982 0.0035 90) ≈ #FAF9F6) تا با
-    // پس‌زمینهٔ صفحه یکدست شود. سایت light-only است (color-scheme: light).
-    themeColor: "#FAF9F6",
     // D-398 (نبض دیزاین ۲۲:۴۴): خاموش کردن تشخیص خودکار شماره‌تلفن در iOS؛
     // سافاری موبایل شماره‌ها را با استایل پیش‌فرض (آبی و زیرخط‌دار) می‌کرد و
     // زبان graphite را می‌شکست. شماره‌های تماس عمداً با SmartTelLink لینک‌اند.
     formatDetection: { telephone: false },
   };
 }
+
+// D-840 (نبض دیزاین ۰۹:۲۷): viewport صریح به‌جای پیش‌فرض نکست.
+// themeColor از D-382 به این‌جا منتقل شد (جای استانداردش؛ در metadata تکرار نمی‌شود).
+// viewportFit: "cover" نوارهای چسبان موبایل (TourStickyBar/MobileOctoberBar) را زنده می‌کند:
+// بدون آن env(safe-area-inset-bottom) در iOS صفر است و پدینگ پایین نوارها مرده می‌ماند.
+export const viewport: Viewport = {
+  themeColor: "#FAF9F6",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const s = await getSiteSettings();
