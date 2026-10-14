@@ -91,10 +91,10 @@ export default async function ContactPage() {
         </div>
         {/* خط تلفن‌ها (D-229): بدنهٔ قاب تایپوگرافیک خالی می‌خواند؛ شماره‌های
             تک‌منبع lib/site.ts مسیر تماس را داخل همین قاب زنده می‌کند. */}
-        <p className="mt-5 text-lg font-semibold text-foreground" dir="ltr">
-          <a href={PHONE_MOBILE_LINK} className="underline decoration-brand decoration-2 underline-offset-4">{PHONE_MOBILE_DISPLAY}</a>
+        <p className="mt-5 text-lg font-semibold text-foreground">
+          <a href={PHONE_MOBILE_LINK} className="underline decoration-brand decoration-2 underline-offset-4"><span dir="ltr">{PHONE_MOBILE_DISPLAY}</span></a>
           <span aria-hidden className="mx-3 font-normal text-muted-foreground">·</span>
-          <a href={PHONE_LANDLINE_LINK} className="underline decoration-brand decoration-2 underline-offset-4">{PHONE_LANDLINE_DISPLAY}</a>
+          <a href={PHONE_LANDLINE_LINK} className="underline decoration-brand decoration-2 underline-offset-4"><span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span></a>
         </p>
       </div>
 
