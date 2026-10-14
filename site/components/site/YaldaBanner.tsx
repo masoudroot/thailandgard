@@ -27,7 +27,7 @@ export async function YaldaBanner() {
           ۳۰ آذر
         </Badge>
         <h2 className="text-balance mt-4 font-display text-2xl sm:text-3xl">یلدا زیر آفتاب پوکت</h2>
-        <p className="mt-3 max-w-2xl leading-[1.9] text-muted-foreground">
+        <p className="mt-3 max-w-2xl text-pretty leading-[1.9] text-muted-foreground">
           بلندترین شب سال را زیر آفتاب پوکت بگذرانید؛ مشاور سفر برنامه‌تان را می‌چیند.
         </p>
         <a

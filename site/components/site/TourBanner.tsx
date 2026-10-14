@@ -44,7 +44,7 @@ export async function TourBanner({ tour }: { tour: Tour }) {
           </h3>
           {/* D-048: خلاصهٔ تکراری کارت حذف شد؛ به‌جایش سه هایلایت یک‌خطی از
               دیتای همان تور تا بلوک «منتخب» توصیف متفاوت خودش را داشته باشد */}
-          <p className="max-w-2xl text-base leading-[1.8]">
+          <p className="max-w-2xl text-pretty text-base leading-[1.8]">
             {tour.highlights && tour.highlights.length > 0
               ? tour.highlights.slice(0, 3).join("، ")
               : tour.summary}

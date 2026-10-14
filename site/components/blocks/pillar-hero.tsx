@@ -30,7 +30,7 @@ export async function PillarHero({ badge, title, description, readingMinutes, up
         <Badge variant="brand">{badge}</Badge>
         <h1 className="mt-5 text-balance text-4xl sm:text-5xl">{title}</h1>
         {/* چتر دیف A1 (۲۰ مهر ۱۴۰۵): leading خوانش بلند فارسی ۱٫۹ */}
-        <p className="mx-auto mt-5 max-w-xl leading-[1.9] sm:text-lg">{description}</p>
+        <p className="mx-auto mt-5 max-w-xl text-pretty leading-[1.9] sm:text-lg">{description}</p>
         {share ? <div className="mt-4 flex justify-center">{share}</div> : null}
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           <Button asChild size="lg" variant="brand" className="rounded-full">

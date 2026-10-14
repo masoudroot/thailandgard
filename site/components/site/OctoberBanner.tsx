@@ -17,7 +17,7 @@ export function OctoberBanner() {
         <h1 className="mt-3 text-balance font-display text-4xl sm:text-5xl">
           <span className="whitespace-nowrap">پنجرهٔ اکتبر</span> پوکت
         </h1>
-        <p className="mx-auto mt-4 max-w-xl leading-[1.8] text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-xl text-pretty leading-[1.8] text-muted-foreground">
           ۳ رویداد تقویمی؛ پرواز مستقیم از ۱۸ اکتبر
         </p>
         <Button asChild size="lg" variant="brand" className="mt-8 rounded-full px-7">
