@@ -7,6 +7,7 @@
  */
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { Menu, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
@@ -34,17 +35,26 @@ export interface NavbarProps {
    زنگ می‌زنیم») با اولیه («شما زنگ بزنید») فرق واقعی دارد (قانون ۳۷ design). */
 export function Navbar({ logo, homeHref = "/", links, primary = { label: "تماس با مشاور سفر" }, secondary = { label: "درخواست تماس", href: "/contact#callback" }, sticky = true, callHref, className }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
+  const pathname = usePathname();
+  /** D-807: لینک فعال از مسیر واقعی صفحه فهمیده می‌شود (قبلاً هیچ فراخواننده‌ای active پاس نمی‌داد و aria-current همیشه مرده بود). پراپ active فقط override دستی است. */
+  const isCurrent = (href: string) => {
+    const path = href.split("#")[0] || "/";
+    return path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
+  };
   return (
     <>
       <header className={cn("z-40 border-b border-border bg-background/80 backdrop-blur", sticky && "sticky top-0", className)}>
         <nav aria-label="اصلی" className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-6">
           <a href={homeHref} className="flex items-center gap-2 text-base font-bold">{logo}</a>
           <ul className="hidden items-center gap-1 md:flex">
-            {links.map((l) => (
-              <li key={l.label}>
-                <a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("rounded-md px-3 py-2 text-sm transition-colors duration-(--motion) hover:bg-accent focus-visible:bg-accent", l.active ? "text-foreground" : "text-muted-foreground")}>{l.label}</a>
-              </li>
-            ))}
+            {links.map((l) => {
+              const active = l.active ?? isCurrent(l.href);
+              return (
+                <li key={l.label}>
+                  <a href={l.href} aria-current={active ? "page" : undefined} className={cn("rounded-md px-3 py-2 text-sm transition-colors duration-(--motion) hover:bg-accent focus-visible:bg-accent", active ? "text-foreground" : "text-muted-foreground")}>{l.label}</a>
+                </li>
+              );
+            })}
           </ul>
           {/* D-031: ممیزی ۱۷:۴۶ - روی دسکتاپ دکمهٔ روح «تماس با مشاور سفر» (secondary) حذف شد؛
               همان لیبل با دو استایل متفاوت، کنار «تماس» ناوبری، سه محرک تکراری می‌ساخت.
@@ -72,9 +82,12 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
       {/* A sibling of the header: backdrop-blur would otherwise trap the fixed sheet inside it. */}
       <Sheet open={open} onOpenChange={setOpen} title={logo}>
         <ul className="flex flex-col p-2">
-          {links.map((l) => (
-            <li key={l.label}><a href={l.href} aria-current={l.active ? "page" : undefined} className={cn("block rounded-md px-3 py-3 text-sm hover:bg-accent focus-visible:bg-accent", l.active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
-          ))}
+          {links.map((l) => {
+            const active = l.active ?? isCurrent(l.href);
+            return (
+              <li key={l.label}><a href={l.href} aria-current={active ? "page" : undefined} className={cn("block rounded-md px-3 py-3 text-sm hover:bg-accent focus-visible:bg-accent", active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
+            );
+          })}
         </ul>
         <div className="mt-auto flex flex-col gap-2 border-t border-border p-4">
           {primary.href ? (
