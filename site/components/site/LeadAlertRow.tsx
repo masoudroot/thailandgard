@@ -73,7 +73,7 @@ export function LeadAlertRow({
       <Badge variant={chip.variant} className={chip.tint}>
         {LEAD_STAGE_LABEL[stage]}
       </Badge>
-      <span className="min-w-0 flex-1 truncate text-sm text-foreground">{text}</span>
+      <span title={text} className="min-w-0 flex-1 truncate text-sm text-foreground">{text}</span>
     </>
   );
 

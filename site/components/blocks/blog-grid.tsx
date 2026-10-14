@@ -34,7 +34,7 @@ export function BlogGrid({ title = "آخرین مطالب", posts }: { title?: s
                   <span>{fa(p.readingTime)} دقیقه</span>
                 </div>
                 <h3 className="mt-2 text-balance text-lg font-semibold leading-7"><a href={p.href} className="hover:underline underline-offset-4">{p.title}</a></h3>
-                <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{p.excerpt}</p>
+                <p title={p.excerpt} className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{p.excerpt}</p>
                 <div className="mt-auto flex items-center gap-2 pt-4 text-xs text-muted-foreground">
                   <Avatar name={p.author.name} src={p.author.src} size="sm" />
                   <span className="text-foreground">{p.author.name}</span>

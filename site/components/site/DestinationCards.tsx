@@ -79,7 +79,7 @@ export function DestinationCards({ className }: { className?: string }) {
                       اندازه‌گیری با وزیرمتن ۱۴px روی پهنای واقعی کارت: هر سه متن فعلی در ۲ خط جا می‌شوند
                       (بانکوک لب‌مرز، خط دومش تقریباً پر است). متن نهایی content هم باید در همین حد بماند،
                       وگرنه وسط جمله بریده می‌شود. */}
-                  <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">{d.blurb}</p>
+                  <p title={d.blurb} className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">{d.blurb}</p>
                   <Link
                     href={d.href}
                     className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-medium text-foreground underline decoration-foreground/30 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-foreground"

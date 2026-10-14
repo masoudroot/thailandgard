@@ -66,7 +66,7 @@ export function OctoberTimeline() {
               <span className="mt-3 text-sm font-semibold tabular-nums">
                 <time dateTime={st.date.toISOString()}>{formatJalali(st.date, { year: false })} ({st.gLabel})</time>
               </span>
-              <span className="mt-1 line-clamp-2 text-center text-sm leading-6 text-muted-foreground">
+              <span title={st.label} className="mt-1 line-clamp-2 text-center text-sm leading-6 text-muted-foreground">
                 {st.label}
               </span>
               {/* قلم ۵ artdir (۰۹:۰۵): برچسب فاصله زیر ایستگاه میانی؛ فاصله‌های ایستگاه‌ها مساوی می‌مانند؛

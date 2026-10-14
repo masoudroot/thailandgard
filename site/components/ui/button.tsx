@@ -29,7 +29,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export function Button({ asChild, className, variant = "default", size = "md", type = "button", children, ...props }: ButtonProps) {
   const classes = cn(
     // Shape, depth, press and motion come from the design-system tokens.
-    "inline-flex items-center justify-center whitespace-nowrap rounded-control font-semibold transition-[color,transform,box-shadow] duration-(--motion) ease-motion",
+    "inline-flex select-none items-center justify-center whitespace-nowrap rounded-control font-semibold transition-[color,transform,box-shadow] duration-(--motion) ease-motion",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     "disabled:pointer-events-none disabled:opacity-50 hover:-translate-y-px active:[transform:var(--press)]",
     "motion-reduce:hover:translate-none",
