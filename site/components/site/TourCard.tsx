@@ -41,7 +41,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
   const isCombo = tour.slug === COMBO_SLUG;
   const cover = TOUR_COVERS[tour.slug];
   return (
-    <Card className="flex h-full flex-col overflow-hidden transition-transform duration-(--motion) ease-motion active:[transform:var(--press)]">
+    <Card className="flex h-full flex-col overflow-hidden transition-transform duration-(--motion) ease-motion motion-reduce:transition-none active:[transform:var(--press)]">
       {/* اسلات تصویری S2/S3: قاب ۱۶:۱۰ + ماسک graphite-soft از پایین.
           سقف شدت ماسک ۷۰٪ (حکم ۶ design-ir)؛ تایپ فقط روی ناحیهٔ ماسک. */}
       <div className="relative aspect-[16/10] overflow-hidden border-b border-border">

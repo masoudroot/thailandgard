@@ -69,7 +69,7 @@ export function Accordion({ items, multiple, defaultOpen = [], className, toggle
                     <Plus aria-hidden className="size-4 shrink-0 text-muted-foreground" />
                   )
                 ) : (
-                  <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
+                  <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none", isOpen && "rotate-180")} />
                 )}
               </button>
             </h3>

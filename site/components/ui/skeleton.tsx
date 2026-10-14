@@ -8,8 +8,8 @@ export function Skeleton({ className, shimmer, ...props }: React.HTMLAttributes<
       className={cn(
         "rounded-md bg-secondary",
         shimmer
-          ? "relative overflow-hidden before:absolute before:inset-0 before:animate-shine before:bg-gradient-to-l before:from-transparent before:via-foreground/10 before:to-transparent"
-          : "animate-pulse-soft",
+          ? "relative overflow-hidden before:absolute before:inset-0 before:animate-shine motion-reduce:before:animate-none before:bg-gradient-to-l before:from-transparent before:via-foreground/10 before:to-transparent"
+          : "animate-pulse-soft motion-reduce:animate-none",
         className,
       )}
       {...props}
