@@ -25,7 +25,7 @@ export function Input({ className, type, startAddon, endAddon, error, id, dir, .
       dir={grouped ? undefined : dir}
       aria-invalid={error ? true : undefined}
       className={cn(
-        "flex w-full min-w-0 text-base text-foreground placeholder:text-muted-foreground/70",
+        "flex w-full min-w-0 text-base text-foreground placeholder:text-muted-foreground",
         "disabled:cursor-not-allowed disabled:opacity-50",
         grouped
           ? "h-full bg-transparent px-0 outline-none"

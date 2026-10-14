@@ -67,7 +67,7 @@ export function PhoneInput({ value, onChange, className, id, autoFocus, onFocus,
           onChange={(e) => set(e.target.value)}
           onFocus={onFocus}
           placeholder="۹۱۲ ۳۴۵ ۶۷۸۹"
-          className="h-full min-w-0 flex-1 bg-transparent text-base tabular-nums outline-none placeholder:text-muted-foreground/70"
+          className="h-full min-w-0 flex-1 bg-transparent text-base tabular-nums outline-none placeholder:text-muted-foreground"
           aria-invalid={showError ? true : undefined}
           aria-describedby={hintId}
         />
