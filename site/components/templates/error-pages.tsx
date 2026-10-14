@@ -46,7 +46,10 @@ const COPY: Record<ErrorKind, { code?: string; icon: React.ComponentType<{ class
 export function ErrorPage({
   kind = "404",
   className,
-  search = kind === "404",
+  // D-799 (نبض دیزاین ۰۹:۰۱): پیش‌فرض false طبق تصمیم ثبت‌شدهٔ اسپک error-pages §۵
+  // («حذف عمدی باکس جست‌وجوی ۴۰۴؛ جعبهٔ مرده از نبودش بدتر است»)؛ با آمدن جست‌وجوی
+  // واقعی، فراخواننده صراحتاً search={true} می‌دهد. قبلاً kind === "404" بود.
+  search = false,
   primaryHref,
   secondaryHref,
   onPrimary,
