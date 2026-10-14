@@ -69,7 +69,7 @@ export function Carousel({ children, slideWidth = 1, showDots = true, className 
         <div className="mt-3 flex justify-center gap-1.5">
           {Array.from({ length: count }, (_, i) => (
             <button key={i} type="button" aria-label={`اسلاید ${fa(i + 1)}`} title={`اسلاید ${fa(i + 1)}`} aria-current={i === index} onClick={() => go(i)} className="group -m-2 cursor-pointer p-2 focus-visible:outline-none" /* D-343: تارگت لمسی ۲۲px با ظاهر بدون تغییر (نقطهٔ ۶px روی span)؛ D-506: حلقهٔ فوکس روی خود نقطه (group-focus-visible) تا دور ناحیهٔ نامرئی حلقه نکشد */>
-              <span className={cn("block h-1.5 rounded-full transition-all duration-(--motion) group-focus-visible:outline-none group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-1", i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 group-hover:bg-foreground/50")} />
+              <span className={cn("block h-1.5 rounded-full transition-all duration-(--motion) group-focus-visible:outline-none group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background" /* D-598: یکدست با قرارداد D-506/D-012 (پیش‌تر ring-offset-1 بدون ring-offset-background بود) */, i === index ? "w-5 bg-foreground" : "w-1.5 bg-foreground/30 group-hover:bg-foreground/50")} />
             </button>
           ))}
         </div>
