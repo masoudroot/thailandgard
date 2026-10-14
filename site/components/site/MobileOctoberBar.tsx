@@ -61,13 +61,13 @@ export function MobileOctoberBar({
         <div className="flex gap-2">
           <Button asChild size="md" variant="brand" className="flex-1 h-11">
             <a href={phoneHref} data-call-context="mobile-october-bar">
-              <Phone />
+              <Phone aria-hidden />
               تماس با مشاور سفر
             </a>
           </Button>
           <Button asChild size="md" variant="outline" className="flex-1 h-11">
             <a href={whatsappHref}>
-              <MessageCircle />
+              <MessageCircle aria-hidden />
               مشاوره واتس‌اپی
             </a>
           </Button>

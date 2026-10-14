@@ -27,7 +27,7 @@ export function OctoberBanner() {
               (تصمیم کانونیکال ۲۲:۴۵: «پوکت در اکتبر» فقط همین راهنما). */}
           <Link href="/guide/phuket-in-october">
             جزئیات پروازهای اکتبر
-            <ArrowLeft />
+            <ArrowLeft aria-hidden />
           </Link>
         </Button>
       </div>
