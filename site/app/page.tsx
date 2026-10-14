@@ -259,7 +259,9 @@ export default async function HomePage() {
         ]}
       />
       {/* CTA زیر قدم‌ها (وسط‌چین؛ حکم ۲۰: لیبل واحد «تماس با مشاور سفر») */}
-      <div className="mx-auto max-w-5xl px-6 pb-16">
+      {/* D-628 (۱۴۰۵/۰۷/۲۲، نبض دیزاین): pb-16 ← pb-12؛ شکاف ۱۱۲px (۶۴+۴۸) با سکشن راهنما
+          بالای استاندارد ۹۶px سکشن‌ها بود و رationale نداشت؛ ریتم یکدست ۹۶px. */}
+      <div className="mx-auto max-w-5xl px-6 pb-12">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild variant="brand">
             <a href={s.PHONE_MOBILE_LINK} data-call-context="home-steps">
