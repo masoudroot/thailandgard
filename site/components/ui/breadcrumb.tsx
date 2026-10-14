@@ -13,7 +13,7 @@ export function Breadcrumb({ items, className }: { items: Crumb[]; className?: s
           return (
             <li key={i} className="flex items-center gap-1.5">
               {c.href && !last ? (
-                <a href={c.href} className="text-muted-foreground transition-colors duration-(--motion) hover:text-foreground">{c.label}</a>
+                <a href={c.href} className="rounded-sm text-muted-foreground transition-colors duration-(--motion) hover:text-foreground focus-visible:bg-accent">{c.label}</a>
               ) : (
                 <span aria-current={last ? "page" : undefined} className={cn(last ? "font-medium text-foreground" : "text-muted-foreground")}>{c.label}</span>
               )}

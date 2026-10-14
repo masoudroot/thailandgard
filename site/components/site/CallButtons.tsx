@@ -34,11 +34,11 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
           {/* F-005 (یافتهٔ جزئی بازرس، ۱۹ مهر ۱۴۰۵ :۳۵): شماره‌ها بدون لیبل
               بودند؛ «موبایل» و «ثابت» اضافه شد. */}
           موبایل:{" "}
-          <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-mobile-num" className="font-semibold underline underline-offset-4">
+          <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-mobile-num" className="rounded-sm font-semibold underline underline-offset-4 focus-visible:bg-accent">
             <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
           </a>
           {"؛ "}ثابت:{" "}
-          <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-num" className="font-semibold underline underline-offset-4">
+          <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-num" className="rounded-sm font-semibold underline underline-offset-4 focus-visible:bg-accent">
             <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
           </a>
         </p>
@@ -53,11 +53,11 @@ export async function CallButtons({ compact = false }: { compact?: boolean }) {
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 موبایل:{" "}
-                <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-mobile-num" className="font-semibold underline underline-offset-4">
+                <a href={PHONE_MOBILE_LINK} data-call-context="callbuttons-mobile-num" className="rounded-sm font-semibold underline underline-offset-4 focus-visible:bg-accent">
                   <span dir="ltr">{PHONE_MOBILE_DISPLAY}</span>
                 </a>
                 {"؛ "}ثابت:{" "}
-                <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-num" className="font-semibold underline underline-offset-4">
+                <a href={PHONE_LANDLINE_LINK} data-call-context="callbuttons-landline-num" className="rounded-sm font-semibold underline underline-offset-4 focus-visible:bg-accent">
                   <span dir="ltr">{PHONE_LANDLINE_DISPLAY}</span>
                 </a>
                 {"؛ "}

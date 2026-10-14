@@ -82,7 +82,7 @@ export function DestinationCards({ className }: { className?: string }) {
                   <p title={d.blurb} className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">{d.blurb}</p>
                   <Link
                     href={d.href}
-                    className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-medium text-foreground underline decoration-foreground/30 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-foreground"
+                    className="mt-auto inline-flex items-center gap-1.5 rounded-sm pt-4 text-sm font-medium text-foreground underline decoration-foreground/30 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-foreground focus-visible:bg-accent"
                   >
                     {d.linkLabel}
                     <ArrowLeft aria-hidden className="size-4" />

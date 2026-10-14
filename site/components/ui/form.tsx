@@ -112,7 +112,7 @@ export function FormErrors<T>({ errors, labels }: { errors: Errors<T>; labels: P
   return (
     <ul role="alert" className="space-y-1 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs">
       {entries.map(([k, m]) => (
-        <li key={k}><a href={`#${k}`} className="font-medium underline underline-offset-4">{labels[k as keyof T] ?? k}</a>: {m}</li>
+        <li key={k}><a href={`#${k}`} className="rounded-sm font-medium underline underline-offset-4 focus-visible:bg-accent">{labels[k as keyof T] ?? k}</a>: {m}</li>
       ))}
     </ul>
   );

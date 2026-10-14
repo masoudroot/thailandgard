@@ -196,7 +196,7 @@ export function CallbackForm({
                 کرده (callTime غیرخالی) وگرنه قول کلی «در ساعت کاری». */}
             درخواستتان ثبت شد. {nextCallbackDayName()}{" "}
             {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
-            <a href={WHATSAPP_LINK} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" target="_blank" rel="noopener noreferrer">
+            <a href={WHATSAPP_LINK} className="rounded-sm underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand focus-visible:bg-accent" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
               <span className="sr-only"> (در تب جدید)</span>
             </a>
@@ -229,7 +229,7 @@ export function CallbackForm({
           <>
             الان خارج از ساعت کاری هستیم و کسی پشت خط نیست. شماره‌تان را بگذارید؛{" "}
             {nextCallbackDayName()} {callTime ? callbackSlotLabel(callTime) : "در ساعت کاری"} زنگ می‌زنیم. اگر عجله دارید،{" "}
-            <a href={WHATSAPP_LINK} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" target="_blank" rel="noopener noreferrer">
+            <a href={WHATSAPP_LINK} className="rounded-sm underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand focus-visible:bg-accent" target="_blank" rel="noopener noreferrer">
               در واتس‌اپ پیام بدهید
               <span className="sr-only"> (در تب جدید)</span>
             </a>
@@ -309,7 +309,7 @@ export function CallbackForm({
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}
-          <a href={PHONE_MOBILE_LINK} data-call-context="form" className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand" onClick={() => clarityEvent("tel_fallback_click", { ...extra, source: buildSource(tourSlug) })}>
+          <a href={PHONE_MOBILE_LINK} data-call-context="form" className="rounded-sm underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand focus-visible:bg-accent" onClick={() => clarityEvent("tel_fallback_click", { ...extra, source: buildSource(tourSlug) })}>
             مستقیم زنگ بزنید
           </a>
           .
