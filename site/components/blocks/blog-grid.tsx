@@ -24,7 +24,7 @@ export function BlogGrid({ title = "آخرین مطالب", posts }: { title?: s
         {posts.map((p) => (
           <li key={p.title}>
             <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
-              <a href={p.href} className="aspect-[16/10] bg-secondary">
+              <a href={p.href} className="aspect-[16/10] border-b border-border bg-secondary">
                 {p.cover ?? <div aria-hidden className="size-full transition-transform duration-500 group-hover:scale-105" style={{ background: "linear-gradient(135deg, oklch(from var(--brand) l c h / 30%), oklch(from var(--foreground) l c h / 6%))" }} />}
               </a>
               <div className="flex flex-1 flex-col p-5">
