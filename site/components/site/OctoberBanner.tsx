@@ -21,11 +21,11 @@ export function OctoberBanner() {
           ۳ رویداد تقویمی؛ پرواز مستقیم از ۱۸ اکتبر
         </p>
         <Button asChild size="lg" variant="brand" className="mt-8 rounded-full px-7">
-          {/* S-103 بسته شد (۲۱ مهر ۱۴۰۵، نبض دیزاین): راهنمای اکتبر منتشر شد
-              (/guide/phuket-in-october، زنده) و /phuket-october حالا به همین
-              راهنما ریدایرکت می‌شود؛ لینک مستقیم به مقصد نهایی نشست
-              (تصمیم کانونیکال ۲۲:۴۵: «پوکت در اکتبر» فقط همین راهنما). */}
-          <Link href="/guide/phuket-in-october">
+          {/* S-103 اصلاح (۲۱ مهر ۱۴۰۵، نبض دیزاین): ‎/guide/phuket-in-october‎ هرگز ساخته نشد
+              و ۴۰۴ می‌داد؛ مقصد به نزدیک‌ترین صفحهٔ زنده (راهنمای مسیرهای پروازی پوکت)
+              تغییر کرد (تصمیم کانونیکال ۲۲:۴۵ + S-103 اجرای ۰۸: ریدایرکت ‎/phuket-october‎
+              هم به همین مقصد نشست). */}
+          <Link href="/guide/phuket-flight-routes">
             جزئیات پروازهای اکتبر
             <ArrowLeft aria-hidden />
           </Link>

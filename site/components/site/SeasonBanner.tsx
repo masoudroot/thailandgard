@@ -16,12 +16,11 @@ export function SeasonBanner() {
         <p className="text-sm leading-[1.5] text-foreground/90 sm:text-base">
           ۱۸ اکتبر (۲۶ مهر)؛ ۳ پرواز هفتگی جدید به پوکت{" "}
           <br className="sm:hidden" />
-          {/* S-103 بسته شد (۲۱ مهر ۱۴۰۵، نبض دیزاین): راهنمای اکتبر منتشر شد
-              (/guide/phuket-in-october، زنده) و /phuket-october حالا به همین
-              راهنما ریدایرکت می‌شود؛ لینک مستقیم به مقصد نهایی نشست
-              (تصمیم کانونیکال ۲۲:۴۵: «پوکت در اکتبر» فقط همین راهنما). */}
+          {/* S-103 اصلاح (۲۱ مهر ۱۴۰۵، نبض دیزاین): ‎/guide/phuket-in-october‎ هرگز ساخته نشد
+              و ۴۰۴ می‌داد؛ مقصد به نزدیک‌ترین صفحهٔ زنده (راهنمای مسیرهای پروازی پوکت)
+              تغییر کرد (تصمیم کانونیکال ۲۲:۴۵ + S-103 اجرای ۰۸). */}
           <Link
-            href="/guide/phuket-in-october"
+            href="/guide/phuket-flight-routes"
             className="font-semibold text-foreground underline decoration-border decoration-1 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-foreground sm:ms-2"
           >
             جزئیات پروازهای اکتبر
