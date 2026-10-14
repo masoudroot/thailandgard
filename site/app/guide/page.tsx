@@ -9,6 +9,7 @@ import { SITE_URL } from "@/lib/site";
 import { pageSeo, displayTitle } from "@/lib/og";
 import { GUIDE_COVERS } from "@/lib/guide-covers";
 import { fa } from "@/lib/utils";
+import { updatedFaToIso } from "@/lib/jalali";
 import { CoverImage } from "@/components/site/CoverImage";
 
 export const metadata: Metadata = pageSeo({
@@ -112,7 +113,7 @@ export default async function GuideIndexPage() {
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <CalendarDays className="size-3.5" aria-hidden />
-                    به‌روزرسانی: {guide.updatedFa}
+                    به‌روزرسانی: <time dateTime={updatedFaToIso(guide.updatedFa) ?? undefined}>{guide.updatedFa}</time>
                   </span>
                 </div>
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">

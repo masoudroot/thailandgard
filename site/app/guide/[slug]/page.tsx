@@ -223,7 +223,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
             </span>
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays className="size-4" aria-hidden="true" />
-              به‌روزرسانی: {guide.updatedFa}
+              به‌روزرسانی: <time dateTime={updatedFaToIso(guide.updatedFa) ?? undefined}>{guide.updatedFa}</time>
             </span>
           </div>
           {/* دیف A1 ممیزی design: leading خوانش بلند فارسی ۱٫۹ */}

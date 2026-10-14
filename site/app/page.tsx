@@ -26,6 +26,7 @@ import {
 import { getTours, getGuides, getSiteSettings } from "@/lib/db-content";
 import { pageSeo, displayTitle } from "@/lib/og";
 import { fa } from "@/lib/utils";
+import { updatedFaToIso } from "@/lib/jalali";
 
 export const metadata: Metadata = pageSeo({
   title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
@@ -351,7 +352,7 @@ export default async function HomePage() {
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <CalendarDays aria-hidden className="size-3.5" />
-                      به‌روزرسانی: {guide.updatedFa}
+                      به‌روزرسانی: <time dateTime={updatedFaToIso(guide.updatedFa) ?? undefined}>{guide.updatedFa}</time>
                     </span>
                   </div>
                 </CardContent>
