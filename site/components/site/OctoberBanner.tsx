@@ -14,7 +14,7 @@ export function OctoberBanner() {
     <section className="px-6 pt-14">
       <div className="mx-auto max-w-6xl rounded-surface border border-border bg-card px-6 py-12 text-center sm:py-16">
         <p className="text-sm text-muted-foreground">۱۰ تا ۱۸ اکتبر (۱۸ تا ۲۶ مهر)</p>
-        <h1 className="mt-3 font-display text-4xl sm:text-5xl">
+        <h1 className="mt-3 text-balance font-display text-4xl sm:text-5xl">
           <span className="whitespace-nowrap">پنجرهٔ اکتبر</span> پوکت
         </h1>
         <p className="mx-auto mt-4 max-w-xl leading-[1.8] text-muted-foreground">

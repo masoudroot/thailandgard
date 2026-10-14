@@ -25,7 +25,7 @@ export function HourAwareCallTitle({ className }: { className?: string }) {
   }, []);
   // پیش‌فرض SSR: داخل ساعت کاری (همان تیتر فعلی) تا هایدریشن تکان نخورد.
   return (
-    <h2 className={cn("text-xl font-semibold", className)}>
+    <h2 className={cn("text-balance text-xl font-semibold", className)}>
       {open === false ? TITLE_CLOSED : TITLE_OPEN}
     </h2>
   );

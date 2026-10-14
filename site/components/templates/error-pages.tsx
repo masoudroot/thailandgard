@@ -70,7 +70,7 @@ export function ErrorPage({
       <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_65%)]" style={{ backgroundImage: "repeating-radial-gradient(circle at 50% 50%, oklch(from var(--foreground) l c h / 14%) 0 1px, transparent 1px 26px)" }} />
       <div className="relative w-full max-w-md text-center">
         {c.code ? <p className="font-mono text-7xl font-bold tabular-nums text-foreground/15 sm:text-8xl">{c.code}</p> : <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-secondary"><c.icon aria-hidden className="size-7 text-muted-foreground" /></span>}
-        <h1 className="mt-4 text-2xl font-bold">{c.title}</h1>
+        <h1 className="mt-4 text-balance text-2xl font-bold">{c.title}</h1>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">{c.body}</p>
         {search && <div className="mx-auto mt-6 max-w-xs"><Input placeholder="جست‌وجو در سایت…" /></div>}
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
