@@ -53,7 +53,7 @@ export function MobileOctoberBar({
         {/* ردیف ۱: قیمت - «از X تومان هر نفر» یا «تماس بگیرید» (قانون نمایش قیمت، دستور مسعود ۱۴۰۵/۰۷/۲۰).
             D-014: در ۳۶۰px هرگز wrap نمی‌شود؛ whitespace-nowrap در این سطح و سطح داخلی Price،
             عدد اصلی با text-sm جمع‌وجور می‌شود تا یک خطه بماند. */}
-        <p className="flex items-baseline justify-end gap-x-1.5 whitespace-nowrap text-right">
+        <p className="flex items-baseline justify-end gap-x-1.5 whitespace-nowrap">
           <Price amount={priceFrom} size="sm" className="[&_.flex-wrap]:flex-nowrap [&_.tabular-nums]:whitespace-nowrap [&_.tabular-nums]:text-sm" />
           {priceFrom != null && <span className="shrink-0 text-sm text-muted-foreground">هر نفر</span>}
         </p>
