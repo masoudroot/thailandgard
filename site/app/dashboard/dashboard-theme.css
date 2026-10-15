@@ -1,0 +1,392 @@
+/* ─────────────────────────────────────────────────────────────
+   تم اسکوپ‌شدهٔ داشبورد تایلندگرد (گرافیت).
+   همهٔ توکن‌ها فقط زیر .tg-dashboard تعریف می‌شوند تا با تم
+   سایت اصلی تداخل نکنند. مقادیر از globals.css داشبورد آمده‌اند
+   با تبدیل سه‌تایی‌های RGB به رنگ کامل (سازگار با color-mix تیلویند ۴).
+   حالت تیره با کلاس dark روی همین اسکوپ، نه روی html.
+   ───────────────────────────────────────────────────────────── */
+
+.tg-dashboard {
+  color-scheme: light;
+
+  /* فونت‌ها: متغیرهای --font-dash-body و --font-dash-display را
+     لی‌اوت داشبورد با next/font/local روی همین اسکوپ می‌نشاند. */
+  font-family: var(--font-dash-body), Tahoma, ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  letter-spacing: 0;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+
+  /* رنگ: گرافیت روشن */
+  --background: rgb(248 248 248);
+  --foreground: rgb(13 13 13);
+  --card: rgb(255 255 255);
+  --card-foreground: rgb(13 13 13);
+  --popover: rgb(255 255 255);
+  --popover-foreground: rgb(13 13 13);
+  --primary: rgb(13 13 13);
+  --primary-foreground: rgb(250 250 250);
+  --secondary: rgb(232 232 232);
+  --secondary-foreground: rgb(13 13 13);
+  --muted: rgb(232 232 232);
+  --muted-foreground: rgb(93 93 93);
+  --accent: rgb(232 232 232);
+  --accent-foreground: rgb(13 13 13);
+  --destructive: rgb(241 77 76);
+  --destructive-foreground: rgb(255 255 255);
+  --success: rgb(42 204 138);
+  --success-foreground: rgb(255 255 255);
+  --warning: rgb(250 183 42);
+  --warning-foreground: rgb(46 18 0);
+  --info: rgb(13 148 136);
+  --info-foreground: rgb(255 255 255);
+  --border: rgb(0 0 0 / 0.08);
+  --input: rgb(0 0 0 / 0.11);
+  --ring: rgb(158 158 158);
+  --brand: rgb(255 164 48);
+  --brand-foreground: rgb(46 18 0);
+
+  /* زبان طراحی گرافیت: فرم، خط، عمق، حرکت و تراکم */
+  --radius: 0.625rem;
+  --shape-control: calc(var(--radius) - 2px);
+  --shape-field: calc(var(--radius) - 2px);
+  --shape-surface: calc(var(--radius) + 12px);
+  --shape-overlay: calc(var(--radius) + 4px);
+  --line: 1px;
+  --line-field: 1px;
+  --line-style: solid;
+  --field: color-mix(in srgb, rgb(248 248 248) 60%, transparent);
+  --depth-control: 0 0 #0000;
+  --depth-press: 0 0 #0000;
+  --depth-field: 0 0 #0000;
+  --depth-surface: 0 1px 0 0 rgb(0 0 0 / 6%) inset;
+  --depth-overlay: 0 20px 50px -20px rgb(0 0 0 / 80%);
+  --surface-filter: none;
+  --press: scale(0.98);
+  --motion: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --backdrop: none;
+  --spacing: 0.25rem;
+
+  /* میکرواینترکشن‌ها */
+  --tg-ease: var(--motion-ease);
+  --tg-fast: 150ms;
+  --tg-base: 200ms;
+  --tg-enter: 280ms;
+
+  /* نام‌های سازگاری قدیمی */
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-control: var(--depth-control);
+  --shadow-surface: var(--depth-surface);
+  --shadow-overlay: var(--depth-overlay);
+}
+
+/* گرافیت تیره؛ فقط داخل اسکوپ داشبورد */
+.tg-dashboard.dark {
+  color-scheme: dark;
+  --background: rgb(5 5 6);
+  --foreground: rgb(247 247 247);
+  --card: rgb(9 9 10);
+  --card-foreground: rgb(247 247 247);
+  --popover: rgb(13 13 14);
+  --popover-foreground: rgb(247 247 247);
+  --primary: rgb(247 247 247);
+  --primary-foreground: rgb(7 7 7);
+  --secondary: rgb(22 22 23);
+  --secondary-foreground: rgb(247 247 247);
+  --muted: rgb(16 16 17);
+  --muted-foreground: rgb(137 137 139);
+  --accent: rgb(22 22 23);
+  --accent-foreground: rgb(247 247 247);
+  --destructive: rgb(241 77 76);
+  --destructive-foreground: rgb(7 7 7);
+  --success: rgb(42 204 138);
+  --success-foreground: rgb(7 7 7);
+  --warning: rgb(250 183 42);
+  --warning-foreground: rgb(7 7 7);
+  --info: rgb(45 212 191);
+  --info-foreground: rgb(7 7 7);
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.11);
+  --ring: rgb(158 158 158);
+  --brand: rgb(255 164 48);
+  --brand-foreground: rgb(46 18 0);
+  --field: color-mix(in srgb, rgb(5 5 6) 60%, transparent);
+  --depth-surface: 0 1px 0 0 rgb(255 255 255 / 6%) inset;
+}
+
+/* فونت‌های داشبورد بر یوتیلیتی‌های تیلویند می‌چربند
+   (font-sans سایت در @theme inline شده و با var اورراید نمی‌شود) */
+.tg-dashboard .font-sans {
+  font-family: var(--font-dash-body), Tahoma, ui-sans-serif, sans-serif;
+}
+.tg-dashboard .font-display {
+  font-family: var(--font-dash-display), Tahoma, ui-sans-serif, sans-serif;
+}
+
+/* تیترهای داخل داشبورد */
+.tg-dashboard h1,
+.tg-dashboard h2,
+.tg-dashboard h3,
+.tg-dashboard h4,
+.tg-dashboard h5,
+.tg-dashboard h6 {
+  font-family: var(--font-dash-display), Tahoma, ui-sans-serif, sans-serif;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+.tg-dashboard h1 { font-size: clamp(1.4rem, 5vw, 2rem); line-height: 1.4; font-weight: 700; }
+.tg-dashboard h2 { font-size: clamp(1.25rem, 4vw, 1.6rem); line-height: 1.4; font-weight: 700; }
+.tg-dashboard h3 { font-size: clamp(1.125rem, 3.4vw, 1.35rem); line-height: 1.4; font-weight: 700; }
+.tg-dashboard h4 { font-size: clamp(1rem, 3vw, 1.15rem); line-height: 1.4; font-weight: 700; }
+.tg-dashboard h5, .tg-dashboard h6 { font-size: 1rem; line-height: 1.4; font-weight: 700; }
+.tg-dashboard p { line-height: 1.8; }
+
+.tg-dashboard ::selection {
+  background: color-mix(in srgb, var(--brand) 25%, transparent);
+}
+.tg-dashboard :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ورودی‌ها: جلوی زوم ناخواستهٔ iOS */
+.tg-dashboard input,
+.tg-dashboard textarea,
+.tg-dashboard select {
+  letter-spacing: 0;
+  font-size: 1rem;
+}
+
+/* اسکرول‌بار ظریف وب‌کیت */
+.tg-dashboard ::-webkit-scrollbar { width: 10px; height: 10px; }
+.tg-dashboard ::-webkit-scrollbar-track { background: transparent; }
+.tg-dashboard ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.tg-dashboard ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--muted-foreground) 65%, transparent);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.tg-dashboard * {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 40%, transparent) transparent;
+}
+
+/* هدف لمسی: حداقل ۴۴px */
+.tg-dashboard .touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* انیمیشن‌های ظریف داشبورد */
+.tg-dashboard .animate-fade-in { animation: tg-fade-in 200ms ease-out both; }
+.tg-dashboard .animate-slide-up { animation: tg-slide-up 200ms ease-out both; }
+.tg-dashboard .animate-slide-in { animation: tg-slide-in 220ms ease-out both; }
+.tg-dashboard .tg-modal-in { animation: tg-modal-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tg-dashboard .transition-soft {
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease,
+    opacity 200ms ease;
+}
+
+/* کی‌فریم‌ها */
+@keyframes tg-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tg-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tg-slide-in {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes tg-modal-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── میکرواینترکشن‌ها (از interactions.css داشبورد، اسکوپ‌شده) ── */
+.tg-dashboard .tg-btn {
+  transition:
+    background-color var(--tg-base) var(--tg-ease),
+    border-color var(--tg-base) var(--tg-ease),
+    color var(--tg-base) var(--tg-ease),
+    box-shadow var(--tg-base) var(--tg-ease),
+    filter var(--tg-base) var(--tg-ease),
+    transform var(--tg-fast) var(--tg-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tg-dashboard .tg-btn:hover { transform: translateY(-1px); }
+}
+.tg-dashboard .tg-btn:active { transform: var(--press); }
+.tg-dashboard .tg-btn:disabled { transform: none; }
+.tg-dashboard .tg-card {
+  transition: border-color var(--tg-base) var(--tg-ease);
+}
+
+/* احترام به کاهش حرکت: فقط داخل داشبورد */
+@media (prefers-reduced-motion: reduce) {
+  .tg-dashboard *,
+  .tg-dashboard *::before,
+  .tg-dashboard *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── بقیهٔ میکرواینترکشن‌ها (از interactions.css، اسکوپ‌شده) ── */
+.tg-dashboard .tg-card {
+  transition:
+    border-color var(--tg-base) var(--tg-ease),
+    background-color var(--tg-base) var(--tg-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tg-dashboard .tg-card:hover {
+    border-color: color-mix(in srgb, var(--brand) 25%, transparent);
+  }
+}
+.tg-dashboard .tg-card:active { transform: var(--press); }
+
+.tg-dashboard .tg-press { transition: transform var(--tg-fast) var(--tg-ease); }
+.tg-dashboard .tg-press:active { transform: var(--press); }
+
+.tg-dashboard .tg-link {
+  position: relative;
+  transition: color var(--tg-base) var(--tg-ease);
+}
+.tg-dashboard .tg-link::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.85;
+  transform: scaleX(0);
+  transform-origin: inline-end;
+  transition: transform var(--tg-base) var(--tg-ease);
+}
+.tg-dashboard .tg-link:hover::after,
+.tg-dashboard .tg-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: inline-start;
+}
+
+.tg-dashboard .tg-row {
+  transition:
+    background-color var(--tg-base) var(--tg-ease),
+    border-color var(--tg-base) var(--tg-ease),
+    transform var(--tg-base) var(--tg-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tg-dashboard .tg-row:hover {
+    background-color: color-mix(in srgb, var(--accent) 60%, transparent);
+    transform: translateX(-2px);
+  }
+  [dir="ltr"] .tg-dashboard .tg-row:hover {
+    transform: translateX(2px);
+  }
+}
+
+.tg-dashboard .tg-icon-btn {
+  transition:
+    background-color var(--tg-base) var(--tg-ease),
+    color var(--tg-base) var(--tg-ease),
+    transform var(--tg-fast) var(--tg-ease);
+}
+.tg-dashboard .tg-icon-btn:hover > svg { transform: scale(1.12); }
+.tg-dashboard .tg-icon-btn > svg { transition: transform var(--tg-base) var(--tg-ease); }
+.tg-dashboard .tg-icon-btn:active { transform: var(--press); }
+
+.tg-dashboard .tg-shimmer {
+  background-color: var(--muted);
+  animation: tg-shimmer-pulse 1.6s var(--motion-ease) infinite;
+}
+@keyframes tg-shimmer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.tg-dashboard .tg-page-enter { animation: tg-page-enter var(--tg-enter) var(--tg-ease) both; }
+@keyframes tg-page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tg-dashboard .tg-reveal { animation: tg-reveal-item 300ms var(--tg-ease) both; }
+@keyframes tg-reveal-item {
+  from { opacity: 0; transform: translateY(14px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tg-dashboard .tg-stagger > * { animation: tg-reveal-item 300ms var(--tg-ease) both; }
+.tg-dashboard .tg-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.tg-dashboard .tg-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.tg-dashboard .tg-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.tg-dashboard .tg-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.tg-dashboard .tg-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.tg-dashboard .tg-stagger > *:nth-child(6) { animation-delay: 250ms; }
+.tg-dashboard .tg-stagger > *:nth-child(7) { animation-delay: 300ms; }
+.tg-dashboard .tg-stagger > *:nth-child(8) { animation-delay: 350ms; }
+.tg-dashboard .tg-stagger > *:nth-child(n+9) { animation-delay: 400ms; }
+
+.tg-dashboard .tg-ripple {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.tg-dashboard .tg-ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.22;
+  transform: scale(0);
+  animation: tg-ripple-spread 300ms var(--tg-ease) forwards;
+  pointer-events: none;
+}
+@keyframes tg-ripple-spread {
+  to { transform: scale(1); opacity: 0; }
+}
+
+.tg-dashboard .tg-pop { animation: tg-pop 300ms var(--tg-ease) both; }
+@keyframes tg-pop {
+  0% { opacity: 0; transform: scale(0.96) translateY(6px); }
+  60% { opacity: 1; transform: scale(1.015) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.tg-dashboard .tg-shake { animation: tg-shake 300ms var(--tg-ease) both; }
+@keyframes tg-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(6px); }
+  40% { transform: translateX(-5px); }
+  60% { transform: translateX(4px); }
+  80% { transform: translateX(-2px); }
+}
+
+.tg-dashboard .tg-pulse-dot { animation: tg-pulse-dot 2s ease-in-out infinite; }
+@keyframes tg-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}

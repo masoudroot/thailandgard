@@ -1,11 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { ok } from '../../../lib/dashboard/api';
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json(
-    {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    },
-    { status: 200 }
-  );
+export async function GET(): Promise<Response> {
+  return ok({ status: 'ok' });
 }
