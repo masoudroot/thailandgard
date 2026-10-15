@@ -33,6 +33,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // دستور مسعود: مسیر ‎/dashboard‎ در گوگل ایندکس نشود.
+  // هدر X-Robots-Tag روی همه زیرمسیرهای ‎/dashboard‎ اعمال می‌شود؛
+  // چه داشبورد بعداً داخل همین ریپو بیاید چه از اپ جدا rewrite شود.
+  async headers() {
+    return [
+      {
+        source: "/dashboard/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
