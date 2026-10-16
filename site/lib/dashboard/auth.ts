@@ -1,26 +1,19 @@
-import { createHash, timingSafeEqual } from 'crypto';
 import type { NextRequest } from 'next/server';
+import { isValidAdminSession } from './admin-auth';
 
 export const SESSION_COOKIE = 'tg-admin';
 
-/** SHA-256 hex digest of a value. */
-export function sha256(value: string): string {
-  return createHash('sha256').update(value, 'utf8').digest('hex');
-}
-
 /**
- * Compare the `tg-admin` session cookie against the SHA-256 of ADMIN_PASSWORD.
- * Uses timing-safe comparison on equal-length hex digests.
+ * آیا درخواست، سشن ادمین معتبر دارد؟
+ * توکن سشن فقط از متغیرهای محیطی (ADMIN_USERNAME / ADMIN_PASSWORD_HASH)
+ * ساخته می‌شود؛ تغییر آن‌ها سشن‌ها را باطل می‌کند.
  */
-export function isAuthenticated(request: NextRequest): boolean {
+export async function isAuthenticated(request: NextRequest): Promise<boolean> {
   const session = request.cookies.get(SESSION_COOKIE)?.value;
-  if (!session) return false;
-  const expected = sha256(process.env.ADMIN_PASSWORD ?? 'changeme');
-  if (session.length !== expected.length) return false;
-  return timingSafeEqual(Buffer.from(session, 'utf8'), Buffer.from(expected, 'utf8'));
+  return isValidAdminSession(session);
 }
 
-/** Cookie options shared by login (set) and logout (clear). */
+/** Cookie options مشترک login (ست) و logout (پاک). */
 export function sessionCookieOptions(): {
   httpOnly: boolean;
   secure: boolean;
@@ -33,6 +26,6 @@ export function sessionCookieOptions(): {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7, // ۷ روز
   };
 }

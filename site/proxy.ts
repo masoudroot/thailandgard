@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getExpectedPasswordHash } from './lib/dashboard/admin-auth';
+import { isValidAdminSession } from './lib/dashboard/admin-auth';
 
 export const SESSION_COOKIE = 'tg-admin';
 
@@ -67,8 +67,8 @@ export async function proxy(request: NextRequest) {
 
   if (protectedApi || protectedDashboard) {
     const session = request.cookies.get(SESSION_COOKIE)?.value;
-    const expected = await getExpectedPasswordHash();
-    const authed = !!session && session.length === expected.length && session === expected;
+    // مسیر جدید (یوزرنیم + bcrypt) اولویت دارد.
+    const authed = await isValidAdminSession(session);
 
     if (authed) {
       return NextResponse.next();
