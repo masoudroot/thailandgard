@@ -153,7 +153,8 @@
   --spacing-sticky-bar-clearance: var(--sticky-bar-clearance);
   --spacing-sticky-bar-october-clearance: var(--sticky-bar-october-clearance);
   --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-pinar), var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  /* سند برند ۱.۰: عنوان‌ها وزیرمتن با وزن ۶۰۰/۷۰۰؛ نه فونت جدا */
+  --font-display: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
 
   /* حرکت اسکلت: sweep براقیت راست‌به‌چپ + نبض نرم (زیر prefers-reduced-motion صفر می‌شوند) */
   --animate-shine: shine 2.2s linear infinite;
