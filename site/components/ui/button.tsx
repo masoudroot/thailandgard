@@ -9,7 +9,8 @@ const variants: Record<Variant, string> = {
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-line border-border shadow-control active:shadow-press",
   outline: "border-line border-input bg-transparent hover:bg-accent hover:text-accent-foreground shadow-control active:shadow-press",
   ghost: "hover:bg-accent hover:text-accent-foreground",
-  brand: "bg-brand text-brand-foreground hover:bg-brand/90 shadow-control active:shadow-press",
+  /* سند برند ۱.۰: دکمه اصلی = زمینه سبز عمیق + متن کرم/سفید؛ کنتراست بالا */
+  brand: "bg-[var(--brand-deep)] text-[var(--brand-deep-foreground)] hover:bg-[var(--brand-deep)]/90 shadow-control active:shadow-press",
   destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-control active:shadow-press",
 };
 
