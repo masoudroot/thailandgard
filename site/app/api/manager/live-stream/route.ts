@@ -21,8 +21,8 @@ import { requireManagerAuth } from '../../../../lib/dashboard/manager-auth';
 import { isAuthenticated } from '../../../../lib/dashboard/auth';
 import { ACTIVE_CYCLE_STATUSES } from '../../../../lib/dashboard/types';
 
-export const dynamic = 'force-dynamic';
-
+/* برند ۱.۰ (رفع بیلد): `dynamic = 'force-dynamic'` با `cacheComponents` ناسازگار است؛
+   این روت ذاتاً داینامیک است (SSE + احراز + کوئری دیتابیس) و نیازی به اعلام صریح ندارد. */
 export interface OperationEvent {
   id: string;
   cycle_id: string;
