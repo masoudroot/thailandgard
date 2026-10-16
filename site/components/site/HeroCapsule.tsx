@@ -28,8 +28,8 @@ import { Meteors } from "@/components/animations/meteors";
  * - زیرتیتر برند ثابت است (تصمیم مستقیم مسعود، ۱۴۰۵/۰۷/۲۰): کپسول انتخاب
  *   مقصد حذف شد چون با زیرتیتر ثابت بی‌معنا می‌شد.
  * - امضای ایرانی (۱۴۰۵/۰۷/۲۰، نبض دیزاین): خط‌حایل مویی با لوزی کهربایی
- *   + جملهٔ انسانی زیر دکمه‌ها؛ نزدیک‌ترین زبان رجیستری: همان بلوک hero،
- *   بدون کامپوننت تازه؛ لحن خاکیِ برند («آدم جواب می‌دهد، نه ربات»)
+ *   + خط‌حایل مویی با لوزی کهربایی؛ نزدیک‌ترین زبان رجیستری: همان بلوک hero،
+ *   بدون کامپوننت تازه. (۲۴ مهر ۱۴۰۵، به دستور مسعود: جملهٔ «آدم جواب می‌دهد، نه ربات» حذف شد.)
  */
 export function HeroCapsule({
   phoneHref,
@@ -122,10 +122,6 @@ export function HeroCapsule({
             <span className="text-[10px] leading-none text-brand-foreground">◆</span>
             <span className="h-px flex-1 bg-foreground/10" />
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            {/* ایراد ۳ ممیزی ۰۵:۰۵: کف text-sm برای متن کمکی (فارسی ۱۲px خنثی از کنتراست AA می‌افتد) */}
-            اینجا یک آدم جواب می‌دهد، نه ربات
-          </p>
         </Reveal>
       </div>
     </section>

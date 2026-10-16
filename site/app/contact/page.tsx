@@ -82,7 +82,7 @@ export default async function ContactPage() {
       <div className="mt-8 overflow-hidden rounded-surface border border-border bg-frame-typographic px-8 py-8 text-center sm:py-10">
         <p className="font-display text-2xl text-foreground sm:text-3xl">در روزهای کاری پاسخ‌گوییم</p>
         <p className="text-pretty mt-3 text-sm leading-[1.9] text-muted-foreground">
-          زنگ بزنید یا شماره‌تان را بگذارید؛ یک آدم واقعی جواب می‌دهد، نه ربات.
+          زنگ بزنید یا شماره‌تان را بگذارید.
         </p>
         <div aria-hidden className="mx-auto mt-6 flex max-w-xs items-center gap-3">
           <span className="h-px flex-1 bg-foreground/10" />
