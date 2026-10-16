@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   BookOpenText,
   CalendarDays,
+  Eye,
   FolderOpen,
   Inbox,
   Link2,
@@ -21,6 +22,7 @@ import { SkeletonLines } from "@/components/dashboard/Skeleton";
 import { Badge, Button, Card, CardContent } from "@/components/dashboard/ui";
 import { Dialog } from "@/components/dashboard/ui/dialog";
 import KnowledgeSearch from "./KnowledgeSearch";
+import KnowledgeDetailDialog from "./KnowledgeDetailDialog";
 import {
   KnowledgeForm,
   type KnowledgeInitialData,
@@ -86,6 +88,9 @@ export default function TeamKnowledgePage({
   const [deleteTarget, setDeleteTarget] = React.useState<ItemView | null>(null);
   const [deleting, setDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
+
+  /** آیتم انتخاب‌شده برای «مشاهدهٔ کامل» (مودال جزئیات). */
+  const [detailItem, setDetailItem] = React.useState<ItemView | null>(null);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
@@ -154,6 +159,17 @@ export default function TeamKnowledgePage({
   const totalItems =
     data.uncategorized.length +
     data.categories.reduce((sum, c) => sum + c.items.length, 0);
+
+  /** نگاشت شناسهٔ دسته به نام، برای سربرگ مودال «مشاهدهٔ کامل». */
+  const categoryNameById = React.useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of data.categories) m.set(c.id, c.name);
+    return m;
+  }, [data.categories]);
+
+  function detailCategoryName(item: ItemView): string | null {
+    return item.category_id ? (categoryNameById.get(item.category_id) ?? null) : null;
+  }
 
   function openAddForm() {
     setEditing(null);
@@ -315,6 +331,7 @@ export default function TeamKnowledgePage({
                       key={item.id}
                       item={item}
                       editing={editingId === item.id}
+                      onView={() => setDetailItem(item)}
                       onEdit={() => void openEditForm(item)}
                       onDelete={() => {
                         setDeleteError(null);
@@ -341,6 +358,7 @@ export default function TeamKnowledgePage({
                     key={item.id}
                     item={item}
                     editing={editingId === item.id}
+                    onView={() => setDetailItem(item)}
                     onEdit={() => void openEditForm(item)}
                     onDelete={() => {
                       setDeleteError(null);
@@ -362,6 +380,16 @@ export default function TeamKnowledgePage({
         team={team}
         initialData={editing}
         categories={categoryOptions}
+      />
+
+      {/* مودال «مشاهدهٔ کامل» دانش */}
+      <KnowledgeDetailDialog
+        itemId={detailItem?.id ?? null}
+        fallbackTitle={detailItem?.title ?? ""}
+        categoryName={detailItem ? detailCategoryName(detailItem) : null}
+        source={detailItem?.source ?? null}
+        updatedAt={detailItem?.updated_at ?? ""}
+        onClose={() => setDetailItem(null)}
       />
 
       {/* تأیید حذف */}
@@ -412,22 +440,41 @@ export default function TeamKnowledgePage({
 function KnowledgeItemCard({
   item,
   editing,
+  onView,
   onEdit,
   onDelete,
 }: {
   item: ItemView;
   editing: boolean;
+  onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   return (
     <Card>
-      <CardContent className="p-4">
+      <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="min-w-0 flex-1 text-sm font-bold leading-7 text-card-foreground">
-            {item.title}
-          </h3>
+          <button
+            type="button"
+            onClick={onView}
+            className="min-w-0 flex-1 cursor-pointer text-start"
+            aria-label={`مشاهدهٔ کامل: ${item.title}`}
+            title="مشاهدهٔ کامل"
+          >
+            <h3 className="text-[15px] font-bold leading-8 text-card-foreground transition-colors hover:text-brand">
+              {item.title}
+            </h3>
+          </button>
           <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onView}
+              aria-label={`مشاهدهٔ کامل ${item.title}`}
+              title="مشاهدهٔ کامل"
+            >
+              <Eye size={16} aria-hidden="true" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -455,20 +502,30 @@ function KnowledgeItemCard({
           </div>
         </div>
         {item.snippet && (
-          <p className="mt-1 text-sm leading-7 text-muted-foreground">
-            {item.snippet}
-          </p>
+          <button
+            type="button"
+            onClick={onView}
+            className="mt-2 block w-full cursor-pointer text-start"
+            aria-label={`مشاهدهٔ کامل: ${item.title}`}
+          >
+            <p className="text-sm font-normal leading-8 text-muted-foreground">
+              {item.snippet}
+              <span className="ms-2 whitespace-nowrap text-xs font-medium text-brand">
+                ادامهٔ متن…
+              </span>
+            </p>
+          </button>
         )}
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-6 text-muted-foreground">
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border pt-3 text-xs leading-6 text-muted-foreground">
           {item.source && (
-            <span className="inline-flex min-w-0 items-center gap-1">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
               <Link2 size={14} aria-hidden="true" className="shrink-0" />
               <span className="max-w-48 truncate" dir="auto">
                 {item.source}
               </span>
             </span>
           )}
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-1.5">
             <CalendarDays size={14} aria-hidden="true" />
             {formatJalali(new Date(item.updated_at))}
           </span>
