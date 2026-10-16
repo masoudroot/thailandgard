@@ -91,7 +91,8 @@ export function maskApiKey(key: string): string {
 
 /** آیا env سوپابیس ست است؟ اگر نه، UI باید صادقانه «متصل نیست» نشان بدهد. */
 export function isSupabaseConfigured(): boolean {
-  return !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  return !!url && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
 function isTeamName(value: unknown): value is TeamName {

@@ -75,7 +75,7 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // تست اتصال فعلی سرور (از env)
-    const envUrl = process.env.SUPABASE_URL?.trim() || null;
+    const envUrl = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || null;
     if (!envUrl) {
       return ok({
         connected: false,
@@ -109,7 +109,7 @@ export async function POST(req: Request): Promise<Response> {
 /** GET: وضعیت خلاصه بدون تست (آیا اتصال سرور ست شده). */
 export async function GET(): Promise<Response> {
   try {
-    const hasUrl = !!(process.env.SUPABASE_URL?.trim());
+    const hasUrl = !!(process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim());
     const hasKey = !!(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
     return ok({
       configured: hasUrl && hasKey,

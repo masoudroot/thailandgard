@@ -101,7 +101,7 @@ export async function isValidAdminSession(token: string | undefined): Promise<bo
 /** خواندن هش SHA-256 ذخیره‌شده در settings (null اگر نباشد). */
 async function readStoredHash(): Promise<string | null> {
   try {
-    const url = process.env.SUPABASE_URL?.trim();
+    const url = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
     if (!url || !key) return null;
     const res = await fetch(
