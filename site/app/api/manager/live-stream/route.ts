@@ -21,7 +21,8 @@ import { requireManagerAuth } from '../../../../lib/dashboard/manager-auth';
 import { isAuthenticated } from '../../../../lib/dashboard/auth';
 import { ACTIVE_CYCLE_STATUSES } from '../../../../lib/dashboard/types';
 
-export const dynamic = 'force-dynamic';
+// NOTE: با cacheComponents فعال، export const dynamic حذف شده؛ این روت چون
+// request (هدر/کوئری) را می‌خواند خودکار داینامیک است.
 
 export interface OperationEvent {
   id: string;
