@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
 import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { ThailandGazeGallery } from "@/components/site/ThailandGazeGallery";
 import { DestinationCards } from "@/components/site/DestinationCards";
 import { TrustStrip } from "@/components/site/TrustStrip";
 import { TourCard, canonicalTourOrder } from "@/components/site/TourCard";
+import { Testimonials } from "@/components/site/Testimonials";
 import { FeatureSplit } from "@/components/blocks/feature-split";
 import { StepsBlock } from "@/components/blocks/steps-block";
 import { Separator } from "@/components/ui/separator";
@@ -29,7 +31,7 @@ import { fa } from "@/lib/utils";
 import { updatedFaToIso } from "@/lib/jalali";
 
 export const metadata: Metadata = pageSeo({
-  title: "تور تایلند؛ سفر تخصصی با مشاور تلفنی؛ تایلندگرد",
+  title: "تایلندگرد | تور تایلند با مشاورهٔ متخصص",
   // S-109 (هندآف seocontent، اجرای ۱۱، ۲۱ مهر ۱۴۰۵): پس از بسته‌شدن S-049
   // (غیرفعال‌سازی سامویی/کرابی، ۱۱:۱۰) هر دو کاندیدای قبلی منقضی شدند؛
   // متای تازه با تورهای فعال (پوکت، بانکوک و پاتایا، ترکیبی بانکوک و پوکت).
@@ -40,39 +42,34 @@ export const metadata: Metadata = pageSeo({
   canonical: "/",
 });
 
-const WHY_US = [
-  {
-    icon: Compass,
-    title: "فقط تایلند",
-    text: "ما سراغ ده مقصد نرفته‌ایم؛ یک مقصد را از بر هستیم. همین تمرکز یعنی جزیره به جزیره، هتل به هتل، تایلند را می‌شناسیم.",
-  },
+const WHY_US: { icon: LucideIcon; title: string; text: string; linkHref?: string; linkLabel?: string }[] = [
   {
     icon: PhoneCall,
-    title: "مشاورهٔ تلفنی واقعی",
-    text: "پشت تلفن یک کارشناس مقصد حرف می‌زند، نه ربات و نه فرم. سؤالتان را می‌پرسید و جواب درستش را همان‌جا می‌گیرید.",
-  },
-  {
-    icon: Users,
-    title: "لیدر فارسی‌زبان",
-    /* سند برند ۱.۰ (چک‌لیست صداقت): ادعای «در همه گشت‌ها» فقط وقتی مجاز است که
-       تضمین اجرایی برای همه تورها باشد؛ تا تأیید عملیات، عبارت به پکیج محدود شد. */
-    text: "در تورهای تایلندگرد لیدر فارسی‌زبان همراه گروه است؛ از فرودگاه تا آخرین روز سفر تنها نمی‌مانید. جزئیات لیدر هر تور را در صفحه همان تور ببینید.",
+    title: "قبل از خرید، مشاورهٔ انسانی",
+    text: "کارشناس مقصد خودش جواب می‌دهد؛ از انتخاب تور تا روز پرواز.",
   },
   {
     icon: ShieldCheck,
-    title: "بدون پرداخت آنلاین",
-    text: "رزرو فقط تلفنی است؛ اینترنتی پول نمی‌گیریم. هر چه هست شفاف است و سندش را هم می‌گیرید.",
+    title: "قیمت شفاف، بدون غافلگیری",
+    text: "روی هر کارت، «شامل» و «ناشامل» را می‌بینی؛ قیمت پایه واقعی از دیتابیس می‌آید.",
+  },
+  {
+    icon: Compass,
+    title: "تایلند را واقعاً می‌شناسیم",
+    text: "راهنماهایمان را بخوان؛ با تاریخ به‌روزرسانی واقعی.",
+    linkHref: "/guide",
+    linkLabel: "دیدن راهنماها",
   },
 ];
 
 export default async function HomePage() {
   const [tours, guides, s] = await Promise.all([getTours(), getGuides(), getSiteSettings()]);
   // D-176: همان ترتیب کانونی کارت‌ها که گرید /tours هم دارد (ترکیبی اول)؛
-  // خانه فقط ۳ تای اول را نشان می‌دهد.
-  const featuredTours = canonicalTourOrder(tours).slice(0, 3);
-  // D-107: خانه فقط ۶ راهنمای اول را نشان می‌دهد (گرید ۳ ستونه، ۲ ردیف)؛
+  // خانه فقط ۴ تای اول را نشان می‌دهد.
+  const featuredTours = canonicalTourOrder(tours).slice(0, 4);
+  // D-107: خانه فقط ۳ راهنمای اول را نشان می‌دهد (گرید ۳ ستونه تک‌ردیفه)؛
   // بقیه پشت دکمهٔ «همهٔ راهنماها» در /guide می‌مانند تا سکشن سبک بماند.
-  const featuredGuides = guides.slice(0, 6);
+  const featuredGuides = guides.slice(0, 3);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -85,9 +82,14 @@ export default async function HomePage() {
       url: `${s.SITE_URL}/tours/${tour.slug}`,
     })),
   };
-  // S-105 (حسابرس سئو، ۲۱ مهر ۱۴۰۵): خانه BreadcrumbList نداشت درحالی‌که
-  // /tours و صفحهٔ تور و /guide هر سه دارند؛ تک‌آیتمی «خانه» تا نقشهٔ
-  // ناوبری ساخت‌یافته روی مهم‌ترین صفحه هم کامل باشد.
+  // اسکیمای Organization (چهارچوب صفحهٔ خانه): شناسهٔ ساخت‌یافتهٔ برند
+  // روی مهم‌ترین صفحهٔ سایت.
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "تایلندگرد",
+    url: s.SITE_URL,
+  };
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -103,6 +105,10 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
 
       <main>
@@ -226,10 +232,10 @@ export default async function HomePage() {
             چرا تایلندگرد
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">
-            چهار دلیلی که مسافرهای ما با خیال راحت سفر می‌کنند.
+            سه دلیلی که مسافرهای ما با خیال راحت سفر می‌کنند.
           </p>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {WHY_US.map(({ icon: Icon, title, text }) => (
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {WHY_US.map(({ icon: Icon, title, text, linkHref, linkLabel }) => (
               <Card key={title} className="h-full">
                 <CardHeader>
                   <span className="inline-flex size-11 items-center justify-center rounded-surface bg-brand/15 text-brand-foreground">
@@ -238,7 +244,20 @@ export default async function HomePage() {
                   <CardTitle className="mt-4 text-lg">{title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="leading-7">{text}</CardDescription>
+                  <CardDescription className="leading-7">
+                    {text}
+                    {linkHref && linkLabel ? (
+                      <>
+                        {" "}
+                        <Link
+                          href={linkHref}
+                          className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand"
+                        >
+                          {linkLabel}
+                        </Link>
+                      </>
+                    ) : null}
+                  </CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -364,6 +383,11 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      {/* سکشن «حرف مسافران ما» (چهارچوب صفحهٔ خانه): بین راهنماها و نوار
+          اعتماد؛ کامپوننت Testimonials اگر نظری در lib/testimonials نباشد
+          null برمی‌گرداند و هیچ سطر خالی‌ای در صفحه نمی‌ماند. */}
+      <Testimonials />
 
       {/* نوار اعتماد «چرا تایلندگرد» (اسپک design چرخهٔ ۱۲؛ حکم‌های ۵۷/۵۸ design-ir):
           mount بلافاصله قبل از سکشن فرم تماس. گزاره‌ها موقت‌اند (جهت‌های design-ir)؛

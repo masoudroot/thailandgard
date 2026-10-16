@@ -3,8 +3,10 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Phone, X } from "lucide-react";
-import { getTour, getTours, getGuide, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
+import { getTour, getTours, getGuide, getGuides, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import { isPriceFreshCached } from "@/lib/tours";
+import { getCategory, getCategoryToursCached, CATEGORY_SLUGS, TOUR_CATEGORIES } from "@/lib/tour-categories";
+import { CategoryTemplate } from "@/components/site/CategoryTemplate";
 import { pageSeo, brandTitle } from "@/lib/og";
 import { ogImageForSlug } from "@/lib/og-slugs";
 import { TOUR_COVERS, TOUR_BODY_IMAGES } from "@/lib/tour-covers";
@@ -64,11 +66,26 @@ function jsonLdScript(data: unknown): string {
 }
 
 export async function generateStaticParams() {
-  return (await getTours()).map((tour) => ({ slug: tour.slug }));
+  const tours = await getTours();
+  return [
+    ...tours.map((tour) => ({ slug: tour.slug })),
+    // صفحات دسته‌بندی تور (تمپلیت CategoryTemplate؛ فاز ۱ معماری صفحات)
+    ...CATEGORY_SLUGS.map((slug) => ({ slug })),
+  ];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  // دسته‌بندی تور: متا از کانفیگ دسته
+  const category = getCategory(slug);
+  if (category) {
+    return pageSeo({
+      title: category.title,
+      description: category.description,
+      canonical: `/tours/${category.slug}`,
+      type: "website",
+    });
+  }
   const tour = await getTour(slug);
   if (!tour) return { title: "تور پیدا نشد" };
   const s = await getSiteSettings();
@@ -106,6 +123,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function TourPage({ params }: Props) {
   const { slug } = await params;
+
+  // مسیر دسته‌بندی تور (فاز ۱ معماری صفحات): اگر اسلاگ یکی از دسته‌هاست،
+  // تمپلیت دسته‌بندی رندر می‌شود نه صفحهٔ تور تکی.
+  const category = getCategory(slug);
+  if (category) {
+    const [guides, s] = await Promise.all([getGuides(), getSiteSettings()]);
+    const categoryTours = await getCategoryToursCached(category);
+    return (
+      <CategoryTemplate
+        category={category}
+        tours={categoryTours}
+        siteUrl={s.SITE_URL}
+        allCategories={TOUR_CATEGORIES.map((c) => ({ slug: c.slug, name: c.name }))}
+        guides={guides.map((g) => ({ slug: g.slug, title: g.title }))}
+        phoneHref={s.PHONE_MOBILE_LINK}
+        phoneDisplay={s.PHONE_MOBILE_DISPLAY}
+        contactName={s.CONTACT_NAME}
+      />
+    );
+  }
+
   const tour = await getTour(slug);
   if (!tour) notFound();
   // S-049 (مصوبهٔ ۱۸:۲۰، ۱۴۰۵/۰۷/۲۰): تور غیرفعال عرضه نمی‌شود؛
@@ -145,7 +183,7 @@ export default async function TourPage({ params }: Props) {
   }
 
   // لینک‌های داخلی به راهنماهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
-  const [{ tourToGuides }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
+  const [{ tourToGuides }, s, allTours] = await Promise.all([getRelatedLinks(), getSiteSettings(), getTours()]);
   const guideBlock = tourToGuides[tour.slug];
   const relatedGuides = guideBlock
     ? (
@@ -505,6 +543,81 @@ export default async function TourPage({ params }: Props) {
             </CardContent>
           </Card>
         </div>
+
+        {/* مدارک و نکات (وایرفریم صفحهٔ تور، سکشن ۸): آکاردئون موانع رزرو؛
+            محتوای عمومی و صادقانه، بدون وعدهٔ خاص این تور. */}
+        <section className="mt-10">
+          <h2 className="text-balance text-2xl sm:text-3xl">مدارک و نکات رزرو</h2>
+          <Accordion
+            className="mt-5"
+            items={[
+              {
+                id: "docs",
+                title: "مدارک لازم برای رزرو",
+                content: (
+                  <p className="leading-7 text-foreground/90">
+                    پاسپورت با حداقل ۷ ماه اعتبار از تاریخ سفر و یک قطعه عکس جدید کافی است؛
+                    ویزای تایلند را خودمان برایتان می‌گیریم و معمولاً ۵ تا ۷ روز کاری طول می‌کشد.
+                  </p>
+                ),
+              },
+              {
+                id: "cancel",
+                title: "شرایط کنسلی",
+                content: (
+                  <p className="leading-7 text-foreground/90">
+                    این تور چارتر است و کنسلی ندارد؛ یعنی بعد از ثبت‌نام امکان استرداد وجه نیست.
+                    پیش از پرداخت نهایی، تاریخ سفرتان را قطعی کنید و اگر تردید دارید با کارشناس مقصد حرف بزنید.
+                  </p>
+                ),
+              },
+              {
+                id: "peak",
+                title: "نرخ پیک یعنی چه؟",
+                content: (
+                  <p className="leading-7 text-foreground/90">
+                    در ایام شلوغ مثل نوروز و کریسمس، هتل‌ها و پروازها گران‌تر می‌شوند و قیمت پایهٔ همین صفحه
+                    بالاتر می‌رود. اگر تاریخ‌تان انعطاف دارد، چند هفته قبل یا بعد از پیک، همان تور ارزان‌تر درمی‌آید.
+                  </p>
+                ),
+              },
+            ]}
+          />
+        </section>
+
+        {/* تورهای مرتبط (وایرفریم صفحهٔ تور، سکشن ۱۰): اگر این تور به دردش
+            نخورد، گزینهٔ بعدی را همان‌جا ببیند؛ ۳ تور فعال دیگر. */}
+        {(() => {
+          const related = allTours.filter((t) => t.active && t.slug !== tour.slug).slice(0, 3);
+          if (related.length === 0) return null;
+          return (
+            <section className="mt-10">
+              <h2 className="text-balance text-2xl sm:text-3xl">تورهای مرتبط</h2>
+              <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {related.map((t) => (
+                  <Link key={t.slug} href={`/tours/${t.slug}`} className="group block h-full">
+                    <Card className="flex h-full flex-col transition-colors duration-200 group-hover:border-brand/60">
+                      <CardHeader>
+                        <CardTitle className="text-balance text-lg">{t.shortTitle}</CardTitle>
+                        <CardDescription>
+                          {fa(t.days)} روزه | {fa(t.nights)} شب
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="mt-auto">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <Price amount={t.priceFrom} size="md" />
+                          <span className="text-sm font-semibold text-brand underline-offset-4 group-hover:underline">
+                            دیدن تور
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
       </main>
 
       {relatedGuides.length > 0 && guideBlock && (
