@@ -3,7 +3,7 @@
  *
  * احراز: هدر Authorization: Bearer <token>
  * خروجی: وضعیت اتصال‌ها، درگاه‌ها و مدل‌ها، آخرین چرخه، صف، خطاهای جاری،
- * آخرین نرخ ارز — همه در یک پاسخ. هیچ مقدار حساسی (کلید/توکن خام) برنمی‌گردد.
+ * آخرین نرخ ارز: همه در یک پاسخ. هیچ مقدار حساسی (کلید/توکن خام) برنمی‌گردد.
  */
 
 import { fail, getSupabase, ok } from '../../../../lib/dashboard/api';
@@ -18,6 +18,8 @@ import {
 import { getQueueStats } from '../../../../lib/dashboard/queue';
 import { getCurrentErrors } from '../../../../lib/dashboard/errors';
 
+/** هرگز کش نشود: این اندپوینت باید همیشه داده‌ی زنده بدهد. */
+export const dynamic = 'force-dynamic';
 
 /** بررسی سبک اتصال پایگاه داده. */
 async function checkDatabase(): Promise<{ connected: boolean; latencyMs: number | null }> {

@@ -22,6 +22,18 @@ export function getSupabaseUrl(): string | undefined {
 }
 
 /**
+ * fetch بدون کش برای سوپابیس.
+ *
+ * علت: سوپابیس-js از fetch سراسری استفاده می‌کند و Next.js در App Router
+ * نتیجه‌ی fetch را به‌صورت پیش‌فرض کش می‌کند (force-cache). نتیجه: APIهای
+ * مدیریتی (مثل /api/manager/status) ردیف‌های team_runs را چند ساعت کهنه
+ * برمی‌گرداندند. با cache: 'no-store' هیچ کوئری دیتابیسی کش نمی‌شود.
+ */
+function noStoreFetch(url: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) {
+  return fetch(url, { ...init, cache: 'no-store' });
+}
+
+/**
  * Lazily creates a Supabase client using the service key from env.
  * Intended for server-side use only; never expose the service key to the client.
  */
@@ -34,6 +46,7 @@ export function getSupabase(): SupabaseClient {
   }
   client = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: noStoreFetch },
   });
   return client;
 }
