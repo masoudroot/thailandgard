@@ -5,28 +5,14 @@ type ApiHandler = (
   context?: any
 ) => Promise<NextResponse> | NextResponse;
 
-export function withApiErrorHandler(handler: ApiHandler): ApiHandler {
+export function withErrorHandler(handler: ApiHandler): ApiHandler {
   return async (request: Request, context?: any) => {
     try {
       return await handler(request, context);
-    } catch (error: any) {
-      const timestamp = new Date().toISOString();
-      const path = new URL(request.url).pathname;
-      
-      console.error(JSON.stringify({
-        level: 'ERROR',
-        timestamp,
-        path,
-        method: request.method,
-        message: error?.message || 'Unknown error',
-        stack: error?.stack || ''
-      }));
-
+    } catch (error) {
+      console.error('[API Error]:', error);
       return NextResponse.json(
-        {
-          success: false,
-          error: 'خطای داخلی سرور رخ داده است. لطفاً بعداً دوباره تلاش کنید.'
-        },
+        { success: false, error: 'Internal Server Error' },
         { status: 500 }
       );
     }
