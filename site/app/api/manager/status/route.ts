@@ -18,8 +18,10 @@ import {
 import { getQueueStats } from '../../../../lib/dashboard/queue';
 import { getCurrentErrors } from '../../../../lib/dashboard/errors';
 
-/** هرگز کش نشود: این اندپوینت باید همیشه داده‌ی زنده بدهد. */
-export const dynamic = 'force-dynamic';
+/* نکته: `dynamic = 'force-dynamic'` با `cacheComponents` ناسازگار است و بیلد را
+   می‌شکند (مثل روت live-stream). این روت ذاتاً داینامیک است (خواندن هدر
+   Authorization + کوئری دیتابیس) و نیازی به اعلام صریح ندارد. تازگی داده را
+   fetch بدون کش در getSupabase تضمین می‌کند. */
 
 /** بررسی سبک اتصال پایگاه داده. */
 async function checkDatabase(): Promise<{ connected: boolean; latencyMs: number | null }> {
