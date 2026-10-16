@@ -75,11 +75,11 @@ export function HeroCapsule({
           <Badge variant="brand">متخصص تایلند</Badge>
         </Reveal>
 
-        {/* تیتر و زیرتیتر برند (تصمیم مستقیم مسعود، ۱۴۰۵/۰۷/۲۰):
-            جایگزین تیتر سئومحور قبلی («تور تایلند با همسفر بلد تایلند...») شد.
-            نکته: کلمهٔ کلیدی «تور تایلند» دیگر در h1 نیست؛ در title صفحه هست. */}
+        {/* تیتر برند (تصمیم مسعود، ۲۴ مهر ۱۴۰۵): «برای تایلند، قبل از خرید
+            درست انتخاب کن.»؛ تیتر تصمیم‌محور از سند برند ۱.۰.
+            نکته: کلمهٔ کلیدی «تور تایلند» در h1 نیست؛ در title صفحه هست. */}
         <h1 className="font-display mt-5 text-balance text-4xl leading-[1.35] sm:text-5xl">
-          <BlurText text="تایلند رو با متخصصش بگرد." delay={60} durationMs={300} />
+          <BlurText text="برای تایلند، قبل از خرید درست انتخاب کن." delay={60} durationMs={300} />
         </h1>
 
         <Reveal delay={450} durationMs={200}>
@@ -114,9 +114,8 @@ export function HeroCapsule({
 
         {/* امضای ایرانی: خط‌حایل مویی با لوزی + جملهٔ انسانی.
             لهجهٔ کوچکِ برند، نه تزئین اضافه (حکم برندینگ: شعارزدگی ممنوع).
-            نکته (۲۱ مهر ۱۴۰۵): لوزی دیگر کهرباییِ توپر نیست؛ با
-            text-brand-foreground روی خط مویی می‌نشیند تا با پالت گرافیت
-            بخواند (کامنت قدیمی «لوزی کهربایی» به‌روز شد). */}
+            نکته (۲۴ مهر ۱۴۰۵): لوزی با text-brand-foreground (سبز عمیق)
+            روی خط مویی می‌نشیند تا با پالت برند بخواند. */}
         <Reveal delay={950} durationMs={200} className="mt-10">
           <div aria-hidden className="mx-auto flex max-w-xs items-center gap-3">
             <span className="h-px flex-1 bg-foreground/10" />
