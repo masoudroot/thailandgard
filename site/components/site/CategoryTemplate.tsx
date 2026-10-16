@@ -1,11 +1,6 @@
 /**
- * تمپلیت صفحهٔ دسته‌بندی تورها (۸ سکشن). سرورکامپوننت است و فعلاً
- * به هیچ روتی وصل نیست؛ اتصال به روت با والد است.
- *
- * نکتهٔ تایپ: اینترفیس‌های پایین آینهٔ دقیق `lib/tour-categories.ts`
- * (فایل همکار، همزمان در دست ساخت) هستند. وقتی آن فایل رسید، همین
- * تعریف‌ها حذف و از `@/lib/tour-categories` ایمپورت شود؛ چون شکل‌شان
- * یکسان است، تعویض بدون تغییر بقیهٔ فایل انجام می‌شود.
+ * تمپلیت صفحهٔ دسته‌بندی تورها (۸ سکشن). سرورکامپوننت؛ از روت
+ * `app/tours/[slug]/page.tsx` وقتی اسلاگ یکی از دسته‌هاست فراخوانی می‌شود.
  */
 import Link from "next/link";
 import { BadgeCheck, PhoneCall, Users } from "lucide-react";
@@ -17,32 +12,7 @@ import { Price } from "@/components/ui/price";
 import { fa } from "@/lib/utils";
 import { CategoryFilter } from "./CategoryFilter";
 import type { Tour } from "@/lib/tours";
-
-export interface CategoryGuideSection {
-  heading: string;
-  body: string[];
-}
-
-export interface CategoryFaq {
-  question: string;
-  answer: string;
-}
-
-export interface TourCategory {
-  slug: string;
-  name: string;
-  h1: string;
-  title: string;
-  description: string;
-  promise: string;
-  kind: "theme" | "city" | "combo";
-  cities?: string[];
-  tourSlugs?: string[];
-  guideSections: CategoryGuideSection[];
-  faqs: CategoryFaq[];
-  relatedSlugs: string[];
-  guideSlugs: string[];
-}
+import type { TourCategory } from "@/lib/tour-categories";
 
 export interface CategoryTemplateProps {
   category: TourCategory;
@@ -57,7 +27,7 @@ export interface CategoryTemplateProps {
 }
 
 /** مسیر روت صفحات دسته‌بندی هنوز نهایی نشده؛ هنگام وصل کردن روت تأیید شود. */
-const CATEGORY_PATH = "/tours/category";
+const CATEGORY_PATH = "/tours"; // دسته‌ها روی همان روت [slug] دیسپچ می‌شوند
 
 const TRUST_ITEMS = [
   { icon: BadgeCheck, label: "قیمت شفاف", note: "قیمت نهایی را همین‌جا می‌بینید" },
