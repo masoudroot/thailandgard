@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getSitemapRows } from "@/lib/db-content";
+import { CATEGORY_SLUGS } from "@/lib/tour-categories";
 
 /**
  * سازندهٔ مشترک بخش‌های نقشهٔ سایت (دستور مسعود، ۲۰ مهر ۱۴۰۵).
@@ -139,5 +140,13 @@ export async function getSitemapSections(): Promise<SitemapSections> {
     changeFrequency: "monthly" as const,
     priority: 0.7,
   }));
-  return { base, pages, tours: tourEntries, guides: guideEntries };
+  // صفحات دسته‌بندی تور (فاز ۱ معماری صفحات، ۲۵ مهر ۱۴۰۵): مسیرهای استاتیک
+  // با محتوای DBای؛ lastmod = تازه‌ترین قیمت تورها.
+  const categoryEntries: MetadataRoute.Sitemap = CATEGORY_SLUGS.map((slug) => ({
+    url: `${base}/tours/${slug}`,
+    lastModified: newest(TOURS_LASTMOD, tourPriceDates),
+    changeFrequency: "weekly" as const,
+    priority: 0.85,
+  }));
+  return { base, pages, tours: [...tourEntries, ...categoryEntries], guides: guideEntries };
 }
