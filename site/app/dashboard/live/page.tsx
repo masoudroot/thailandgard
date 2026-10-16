@@ -39,9 +39,20 @@ interface LiveData {
   liveColumns: boolean;
   /** جدول subagents وجود دارد؟ */
   subagentsReady: boolean;
+  /** چرخه‌ی برگشتی، آخرین چرخه‌ی تمام‌شده است (نه چرخه‌ی فعال) */
+  is_latest: boolean;
 }
 
 type ConnState = 'loading' | 'live' | 'offline' | 'idle';
+
+const CYCLE_STATUS_LABEL: Record<string, string> = {
+  running: 'در حال اجرا',
+  pausing: 'در آستانهٔ توقف',
+  paused: 'متوقف‌شده',
+  success: 'موفق',
+  failed: 'ناموفق',
+  canceled: 'لغو شده',
+};
 
 const SUBAGENT_STATUS_LABEL: Record<Subagent['status'], string> = {
   pending: 'در انتظار',
@@ -323,6 +334,7 @@ export default function LivePage() {
     subagents: [],
     liveColumns: true,
     subagentsReady: true,
+    is_latest: false,
   });
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [timelineTeam, setTimelineTeam] = useState<TeamName | null>(null);
@@ -347,6 +359,7 @@ export default function LivePage() {
         subagents: Array.isArray(payload.subagents) ? payload.subagents : [],
         liveColumns: payload.liveColumns !== false,
         subagentsReady: payload.subagentsReady !== false,
+        is_latest: payload.is_latest === true,
       });
       setState(cycle ? 'live' : 'idle');
     } catch {
@@ -379,7 +392,7 @@ export default function LivePage() {
     <div className="mx-auto max-w-7xl">
         <PageHeader
           icon={Activity}
-          title="فعالیت زنده"
+          title="عملیات زنده"
           subtitle="وضعیت لحظه‌ای ۱۵ تیم و ساب‌ایجنت‌ها؛ هر ۵ ثانیه به‌روز می‌شود"
         />
 
@@ -443,13 +456,22 @@ export default function LivePage() {
             )}
             <Card className="mb-8 p-4 shadow-surface sm:p-6">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <span className="inline-flex items-center gap-2 text-sm font-bold text-card-foreground">
-                  <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
+                {data.is_latest ? (
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-card-foreground">
+                    آخرین چرخه
+                    <Badge variant="secondary">
+                      {CYCLE_STATUS_LABEL[data.cycle.status] ?? data.cycle.status}
+                    </Badge>
                   </span>
-                  چرخهٔ فعال
-                </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-card-foreground">
+                    <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
+                    </span>
+                    چرخهٔ فعال
+                  </span>
+                )}
                 <span className="font-mono text-xs text-muted-foreground" dir="ltr">
                   {data.cycle.run_id}
                 </span>
@@ -457,6 +479,12 @@ export default function LivePage() {
                   شروع: {jalaliDate.format(new Date(data.cycle.started_at))}
                 </span>
               </div>
+              {data.is_latest && (
+                <p className="mt-3 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-6 text-muted-foreground">
+                  در حال حاضر چرخه‌ای فعال نیست؛ آخرین چرخه با کارت تیم‌ها و
+                  تایم‌لاین نمایش داده می‌شود.
+                </p>
+              )}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">
                   در حال کار: <strong>{faNum(running)}</strong>

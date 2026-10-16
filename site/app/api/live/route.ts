@@ -3,7 +3,7 @@ import { ACTIVE_CYCLE_STATUSES } from '../../../lib/dashboard/types';
 import { fetchSubagents, fetchTeamRuns, toQueryResult } from '../../../lib/dashboard/live-data';
 
 /**
- * GET /api/live : تصویر زنده‌ی چرخه‌ی فعال برای صفحه‌ی «فعالیت زنده».
+ * GET /api/live : تصویر زنده‌ی چرخه‌ی فعال برای صفحه‌ی «عملیات زنده».
  *
  * برمی‌گرداند:
  *   cycle:          جدیدترین چرخه‌ی فعال (running/pausing/paused) یا null
@@ -14,7 +14,9 @@ import { fetchSubagents, fetchTeamRuns, toQueryResult } from '../../../lib/dashb
  *
  * اگر مایگریشن‌های زنده هنوز اجرا نشده باشند، به‌جای خطا، داده‌ی پایه
  * با پرچم‌های false برمی‌گردد تا رابط «هنوز فعال نیست» صادقانه نشان بدهد.
- * اگر چرخه‌ی فعالی نباشد: { cycle: null, runs: [], subagents: [], ... }.
+ * اگر چرخه‌ی فعالی نباشد: جدیدترین چرخه‌ی تمام‌شده (هر وضعیتی) با پرچم
+ * is_latest=true برمی‌گردد تا صفحه همیشه کارت تیم‌ها و تایم‌لاین را نشان بدهد؛
+ * اگر اصلاً چرخه‌ای نباشد: { cycle: null, ... }.
  * اگر سوپابیس در دسترس نباشد: ۵۰۳ با پیام فارسی تا صفحه «متصل نیست» نشان بدهد.
  */
 export async function GET(): Promise<Response> {
@@ -36,7 +38,39 @@ export async function GET(): Promise<Response> {
     if (cycleErr) return fail(`خطا در خواندن چرخه: ${cycleErr.message}`);
 
     if (!cycle) {
-      return ok({ cycle: null, runs: [], subagents: [], liveColumns: true, subagentsReady: true });
+      // چرخه‌ی فعالی نیست؛ جدیدترین چرخه (هر وضعیتی) را برگردان تا صفحه
+      // همیشه کارت تیم‌ها و دکمه‌ی تایم‌لاین را نشان بدهد.
+      const { data: latest, error: latestErr } = await sb
+        .from('cycles')
+        .select('id, run_id, status, started_at')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (latestErr) return fail(`خطا در خواندن چرخه: ${latestErr.message}`);
+      if (!latest) {
+        return ok({ cycle: null, runs: [], subagents: [], liveColumns: true, subagentsReady: true, is_latest: false });
+      }
+      const latestId = (latest as { id: string }).id;
+      const { data: latestRuns, liveColumns: latestLiveColumns } = await fetchTeamRuns(sb, async (cols) =>
+        toQueryResult(
+          await sb
+            .from('team_runs')
+            .select(cols)
+            .eq('cycle_id', latestId)
+            .order('wave', { ascending: true })
+            .order('started_at', { ascending: true }),
+        ),
+      );
+      const latestRunIds = latestRuns.map((r) => r.id as string);
+      const { data: latestSubagents, tableReady: latestSubagentsReady } = await fetchSubagents(sb, latestRunIds);
+      return ok({
+        cycle: latest,
+        runs: latestRuns,
+        subagents: latestSubagents,
+        liveColumns: latestLiveColumns,
+        subagentsReady: latestSubagentsReady,
+        is_latest: true,
+      });
     }
 
     const cycleId = (cycle as { id: string }).id;

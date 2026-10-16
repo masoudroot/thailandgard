@@ -33,7 +33,7 @@ export type NavItem = {
 /** همهٔ آیتم‌های ناوبری داشبورد؛ منبع مشترک سایدبار دسکتاپ و دراور موبایل. */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "خانه", icon: LayoutDashboard },
-  { href: "/dashboard/live", label: "فعالیت زنده", icon: Activity },
+  { href: "/dashboard/live", label: "عملیات زنده", icon: Activity },
   { href: "/dashboard/cycles", label: "چرخه‌ها", icon: Repeat2 },
   { href: "/dashboard/teams", label: "تیم‌ها", icon: Users },
   { href: "/dashboard/memory", label: "حافظه", icon: Brain },
