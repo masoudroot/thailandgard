@@ -1,67 +1,23 @@
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export type ClassValue = string | number | bigint | null | undefined | false | ClassValue[];
-
-/**
- * Merge class names, Tailwind-aware: conflicting classes are resolved so the
- * LATER input wins (e.g. cn("p-5 pt-0", "p-4") -> "p-4"), instead of relying on
- * CSS cascade order. (This is the clsx + tailwind-merge pattern the old comment promised.)
- */
-export function cn(...inputs: ClassValue[]): string {
-  const out: string[] = [];
-  const push = (i: ClassValue): void => {
-    if (!i) return;
-    if (Array.isArray(i)) {
-      for (const n of i) push(n);
-    } else {
-      out.push(String(i));
-    }
-  };
-  for (const i of inputs) push(i);
-  return twMerge(out.join(" "));
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
-const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-
-/** Convert Latin digits in a string/number to Persian digits: 1405 -> ۱۴۰۵ */
-export function fa(value: string | number): string {
-  return String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
+export function formatToman(price: number): string {
+  return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
 }
 
-/** Persian digits back to Latin (for parsing user input). */
-export function en(value: string): string {
-  return value.replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d))).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+export function formatBaht(price: number): string {
+  return new Intl.NumberFormat("fa-IR").format(price) + " بات";
 }
 
-/** Thousands-separated Persian number: 12450000 -> ۱۲٬۴۵۰٬۰۰۰ */
-export function faNumber(value: number): string {
-  return fa(Math.round(value).toLocaleString("en-US")).replace(/,/g, "٬");
-}
-
-/** Amount in toman with unit: 12450000 -> ۱۲٬۴۵۰٬۰۰۰ تومان */
-export function formatToman(value: number): string {
-  return `${faNumber(value)} تومان`;
-}
-
-/** Percent with Persian digits and the Persian percent sign: 18 -> ۱۸٪ */
-export function faPercent(value: number, digits = 0): string {
-  return `${fa(value.toFixed(digits))}٪`;
-}
-
-/** File size in Persian: 1258291 -> ۱٫۲ مگابایت */
-export function faFileSize(bytes: number): string {
-  if (bytes < 1024) return `${fa(bytes)} بایت`;
-  if (bytes < 1024 ** 2) return `${fa((bytes / 1024).toFixed(0))} کیلوبایت`;
-  return `${fa((bytes / 1024 ** 2).toFixed(1)).replace(".", "٫")} مگابایت`;
-}
-
-/** Deterministic PRNG; same seed → same sequence. Returns a function yielding [0, 1). sequence: mulberry32(1)() -> 0.627... */
-export function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+export function convertAndFormatPrice(amount: number, currency: 'THB' | 'IRT', rate: number = 1850): string {
+  if (currency === 'THB') {
+    const tomanAmount = amount * rate;
+    return `${formatBaht(amount)} (حدود ${formatToman(tomanAmount)})`;
+  } else {
+    return formatToman(amount);
+  }
 }
