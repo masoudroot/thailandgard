@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Activity, Pause, Play, Square, WifiOff, MoonStar } from 'lucide-react';
+import { Activity, History, Pause, Play, Square, WifiOff, MoonStar } from 'lucide-react';
 import PageHeader from '../../../components/dashboard/PageHeader';
 import { EmptyState } from '../../../components/dashboard/ui/empty-state';
 import StatusBadge from '../../../components/dashboard/dataviz/StatusBadge';
@@ -14,6 +14,7 @@ import { Collapsible } from '../../../components/dashboard/ui/collapsible';
 import { TEAMS, type Cycle, type Subagent, type TeamName, type TeamRun } from '../../../lib/dashboard/types';
 import { faNum } from '../../../lib/dashboard/format';
 import { TEAM_META, WAVE_TITLES } from '../../../lib/dashboard/team-meta';
+import TeamTimelineModal from './TeamTimelineModal';
 
 const jalaliDate = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
   dateStyle: 'medium',
@@ -120,6 +121,7 @@ function LiveTeamCard({
   subagentsReady,
   liveColumns,
   refresh,
+  onOpenTimeline,
 }: {
   team: TeamName;
   run: TeamRun | undefined;
@@ -127,6 +129,7 @@ function LiveTeamCard({
   subagentsReady: boolean;
   liveColumns: boolean;
   refresh: () => void;
+  onOpenTimeline: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const meta = TEAM_META[team];
@@ -165,6 +168,14 @@ function LiveTeamCard({
             >
               گزارش‌ها
             </Link>
+            <button
+              type="button"
+              onClick={onOpenTimeline}
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+            >
+              <History size={12} strokeWidth={2} aria-hidden="true" />
+              تایم‌لاین زنده
+            </button>
           </div>
           <p className="mt-1 text-xs leading-6 text-muted-foreground">{meta.mission}</p>
         </div>
@@ -314,6 +325,7 @@ export default function LivePage() {
     subagentsReady: true,
   });
   const [errorMsg, setErrorMsg] = useState<string>('');
+  const [timelineTeam, setTimelineTeam] = useState<TeamName | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchLive = useCallback(async () => {
@@ -470,6 +482,7 @@ export default function LivePage() {
                     subagentsReady={data.subagentsReady}
                     liveColumns={data.liveColumns}
                     refresh={fetchLive}
+                    onOpenTimeline={() => setTimelineTeam(team)}
                   />
                 );
               })}
@@ -479,6 +492,18 @@ export default function LivePage() {
               {WAVE_TITLES[1]} تا {WAVE_TITLES[6]} · همهٔ اعداد از پایگاه دادهٔ زنده می‌آیند.
             </p>
           </>
+        )}
+
+        {timelineTeam && data.cycle && (
+          <TeamTimelineModal
+            team={timelineTeam}
+            cycleId={data.cycle.id}
+            cycleRunId={data.cycle.run_id}
+            open
+            onOpenChange={(o) => {
+              if (!o) setTimelineTeam(null);
+            }}
+          />
         )}
     </div>
   );
