@@ -178,11 +178,8 @@ export async function runTeam(input: DevTeamInput): Promise<TeamResult> {
   const reportLive = input.reportProgress;
   const { runId, previousWavesOutput } = input;
   const design = previousWavesOutput['design'];
-  const qa = previousWavesOutput['qa'];
   const designSummary =
     design?.summary?.trim() || 'خروجی تیم طراحی در این چرخه در دسترس نیست.';
-  const qaSummary =
-    qa?.summary?.trim() || 'گزارش باگ از تیم qa در دسترس نیست.';
 
   let knowledgeSection = '';
   try {
@@ -197,7 +194,6 @@ export async function runTeam(input: DevTeamInput): Promise<TeamResult> {
     knowledgePrefix +
     `نقشهٔ ریپو:\n${REPO_MAP}\n\n` +
     `زمینهٔ طراحی:\n${designSummary}\n\n` +
-    `باگ‌ها و نیازهای qa:\n${qaSummary}\n\n` +
     'بر اساس زمینه، تصمیم بگیر این چرخه دقیقاً چه کدی باید نوشته یا اصلاح شود. ' +
     'فقط JSON معتبر بده با این ساختار:\n' +
     '{"goal": "هدف یک‌خطی", "tasks": [{"path": "مسیر نسبی فایل", "action": "create یا modify", "instruction": "دستور دقیق فنی به مجری"}]}\n' +

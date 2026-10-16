@@ -14,23 +14,13 @@ import { Field } from '@/components/dashboard/ui/Input';
 import { SearchInput } from '@/components/dashboard/ui/search-input';
 import { Collapsible } from '@/components/dashboard/ui/collapsible';
 
-/** نام‌های فارسی خوانا برای ۱۵ تیم */
+/** نام‌های فارسی خوانا برای ۵ تیم */
 const TEAM_LABELS: Record<TeamName, string> = {
-  artdir: 'طراحی ارشد',
-  branding: 'برند',
+  leader: 'رهبر',
   content: 'محتوا',
   seo: 'سئو',
-  analytics: 'تحلیل',
-  intel: 'اطلاعات',
-  lead: 'لید',
   design: 'دیزاین',
-  seocontent: 'محتوای سئو',
-  vibefarsi: 'وایب‌فارسی',
-  farsiui: 'فارسی UI',
-  'design-ir': 'دیزاین ایرانی',
   dev: 'توسعه',
-  qa: 'کیفیت',
-  inspector: 'بازرس',
 };
 
 type TeamFilter = TeamName | 'all';

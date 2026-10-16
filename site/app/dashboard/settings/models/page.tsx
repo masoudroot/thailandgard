@@ -16,7 +16,7 @@ export default function ModelsPage() {
       <PageHeader
         icon={Bot}
         title="مدل‌های هوش مصنوعی"
-        subtitle="مدل پیش‌فرض سامانه، مدل امبدینگ و مدل هر یک از ۱۵ تیم. مدیریت درگاه‌ها در صفحه‌ی اتصال‌ها انجام می‌شود."
+        subtitle="مدل پیش‌فرض سامانه، مدل امبدینگ و مدل هر یک از ۵ تیم. مدیریت درگاه‌ها در صفحه‌ی اتصال‌ها انجام می‌شود."
         actions={
           <Link
             href="/dashboard/settings"

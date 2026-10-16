@@ -57,21 +57,11 @@ function unwrapPayload(body: unknown): unknown {
 }
 
 const TEAM_LABEL: Record<TeamName, string> = {
-  artdir: 'طراحی ارشد',
-  branding: 'برند',
+  leader: 'رهبر',
   content: 'محتوا',
   seo: 'سئو',
-  analytics: 'تحلیل',
-  intel: 'اطلاعات',
-  lead: 'لید',
   design: 'دیزاین',
-  seocontent: 'محتوای سئو',
-  vibefarsi: 'وایب‌فارسی',
-  farsiui: 'فارسی UI',
-  'design-ir': 'دیزاین ایرانی',
   dev: 'توسعه',
-  qa: 'کیفیت',
-  inspector: 'بازرس',
 };
 
 type LoadState = 'loading' | 'ready' | 'not-connected' | 'unauthorized';

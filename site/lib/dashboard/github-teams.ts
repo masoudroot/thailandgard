@@ -9,39 +9,19 @@ import type { TeamName } from './types';
 
 /** برچسب فارسی تیم‌های شناخته‌شدهٔ داشبورد. */
 export const TEAM_FA: Record<TeamName, string> = {
-  artdir: 'مدیریت هنری',
-  branding: 'برندینگ',
+  leader: 'رهبر',
   content: 'محتوا',
   seo: 'سئو',
-  analytics: 'تحلیل داده',
-  intel: 'هوشمندی',
-  lead: 'سرنخ',
   design: 'طراحی',
-  seocontent: 'محتوای سئو',
-  vibefarsi: 'وایب‌فارسی',
-  farsiui: 'رابط فارسی',
-  'design-ir': 'طراحی ایرانی',
   dev: 'توسعه',
-  qa: 'کنترل کیفیت',
-  inspector: 'بازرس',
 };
 
 export const ALL_TEAM_SLUGS: TeamName[] = [
-  'artdir',
-  'branding',
+  'leader',
   'content',
   'seo',
-  'analytics',
-  'intel',
-  'lead',
   'design',
-  'seocontent',
-  'vibefarsi',
-  'farsiui',
-  'design-ir',
   'dev',
-  'qa',
-  'inspector',
 ];
 
 /** برچسب نمایشی یک اسلاگ تیم؛ ناشناخته‌ها همان اسلاگ را نشان می‌دهند. */

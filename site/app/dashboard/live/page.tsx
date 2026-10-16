@@ -393,7 +393,7 @@ export default function LivePage() {
         <PageHeader
           icon={Activity}
           title="عملیات زنده"
-          subtitle="وضعیت لحظه‌ای ۱۵ تیم و ساب‌ایجنت‌ها؛ هر ۵ ثانیه به‌روز می‌شود"
+          subtitle="وضعیت لحظه‌ای ۵ تیم و ساب‌ایجنت‌ها؛ هر ۵ ثانیه به‌روز می‌شود"
         />
 
         {state === 'loading' && (
@@ -430,7 +430,7 @@ export default function LivePage() {
           <EmptyState
             icon={MoonStar}
             title="در حال حاضر چرخه‌ای در حال اجرا نیست"
-            description="وقتی چرخه‌ای شروع شود، وضعیت زنده‌ی هر ۱۵ تیم و ساب‌ایجنت‌هایشان همین‌جا دیده می‌شود. هیچ دادهٔ نمایشی نشان داده نمی‌شود."
+            description="وقتی چرخه‌ای شروع شود، وضعیت زنده‌ی هر ۵ تیم و ساب‌ایجنت‌هایشان همین‌جا دیده می‌شود. هیچ دادهٔ نمایشی نشان داده نمی‌شود."
             action={
               <Link
                 href="/dashboard/cycles"

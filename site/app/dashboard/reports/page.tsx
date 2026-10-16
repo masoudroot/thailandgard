@@ -73,39 +73,19 @@ interface CycleReport extends Cycle {
 }
 
 const TEAM_LABELS: Record<TeamName, string> = {
-  artdir: 'طراحی ارشد',
-  branding: 'برند',
+  leader: 'رهبر',
   content: 'محتوا',
   seo: 'سئو',
-  analytics: 'تحلیل',
-  intel: 'اطلاعات',
-  lead: 'لید',
   design: 'دیزاین',
-  seocontent: 'محتوای سئو',
-  vibefarsi: 'وایب‌فارسی',
-  farsiui: 'فارسی UI',
-  'design-ir': 'دیزاین ایرانی',
   dev: 'توسعه',
-  qa: 'کیفیت',
-  inspector: 'بازرس',
 };
 
 const ALL_TEAMS: TeamName[] = [
-  'artdir',
-  'branding',
+  'leader',
   'content',
   'seo',
-  'analytics',
-  'intel',
-  'lead',
   'design',
-  'seocontent',
-  'vibefarsi',
-  'farsiui',
-  'design-ir',
   'dev',
-  'qa',
-  'inspector',
 ];
 
 const AXIS_TITLES = [

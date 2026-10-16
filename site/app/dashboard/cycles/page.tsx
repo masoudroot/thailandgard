@@ -227,7 +227,7 @@ export default function CyclesPage() {
           <EmptyState
             icon={Inbox}
             title="هنوز چرخه‌ای ثبت نشده است"
-            description="اولین چرخه را بسازید تا پانزده تیم هوش مصنوعی در شش موج وارد صف اجرا شوند."
+            description="اولین چرخه را بسازید تا پنج تیم هوش مصنوعی در سه موج وارد صف اجرا شوند."
             action={
               <Button
                 variant="default"

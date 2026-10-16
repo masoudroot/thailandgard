@@ -44,24 +44,11 @@ function sanitize(input: string): string {
  * برای تیم‌های فارسی‌محور معادل فارسی داده شده است.
  */
 const TEAM_NEWS_QUERIES: Partial<Record<TeamName, NewsQuery[]>> = {
-  intel: [
-    { q: 'تایلند گردشگری', lang: 'fa' },
-    { q: 'Thailand tourism', lang: 'en' },
-  ],
+  leader: [{ q: 'AI agent orchestration', lang: 'en' }],
   seo: [{ q: 'Google algorithm update', lang: 'en' }],
-  seocontent: [{ q: 'SEO content strategy', lang: 'en' }],
   content: [{ q: 'content marketing', lang: 'en' }],
-  analytics: [{ q: 'marketing analytics', lang: 'en' }],
-  lead: [{ q: 'lead generation marketing', lang: 'en' }],
-  branding: [{ q: 'brand identity news', lang: 'en' }],
-  artdir: [{ q: 'art direction design trends', lang: 'en' }],
   design: [{ q: 'web design trends', lang: 'en' }],
-  vibefarsi: [{ q: 'طراحی رابط کاربری فارسی', lang: 'fa' }],
-  farsiui: [{ q: 'طراحی راست‌چین وب', lang: 'fa' }],
-  'design-ir': [{ q: 'طراحی سایت ایرانی', lang: 'fa' }],
   dev: [{ q: 'Next.js release', lang: 'en' }],
-  qa: [{ q: 'software testing news', lang: 'en' }],
-  inspector: [{ q: 'quality assurance audit', lang: 'en' }],
 };
 
 /** آیا برای این تیم منبع خبری تعریف شده است؟ */

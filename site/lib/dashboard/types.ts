@@ -1,24 +1,14 @@
 /**
  * Shared domain types for the ThailandGard agentic dashboard.
- * The 15 AI teams run in waves (wave 1 split into two) per cycle.
+ * The 5 AI teams run in 3 waves per cycle.
  */
 
 export type TeamName =
-  | 'artdir'
-  | 'branding'
+  | 'leader'
   | 'content'
   | 'seo'
-  | 'analytics'
-  | 'intel'
-  | 'lead'
   | 'design'
-  | 'seocontent'
-  | 'vibefarsi'
-  | 'farsiui'
-  | 'design-ir'
-  | 'dev'
-  | 'qa'
-  | 'inspector';
+  | 'dev';
 
 export type CycleStatus =
   | 'running'
@@ -163,34 +153,21 @@ export interface WaveDefinition {
   teams: TeamName[];
 }
 
-/** All 15 teams in canonical order. */
+/** All 5 teams in canonical order. */
 export const TEAMS: TeamName[] = [
-  'artdir',
-  'branding',
+  'leader',
   'content',
   'seo',
-  'analytics',
-  'intel',
-  'lead',
   'design',
-  'seocontent',
-  'vibefarsi',
-  'farsiui',
-  'design-ir',
   'dev',
-  'qa',
-  'inspector',
 ];
 
 /**
- * Wave plan. Originally 5 waves; wave 1 was split, so there are
- * 6 waves total across the 15 teams.
+ * Wave plan: wave 1 is leader only (builds the backlog),
+ * wave 2 is content+seo, wave 3 is design+dev.
  */
 export const WAVES: WaveDefinition[] = [
-  { wave: 1, teams: ['artdir', 'branding', 'content'] },
-  { wave: 2, teams: ['analytics', 'intel', 'lead'] },
-  { wave: 3, teams: ['design', 'seo', 'seocontent'] },
-  { wave: 4, teams: ['design-ir', 'dev', 'farsiui'] },
-  { wave: 5, teams: ['vibefarsi', 'qa'] },
-  { wave: 6, teams: ['inspector'] },
+  { wave: 1, teams: ['leader'] },
+  { wave: 2, teams: ['content', 'seo'] },
+  { wave: 3, teams: ['design', 'dev'] },
 ];

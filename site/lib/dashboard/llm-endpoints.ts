@@ -64,21 +64,11 @@ export interface ResolvedTeamLLM {
 
 /** نام فارسی هر تیم برای نمایش در تنظیمات. */
 export const TEAM_FA_NAMES: Record<TeamName, string> = {
-  artdir: 'راهنمای هنری',
-  branding: 'برندینگ',
+  leader: 'رهبر',
   content: 'محتوا',
   seo: 'سئو',
-  analytics: 'تحلیل داده',
-  intel: 'اطلاعات بازار',
-  lead: 'لید و فروش',
   design: 'طراحی',
-  seocontent: 'محتوای سئو',
-  vibefarsi: 'وایب‌فارسی',
-  farsiui: 'رابط فارسی',
-  'design-ir': 'طراحی ایرانی',
   dev: 'توسعه',
-  qa: 'کنترل کیفیت',
-  inspector: 'بازرس',
 };
 
 /** ماسک کلید: sk-...abcd */
