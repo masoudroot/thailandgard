@@ -28,7 +28,8 @@ interface KnowledgeDetailDialogProps {
 
 /**
  * مودال «مشاهدهٔ کامل دانش».
- * متن کامل از جدیدترین نسخهٔ تاریخچه خوانده می‌شود (همان مسیری که ویرایش استفاده می‌کند).
+ * متن کامل اول از جدیدترین نسخهٔ تاریخچه خوانده می‌شود (همان مسیری که ویرایش استفاده می‌کند)؛
+ * اگر تاریخچه‌ای نباشد (آیتم‌های ثبت‌شده توسط ایجنت‌ها)، از خود آیتم خوانده می‌شود.
  * تایپوگرافی فارسی: خط‌به‌خط خوانا، فاصلهٔ سطر باز، بدون برش متن.
  */
 export default function KnowledgeDetailDialog({
@@ -52,29 +53,59 @@ export default function KnowledgeDetailDialog({
       return;
     }
     let cancelled = false;
+    const id = itemId;
     setLoading(true);
     setContent(null);
     setError(null);
     setTitle(fallbackTitle);
-    fetch(`/api/knowledge/${encodeURIComponent(itemId)}/history`)
-      .then((r) => r.json().catch(() => null))
-      .then((json: { ok?: boolean; data?: { versions?: HistoryVersion[] } } | null) => {
-        if (cancelled) return;
+
+    async function load() {
+      // ۱. تاریخچه (همان مسیری که ویرایش استفاده می‌کند).
+      try {
+        const r = await fetch(`/api/knowledge/${encodeURIComponent(id)}/history`);
+        const json = (await r.json().catch(() => null)) as {
+          ok?: boolean;
+          data?: { versions?: HistoryVersion[] };
+        } | null;
         const versions = json?.ok ? (json.data?.versions ?? []) : [];
-        const latest = versions.find((v) => v.action === "create" || v.action === "update");
-        if (latest) {
-          setTitle(latest.title || fallbackTitle);
-          setContent(latest.content || "");
-        } else {
+        const latest = versions.find(
+          (v) => v.action === "create" || v.action === "update",
+        );
+        if (latest?.content) {
+          if (!cancelled) {
+            setTitle(latest.title || fallbackTitle);
+            setContent(latest.content);
+          }
+          return;
+        }
+      } catch {
+        // ادامه به مسیر جایگزین
+      }
+      // ۲. جایگزین: خود آیتم از team_knowledge (همیشه متن کامل دارد؛
+      // آیتم‌هایی که مستقیم توسط ایجنت‌ها ثبت شده‌اند تاریخچه ندارند).
+      try {
+        const r = await fetch(`/api/knowledge/${encodeURIComponent(id)}`);
+        const json = (await r.json().catch(() => null)) as {
+          ok?: boolean;
+          data?: { item?: { title?: string; content?: string } };
+        } | null;
+        const item = json?.ok ? json.data?.item : null;
+        if (item?.content) {
+          if (!cancelled) {
+            setTitle(item.title || fallbackTitle);
+            setContent(item.content);
+          }
+        } else if (!cancelled) {
           setError("متن کامل این دانش پیدا نشد.");
         }
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setError("خواندن متن کامل ناموفق بود. اتصال را بررسی کنید.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      }
+    }
+
+    void load().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
     return () => {
       cancelled = true;
     };
@@ -87,9 +118,18 @@ export default function KnowledgeDetailDialog({
         if (!o) onClose();
       }}
       title={
-        <span className="flex items-center gap-2">
-          <BookOpenText size={18} aria-hidden="true" className="shrink-0 text-brand" />
-          <span className="leading-8">{title}</span>
+        <span className="flex items-start gap-2.5">
+          <BookOpenText
+            size={20}
+            aria-hidden="true"
+            className="mt-1.5 shrink-0 text-brand"
+          />
+          <span
+            dir="auto"
+            className="text-balance text-lg font-bold leading-9 text-foreground"
+          >
+            {title}
+          </span>
         </span>
       }
       className="max-w-2xl"

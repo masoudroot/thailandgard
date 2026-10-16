@@ -26,20 +26,24 @@ interface Category {
 }
 
 /**
- * GET /api/knowledge/[team]: دانش یک تیم با درخت دسته‌ها.
+ * GET /api/knowledge/[id]: دو حالت
+ * ۱) اگر id نام یک تیم معتبر باشد: دانش یک تیم با درخت دسته‌ها.
  * خروجی: { ok, data: { team, faName, mission,
  *   categories: [{ id, name, parent_id, items: [{ id, title, snippet, source, updated_at }] }],
  *   uncategorized: [...] } }
- * slug نامعتبر: ۴۰۰ با پیام فارسی.
+ * ۲) در غیر این صورت اگر UUID معتبر باشد: یک دانش با متن کامل.
+ * خروجی: { ok, data: { item: { id, title, content, category_id, source, updated_at } } }
+ * slug/شناسه نامعتبر: ۴۰۰ با پیام فارسی.
  */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const team = (await params).id;
-  if (!isValidTeam(team)) {
-    return fail('تیم نامعتبر است.', 400);
+  const id = (await params).id;
+  if (!isValidTeam(id)) {
+    return getSingleItem(id);
   }
+  const team = id;
 
   try {
     const sb = getSupabase();
@@ -100,6 +104,30 @@ export async function GET(
       categories: ordered,
       uncategorized,
     });
+  } catch (err) {
+    return fail(err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
+ * خواندن یک دانش با متن کامل (برای مودال «مشاهدهٔ کامل»).
+ * آیتم‌هایی که مستقیم توسط ایجنت‌ها ثبت شده‌اند تاریخچه ندارند،
+ * پس این مسیر جایگزینِ مطمئنِ خواندن متن کامل است.
+ */
+async function getSingleItem(id: string): Promise<Response> {
+  if (!isKnowledgeId(id)) {
+    return fail('تیم یا شناسه دانش نامعتبر است.', 400);
+  }
+  try {
+    const sb = getSupabase();
+    const { data, error } = await sb
+      .from('team_knowledge')
+      .select('id,title,content,category_id,source,updated_at')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) return fail(`خواندن دانش ناموفق بود: ${error.message}`);
+    if (!data) return fail('دانش پیدا نشد.', 404);
+    return ok({ item: data });
   } catch (err) {
     return fail(err instanceof Error ? err.message : String(err));
   }
