@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 /*
- * تم graphite-soft تایلندگرد.
- * زبان طراحی گرافیت (خط مویی ۱px، بدون سایهٔ سنگین، گوشه‌های ۸/۲۲،
- * حرکت ۲۰۰ms، لهجهٔ کهربایی) روی پالت روشنِ ملایم.
+ * تم برند تایلندگرد ۱.۰ (سند برند، ۲۴ مهر ۱۴۰۵).
+ * پالت: سبز عمیق #104C46 (اصلی)، کرم روشن #F6F2E8 (پس‌زمینه)،
+ * طلایی گرم #C49A4A و فیروزه‌ای #248D85 (مکمل)، ذغالی سبز #24312F (متن).
+ * زبان طراحی گرافیت حفظ شد (خط مویی ۱px، گوشه‌های ۸/۲۲، حرکت ۲۰۰ms).
  */
 :root {
   color-scheme: light;
 
-  /* رنگ‌ها */
-  --background: oklch(0.982 0.0035 90);
-  --foreground: oklch(0.245 0.004 90);
-  --card: oklch(0.993 0.002 90);
-  --card-foreground: oklch(0.245 0.004 90);
-  --popover: oklch(0.993 0.002 90);
-  --popover-foreground: oklch(0.245 0.004 90);
-  --primary: oklch(0.27 0.006 90);
-  --primary-foreground: oklch(0.985 0.003 90);
-  --secondary: oklch(0.94 0.006 90);
-  --secondary-foreground: oklch(0.27 0.005 90);
-  --muted: oklch(0.955 0.005 90);
-  --muted-foreground: oklch(0.46 0.008 90);
-  --accent: oklch(0.925 0.012 90);
-  --accent-foreground: oklch(0.27 0.005 90);
+  /* رنگ‌ها: پالت برند */
+  --background: #F6F2E8;
+  --foreground: #24312F;
+  --card: #FFFFFF;
+  --card-foreground: #24312F;
+  --popover: #FFFFFF;
+  --popover-foreground: #24312F;
+  --primary: #104C46;
+  --primary-foreground: #F6F2E8;
+  --secondary: #E7EDEA;
+  --secondary-foreground: #104C46;
+  --muted: #ECE7D9;
+  --muted-foreground: #5C6E6A;
+  --accent: #DCE9E4;
+  --accent-foreground: #104C46;
   --destructive: oklch(0.57 0.19 28);
   --destructive-foreground: oklch(0.985 0.003 90);
   --success: oklch(0.62 0.14 155);
@@ -31,15 +32,29 @@
      روی background به‌ترتیب ۴٫۸۳:۱ و ۴٫۷:۱ می‌دهند (حد AA برای متن ۴٫۵:۱) */
   --success-text: oklch(0.52 0.14 155);
   --warning-text: oklch(0.55 0.15 75);
-  --border: oklch(0.25 0.006 90 / 12%);
-  --input: oklch(0.25 0.006 90 / 18%);
-  --ring: oklch(0.72 0.15 62);
-  --brand: oklch(0.74 0.155 62);
-  --brand-foreground: oklch(0.26 0.02 60);
+  --border: #24312F24;
+  --input: #24312F33;
+  --ring: #248D85;
+  /* لهجهٔ برند: طلایی گرم (مکمل)؛ متن روی آن سبز عمیق */
+  --brand: #C49A4A;
+  --brand-foreground: #104C46;
+
+  /* پالت برند تایلندگرد ۱.۰ (سند برند، ۲۴ مهر ۱۴۰۵):
+     سبز عمیق رنگ اصلی است (لوگو، تیتر، CTA)؛ کرم پس‌زمینه؛
+     طلایی و فیروزه‌ای فقط مکمل‌اند.
+     قاعده‌ها: طلایی/فیروزه‌ای هرگز برای متن ریز روی زمینه روشن؛
+     نسبت پیشنهادی ۶۵٪ سفید/کرم، ۲۵٪ سبز، ۷٪ فیروزه‌ای، ۳٪ طلایی. */
+  --brand-deep: #104C46;
+  --brand-deep-foreground: #F6F2E8;
+  --brand-cream: #F6F2E8;
+  --brand-gold: #C49A4A;
+  --brand-teal: #248D85;
+  --brand-ink: #24312F;
 
   /* توکن‌های قاب عکس (بریف artdir، اسپک s002، ۲۰ مهر ۱۴۰۵):
      ماسک گرادیان از پایین برای متن روی عکس + گرادیان تایپوگرافیک
      برای نقاط بی‌عکس. هیچ رنگ خامی؛ همه از توکن‌های تم.
+     (۲۴ مهر ۱۴۰۵: پایهٔ ماسک‌ها از خاکستری خنثی به کرم برند #F6F2E8 آمد.)
      D-101: پوشش تا ۹۰٪ کش آمد چون ردیف بج/متا (بالای اورلی) روی
      عکس بی‌ماسک «گوست» می‌شد؛ سقف شدت ۷۰٪ (حکم ۶ design-ir) سر جاست.
      D-161: میانهٔ گرادیان یکنواخت‌تر شد (۰٫۲۵ در ۴۵٪ شد ۰٫۳۸ در ۴۲٪ و
@@ -47,20 +62,20 @@
      (مثل آسمان کرابی) هم تکیه‌گاه داشته باشد؛ سقف ۷۰٪ و شفافیت
      بالای قاب دست نخورد. */
   --frame-mask-card: linear-gradient(to top,
-    oklch(0.982 0.0035 90 / 0.7) 0%,
-    oklch(0.982 0.0035 90 / 0.38) 42%,
-    oklch(0.982 0.0035 90 / 0.2) 65%,
+    #F6F2E8B3 0%,
+    #F6F2E861 42%,
+    #F6F2E833 65%,
     transparent 88%);
 
   --frame-mask-deep: linear-gradient(to top,
-    oklch(0.982 0.0035 90) 0%,
-    oklch(0.982 0.0035 90 / 0.82) 30%,
-    oklch(0.982 0.0035 90 / 0.35) 62%,
+    #F6F2E8 0%,
+    #F6F2E8D1 30%,
+    #F6F2E859 62%,
     transparent 92%);
 
   --frame-typographic: linear-gradient(155deg,
-    oklch(0.993 0.002 90) 0%,
-    oklch(0.955 0.005 90) 100%);
+    #FFFFFF 0%,
+    #ECE7D9 100%);
 
   /* زبان طراحی: فونت، فرم، خط، عمق، حرکت */
   --radius: 0.625rem;
@@ -71,12 +86,12 @@
   --shape-overlay: calc(var(--radius) + 4px);
   --line: 1px;
   --line-field: 1px;
-  --field: oklch(0.975 0.003 90);
+  --field: #FBF9F3;
   --depth-control: 0 0 #0000;
   --depth-press: 0 0 #0000;
   --depth-field: 0 0 #0000;
   --depth-surface: 0 0 #0000;
-  --depth-overlay: 0 24px 60px -24px oklch(0.25 0.01 90 / 30%);
+  --depth-overlay: 0 24px 60px -24px #24312F4D;
   --press: scale(0.98);
   --motion: 200ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
@@ -114,6 +129,12 @@
   --color-ring: var(--ring);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  /* نگاشت کامل پالت برند ۱.۰ به یوتیلیتی‌ها (۲۴ مهر ۱۴۰۵) */
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-ink: var(--brand-ink);
   --color-field: var(--field);
 
   /* نگاشت توکن‌های قاب عکس به یوتیلیتی‌های background-image (اسپک s002) */
@@ -141,6 +162,7 @@
   --spacing-sticky-bar-clearance: var(--sticky-bar-clearance);
   --spacing-sticky-bar-october-clearance: var(--sticky-bar-october-clearance);
   --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  /* تیترها پینار می‌ماند (تصمیم مسعود، ۲۴ مهر ۱۴۰۵)؛ فقط رنگ‌ها به پالت برند آمد */
   --font-display: var(--font-pinar), var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
 
   /* حرکت اسکلت: sweep براقیت راست‌به‌چپ + نبض نرم (زیر prefers-reduced-motion صفر می‌شوند) */
@@ -280,8 +302,8 @@ h3,
   }
 }
 
-/* D-012: حلقهٔ focus-visible کهربایی یکدست برای لینک‌های تعاملی.
- * دکمه‌ها و فیلدها حلقهٔ خود را از روی کلاس‌ها دارند (ring-ring = توکن کهربایی)؛
+/* D-012: حلقهٔ focus-visible یکدست برای لینک‌های تعاملی.
+ * دکمه‌ها و فیلدها حلقهٔ خود را از روی کلاس‌ها دارند (ring-ring = توکن فیروزه‌ای برند)؛
  * این قانون فقط لینک‌های متنی را پوشش می‌دهد و با :where اولویت صفر دارد. */
 :where(a[href]):focus-visible {
   outline: 2px solid var(--ring);
@@ -289,7 +311,7 @@ h3,
   border-radius: var(--radius-control);
 }
 
-/* رنگ انتخاب متن (D-367، نبض دیزاین): توکن برند؛ متن تیره روی کهربایی خواناست
+/* رنگ انتخاب متن (D-367، نبض دیزاین): توکن برند؛ متن سبز عمیق روی طلایی خواناست
  * و هویت بصری سایت در حالت انتخاب هم حفظ می‌شود. */
 ::selection {
   background: var(--brand);
@@ -297,9 +319,10 @@ h3,
 }
 
 /* هایلایت لمس موبایل (D-413، نبض دیزاین): پیش‌فرض مرورگر روی تپ، فلش
- * خاکستری می‌زند و زبان graphite را می‌شکست؛ حالا کهربایی کم‌رنگِ توکن برند. */
+ * خاکستری می‌زند و زبان برند را می‌شکست؛ حالا طلایی کم‌رنگِ توکن برند
+ * (۲۴ مهر ۱۴۰۵: مهاجرت به پالت برند). */
 html {
-  -webkit-tap-highlight-color: oklch(0.74 0.155 62 / 0.18);
+  -webkit-tap-highlight-color: #C49A4A2E;
 }
 
 /* اسکرول‌بار (D-427، نبض دیزاین): پیش‌فرض سیستم (آبی ویندوز/خاکستری تیره)
@@ -310,7 +333,8 @@ html {
 }
 
 /* کرت ورودی متن (D-428، نبض دیزاین): کرت پیش‌فرض مرورگر مشکی/خام بود؛
- * حالا کهربایی توکن برند تا در فرم تماس هم هویت بصری حفظ شود. */
+ * حالا طلایی توکن برند تا در فرم تماس هم هویت بصری حفظ شود
+ * (۲۴ مهر ۱۴۰۵: مهاجرت به پالت برند). */
 input:not([type="checkbox"]):not([type="radio"]),
 textarea {
   caret-color: var(--brand);

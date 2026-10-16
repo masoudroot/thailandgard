@@ -17,6 +17,7 @@ import { Phone } from "lucide-react";
 import { Navbar } from "@/components/blocks/navbar";
 import { AnnouncementMarquee } from "@/components/site/AnnouncementMarquee";
 import { FooterBlock } from "@/components/blocks/footer";
+import { LogoMark } from "@/components/site/LogoMark";
 import { CallTracker } from "@/components/call-tracker";
 import type { SiteSettings } from "@/lib/db-content";
 import type { Tour } from "@/lib/tours";
@@ -81,6 +82,7 @@ export function SiteChrome({ settings: s, tours, children }: SiteChromeProps) {
       <Navbar
         logo={
           <span className="flex items-center gap-2">
+            <LogoMark size={32} />
             <span className="font-display text-lg">{s.SITE_NAME}</span>
             <span className="rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-semibold text-brand-foreground">
               {s.SITE_SLOGAN}
@@ -95,7 +97,12 @@ export function SiteChrome({ settings: s, tours, children }: SiteChromeProps) {
       {/* D-359: div است نه main؛ صفحه‌ها خودشان یک main دارند و دو لندمارک main پشت‌سرهم برای صفحه‌خوان ممنوع است */}
       <div id="main-content" tabIndex={-1} className="flex-1 scroll-mt-24">{children}</div>
       <FooterBlock
-        logo={<span className="font-display">{s.SITE_NAME} | {s.SITE_LATIN}</span>}
+        logo={
+          <span className="flex items-center gap-2">
+            <LogoMark size={28} />
+            <span className="font-display">{s.SITE_NAME} | {s.SITE_LATIN}</span>
+          </span>
+        }
         description={`${s.SITE_TAGLINE}. فروش ما فقط تلفنی است؛ هیچ پرداخت آنلاینی نداریم.`}
         columns={[
           {
