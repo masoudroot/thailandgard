@@ -2,11 +2,6 @@ import { twMerge } from "tailwind-merge";
 
 export type ClassValue = string | number | bigint | null | undefined | false | ClassValue[];
 
-/**
- * Merge class names, Tailwind-aware: conflicting classes are resolved so the
- * LATER input wins (e.g. cn("p-5 pt-0", "p-4") -> "p-4"), instead of relying on
- * CSS cascade order. (This is the clsx + tailwind-merge pattern the old comment promised.)
- */
 export function cn(...inputs: ClassValue[]): string {
   const out: string[] = [];
   const push = (i: ClassValue): void => {
@@ -19,6 +14,71 @@ export function cn(...inputs: ClassValue[]): string {
   };
   for (const i of inputs) push(i);
   return twMerge(out.join(" "));
+}
+
+export function formatPrice(amount: number, currency: 'IRR' | 'TOMAN' | 'THB' = 'TOMAN'): string {
+  if (isNaN(amount)) return '۰';
+  
+  let formatted = '';
+  
+  switch (currency) {
+    case 'THB':
+      formatted = `${amount.toLocaleString('en-US')} بات`;
+      break;
+    case 'IRR':
+      formatted = `${amount.toLocaleString('en-US')} ریال`;
+      break;
+    case 'TOMAN':
+    default:
+      formatted = `${amount.toLocaleString('en-US')} تومان`;
+      break;
+  }
+
+  return toPersianNumbers(formatted);
+}
+
+export function toPersianNumbers(str: string | number): string {
+  if (str === null || str === undefined) return '';
+  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return str.toString().replace(/\d/g, (match) => persianDigits[parseInt(match, 10)]);
+}
+
+export function toEnglishNumbers(str: string): string {
+  if (!str) return '';
+  const persianDigits: { [key: string]: string } = {
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+  };
+  return str.replace(/[۰-۹]/g, (match) => persianDigits[match] || match);
+}
+
+export function formatDate(dateString: string, options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' }): string {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    const formatter = new Intl.DateTimeFormat('fa-IR', options);
+    return formatter.format(date);
+  } catch (e) {
+    return dateString;
+  }
+}
+
+export function truncateText(text: string, maxLength: number = 100): string {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+}
+
+export function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u0600-\u06FF\-]+/g, '')
+    .replace(/\-\-+/g, '-');
 }
 
 const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
@@ -38,30 +98,7 @@ export function faNumber(value: number): string {
   return fa(Math.round(value).toLocaleString("en-US")).replace(/,/g, "٬");
 }
 
-/** Amount in toman with unit: 12450000 -> ۱۲٬۴۵۰٬۰۰۰ تومان */
-export function formatToman(value: number): string {
-  return `${faNumber(value)} تومان`;
-}
-
 /** Percent with Persian digits and the Persian percent sign: 18 -> ۱۸٪ */
 export function faPercent(value: number, digits = 0): string {
   return `${fa(value.toFixed(digits))}٪`;
-}
-
-/** File size in Persian: 1258291 -> ۱٫۲ مگابایت */
-export function faFileSize(bytes: number): string {
-  if (bytes < 1024) return `${fa(bytes)} بایت`;
-  if (bytes < 1024 ** 2) return `${fa((bytes / 1024).toFixed(0))} کیلوبایت`;
-  return `${fa((bytes / 1024 ** 2).toFixed(1)).replace(".", "٫")} مگابایت`;
-}
-
-/** Deterministic PRNG; same seed → same sequence. Returns a function yielding [0, 1). sequence: mulberry32(1)() -> 0.627... */
-export function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }
