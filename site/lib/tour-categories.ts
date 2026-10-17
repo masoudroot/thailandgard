@@ -1489,15 +1489,17 @@ export function getCategoryTours(
     matched = tours.filter((t) => t.active);
   }
 
-  return matched.sort((a, b) => {
-    const aFresh = isPriceFresh(a.priceFrom, a.priceUpdatedAt, now);
-    const bFresh = isPriceFresh(b.priceFrom, b.priceUpdatedAt, now);
-    if (aFresh !== bFresh) return aFresh ? -1 : 1;
-    if (a.priceFrom == null && b.priceFrom == null) return 0;
-    if (a.priceFrom == null) return 1;
-    if (b.priceFrom == null) return -1;
-    return a.priceFrom - b.priceFrom;
-  });
+  return matched
+    .map((t) => ({ ...t, priceFresh: isPriceFresh(t.priceFrom, t.priceUpdatedAt, now) }))
+    .sort((a, b) => {
+      const aFresh = a.priceFresh ?? false;
+      const bFresh = b.priceFresh ?? false;
+      if (aFresh !== bFresh) return aFresh ? -1 : 1;
+      if (a.priceFrom == null && b.priceFrom == null) return 0;
+      if (a.priceFrom == null) return 1;
+      if (b.priceFrom == null) return -1;
+      return a.priceFrom - b.priceFrom;
+    });
 }
 
 /**

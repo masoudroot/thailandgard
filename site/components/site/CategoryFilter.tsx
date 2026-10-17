@@ -25,13 +25,16 @@ const PRICE_BUCKETS: { key: PriceBucket; label: string; test: (price: number) =>
   { key: "over80", label: "بالای ۸۰ میلیون", test: (p) => p > 80 * MILLION },
 ];
 
-/** قیمت «به‌روز» یعنی در ۷ روز اخیر به‌روزرسانی شده باشد (همان قاعدهٔ lib/tours). */
-const FRESH_MS = 7 * 24 * 60 * 60 * 1000;
-
+/**
+ * تازگی قیمت از روی فیلد سرورمحاسبه‌شده می‌خوانیم (۲۶ مهر ۱۴۰۵؛ فیکس بیلد ورسل):
+ * صدا زدن Date.now در رندر کامپوننت کلاینتی با cacheComponents بیلد استاتیک
+ * را قرمز می‌کند («unstable value Date.now in a Client Component»).
+ * سرور داخل «use cache» (getCategoryToursCached) همین مقدار را محاسبه و در
+ * فیلد priceFresh هر تور می‌نشاند؛ این‌جا فقط می‌خوانیم. با هر دیپلوی تازه
+ * محاسبه می‌شود که با ریتم انتشار پیوسته همان تازگی موردنظر است.
+ */
 function isPriceFresh(tour: Tour): boolean {
-  if (tour.priceFrom == null || !tour.priceUpdatedAt) return false;
-  const ms = Date.now() - new Date(tour.priceUpdatedAt).getTime();
-  return ms >= 0 && ms <= FRESH_MS;
+  return tour.priceFresh ?? false;
 }
 
 /** مرتب‌سازی: قیمت به‌روز اول، بعد ارزان‌تر، بی‌قیمت آخر. */
