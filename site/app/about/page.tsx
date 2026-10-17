@@ -4,7 +4,7 @@ import { StepsBlock } from "@/components/blocks/steps-block";
 import { AboutHero } from "@/components/site/AboutHero";
 import { AboutConcerns, AboutPromises, AboutWhyThailand, AboutWhoWeAre } from "@/components/site/AboutSections";
 import { AboutCta } from "@/components/site/AboutCta";
-import { getSiteSettings, getSitemapRows } from "@/lib/db-content";
+import { getSiteSettings, getGuides } from "@/lib/db-content";
 import { GUIDES } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
 import { defaultOgImages } from "@/lib/og";
@@ -78,9 +78,11 @@ const JOURNEY_STEPS = [
 
 export default async function AboutPage() {
   const s = await getSiteSettings();
-  // تعداد واقعی راهنماها (شاهد سکشن ۴): خوانش زنده از DB؛ اگر DB در دسترس
+  // تعداد واقعی راهنماها (شاهد سکشن ۴): خوانش کش‌شده از DB؛ اگر DB در دسترس
   // نبود، همان فالبک کامیت‌شدهٔ lib/guides (همه یا هیچ، الگوی db-content).
-  const { guides } = await getSitemapRows();
+  // نکته: getSitemapRows عمداً 'use cache' ندارد (برای تازگی sitemap.xml) و
+  // با ensureStatic='navigation' بیلد را می‌شکند؛ پس اینجا getGuides می‌خوانیم.
+  const guides = await getGuides();
   const guideCount = guides.length > 0 ? guides.length : GUIDES.length;
 
   const breadcrumbJsonLd = {
