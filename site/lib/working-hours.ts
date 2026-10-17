@@ -1,6 +1,7 @@
 /**
- * ساعت کاری تایلندگرد (منطقهٔ زمانی تهران): شنبه تا پنجشنبه، ۹ صبح تا ۹ شب.
- * جمعه تعطیل است. این منطقِ واحد هم در فرم درخواست تماس (CallbackForm) و هم
+ * ساعت کاری تایلندگرد (منطقهٔ زمانی تهران): شنبه تا پنجشنبه ۹ صبح تا ۹ شب،
+ * جمعه ۱۰ صبح تا ۶ عصر. (وایرفریم صفحهٔ تماس فاز ۵: «ساعات واقعی».)
+ * این منطقِ واحد هم در فرم درخواست تماس (CallbackForm) و هم
  * در رفتار خارج‌ساعتِ لینک‌های tel: (اسپک موبایل تور ترکیبی، قلم ۳) به کار
  * می‌رود تا «همان منطق isWithinWorkingHours فرم» در همه‌جا یکی باشد.
  *
@@ -34,23 +35,26 @@ function tehranParts(now: Date): { hour: number; weekday: string } {
   };
 }
 
-/** داخل ساعت کاری هستیم؟ (شنبه تا پنجشنبه، ۹ تا ۲۱ به وقت تهران) */
+/** داخل ساعت کاری هستیم؟ (شنبه تا پنجشنبه ۹ تا ۲۱؛ جمعه ۱۰ تا ۱۸، به وقت تهران) */
 export function isWithinWorkingHours(now: Date = new Date()): boolean {
   const { hour, weekday } = tehranParts(now);
-  // جمعه = تعطیل؛ بقیهٔ روزها فقط ۹ تا ۲۱
-  return weekday !== "Fri" && hour >= 9 && hour < 21;
+  if (weekday === "Fri") return hour >= 10 && hour < 18;
+  return hour >= 9 && hour < 21;
 }
 
 /**
  * نام فارسی روزی که قول تماس برایش داده می‌شود (حکم ۱۶ design-ir).
  * فقط وقتی صدا زده می‌شود که خارج از ساعت کاری هستیم:
- * - جمعه (هر ساعتی) ← شنبه
+ * - جمعه قبل از ۱۰ ← همان جمعه؛ جمعه از ۱۸ به بعد ← شنبه
  * - شبِ روزهای کاری (۲۱ به بعد) ← فردا؛ اگر فردا جمعه بود ← شنبه
  * - صبحِ زود روزهای کاری (قبل از ۹) ← همان امروز
  */
 export function nextCallbackDayName(now: Date = new Date()): string {
   const { hour, weekday } = tehranParts(now);
-  if (weekday === "Fri") return FA_DAY_NAMES.Sat;
+  if (weekday === "Fri") {
+    if (hour < 10) return FA_DAY_NAMES.Fri;
+    return FA_DAY_NAMES.Sat; // از ۱۸ به بعد جمعه
+  }
   if (hour < 9) return FA_DAY_NAMES[weekday] ?? "شنبه";
   let next = WEEK_ORDER[(WEEK_ORDER.indexOf(weekday as (typeof WEEK_ORDER)[number]) + 1) % 7];
   if (next === "Fri") next = "Sat";

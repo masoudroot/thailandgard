@@ -29,10 +29,14 @@ export function SmartTelLink({
     if (isWithinWorkingHours()) return;
     e.preventDefault();
     clarityEvent("tel_outside_hours_redirect", { context: callContext });
-    const form = document.getElementById("callback");
+    // صفحهٔ تماس فاز ۵: فرم «contact-form»؛ صفحات قدیمی‌تر «callback».
+    const form =
+      document.getElementById("contact-form") ?? document.getElementById("callback");
     if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
     // پیام «خارج از ساعت کاری» بالای فرم برای صفحه‌خوان‌ها فوکس می‌شود
-    const notice = document.getElementById("callback-hours-notice");
+    const notice =
+      document.getElementById("contact-hours-notice") ??
+      document.getElementById("callback-hours-notice");
     if (notice) {
       notice.setAttribute("tabindex", "-1");
       notice.focus({ preventScroll: true });

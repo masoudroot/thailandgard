@@ -15,6 +15,8 @@ export interface CallbackRequest {
   tourSlug?: string;
   source?: string;
   preferredCallTime?: string;
+  /** متن پیام فرم تماس (صفحهٔ /contact)؛ در ستون message جدول leads می‌نشیند. */
+  message?: string;
   createdAt: string;
 }
 
@@ -56,6 +58,8 @@ class SupabaseCallbackStore implements CallbackStore {
         phone: request.mobile,
         tour_slug: request.tourSlug ?? null,
         source: request.source ?? "site-form",
+        // پیام فرم تماس؛ قرارداد منبع: CallbackForm خالی می‌فرستد (null می‌شود)
+        message: request.message ?? null,
       }),
     });
     if (!res.ok) {
