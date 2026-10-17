@@ -1,0 +1,1 @@
+{"name":"thailandgard","private":true,"scripts":{"build":"npm run build --workspace=site","dev":"npm run dev --workspace=site","start":"npm run start --workspace=site"},"version":"0.1.0","workspaces":["site"]}
