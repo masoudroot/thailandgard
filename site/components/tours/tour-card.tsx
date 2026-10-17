@@ -1,131 +1,136 @@
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, CalendarDays, MapPin, Star } from "lucide-react";
+'use client';
 
-interface TourCardProps {
-  /** شناسهٔ یکتای تور */
+import React from 'react';
+import Image from 'next/image';
+import { Star, Clock, MapPin, ArrowLeft } from 'lucide-react';
+
+export interface TourSummary {
   id: string;
-  /** عنوان تور */
   title: string;
-  /** مقصد (شهر یا منطقه) */
   destination: string;
-  /** نشانی تصویر تور */
-  image: string;
-  /** تعداد روزهای سفر */
   durationDays: number;
-  /** تعداد شب‌های سفر */
-  durationNights?: number;
-  /** قیمت به تومان (هر نفر) */
   price: number;
-  /** امتیاز تور از ۵ */
-  rating: number;
-  /** تعداد دیدگاه‌های ثبت‌شده */
-  reviewsCount?: number;
-  /** نامک صفحهٔ جزئیات تور */
+  oldPrice?: number;
+  rating?: number;
+  image: string;
   slug: string;
 }
 
-const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-
-function toPersianDigits(value: number | string): string {
-  return String(value).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
+export interface TourCardProps {
+  tour: TourSummary;
+  onCTA?: (slug: string) => void;
+  variant?: 'default' | 'compact';
 }
 
-function formatToman(price: number): string {
-  return price
-    .toLocaleString("en-US")
-    .replace(/,/g, "٬")
-    .replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
+function toPersianDigits(num: number | string): string {
+  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return num
+    .toString()
+    .replace(/\d/g, (x) => persianDigits[parseInt(x, 10)]);
 }
 
-function formatRating(rating: number): string {
-  return toPersianDigits(rating.toFixed(1)).replace(".", "٫");
+function formatPrice(amount: number): string {
+  const formatted = amount.toLocaleString('en-US');
+  return toPersianDigits(formatted);
 }
 
 export function TourCard({
-  id,
-  title,
-  destination,
-  image,
-  durationDays,
-  durationNights,
-  price,
-  rating,
-  reviewsCount,
-  slug,
+  tour,
+  onCTA,
+  variant = 'default',
 }: TourCardProps) {
-  const durationText =
-    durationNights !== undefined
-      ? `${toPersianDigits(durationDays)} روز و ${toPersianDigits(durationNights)} شب`
-      : `${toPersianDigits(durationDays)} روز`;
+  const handleCardClick = () => {
+    if (onCTA) {
+      onCTA(tour.slug);
+    }
+  };
+
+  const isCompact = variant === 'compact';
 
   return (
-    <article
-      aria-labelledby={`tour-${id}-title`}
-      className="flex h-full flex-col overflow-hidden rounded-[22px] border bg-background transition-colors duration-200 hover:border-foreground/25"
+    <div
+      onClick={handleCardClick}
+      className={`group relative flex flex-col overflow-hidden rounded-[22px] border border-border bg-background transition-all duration-200 hover:border-muted-foreground/50 cursor-pointer`}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden">
+      {/* Image Container */}
+      <div
+        className={`relative w-full overflow-hidden bg-muted ${
+          isCompact ? 'h-40' : 'h-52'
+        }`}
+      >
         <Image
-          src={image}
-          alt={title}
+          src={tour.image}
+          alt={tour.title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover"
+          className="object-cover transition-transform duration-200 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 33vw"
         />
-        <span className="absolute top-3 end-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium text-foreground">
-          <Star
-            className="size-3.5 fill-amber-500 text-amber-500"
-            aria-hidden="true"
-          />
-          {formatRating(rating)}
-        </span>
-        <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-muted/95 px-2.5 py-1 text-xs text-muted-foreground">
-          <MapPin className="size-3.5" aria-hidden="true" />
-          {destination}
-        </span>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-4 p-5 font-iransans">
-        <div className="flex flex-col gap-2">
-          <h3
-            id={`tour-${id}-title`}
-            className="font-pinar text-lg font-bold leading-8 text-foreground"
-          >
-            {title}
-          </h3>
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
-            <span>{durationText}</span>
-          </p>
-        </div>
-
-        <div role="separator" aria-orientation="horizontal" className="border-t" />
-
-        <div className="flex flex-1 items-end justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground">قیمت هر نفر</span>
-            <span className="font-pinar text-base font-bold text-foreground">
-              {formatToman(price)}
-              <span className="ms-1 text-xs font-normal text-muted-foreground">
-                تومان
-              </span>
-            </span>
+        {tour.destination && (
+          <div className="absolute top-3 start-3 flex items-center gap-1 rounded-full bg-background/90 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+            <MapPin className="h-3.5 w-3.5 text-amber-500" />
+            <span>{tour.destination}</span>
           </div>
-          {reviewsCount !== undefined && (
-            <span className="text-xs text-muted-foreground">
-              {toPersianDigits(reviewsCount)} دیدگاه
-            </span>
-          )}
+        )}
+      </div>
+
+      {/* Content Container */}
+      <div className="flex flex-1 flex-col justify-between p-4">
+        <div className="flex flex-col gap-3">
+          {/* Rating and Duration */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              <span>مدت: {toPersianDigits(tour.durationDays)} روز</span>
+            </div>
+            {tour.rating !== undefined && ( 
+              <div className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                <span className="font-medium text-foreground">
+                  {toPersianDigits(tour.rating.toFixed(1))}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Title */}
+          <h3
+            className={`font-pinar font-bold text-foreground line-clamp-2 ${
+              isCompact ? 'text-base' : 'text-lg'
+            }`}
+          >
+            {tour.title}
+          </h3>
         </div>
 
-        <Link
-          href={`/tours/${slug}`}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
-        >
-          رزرو تور
-          <ArrowLeft className="size-4" aria-hidden="true" />
-        </Link>
+        {/* Footer / Price & CTA */}
+        <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-border">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">قیمت از</span>
+            <div className="flex flex-col items-end">
+              {tour.oldPrice && (
+                <span className="text-xs text-muted-foreground line-through">
+                  {formatPrice(tour.oldPrice)} تومان
+                </span>
+              )}
+              <span className="font-pinar text-base font-bold text-foreground">
+                {formatPrice(tour.price)} تومان
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onCTA) onCTA(tour.slug);
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-muted py-2.5 text-xs font-medium text-foreground transition-colors duration-200 hover:bg-muted/80"
+          >
+            <span>مشاهدهٔ جزئیات</span>
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        </div>
       </div>
-    </article>
+    </div>
   );
 }
