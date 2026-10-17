@@ -111,13 +111,13 @@ export async function getSitemapSections(): Promise<SitemapSections> {
     if (path === "/tours") return newest(TOURS_LASTMOD, tourPriceDates);
     if (path === "/guide") return newest(STATIC_LASTMOD, guideDates);
     if (path === "") return newest(STATIC_LASTMOD, [...guideDates, ...tourPriceDates]);
-    return STATIC_LASTMOD; // /contact: محتوای ثابت
+    return STATIC_LASTMOD; // /contact و /about: محتوای ثابت
   };
 
   // S-107 (۲۱ مهر ۱۴۰۵، اجرای ۰۸): ‎/phuket-october‎ از سایت‌مپ حذف شد؛
   // مسیر ۳۰۸ است (ریدایرکت به راهنمای زنده) و سایت‌مپ فقط URLهای ۲۰۰ و
   // کنونیکال را فهرست می‌کند.
-  const pages: MetadataRoute.Sitemap = ["", "/tours", "/guide", "/contact"].map(
+  const pages: MetadataRoute.Sitemap = ["", "/tours", "/guide", "/contact", "/about"].map(
     (path) => ({
       url: `${base}${path}`,
       lastModified: pageLastMod(path),
