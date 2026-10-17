@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { SiteChrome } from "@/components/site/SiteChrome";
-import { getSiteSettings, getTours } from "@/lib/db-content";
+import { getSiteSettings } from "@/lib/db-content";
 import { defaultOgImages } from "@/lib/og";
 
 /** همهٔ مسیرها استاتیک‌اند؛ هر رندر درخواستیِ آینده بیلد را قرمز می‌کند. */
@@ -85,14 +84,10 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const s = await getSiteSettings();
-  const tours = await getTours();
-
   return (
     <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${pinar.variable}`}>
       <body className="flex min-h-screen flex-col">
-        {/* SiteChrome: پوستهٔ سایت فقط برای مسیرهای سایت؛ /dashboard و /login کاملاً جدا */}
-        <SiteChrome settings={s} tours={tours}>{children}</SiteChrome>
+        {children}
       </body>
     </html>
   );
