@@ -1,9 +1,12 @@
 # Deploy to Prisma Cloud (Prisma Compute) — experimental action.
 #
-# چه می‌کند: روی هر push، وابستگی‌ها را نصب می‌کند، `npm run build` را در
-# site/ اجرا می‌کند و خروجی را با `prisma deploy` روی Prisma Compute می‌نشاند.
-# - push روی برنچ پیش‌فرض (main) ← پروداکشن
-# - push روی هر برنچ دیگر ← پریویو جدا (با URL خودش)
+# چه می‌کند: روی push به main یا dev، وابستگی‌ها را نصب می‌کند،
+# `npm run build` را در site/ اجرا می‌کند و خروجی را با `prisma deploy`
+# روی Prisma Compute می‌نشاند.
+# - push روی main ← پروداکشن
+# - push روی dev ← پریویو
+# (از ۱۴۰۵/۰۷/۲۵: تریگر فقط main و dev است تا پوش‌های موتور/شاخه‌های
+#  دیگر ران مرده نسازند و ایمیل اسپم نفرستند.)
 #
 # احراز هویت (به ترتیب اولویت):
 #   ۱. اگر ریپو در کنسول پریزما به پروژه وصل شده باشد: هیچ سکرتی لازم نیست.
@@ -29,7 +32,9 @@ name: prisma-deploy
 
 on:
   push:
+    branches: [main, dev]
   delete:
+    branches: [main, dev]
 
 concurrency:
   group: prisma-deploy-${{ github.ref }}
