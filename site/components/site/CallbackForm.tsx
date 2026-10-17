@@ -4,6 +4,7 @@ import * as React from "react";
 import { PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert } from "@/components/ui/alert";
 import { LoadingDots } from "@/components/animations/loading-dots";
@@ -90,6 +91,8 @@ export function CallbackForm({
   const [serverError, setServerError] = React.useState("");
   // قلم ۱ لید (زمان ترجیحی تماس): بدون انتخاب = رشتهٔ خالی؛ سرور بدون کلید هم سازگار است.
   const [callTime, setCallTime] = React.useState("");
+  // پیام کاربر («چه می‌خواهید بدانید؟»، ۲۵ مهر ۱۴۰۵): اختیاری؛ در ستون message جدول leads می‌نشیند.
+  const [message, setMessage] = React.useState("");
   const statusAlertRef = React.useRef<HTMLDivElement>(null);
   // بستهٔ اندازه‌گیری کلریتی (تحلیل ۱۷ مهر): هر فیلد فقط یک‌بار «شروع»
   const startedFieldsRef = React.useRef<Set<string>>(new Set());
@@ -172,6 +175,7 @@ export function CallbackForm({
           tourSlug,
           source: buildSource(tourSlug),
           ...(callTime ? { preferredCallTime: callTime } : {}),
+          ...(message.trim() ? { message: message.trim() } : {}),
         }),
       });
       statusCode = res.status;
@@ -309,6 +313,25 @@ export function CallbackForm({
         </div>
         <p className="text-sm text-muted-foreground">اختیاری است؛ اگر انتخاب نکنید، در ساعت کاری زنگ می‌زنیم.</p>
       </fieldset>
+      {/* پیام کاربر (۲۵ مهر ۱۴۰۵، دستور مسعود): «چه می‌خواهید بدانید؟»؛ اختیاری؛
+          در ستون message جدول leads ذخیره می‌شود تا کارشناس فروش بداند چه بپرسد. */}
+      <Field
+        label="چه می‌خواهید بدانید؟"
+        htmlFor="cb-message"
+        hint="اختیاری است؛ بنویسید تا کارشناس با آمادگی بیشتری زنگ بزند."
+      >
+        <Textarea
+          id="cb-message"
+          value={message}
+          maxLength={2000}
+          showCount
+          autoResize
+          rows={3}
+          placeholder="مثلاً برای خانوادهٔ ۴ نفره، نیمهٔ دوم آبان، بودجه حدود ۱۲۰ میلیون"
+          onFocus={() => trackFieldStart("message")}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+      </Field>
       {status === "error" && (
         <Alert ref={statusAlertRef} tabIndex={-1} variant="destructive" title="مشکلی پیش آمد">
           {serverError} اگر عجله دارید،{" "}

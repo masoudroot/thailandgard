@@ -8,6 +8,7 @@ interface CallbackBody {
   tourSlug?: unknown;
   source?: unknown;
   preferredCallTime?: unknown;
+  message?: unknown;
 }
 
 /**
@@ -67,6 +68,12 @@ export async function POST(req: NextRequest) {
       preferredCallTime:
         typeof body.preferredCallTime === "string" && body.preferredCallTime.trim().length > 0
           ? body.preferredCallTime.trim().slice(0, 120)
+          : undefined,
+      // پیام کاربر («چه می‌خواهید بدانید؟»، ۲۵ مهر ۱۴۰۵): اختیاری؛
+      // در ستون message جدول leads می‌نشیند.
+      message:
+        typeof body.message === "string" && body.message.trim().length > 0
+          ? body.message.trim().slice(0, 2000)
           : undefined,
       createdAt: new Date().toISOString(),
     });
