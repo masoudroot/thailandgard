@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, PenLine } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { CallButtons } from "@/components/site/CallButtons";
+import { Button } from "@/components/ui/button";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { GuideToc, type GuideTocItem } from "@/components/site/GuideToc";
+import { GuideConsultBox } from "@/components/site/GuideConsultBox";
 import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
@@ -19,6 +21,7 @@ import { fa } from "@/lib/utils";
 import { renderInlineLinks, stripInlineLinkMarkers } from "@/lib/inline-links";
 import { renderGuideBlocks } from "@/lib/guide-tables";
 import { updatedFaToIso } from "@/lib/jalali";
+import type { Guide, GuideSection } from "@/lib/guides";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -49,6 +52,38 @@ const VISA_STEPS: Step[] = [
 /** بخش «قدم‌به‌قدم» راهنمای ویزا با StepsBlock رندر می‌شود، نه پاراگرافی. */
 function isVisaStepsSection(slug: string, heading: string): boolean {
   return slug === "thailand-visa-guide" && heading.includes("قدم‌به‌قدم");
+}
+
+/**
+ * زمان مطالعه از طول واقعی متن (وایرفریم، سکشن ۱): ~۲۰۰ کلمه در دقیقه.
+ * لید + تیترها + پاراگراف‌ها + سؤال‌های متداول.
+ */
+function readingMinutesOf(guide: Guide): number {
+  const parts = [
+    guide.excerpt,
+    ...guide.sections.flatMap((s) => [s.heading, ...s.paragraphs]),
+    ...guide.faqs.flatMap((f) => [f.question, f.answer]),
+  ];
+  const words = parts.join(" ").trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+/** رندر یک بخش بدنه با لنگر TOC (وایرفریم، سکشن ۳: زنجیرهٔ تصمیم). */
+function renderGuideSection(slug: string, section: GuideSection, index: number) {
+  const anchorId = `guide-sec-${index}`;
+  if (isVisaStepsSection(slug, section.heading)) {
+    return (
+      <div key={section.heading} id={anchorId} className="scroll-mt-24">
+        <StepsBlock title={section.heading} steps={VISA_STEPS} />
+      </div>
+    );
+  }
+  return (
+    <section key={section.heading} id={anchorId} className="mt-10 scroll-mt-24">
+      <h2 className="text-balance text-2xl sm:text-3xl">{renderInlineLinks(section.heading)}</h2>
+      <div className="mt-4 space-y-4">{renderGuideBlocks(section.paragraphs)}</div>
+    </section>
+  );
 }
 
 export async function generateStaticParams() {
@@ -90,7 +125,7 @@ export default async function GuideDetailPage({ params }: PageProps) {
 
   // لینک‌های داخلی به تورهای مرتبط (مشخصات تیم سئومحتوا، نگاشت ۱۹ مهر ۱۴۰۵)
   // S-049 (مصوبهٔ ۱۸:۲۰): تور غیرفعال در «قدم بعدی» نمی‌آید (حذف، نه ریدایرکت).
-  const [{ guideToTours }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
+  const [{ guideToTours, tourToGuides }, s] = await Promise.all([getRelatedLinks(), getSiteSettings()]);
   const relatedBlock = guideToTours[guide.slug];
   const relatedTours = relatedBlock
     ? (
@@ -98,9 +133,28 @@ export default async function GuideDetailPage({ params }: PageProps) {
       ).filter((t): t is NonNullable<typeof t> => t !== undefined && t.active)
     : [];
 
+  // راهنمای خواهر (سکشن ۸ وایرفریم): راهنمایی که به یکی از همین تورهای مرتبط
+  // لینک داده؛ از دادهٔ واقعی related_links، نه حدس.
+  const sisterSlug = relatedBlock?.slugs
+    .flatMap((ts) => tourToGuides[ts]?.slugs ?? [])
+    .find((gs) => gs !== guide.slug);
+  const sisterGuide = sisterSlug ? await getGuide(sisterSlug) : undefined;
+
   // بریف تک‌قانونی h1 (الگوی صفحهٔ تور): ترتیب حل در lib/seo-h1.ts است؛
   // ستون h1 دیتابیس، بعد نگاشت H1_OVERRIDES، بعد مشتق‌سازی از title.
   const h1 = resolveH1(guide.slug, guide.title, guide.h1);
+  const minutes = readingMinutesOf(guide);
+
+  // جدول محتوا (سکشن ۲ وایرفریم): تیتر بخش‌ها + سؤال‌های متداول.
+  // فقط برای مقاله‌های چندبخشی (۴ بخش به بالا).
+  const tocItems: GuideTocItem[] = [
+    ...guide.sections.map((sec, i) => ({ id: `guide-sec-${i}`, label: stripInlineLinkMarkers(sec.heading) })),
+    ...(guide.faqs.length > 0 ? [{ id: "guide-faq", label: "سؤال‌های رایج این راهنما" }] : []),
+  ];
+  const showToc = guide.sections.length >= 4;
+
+  // باکس مشاورهٔ میانی (سکشن ۴ وایرفریم): بعد از بخش اصلی بدنه، نه اول متن.
+  const midPoint = Math.max(1, Math.ceil(guide.sections.length / 2));
 
   // قانون ۳۷ اسکیما: dateModified از همان رشته‌ای می‌آید که صفحه نمایش می‌دهد
   // (خط «به‌روزرسانی: {guide.updatedFa}»).
@@ -161,127 +215,184 @@ export default async function GuideDetailPage({ params }: PageProps) {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-6xl px-6 py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <Breadcrumb
-        items={[
-          { label: "خانه", href: "/" },
-          { label: "راهنمای سفر", href: "/guide" },
-          { label: displayTitle(guide.title) },
-        ]}
-      />
+      {/* سکشن ۱ وایرفریم: هیروی مقاله */}
+      <div className="mx-auto max-w-3xl">
+        <Breadcrumb
+          items={[
+            { label: "خانه", href: "/" },
+            { label: "راهنمای سفر", href: "/guide" },
+            { label: displayTitle(guide.title) },
+          ]}
+        />
 
-      {/* قاب قهرمان راهنما (اسپک mount §۲، ۲۰ مهر ۱۴۰۵): یک قاب ۱۶:۱۰ زیر
-          Breadcrumb، بالای هدر متنی. بج دسته + h1 روی ماسک؛ متای خوانش و
-          excerpt زیر قاب می‌مانند. سئو: فقط یک h1. مورد خاص ستون:
-          چون PillarHero خودش h1 دارد، روی قابِ جای‌نگه‌دارش متنی روی
-          ماسک نمی‌آید. */}
-      <div className="relative mt-6 aspect-[16/10] overflow-hidden rounded-surface border border-border">
-        {guideCover ? (
-          <CoverImage
-            src={guideCover.src}
-            alt={guideCover.alt}
-            width={guideCover.w}
-            height={guideCover.h}
-            sizes="(max-width: 768px) 100vw, 768px"
-            eager
+        {/* قاب قهرمان راهنما (اسپک mount §۲، ۲۰ مهر ۱۴۰۵): یک قاب ۱۶:۱۰ زیر
+            Breadcrumb، بالای هدر متنی. بج دسته + h1 روی ماسک؛ متای خوانش و
+            excerpt زیر قاب می‌مانند. سئو: فقط یک h1. مورد خاص ستون:
+            چون PillarHero خودش h1 دارد، روی قابِ جای‌نگه‌دارش متنی روی
+            ماسک نمی‌آید. */}
+        <div className="relative mt-6 aspect-[16/10] overflow-hidden rounded-surface border border-border">
+          {guideCover ? (
+            <CoverImage
+              src={guideCover.src}
+              alt={guideCover.alt}
+              width={guideCover.w}
+              height={guideCover.h}
+              sizes="(max-width: 768px) 100vw, 768px"
+              eager
+            />
+          ) : (
+            // جای‌نگه‌دار هم‌شکل تایپوگرافیک (راهنمای بدون کاور)
+            <div className="flex size-full items-center justify-center bg-secondary/50 p-6 text-center">
+              <span className="font-display text-2xl text-foreground/70">{displayTitle(guide.title)}</span>
+            </div>
+          )}
+          <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
+          {!isPillar && (
+            <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
+              {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
+              <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
+              <h1 className="font-display text-balance text-2xl text-foreground md:text-4xl">{h1}</h1>
+            </div>
+          )}
+        </div>
+
+        {isPillar ? (
+          <PillarHero
+            badge="راهنمای کامل"
+            title={h1}
+            description={guide.excerpt}
+            readingMinutes={minutes}
+            updatedFa={guide.updatedFa}
+            share={<ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} centered />}
           />
         ) : (
-          // جای‌نگه‌دار هم‌شکل تایپوگرافیک (راهنمای بدون کاور)
-          <div className="flex size-full items-center justify-center bg-secondary/50 p-6 text-center">
-            <span className="font-display text-2xl text-foreground/70">{displayTitle(guide.title)}</span>
-          </div>
-        )}
-        <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
-        {!isPillar && (
-          <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
-            {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
-            <Badge variant="brand" className="bg-brand text-brand-foreground">{guide.category}</Badge>
-            <h1 className="font-display text-balance text-2xl text-foreground md:text-4xl">{h1}</h1>
-          </div>
-        )}
-      </div>
-
-      {isPillar ? (
-        <PillarHero
-          badge="راهنمای کامل"
-          title={h1}
-          description={guide.excerpt}
-          readingMinutes={guide.readingMinutes}
-          updatedFa={guide.updatedFa}
-          share={<ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} centered />}
-        />
-      ) : (
-        <header className="mt-6">
-          {/* دیف A5 ممیزی design: gap-y-3 برای ریتم عمودی هم‌خانواده با افقی
-              در شکست دوخطی موبایل */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <Clock className="size-4" aria-hidden="true" />
-              {fa(guide.readingMinutes)} دقیقه مطالعه
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-4" aria-hidden="true" />
-              به‌روزرسانی: <time dateTime={updatedFaToIso(guide.updatedFa) ?? undefined}>{guide.updatedFa}</time>
-            </span>
-          </div>
-          {/* دیف A1 ممیزی design: leading خوانش بلند فارسی ۱٫۹ */}
-          <p className="text-pretty mt-4 text-lg leading-[1.9]">{guide.excerpt}</p>
-          <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
-        </header>
-      )}
-
-      {guide.sections.map((section) =>
-        isVisaStepsSection(guide.slug, section.heading) ? (
-          <StepsBlock key={section.heading} title={section.heading} steps={VISA_STEPS} />
-        ) : (
-          <section key={section.heading} className="mt-8">
-            <h2 className="text-balance text-2xl sm:text-3xl">{section.heading}</h2>
-            <div className="mt-4 space-y-4">{renderGuideBlocks(section.paragraphs)}</div>
-          </section>
-        )
-      )}
-
-      {relatedTours.length > 0 && relatedBlock && (
-        <section className="mt-8 rounded-surface border border-border bg-card p-6">
-          <h2 className="text-balance text-2xl sm:text-3xl">قدم بعدی</h2>
-          <p className="text-pretty mt-3 leading-[1.9] text-foreground/90">
-            {relatedBlock.lead}{" "}
-            {relatedTours.map((t, i) => (
-              <span key={t.slug}>
-                {i > 0 && " و "}
-                <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
-                  {t.title}
-                </Link>
+          <header className="mt-6">
+            {/* ردیف متا (وایرفریم): تاریخ به‌روزرسانی شمسی | زمان مطالعه | نام تیم نویسنده */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="size-4" aria-hidden="true" />
+                {fa(minutes)} دقیقه مطالعه
               </span>
-            ))}{" "}
-            {relatedBlock.trail}
-          </p>
-        </section>
-      )}
-
-      <div className="-mx-6">
-        <FaqBlock
-          title="سؤال‌های رایج این راهنما"
-          items={guide.faqs.map((faq, i) => ({
-            id: `${guide.slug}-faq-${i}`,
-            title: faq.question,
-            content: renderInlineLinks(faq.answer),
-          }))}
-        />
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="size-4" aria-hidden="true" />
+                به‌روزرسانی: <time dateTime={updatedFaToIso(guide.updatedFa) ?? undefined}>{guide.updatedFa}</time>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <PenLine className="size-4" aria-hidden="true" />
+                نویسنده: تیم {s.SITE_NAME}
+              </span>
+            </div>
+            {/* لید مقاله (وایرفریم): سؤال + جواب خلاصه + قول */}
+            <p className="text-pretty mt-4 text-lg leading-[1.9]">{guide.excerpt}</p>
+            <ShareButtons title={brandTitle(guide.title)} path={`/guide/${guide.slug}`} siteUrl={s.SITE_URL} className="mt-4" />
+          </header>
+        )}
       </div>
 
-      <section id="callback" className="mt-4 scroll-mt-24 rounded-surface border border-border bg-card p-6 sm:p-8">
-        <h2 className="text-balance text-2xl sm:text-3xl">سؤالی دارید؟</h2>
-        <p className="mt-2 text-sm leading-7 text-muted-foreground">
-          راهنما همه‌چیز را نگفت؟ کارشناس مقصد ما خودش تایلند رفته و برمی‌گردد؛ زنگ بزن و
-          دقیقاً برای سفر خودت مشاوره بگیر.
-        </p>
-        <div className="mt-5">
-          <CallButtons compact />
+      {/* سکشن ۲ + ۳ وایرفریم: جدول محتوا کنار بدنه (دسکتاپ چسبان، موبایل بالای بدنه) */}
+      <div className="mx-auto mt-6 grid max-w-3xl gap-10 lg:max-w-none lg:grid-cols-[260px_minmax(0,1fr)] lg:justify-center">
+        {showToc && <GuideToc items={tocItems} />}
+        <div className="min-w-0 lg:mx-auto lg:w-full lg:max-w-3xl">
+          {guide.sections.slice(0, midPoint).map((section, i) => renderGuideSection(guide.slug, section, i))}
+
+          {/* سکشن ۴ وایرفریم: باکس مشاورهٔ میانی، بعد از بخش اصلی بدنه */}
+          <GuideConsultBox
+            contactName={s.CONTACT_NAME}
+            phoneDisplay={s.PHONE_MOBILE}
+            phoneHref={s.PHONE_MOBILE_LINK}
+          />
+
+          {guide.sections.slice(midPoint).map((section, k) => renderGuideSection(guide.slug, section, midPoint + k))}
         </div>
-      </section>
+      </div>
+
+      <div className="mx-auto max-w-3xl">
+        {/* سکشن ۶ وایرفریم: جمع‌بندی + قدم بعدی */}
+        <section aria-labelledby="guide-next-title" className="mt-12 rounded-surface border border-border bg-card p-6 sm:p-8">
+          <h2 id="guide-next-title" className="text-balance text-2xl sm:text-3xl">
+            جمع‌بندی و قدم بعدی
+          </h2>
+          {relatedBlock && relatedTours.length > 0 ? (
+            <>
+              <p className="text-pretty mt-3 leading-[1.9] text-foreground/90">
+                حالا که این‌ها را می‌دانی، {relatedBlock.lead}{" "}
+                {relatedTours.map((t, i) => (
+                  <span key={t.slug}>
+                    {i > 0 && " و "}
+                    <Link href={`/tours/${t.slug}`} className="underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand">
+                      {t.title}
+                    </Link>
+                  </span>
+                ))}{" "}
+                {relatedBlock.trail}
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {relatedTours.map((t) => (
+                  <Button key={t.slug} asChild variant="brand">
+                    <Link href={`/tours/${t.slug}`}>{t.title}</Link>
+                  </Button>
+                ))}
+                <Button asChild variant="outline">
+                  <a href="#consult">فرم مشاوره</a>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-pretty mt-3 leading-[1.9] text-foreground/90">
+                حالا که این‌ها را می‌دانی، قدم بعدی با توست: تورها را ببین و هر
+                سؤالی داشتی، از کارشناس مقصد بپرس.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button asChild variant="brand">
+                  <Link href="/tours">دیدن تورها</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <a href="#consult">فرم مشاوره</a>
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
+
+        {/* سکشن ۷ وایرفریم: سؤال‌های متداول (+ اسکیمای FAQPage در JSON-LD بالا) */}
+        <div id="guide-faq" className="-mx-6 scroll-mt-24">
+          <FaqBlock
+            title="سؤال‌های رایج این راهنما"
+            items={guide.faqs.map((faq, i) => ({
+              id: `${guide.slug}-faq-${i}`,
+              title: faq.question,
+              content: renderInlineLinks(faq.answer),
+            }))}
+          />
+        </div>
+
+        {/* سکشن ۸ وایرفریم: امضای برند + لینک‌های داخلی */}
+        <footer className="mt-10 border-t border-border pt-6">
+          <p className="text-pretty leading-[1.9] text-foreground/85">
+            تایلندگرد؛ تایلند را می‌شناسیم و انتخاب سفر را روشن‌تر می‌کنیم.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            {sisterGuide && (
+              <Link
+                href={`/guide/${sisterGuide.slug}`}
+                className="rounded-sm underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand focus-visible:bg-accent"
+              >
+                راهنمای مرتبط: {displayTitle(sisterGuide.title)}
+              </Link>
+            )}
+            <Link
+              href="/guide"
+              className="rounded-sm underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand focus-visible:bg-accent"
+            >
+              همهٔ راهنماهای سفر
+            </Link>
+          </div>
+        </footer>
+      </div>
     </main>
   );
 }

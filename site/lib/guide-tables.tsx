@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Lightbulb, TriangleAlert } from "lucide-react";
 import { renderInlineLinks } from "./inline-links";
 
 /**
@@ -17,6 +18,15 @@ import { renderInlineLinks } from "./inline-links";
  */
 
 const SEPARATOR_RE = /^\s*\|?(\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?\s*$/;
+
+/**
+ * قرارداد باکس‌های بدنه (وایرفریم راهنما، سکشن ۳؛ راستی‌شده با محتوای واقعی دیتابیس):
+ * پاراگرافی که با «نکته» شروع می‌شود (نکته‌ای که، نکتهٔ مهم، نکتهٔ کاربردی: …)
+ * باکس نکته است و پاراگرافی که با «هشدار» شروع می‌شود باکس هشدار.
+ * «---» تنها در یک پاراگراف، خط جداکننده است.
+ */
+const NOTE_RE = /^\s*نکته/;
+const WARNING_RE = /^\s*هشدار/;
 
 function splitRow(line: string): string[] {
   return line
@@ -108,9 +118,29 @@ export function renderGuideBlocks(paragraphs: string[]): ReactNode {
         </div>
       );
     }
+    const text = block.text;
+    if (text.trim() === "---") {
+      return <hr key={i} className="border-border" />;
+    }
+    if (NOTE_RE.test(text)) {
+      return (
+        <div key={i} role="note" className="flex gap-3 rounded-surface border border-brand/40 bg-brand/10 p-4">
+          <Lightbulb className="mt-1 size-5 shrink-0 text-brand-deep" aria-hidden="true" />
+          <p className="text-pretty leading-[1.9] text-foreground/90">{renderInlineLinks(text)}</p>
+        </div>
+      );
+    }
+    if (WARNING_RE.test(text)) {
+      return (
+        <div key={i} role="note" className="flex gap-3 rounded-surface border border-destructive/40 bg-destructive/10 p-4">
+          <TriangleAlert className="mt-1 size-5 shrink-0 text-destructive" aria-hidden="true" />
+          <p className="text-pretty leading-[1.9] text-foreground/90">{renderInlineLinks(text)}</p>
+        </div>
+      );
+    }
     return (
       <p key={i} className="text-pretty leading-[1.9] text-foreground/90">
-        {renderInlineLinks(block.text)}
+        {renderInlineLinks(text)}
       </p>
     );
   });
