@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
+import { Logger } from './logger';
 
-type ApiHandler = (
-  request: Request,
-  context?: any
-) => Promise<NextResponse> | NextResponse;
+export function handleApiError(error: unknown, context: string = 'API_ERROR'): NextResponse {
+  let errorMessage = 'خطای ناشناخته در سرور رخ داده است';
+  let statusCode = 500;
 
-export function withErrorHandler(handler: ApiHandler): ApiHandler {
-  return async (request: Request, context?: any) => {
-    try {
-      return await handler(request, context);
-    } catch (error) {
-      console.error('[API Error]:', error);
-      return NextResponse.json(
-        { success: false, error: 'Internal Server Error' },
-        { status: 500 }
-      );
+  if (error instanceof Error) {
+    errorMessage = error.message;
+    if ('statusCode' in error && typeof (error as any).statusCode === 'number') {
+      statusCode = (error as any).statusCode;
     }
-  };
+  } else if (typeof error === 'string') {
+    errorMessage = error;
+  }
+
+  Logger.error(`[${context}] ${errorMessage}`, { error });
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: errorMessage,
+    },
+    { status: statusCode }
+  );
 }
