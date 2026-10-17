@@ -1,20 +1,22 @@
 import { NextResponse } from 'next/server';
+import { logger } from './logger';
 
-type ApiHandler = (
-  request: Request,
-  context?: any
-) => Promise<NextResponse> | NextResponse;
+export function handleApiError(error: unknown, contextMessage = 'API Error') {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  const errorStack = error instanceof Error ? error.stack : undefined;
 
-export function withErrorHandler(handler: ApiHandler): ApiHandler {
-  return async (request: Request, context?: any) => {
-    try {
-      return await handler(request, context);
-    } catch (error) {
-      console.error('[API Error]:', error);
-      return NextResponse.json(
-        { success: false, error: 'Internal Server Error' },
-        { status: 500 }
-      );
-    }
-  };
+  logger.error(contextMessage, {
+    message: errorMessage,
+    stack: errorStack,
+    raw: error,
+  });
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: contextMessage,
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+    },
+    { status: 500 }
+  );
 }
