@@ -1,131 +1,74 @@
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, CalendarDays, MapPin, Star } from "lucide-react";
+import React from 'react';
+import { CalendarDays, Star, ArrowLeft } from 'lucide-react';
 
-interface TourCardProps {
-  /** شناسهٔ یکتای تور */
-  id: string;
-  /** عنوان تور */
-  title: string;
-  /** مقصد (شهر یا منطقه) */
-  destination: string;
-  /** نشانی تصویر تور */
-  image: string;
-  /** تعداد روزهای سفر */
-  durationDays: number;
-  /** تعداد شب‌های سفر */
-  durationNights?: number;
-  /** قیمت به تومان (هر نفر) */
-  price: number;
-  /** امتیاز تور از ۵ */
-  rating: number;
-  /** تعداد دیدگاه‌های ثبت‌شده */
-  reviewsCount?: number;
-  /** نامک صفحهٔ جزئیات تور */
-  slug: string;
+export interface TourCardProps {
+  tour: {
+    id: string;
+    title: string;
+    destination: string;
+    durationDays: number;
+    price: number;
+    oldPrice?: number;
+    rating: number;
+    imageSrc: string;
+    imageAlt: string;
+  };
+  onOpen?: (id: string) => void;
+  className?: string;
 }
 
-const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-
-function toPersianDigits(value: number | string): string {
-  return String(value).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
-}
-
-function formatToman(price: number): string {
-  return price
-    .toLocaleString("en-US")
-    .replace(/,/g, "٬")
-    .replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
-}
-
-function formatRating(rating: number): string {
-  return toPersianDigits(rating.toFixed(1)).replace(".", "٫");
-}
-
-export function TourCard({
-  id,
-  title,
-  destination,
-  image,
-  durationDays,
-  durationNights,
-  price,
-  rating,
-  reviewsCount,
-  slug,
-}: TourCardProps) {
-  const durationText =
-    durationNights !== undefined
-      ? `${toPersianDigits(durationDays)} روز و ${toPersianDigits(durationNights)} شب`
-      : `${toPersianDigits(durationDays)} روز`;
-
+export function TourCard({ tour, onOpen, className }: TourCardProps) {
+  const priceStr = new Intl.NumberFormat('fa-IR').format(tour.price);
+  const oldPriceStr = tour.oldPrice ? new Intl.NumberFormat('fa-IR').format(tour.oldPrice) : null;
+  const ratingStr = tour.rating.toFixed(1);
+  const durationStr = tour.durationDays.toString();
+  const handleClick = () => {
+    if (onOpen) {
+      onOpen(tour.id);
+    }
+  };
   return (
-    <article
-      aria-labelledby={`tour-${id}-title`}
-      className="flex h-full flex-col overflow-hidden rounded-[22px] border bg-background transition-colors duration-200 hover:border-foreground/25"
-    >
-      <div className="relative aspect-[4/3] w-full overflow-hidden">
-        <Image
-          src={image}
-          alt={title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover"
-        />
-        <span className="absolute top-3 end-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium text-foreground">
-          <Star
-            className="size-3.5 fill-amber-500 text-amber-500"
-            aria-hidden="true"
+    <div className={className}>
+      <div
+        className="flex flex-col w-full bg-background border border bg-muted text-foreground rounded-[22px] shadow-none overflow-hidden transition-colors duration-200"
+        onClick={handleClick}
+      >
+        <div className="relative">
+          <img
+            src={tour.imageSrc}
+            alt={tour.imageAlt}
+            className="w-full h-48 object-cover"
           />
-          {formatRating(rating)}
-        </span>
-        <span className="absolute bottom-3 start-3 inline-flex items-center gap-1 rounded-full bg-muted/95 px-2.5 py-1 text-xs text-muted-foreground">
-          <MapPin className="size-3.5" aria-hidden="true" />
-          {destination}
-        </span>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-4 p-5 font-iransans">
-        <div className="flex flex-col gap-2">
-          <h3
-            id={`tour-${id}-title`}
-            className="font-pinar text-lg font-bold leading-8 text-foreground"
-          >
-            {title}
-          </h3>
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
-            <span>{durationText}</span>
-          </p>
-        </div>
-
-        <div role="separator" aria-orientation="horizontal" className="border-t" />
-
-        <div className="flex flex-1 items-end justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground">قیمت هر نفر</span>
-            <span className="font-pinar text-base font-bold text-foreground">
-              {formatToman(price)}
-              <span className="ms-1 text-xs font-normal text-muted-foreground">
-                تومان
-              </span>
-            </span>
+          <div className="absolute end-3 top-3">
+            <div className="flex items-center bg-background/95 border text-foreground rounded-lg px-3 py-1 text-xs font-medium">
+              {tour.rating} <Star className="w-4 h-4 ms-1 fill-current" />
+            </div>
           </div>
-          {reviewsCount !== undefined && (
-            <span className="text-xs text-muted-foreground">
-              {toPersianDigits(reviewsCount)} دیدگاه
-            </span>
-          )}
         </div>
-
-        <Link
-          href={`/tours/${slug}`}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
-        >
-          رزرو تور
-          <ArrowLeft className="size-4" aria-hidden="true" />
-        </Link>
+        <div className="flex flex-col p-4">
+          <h3 className="font-pinar text-lg leading-tight text-start mb-1.5">{tour.title}</h3>
+          <p className="font-iransans text-sm text-muted-foreground text-start mb-4">{tour.destination}</p>
+          <div className="flex items-center text-start mb-3">
+            <CalendarDays className="w-4 h-4 text-muted-foreground ms-0 me-1.5" />
+            <span className="font-iransans text-sm text-muted-foreground">{durationStr} روز</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="text-start">
+              <span className="font-iransans text-2xl font-medium">{priceStr}</span>
+              {tour.oldPrice && (
+                <>
+                  <span className="block text-muted-foreground text-xs">قدیمی</span>
+                  <span className="font-iransans text-sm line-through">{oldPriceStr}</span>
+                </>
+              )}
+            </div>
+            <button className="bg-muted text-foreground border text-foreground px-5 py-2 rounded-lg text-xs font-medium flex items-center transition-colors duration-200">
+              <span>جزئیات</span>
+              <ArrowLeft className="w-4 h-4 ms-1.5" />
+            </button>
+          </div>
+        </div>
       </div>
-    </article>
+    </div>
   );
 }
