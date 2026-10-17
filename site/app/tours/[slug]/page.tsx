@@ -674,6 +674,21 @@ export default async function TourPage({ params }: Props) {
       )}
 
       <div id="callback" className="mx-auto mt-12 max-w-5xl scroll-mt-24 px-6 pb-sticky-bar-clearance md:pb-16">
+        {/* سکشن ۱۱ وایرفریم صفحهٔ تور (CTA نهایی): خلاصهٔ یک‌خطی تور + قیمت «از»
+            + قول کارشناس؛ فرم کوتاه زیر همین بلوک. قیمت واقعی دیتابیس؛ اگر
+            قیمت نامشخص باشد کامپوننت Price «تماس بگیرید» نشان می‌دهد (دستور مسعود). */}
+        <div className="mb-6 rounded-surface border border-border bg-muted/40 px-5 py-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p className="text-sm text-muted-foreground">خلاصهٔ تور:</p>
+            <p className="font-semibold">
+              {tour.shortTitle}؛ {fa(tour.days)} روزه و {fa(tour.nights)} شب
+            </p>
+            <Price amount={tour.priceFrom} size="sm" />
+          </div>
+          <p className="mt-2 text-sm leading-7 text-muted-foreground">
+            کارشناس تور تایلند زنگ می‌زند و جزئیات را نهایی می‌کند.
+          </p>
+        </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>

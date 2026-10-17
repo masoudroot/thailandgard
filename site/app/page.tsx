@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { CoverImage } from "@/components/site/CoverImage";
 import { GUIDE_COVERS } from "@/lib/guide-covers";
 import { Reveal } from "@/components/animations/reveal";
-import { CallButtons } from "@/components/site/CallButtons";
+import { HomeConsultSection } from "@/components/site/HomeConsultSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -401,34 +401,13 @@ export default async function HomePage() {
           بازنویسی نهایی با branding + چک هم‌پوشانی با سکشن «چرا تایلندگرد» (حکم ۵۸). */}
       <TrustStrip />
 
-      {/* D-258 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با سکشن‌های خانه (D-195/D-245) */}
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <Card className="overflow-hidden">
-          <div className="bg-brand/10 px-6 py-10 text-center sm:px-10">
-            <h2 className="text-balance text-2xl sm:text-3xl">
-              برای رزرو، فقط کافی است زنگ بزنید
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              {s.CONTACT_NAME}، {s.CONTACT_TITLE.toLowerCase()}، خودش پاسخ‌گوی شماست؛
-              از انتخاب تور تا روز پرواز.
-            </p>
-          </div>
-          <CardContent className="px-6 py-8 sm:px-10">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-lg font-bold">{s.CONTACT_NAME}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.CONTACT_TITLE}</p>
-              <div className="mt-4 space-y-2 text-sm">
-                <p className="text-muted-foreground">
-                  {s.PHONE_CHANNELS_NOTE} | شنبه تا پنجشنبه، ۹ صبح تا ۹ شب
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto mt-8 max-w-2xl">
-              <CallButtons compact />
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+      {/* سکشن ۶ وایرفریم خانه: فرم مشاورهٔ «از متخصص بپرس» (حرکت ۴: اقدام).
+          جایگزین کارت تماس انتهایی؛ وعده‌ها + CallbackForm ثبت‌شده. */}
+      <HomeConsultSection
+        contactName={s.CONTACT_NAME}
+        contactTitle={s.CONTACT_TITLE}
+        phoneHref={s.PHONE_MOBILE_LINK}
+      />
       </main>
     </>
   );
