@@ -46,10 +46,18 @@ export function SiteChrome({ settings: s, tours, children }: SiteChromeProps) {
 }
 
 function SiteChromeInner({ settings: s, tours, children }: SiteChromeProps) {
-  const pathname = usePathname();
+  // usePathname() ممکن است در پرریرندر استاتیک null باشد؛ در این حالت
+  // پوسته کامل را نشان می‌دهیم (صفحات استاتیک هیچ‌وقت dashboard/login نیستند)
+  let pathname: string | null = null;
+  try {
+    pathname = usePathname();
+  } catch {
+    pathname = null;
+  }
 
   // داشبورد و لاگین: کاملاً جدا، بدون هیچ‌چیز از قالب سایت
-  if (isChromelessPath(pathname)) {
+  // (در پرریرندر pathname null است؛ صفحات استاتیک chromeless نیستند)
+  if (pathname && isChromelessPath(pathname)) {
     return <>{children}</>;
   }
 
