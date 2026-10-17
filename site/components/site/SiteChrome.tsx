@@ -11,6 +11,7 @@
  * نباید با headers() داینامیک شود؛ usePathname() پوستهٔ استاتیک را حفظ می‌کند.
  */
 
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { Phone } from "lucide-react";
@@ -34,6 +35,17 @@ interface SiteChromeProps {
 }
 
 export function SiteChrome({ settings: s, tours, children }: SiteChromeProps) {
+  // فیکس بیلد با cacheComponents: usePathname() داینامیک است؛ با Suspense و
+  // fallback استاتیک (فقط children)، پرریرندر استاتیک صفحه‌ها نمی‌شکند.
+  // روی کلاینت، بعد از هایدریشن پوستهٔ کامل می‌آید.
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <SiteChromeInner settings={s} tours={tours}>{children}</SiteChromeInner>
+    </Suspense>
+  );
+}
+
+function SiteChromeInner({ settings: s, tours, children }: SiteChromeProps) {
   const pathname = usePathname();
 
   // داشبورد و لاگین: کاملاً جدا، بدون هیچ‌چیز از قالب سایت

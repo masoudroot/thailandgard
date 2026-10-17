@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SiteChrome } from "@/components/site/SiteChrome";
@@ -93,9 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${pinar.variable}`}>
       <body className="flex min-h-screen flex-col">
         {/* SiteChrome: پوستهٔ سایت فقط برای مسیرهای سایت؛ /dashboard و /login کاملاً جدا */}
-        <Suspense>
-          <SiteChrome settings={s} tours={tours}>{children}</SiteChrome>
-        </Suspense>
+        <SiteChrome settings={s} tours={tours}>{children}</SiteChrome>
       </body>
     </html>
   );
