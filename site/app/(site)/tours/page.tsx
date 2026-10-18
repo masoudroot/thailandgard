@@ -31,19 +31,17 @@ export const metadata: Metadata = pageSeo({
 /* داده‌های نمایشی هاب (فاز ۲)؛ شمارش‌ها همه از getTours زنده می‌آیند  */
 /* ------------------------------------------------------------------ */
 
-const THEME_SLUG_ORDER = ["last-minute", "nowruz", "installment", "cheap"];
+const THEME_SLUG_ORDER = ["last-minute", "nowruz", "cheap"];
 
 const THEME_LINES: Record<string, string> = {
   "last-minute": "برای کسانی که چمدانشان آماده است و تاریخ برایشان انعطاف دارد",
   nowruz: "برای کسانی که تعطیلات نوروز را در بهترین فصل تایلند می‌خواهند",
-  installment: "برای کسانی که نمی‌خواهند یک‌جا هزینه کنند",
   cheap: "برای کسانی که با همان بودجه، بیشترین سفر را می‌خواهند",
 };
 
 const THEME_NAMES: Record<string, string> = {
   "last-minute": "لحظه‌آخری",
   nowruz: "نوروز",
-  installment: "اقساطی",
   cheap: "ارزان",
 };
 
@@ -228,13 +226,6 @@ export default async function ToursPage() {
       a: "ویزای توریستی تایلند معمولاً چند روز کاری طول می‌کشد؛ در فصل‌های شلوغ کمی کندتر جواب می‌دهند. مدارکت را زودتر آماده کن تا استرس نداشته باشی.",
       href: "/guide/thailand-visa-guide",
       linkLabel: "راهنمای ویزای تایلند",
-    },
-    {
-      id: "hub-faq-installment",
-      q: "می‌شود تور تایلند را اقساطی خرید؟",
-      a: "بله؛ همهٔ تورهای فعال ما قابلیت پرداخت اقساطی دارند. تعداد اقساط، پیش‌پرداخت و مدارک لازم بسته به طرح فروش هر دوره فرق می‌کند؛ کارشناس در یک تماس همه را شفاف می‌گوید.",
-      href: "/tours/installment",
-      linkLabel: "تور اقساطی تایلند",
     },
     {
       id: "hub-faq-honeymoon",
