@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { logger } from './logger';
+import Logger from './logger';
+
+const logger = new Logger();
 
 export class ValidationError extends Error {
   readonly code: string;
@@ -240,4 +242,3 @@ export function assertValidInput(
 
   return source;
 }
-
