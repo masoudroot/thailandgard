@@ -1,62 +1,105 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+import { logger } from '@/lib/logger';
 
-interface ApiOptions extends RequestInit {
-  params?: Record<string, string>;
+export interface ApiClientConfig {
+  baseUrl?: string;
+  headers?: Record<string, string>;
 }
 
-export async function apiCall<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
-  const { params, headers, ...customOptions } = options;
+export class ApiError extends Error {
+  status: number;
+  info?: unknown;
 
-  let url = `${API_BASE_URL}${endpoint}`;
-
-  if (params) {
-    const searchParams = new URLSearchParams(params);
-    url += `?${searchParams.toString()}`;
+  constructor(message: string, status: number, info?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.info = info;
   }
+}
 
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(headers || {}),
-  };
+export class ApiClient {
+  private baseUrl: string;
+  private defaultHeaders: Record<string, string>;
 
-  const config: RequestInit = {
-    ...customOptions,
-    headers: defaultHeaders,
-  };
-
-  try {
-    const response = await fetch(url, config);
-
-    if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = { message: response.statusText };
-      }
-
-      throw {
-        status: response.status,
-        message: errorData.message || 'خطایی در ارتباط با سرور رخ داده است',
-        data: errorData,
-      };
-    }
-
-    if (response.status === 204) {
-      return {} as T;
-    }
-
-    const data = await response.json();
-    return data as T;
-  } catch (error: any) {
-    if (error && typeof error === 'object' && 'status' in error) {
-      throw error;
-    }
-
-    throw {
-      status: 500,
-      message: error.message || 'خطای شبکه یا عدم دسترسی به سرور',
-      data: null,
+  constructor(config?: ApiClientConfig) {
+    this.baseUrl = config?.baseUrl || process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      ...(config?.headers || {}),
     };
   }
+
+  private getAuthHeader(): Record<string, string> {
+    const token = process.env.API_SECRET_TOKEN;
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+    return {};
+  }
+
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = {
+      ...this.defaultHeaders,
+      ...this.getAuthHeader(),
+      ...(options.headers || {}),
+    };
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+      });
+    } catch (error) {
+      logger.error('Network error during API request', { url, error });
+      throw new ApiError('خطا در ارتباط با شبکه. لطفاً اتصال خود را بررسی کنید.', 0, error);
+    }
+
+    let data: unknown;
+    try {
+      const text = await response.text();
+      data = text ? JSON.parse(text) : null;
+    } catch (error) {
+      logger.error('Failed to parse response JSON', { url, error });
+      data = null;
+    }
+
+    if (!response.ok) {
+      const errorMessage = (typeof data === 'object' && data !== null && 'message' in data)
+        ? String((data as { message: unknown }).message)
+        : `خطای سرور: ${response.status}`;
+
+      logger.error('API returned error status', { url, status: response.status, data });
+      throw new ApiError(errorMessage, response.status, data);
+    }
+
+    return data as T;
+  }
+
+  async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  }
+
+  async post<T>(endpoint: string, body: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async put<T>(endpoint: string, body: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+  }
 }
+
+export const apiClient = new ApiClient();
