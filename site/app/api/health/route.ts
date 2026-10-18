@@ -1,18 +1,10 @@
 import { NextResponse } from 'next/server';
-import { logger } from '../../../lib/logger';
-import { handleApiError } from '../../../lib/api-errorHandler';
+import { handleApiError } from '../../../lib/error-handler';
 
-export async function GET(): Promise<NextResponse> {
-  const context = { route: '/api/health', method: 'GET' };
-
+export async function GET() {
   try {
-    logger.info('Health check requested', context);
-
-    return NextResponse.json(
-      { status: 'ok', timestamp: new Date().toISOString() },
-      { status: 200 },
-    );
+    return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
   } catch (error) {
-    return handleApiError(error, context);
+    return handleApiError(error);
   }
 }
