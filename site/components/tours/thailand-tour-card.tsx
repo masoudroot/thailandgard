@@ -1,64 +1,92 @@
-import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 export interface ThailandTourCardProps {
-  tour: {
-    id: string;
-    title: string;
-    destination: string;
-    duration: number;
-    price: number;
-    image: string;
-    rating: number;
-  };
+  title: string;
+  city: string;
+  imageUrl: string;
+  durationDays: number;
+  rating: number;
+  price: number;
+  oldPrice?: number;
+  onBook: () => void;
 }
 
-export default function ThailandTourCard({ tour }: ThailandTourCardProps) {
-  const formattedPrice = new Intl.NumberFormat('fa-IR', { style: 'decimal' }).format(tour.price);
-  const formattedDuration = new Intl.NumberFormat('fa-IR', { style: 'decimal' }).format(tour.duration);
-  const formattedRating = new Intl.NumberFormat('fa-IR', { style: 'decimal' }).format(tour.rating);
+export const ThailandTourCard = ({
+  title,
+  city,
+  imageUrl,
+  durationDays,
+  rating,
+  price,
+  oldPrice,
+  onBook,
+}: ThailandTourCardProps) => {
   return (
-    <div className="bg-background border border text-foreground rounded-[22px] overflow-hidden transition duration-200">
+    <div className="bg-background border border rounded-[22px] overflow-hidden transition-all duration-200">
       <div className="relative">
-        <img src={tour.image} alt={tour.title} className="w-full h-48 object-cover" />
-        <div className="absolute top-4 end-4 bg-muted text-foreground text-sm px-3 py-1 rounded-full">
-          {formattedRating}
+        <img
+          src={imageUrl}
+          alt={title}
+          className="w-full h-56 object-cover"
+        />
+        <div className="absolute top-4 start-4 bg-background/90 text-foreground text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
+          <span>امتیاز</span>
+          <span className="font-bold text-yellow-600">{rating}</span>
         </div>
       </div>
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <span className="font-pinar text-foreground">تایلند</span>
-            <span className="font-pinar text-foreground">ـ</span>
-            <span className="text-muted-foreground text-sm">تور</span>
+
+      <div className="p-5">
+        <div className="mb-4">
+          <div className="text-muted-foreground text-sm font-medium flex items-center gap-2">
+            <span className="text-base">📍</span>
+            <span>{city}</span>
           </div>
-          <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition duration-200">
-            <span className="text-sm">جزئیات</span>
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-        </div>
-        <h2 className="font-pinar text-foreground text-xl mb-3">{tour.title}</h2>
-        <div className="flex items-center justify-between text-sm mb-6">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">مدت زمان</span>
-            <span className="font-iransans text-foreground">{formattedDuration} روز</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-pinar text-foreground">از {formattedPrice}٬۰۰۰ تومان</span>
+          <div className="text-muted-foreground text-sm font-medium mt-1 flex items-center gap-2">
+            <span className="text-base">⏱️</span>
+            <span>{durationDays} روز</span>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className={`text-${i < Math.floor(tour.rating) ? 'foreground' : 'text-muted-foreground'} text-xl`}>★</span>
-              ))}
+
+        <div className="mb-6">
+          <div className="font-pinar text-foreground text-2xl leading-tight">
+            {title}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-end items-center gap-3">
+            <div className="text-end">
+              <div className="text-muted-foreground text-sm">قیمت</div>
+              <div className="text-foreground font-medium text-xl font-bold">
+                {price.toLocaleString('fa-IR')}
+                <span className="text-sm font-normal"> تومان</span>
+              </div>
             </div>
-            <span className="text-muted-foreground text-sm">({tour.rating})</span>
+            <div className="text-foreground">تومان</div>
           </div>
-          <button className="bg-muted text-foreground px-6 py-3 rounded-lg font-iransans hover:bg-muted/90 transition duration-200">انتخاب تور</button>
+
+          {oldPrice && (
+            <div className="flex justify-end items-center gap-3">
+              <div className="text-end">
+                <div className="text-muted-foreground text-sm line-through">قیمت قبلی</div>
+                <div className="text-muted-foreground font-medium text-xl font-bold">
+                  {oldPrice.toLocaleString('fa-IR')}
+                  <span className="text-sm font-normal"> تومان</span>
+                </div>
+              </div>
+              <div className="text-muted-foreground">تومان</div>
+            </div>
+          )}
         </div>
+
+        <button
+          onClick={onBook}
+          className="w-full mt-6 bg-muted hover:bg-background text-foreground transition-all duration-200 border border text-foreground font-medium py-3.5 px-6 rounded-xl flex items-center justify-end gap-2"
+        >
+          ر رزرو تور
+          <ArrowLeft className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
-}
+};
