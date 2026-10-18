@@ -10,11 +10,6 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
 };
 
 function resolveLevel(): LogLevel {
-  const raw = typeof process !== 'undefined' ? process.env?.LOG_LEVEL : undefined;
-  const normalized = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
-  if (normalized === 'debug' || normalized === 'info' || normalized === 'warn' || normalized === 'error') {
-    return normalized;
-  }
   return 'info';
 }
 
@@ -44,61 +39,63 @@ export class Logger {
     return LEVEL_PRIORITY[level] >= LEVEL_PRIORITY[this.minLevel];
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
+  private formatMessage(level: string, message: string): string {
     const timestamp = new Date().toISOString();
     const upperLevel = level.toUpperCase();
     const safeMessage = typeof message === 'string' ? message : String(message);
-    const contextPart =
-      context && Object.keys(context).length > 0 ? ` ${JSON.stringify(context)}` : '';
-    return `[${timestamp}] [${upperLevel}] ${safeMessage}${contextPart}`;
+    return `[${timestamp}] [${upperLevel}] ${safeMessage}`;
   }
 
   debug(message: string, context?: LogContext, error?: unknown): void {
     if (!this.isEnabled('debug')) {
       return;
     }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
+    const formatted = this.formatMessage('DEBUG', message);
+    if (context || error) {
+      console.log(formatted, { ...(context ?? {}), ...(error !== undefined ? { error: toErrorPayload(error) } : {}) });
+    } else {
+      console.log(formatted);
     }
-    const formatted = this.formatMessage('debug', message, merged);
-    console.log(formatted);
   }
 
   info(message: string, context?: LogContext, error?: unknown): void {
     if (!this.isEnabled('info')) {
       return;
     }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
+    const formatted = this.formatMessage('INFO', message);
+    if (context || error) {
+      console.log(formatted, { ...(context ?? {}), ...(error !== undefined ? { error: toErrorPayload(error) } : {}) });
+    } else {
+      console.log(formatted);
     }
-    const formatted = this.formatMessage('info', message, merged);
-    console.log(formatted);
   }
 
   warn(message: string, context?: LogContext, error?: unknown): void {
     if (!this.isEnabled('warn')) {
       return;
     }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
+    const formatted = this.formatMessage('WARN', message);
+    if (context || error) {
+      console.warn(formatted, { ...(context ?? {}), ...(error !== undefined ? { error: toErrorPayload(error) } : {}) });
+    } else {
+      console.warn(formatted);
     }
-    const formatted = this.formatMessage('warn', message, merged);
-    console.warn(formatted);
   }
 
   error(message: string, context?: LogContext, error?: unknown): void {
     if (!this.isEnabled('error')) {
       return;
     }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
+    const formatted = this.formatMessage('ERROR', message);
+    if (context || error) {
+      console.error(formatted, { ...(context ?? {}), ...(error !== undefined ? { error: toErrorPayload(error) } : {}) });
+    } else {
+      console.error(formatted);
     }
-    const formatted = this.formatMessage('error', message, merged);
-    console.error(formatted);
+  }
+
+  log(message: string, context?: LogContext, error?: unknown): void {
+    this.info(message, context, error);
   }
 }
 
