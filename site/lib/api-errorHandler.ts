@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
-import { logger } from './logger';
+import { Logger } from './logger';
 
 export function handleApiError(error: unknown, context: string = 'API_ERROR'): NextResponse {
-  const errorMessage = error instanceof Error ? error.message : 'خطای ناشناخته در سرور';
-  const errorStack = error instanceof Error ? error.stack : undefined;
+  let errorMessage = 'خطای ناشناخته در سرور رخ داده است';
+  let statusCode = 500;
 
-  logger.error(`[${context}] ${errorMessage}`, {
-    stack: errorStack,
-    error: String(error),
-  });
+  if (error instanceof Error) {
+    errorMessage = error.message;
+    if ('statusCode' in error && typeof (error as any).statusCode === 'number') {
+      statusCode = (error as any).statusCode;
+    }
+  } else if (typeof error === 'string') {
+    errorMessage = error;
+  }
+
+  Logger.error(`[${context}] ${errorMessage}`, { error });
 
   return NextResponse.json(
     {
       success: false,
-      message: errorMessage,
+      error: errorMessage,
     },
-    { status: 500 }
+    { status: statusCode }
   );
 }
