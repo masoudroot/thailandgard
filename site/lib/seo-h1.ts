@@ -39,7 +39,7 @@ const H1_OVERRIDES: Record<string, string> = {
   "thailand-winter-2026-new-flight-routes": "پروازهای تازهٔ تایلند؛ زمستان ۲۰۲۶",
 
   // سئو (اجرای خودکار): h1 مستقل برای اسلاگ‌های تازه
-  "samui-7-days": "تور سامویی ۷ روزه",
+  "thailand-hotel-booking-guide": "راهنمای رزرو هتل در تایلند",
 };
 
 /** قاعدهٔ مشتق‌سازی: h1 هرگز دقیقاً برابر title منهای پسوند برند نیست. */
