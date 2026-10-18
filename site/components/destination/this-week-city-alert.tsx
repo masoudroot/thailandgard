@@ -1,51 +1,29 @@
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import React from 'react';
+import { PhuketWeatherAlert } from './phuket-weather-alert';
 
-interface ThisWeekCityAlertProps {
-  icon?: React.ReactNode;
-  title: string;
-  summary: string;
-  detailLink: string;
-  badge?: string;
-}
-
-export function ThisWeekCityAlert({
-  icon,
-  title,
-  summary,
-  detailLink,
-  badge,
-}: ThisWeekCityAlertProps) {
+export function ThisWeekCityAlert() {
   return (
-    <div className="rounded-s-[22px] rounded-e-[22px] border border-border bg-background transition duration-200">
-      <div className="flex items-start gap-3 p-4">
-        <div className="flex-shrink-0 mt-0.5">
-          {icon || (
-            <AlertTriangle className="h-5 w-5 text-muted-foreground" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            {badge && (
-              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {badge}
-              </span>
-            )}
-            <h3 className="font-pinar text-base font-bold text-foreground leading-snug">
-              {title}
-            </h3>
-          </div>
-          <p className="font-iransans text-sm text-muted-foreground leading-relaxed line-clamp-2">
-            {summary}
-          </p>
-          <a
-            href={detailLink}
-            className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-foreground hover:text-muted-foreground transition duration-200"
-          >
-            <span>جزئیات بیشتر</span>
-            <ArrowLeft className="h-4 w-4" />
-          </a>
-        </div>
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold font-pinar text-foreground">
+          گزارش و هشدارهای شهری این هفته
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          آخرین اطلاعات و نکات ایمنی برای مقاصد گردشگری محبوب در این هفته.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <PhuketWeatherAlert 
+          title="هشدار ویژه شرایط جوی پوکت"
+          description="با توجه به تغییرات ناگهانی آب‌وهوا در منطقه ساحلی، رعایت نکات ایمنی و همراه داشتن پوشش مناسب توصیه می‌شود."
+          seasonInfo="فصل گذار و بارش‌های پراکنده"
+          temperature="۳۰ درجه سانتی‌گراد"
+          rainfall="۱۸۰ میلی‌متر در ماه"
+        />
       </div>
     </div>
   );
 }
+
+export default ThisWeekCityAlert;

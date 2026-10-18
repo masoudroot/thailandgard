@@ -8,8 +8,14 @@
 export interface Testimonial {
   name: string;
   tour: string;
+  /** تاریخ شمسی سفر */
   date: string;
   text: string;
+  /** نمرهٔ ۱ تا ۵؛ فقط اگر مسافر واقعاً نمره داده باشد. اگر ثبت نشده باشد،
+      کارت ۵ ستاره نشان می‌دهد. */
+  rating?: number;
+  /** عکس مسافر؛ فقط با اجازهٔ خودش. */
+  avatarUrl?: string;
 }
 
 export const TESTIMONIALS: Testimonial[] = [
