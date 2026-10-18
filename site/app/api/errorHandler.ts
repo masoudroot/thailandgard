@@ -1,3 +1,5 @@
+import Logger from '../../lib/Logger';
+
 export class ApiErrorHandler {
   private static logger: any;
   static setLogger(logger: any) {
@@ -8,7 +10,7 @@ export class ApiErrorHandler {
     if (this.logger) {
       this.logger.error(message, error);
     } else {
-      console.error('[API ERROR]', message, error);
+      Logger.error(message, error);
     }
     // مدیریت خطای مناسب
     if (error.status === 404) {
