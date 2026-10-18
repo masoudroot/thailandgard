@@ -1,73 +1,49 @@
-import React from 'react';
-import { CalendarDays, Star, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export interface TourCardProps {
-  tour: {
-    id: string;
-    title: string;
-    destination: string;
-    durationDays: number;
-    price: number;
-    oldPrice?: number;
-    rating: number;
-    imageSrc: string;
-    imageAlt: string;
-  };
-  onOpen?: (id: string) => void;
-  className?: string;
+  title: string;
+  destination: string;
+  durationDays: number;
+  price: number;
+  imageUrl: string;
+  isBestseller?: boolean;
+  onReserve?: () => void;
 }
 
-export function TourCard({ tour, onOpen, className }: TourCardProps) {
-  const priceStr = new Intl.NumberFormat('fa-IR').format(tour.price);
-  const oldPriceStr = tour.oldPrice ? new Intl.NumberFormat('fa-IR').format(tour.oldPrice) : null;
-  const ratingStr = tour.rating.toFixed(1);
-  const durationStr = tour.durationDays.toString();
-  const handleClick = () => {
-    if (onOpen) {
-      onOpen(tour.id);
-    }
-  };
+export function TourCard({
+  title,
+  destination,
+  durationDays,
+  price,
+  imageUrl,
+  isBestseller,
+  onReserve,
+}: TourCardProps) {
+  const formatNumber = (num: number) => num.toLocaleString('fa-IR');
+
   return (
-    <div className={className}>
-      <div
-        className="flex flex-col w-full bg-background border border bg-muted text-foreground rounded-[22px] shadow-none overflow-hidden transition-colors duration-200"
-        onClick={handleClick}
-      >
-        <div className="relative">
-          <img
-            src={tour.imageSrc}
-            alt={tour.imageAlt}
-            className="w-full h-48 object-cover"
-          />
-          <div className="absolute end-3 top-3">
-            <div className="flex items-center bg-background/95 border text-foreground rounded-lg px-3 py-1 text-xs font-medium">
-              {tour.rating} <Star className="w-4 h-4 ms-1 fill-current" />
-            </div>
+    <div className="group overflow-hidden rounded-[22px] bg-background border border-foreground text-foreground transition duration-200">
+      <div className="relative">
+        <img src={imageUrl} alt={title} className="h-48 w-full object-cover" />
+        {isBestseller && (
+          <div className="absolute end-0 start-0 rounded-t-[22px] bg-muted px-3 py-1 text-center text-xs font-medium text-muted-foreground">
+            پرفروش
           </div>
-        </div>
-        <div className="flex flex-col p-4">
-          <h3 className="font-pinar text-lg leading-tight text-start mb-1.5">{tour.title}</h3>
-          <p className="font-iransans text-sm text-muted-foreground text-start mb-4">{tour.destination}</p>
-          <div className="flex items-center text-start mb-3">
-            <CalendarDays className="w-4 h-4 text-muted-foreground ms-0 me-1.5" />
-            <span className="font-iransans text-sm text-muted-foreground">{durationStr} روز</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="text-start">
-              <span className="font-iransans text-2xl font-medium">{priceStr}</span>
-              {tour.oldPrice && (
-                <>
-                  <span className="block text-muted-foreground text-xs">قدیمی</span>
-                  <span className="font-iransans text-sm line-through">{oldPriceStr}</span>
-                </>
-              )}
-            </div>
-            <button className="bg-muted text-foreground border text-foreground px-5 py-2 rounded-lg text-xs font-medium flex items-center transition-colors duration-200">
-              <span>جزئیات</span>
-              <ArrowLeft className="w-4 h-4 ms-1.5" />
-            </button>
-          </div>
-        </div>
+        )}
+      </div>
+
+      <div className="space-y-3 p-4">
+        <h3 className="font-pinar text-xl leading-tight text-start">{title}</h3>
+        <p className="font-iransans text-sm text-muted-foreground text-start">مقصد: {destination}</p>
+        <p className="font-iransans text-sm text-muted-foreground text-start">مدت سفر: {durationDays} روز</p>
+        <p className="font-iransans text-2xl font-medium text-foreground text-start">قیمت: {formatNumber(price)} تومان</p>
+        <button
+          onClick={onReserve}
+          className="group-hover:bg-muted flex w-full items-center justify-between rounded-[22px] border border-foreground px-5 py-3 transition duration-200 text-start"
+        >
+          <span className="text-muted-foreground font-iransans text-sm">رزرو</span>
+          <ArrowLeft className="h-5 w-5 text-muted-foreground transition duration-200" />
+        </button>
       </div>
     </div>
   );
