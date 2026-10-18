@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 
-interface TravelerReviewCardProps {
+export interface TravelerReviewCardProps {
   travelerName: string;
   tourName: string;
   rating: number;
@@ -40,7 +40,7 @@ export function TravelerReviewCard({
             />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
-              <span className="font-pinar text-sm font-bold text-foreground">
+              <span className="font-display text-sm font-bold text-foreground">
                 {travelerName.charAt(0)}
               </span>
             </div>
@@ -49,15 +49,15 @@ export function TravelerReviewCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-pinar text-base font-bold text-foreground truncate" dir="auto">
+            <h3 className="font-display text-base font-bold text-foreground truncate" dir="auto">
               {travelerName}
             </h3>
-            <span className="shrink-0 font-iransans text-sm text-muted-foreground">
+            <span className="shrink-0 font-sans text-sm text-muted-foreground">
               {dateJalali}
             </span>
           </div>
 
-          <p className="mt-1 font-iransans text-sm text-muted-foreground truncate" dir="auto">
+          <p className="mt-1 font-sans text-sm text-muted-foreground truncate" dir="auto">
             {tourName}
           </p>
 
@@ -72,7 +72,7 @@ export function TravelerReviewCard({
                 }`}
               />
             ))}
-            <span className="me-2 font-iransans text-sm text-foreground">
+            <span className="me-2 font-sans text-sm text-foreground">
               {toPersianNumber(safeRating)}
             </span>
           </div>
@@ -80,7 +80,7 @@ export function TravelerReviewCard({
       </div>
 
       <div className="mt-4 border-t border-border pt-4">
-        <p className="font-iransans text-sm leading-relaxed text-foreground">
+        <p className="font-sans text-sm leading-relaxed text-foreground">
           {comment}
         </p>
       </div>

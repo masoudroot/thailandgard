@@ -1,11 +1,10 @@
-import { Quote } from "lucide-react";
 import { TESTIMONIALS } from "@/lib/testimonials";
-import { Card, CardContent } from "@/components/ui/card";
+import { TravelerReviewCard } from "@/components/reviews/traveler-review-card";
 
 /**
  * سکشن «حرف مسافران ما» (صفحهٔ خانه، بین راهنماها و نوار اعتماد).
  * سرور کامپوننت: اگر TESTIMONIALS خالی باشد null برمی‌گرداند؛ وگرنه
- * حداکثر ۶ نظر را در گرید ۳ ستونه نشان می‌دهد.
+ * حداکثر ۶ نظر را با کارت TravelerReviewCard در گرید ۳ ستونه نشان می‌دهد.
  */
 export function Testimonials() {
   const items = TESTIMONIALS.slice(0, 6);
@@ -19,18 +18,17 @@ export function Testimonials() {
       </p>
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((t) => (
-          <Card key={`${t.name}|${t.tour}|${t.date}`} className="h-full">
-            <CardContent className="flex h-full flex-col gap-4 p-5">
-              <Quote aria-hidden className="size-5 text-brand-foreground" />
-              <p className="leading-7">{t.text}</p>
-              <div className="mt-auto border-t border-border pt-4 text-sm">
-                <p className="font-bold">{t.name}</p>
-                <p className="mt-1 text-muted-foreground">
-                  {t.tour} | {t.date}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <TravelerReviewCard
+            key={`${t.name}|${t.tour}|${t.date}`}
+            travelerName={t.name}
+            tourName={t.tour}
+            // اگر مسافر نمره‌ای ثبت نکرده باشد، کارت ۵ ستاره نشان می‌دهد
+            // (مستندشده در lib/testimonials.ts).
+            rating={t.rating ?? 5}
+            comment={t.text}
+            dateJalali={t.date}
+            avatarUrl={t.avatarUrl}
+          />
         ))}
       </div>
     </section>
