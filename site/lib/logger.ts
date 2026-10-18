@@ -1,41 +1,52 @@
-class Logger {
-  private formatMessage(level: string, message: string, meta?: unknown): string {
-    let serializedMeta = '';
-    if (meta !== undefined) {
-      try {
-        serializedMeta = JSON.stringify(meta);
-      } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        serializedMeta = JSON.stringify({ errorName: err.name, errorMessage: err.message });
-      }
-    }
+export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+
+export interface LogMeta {
+  [key: string]: unknown;
+}
+
+export class Logger {
+  private context: string;
+
+  constructor(context: string = 'App') {
+    this.context = context;
+  }
+
+  private formatMessage(level: LogLevel, message: string, meta?: LogMeta): string {
     const timestamp = new Date().toISOString();
-    return `[${timestamp}] [${level.toUpperCase()}] ${message} ${serializedMeta}`;
+    const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
+    return `[${timestamp}] [${level.toUpperCase()}] [${this.context}]: ${message}${metaStr}`;
   }
 
-  private sendLog(formattedMessage: string): void {
-    console.log(formattedMessage);
+  public info(message: string, meta?: LogMeta): void {
+    const finalMessage = this.formatMessage('info', message, meta);
+    console.info(finalMessage);
   }
 
-  public api(message: string, meta?: unknown): void {
-    const formattedMessage = this.formatMessage('API', message, meta);
-    this.sendLog(formattedMessage);
+  public warn(message: string, meta?: LogMeta): void {
+    const finalMessage = this.formatMessage('warn', message, meta);
+    console.warn(finalMessage);
   }
 
-  public info(message: string, meta?: unknown): void {
-    const formattedMessage = this.formatMessage('INFO', message, meta);
-    this.sendLog(formattedMessage);
+  public error(message: string, meta?: LogMeta): void {
+    const finalMessage = this.formatMessage('error', message, meta);
+    console.error(finalMessage);
   }
 
-  public error(message: string, meta?: unknown): void {
-    const formattedMessage = this.formatMessage('ERROR', message, meta);
-    this.sendLog(formattedMessage);
+  public debug(message: string, meta?: LogMeta): void {
+    const finalMessage = this.formatMessage('debug', message, meta);
+    console.debug(finalMessage);
   }
 
-  public warn(message: string, meta?: unknown): void {
-    const formattedMessage = this.formatMessage('WARN', message, meta);
-    this.sendLog(formattedMessage);
+  public api(method: string, endpoint: string, status: number, durationMs: number, meta?: LogMeta): void {
+    const rawMessage = `API ${method.toUpperCase()} ${endpoint} - Status: ${status} - Duration: ${durationMs}ms`;
+    const finalMessage = this.formatMessage(status >= 400 ? 'error' : 'info', rawMessage, meta);
+    
+    if (status >= 400) {
+      console.error(finalMessage);
+    } else {
+      console.log(finalMessage);
+    }
   }
 }
 
-export const logger = new Logger();
+export const logger = new Logger('ThailandTour');
