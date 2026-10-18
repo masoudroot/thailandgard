@@ -57,11 +57,11 @@ export class Logger {
     const safeMessage = typeof message === 'string' ? message : String(message);
     const context =
       meta && Object.keys(meta).length > 0 ? { ...meta } : undefined;
-    const formatted = this.formatMessage(level, timestamp, safeMessage, context);
+    const formatted = Logger.formatMessage(level, timestamp, safeMessage, context);
     return { level, timestamp, message: safeMessage, context, formatted };
   }
 
-  private formatMessage(
+  private static formatMessage(
     level: LogLevel,
     timestamp: string,
     message: string,
@@ -72,16 +72,20 @@ export class Logger {
     return `[${timestamp}] [${upperLevel}] ${message}${contextPart}`;
   }
 
+  private static log(level: LogLevel, formatted: string): void {
+    if (level === 'error') {
+      console.error(formatted);
+      return;
+    }
+    if (level === 'warn') {
+      console.warn(formatted);
+      return;
+    }
+    console.log(formatted);
+  }
+
   private emit(entry: LogEntry): void {
-    if (entry.level === 'error') {
-      console.error(entry.formatted);
-      return;
-    }
-    if (entry.level === 'warn') {
-      console.warn(entry.formatted);
-      return;
-    }
-    console.log(entry.formatted);
+    Logger.log(entry.level, entry.formatted);
   }
 
   private write(level: LogLevel, message: string, context?: LogContext, error?: unknown): void {
@@ -112,8 +116,22 @@ export class Logger {
     this.write('error', message, context, error);
   }
 
-  api(message: string, context?: LogContext, error?: unknown): void {
-    this.write('info', message, context, error);
+  static api(message: string, context?: LogContext, error?: unknown): void {
+    const level: LogLevel = 'info';
+    const minLevel = resolveLevel();
+    if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[minLevel]) {
+      return;
+    }
+    const timestamp = new Date().toISOString();
+    const safeMessage = typeof message === 'string' ? message : String(message);
+    const merged: LogContext = { ...(context ?? {}) };
+    if (error !== undefined) {
+      merged.error = toErrorPayload(error);
+    }
+    const contextForLog: LogContext | undefined =
+      Object.keys(merged).length > 0 ? merged : undefined;
+    const formatted = Logger.formatMessage(level, timestamp, safeMessage, contextForLog);
+    Logger.log(level, formatted);
   }
 }
 

@@ -240,4 +240,3 @@ export function assertValidInput(
 
   return source;
 }
-
