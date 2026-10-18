@@ -1,107 +1,42 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-type LogContext = Record<string, unknown>;
-
-const LEVEL_PRIORITY: Record<LogLevel, number> = {
-  debug: 10,
-  info: 20,
-  warn: 30,
-  error: 40,
-};
-
-function resolveLevel(): LogLevel {
-  const raw = typeof process !== 'undefined' ? process.env?.LOG_LEVEL : undefined;
-  const normalized = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
-  if (normalized === 'debug' || normalized === 'info' || normalized === 'warn' || normalized === 'error') {
-    return normalized;
-  }
-  return 'info';
-}
-
-function isErrorLike(value: unknown): value is Error {
-  return value instanceof Error;
-}
-
-function toErrorPayload(error: unknown): unknown {
-  if (isErrorLike(error)) {
-    return {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    };
-  }
-  return error;
+export enum LogLevel {
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+  DEBUG = 'DEBUG'
 }
 
 export class Logger {
-  private readonly minLevel: LogLevel;
-
-  constructor(minLevel?: LogLevel) {
-    this.minLevel = minLevel ?? resolveLevel();
-  }
-
-  private isEnabled(level: LogLevel): boolean {
-    return LEVEL_PRIORITY[level] >= LEVEL_PRIORITY[this.minLevel];
-  }
-
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
+  private static formatMessage(level: LogLevel, message: string, meta?: Record<string, unknown>): string {
     const timestamp = new Date().toISOString();
-    const upperLevel = level.toUpperCase();
-    const safeMessage = typeof message === 'string' ? message : String(message);
-    const contextPart =
-      context && Object.keys(context).length > 0 ? ` ${JSON.stringify(context)}` : '';
-    return `[${timestamp}] [${upperLevel}] ${safeMessage}${contextPart}`;
+    const metaStr = meta ? ` | ${JSON.stringify(meta)}` : '';
+    return `[${timestamp}] [${level}]: ${message}${metaStr}`;
   }
 
-  debug(message: string, context?: LogContext, error?: unknown): void {
-    if (!this.isEnabled('debug')) {
-      return;
-    }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
-    }
-    const formatted = this.formatMessage('debug', message, merged);
+  static info(message: string, meta?: Record<string, unknown>): void {
+    const formatted = Logger.formatMessage(LogLevel.INFO, message, meta);
     console.log(formatted);
   }
 
-  info(message: string, context?: LogContext, error?: unknown): void {
-    if (!this.isEnabled('info')) {
-      return;
-    }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
-    }
-    const formatted = this.formatMessage('info', message, merged);
-    console.log(formatted);
-  }
-
-  warn(message: string, context?: LogContext, error?: unknown): void {
-    if (!this.isEnabled('warn')) {
-      return;
-    }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
-    }
-    const formatted = this.formatMessage('warn', message, merged);
+  static warn(message: string, meta?: Record<string, unknown>): void {
+    const formatted = Logger.formatMessage(LogLevel.WARN, message, meta);
     console.warn(formatted);
   }
 
-  error(message: string, context?: LogContext, error?: unknown): void {
-    if (!this.isEnabled('error')) {
-      return;
-    }
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
-    }
-    const formatted = this.formatMessage('error', message, merged);
+  static error(message: string, meta?: Record<string, unknown>): void {
+    const formatted = Logger.formatMessage(LogLevel.ERROR, message, meta);
     console.error(formatted);
   }
+
+  static debug(message: string, meta?: Record<string, unknown>): void {
+    if (process.env.NODE_ENV !== 'production') {
+      const formatted = Logger.formatMessage(LogLevel.DEBUG, message, meta);
+      console.debug(formatted);
+    }
+  }
+
+  static api(method: string, path: string, statusCode: number, durationMs?: number, meta?: Record<string, unknown>): void {
+    const message = `API ${method.toUpperCase()} ${path} - Status: ${statusCode}${durationMs !== undefined ? ` - ${durationMs}ms` : ''}`;
+    const formatted = Logger.formatMessage(LogLevel.INFO, message, meta);
+    console.log(formatted);
+  }
 }
-
-export const logger = new Logger();
-
-export default logger;
