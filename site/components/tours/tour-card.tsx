@@ -1,64 +1,74 @@
-import { MapPin, Calendar, ArrowLeft } from "lucide-react";
-import { TourPriceTag } from "./tour-price-tag";
-
-function toPersianNumber(value: number): string {
-  return new Intl.NumberFormat("fa", { maximumFractionDigits: 0 }).format(value);
-}
+import React from 'react';
+import { CalendarDays, Star, ArrowLeft } from 'lucide-react';
 
 export interface TourCardProps {
-  title: string;
-  image: string;
-  destination: string;
-  duration: number;
-  price: number;
-  originalPrice?: number;
-  href?: string;
+  tour: {
+    id: string;
+    title: string;
+    destination: string;
+    durationDays: number;
+    price: number;
+    oldPrice?: number;
+    rating: number;
+    imageSrc: string;
+    imageAlt: string;
+  };
+  onOpen?: (id: string) => void;
+  className?: string;
 }
 
-export function TourCard({
-  title,
-  image,
-  destination,
-  duration,
-  price,
-  originalPrice,
-  href = "#",
-}: TourCardProps) {
+export function TourCard({ tour, onOpen, className }: TourCardProps) {
+  const priceStr = new Intl.NumberFormat('fa-IR').format(tour.price);
+  const oldPriceStr = tour.oldPrice ? new Intl.NumberFormat('fa-IR').format(tour.oldPrice) : null;
+  const ratingStr = tour.rating.toFixed(1);
+  const durationStr = tour.durationDays.toString();
+  const handleClick = () => {
+    if (onOpen) {
+      onOpen(tour.id);
+    }
+  };
   return (
-    <a
-      href={href}
-      className="group flex flex-col overflow-hidden border bg-background rounded-[22px] transition duration-200 hover:bg-muted"
-      dir="rtl"
-    >
-      <div className="relative aspect-[16/10] overflow-hidden">
-        <img
-          src={image}
-          alt={title}
-          className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
-        />
-      </div>
-      <div className="flex flex-col gap-3 p-4">
-        <h3 className="font-pinar text-lg font-bold text-foreground line-clamp-2">
-          {title}
-        </h3>
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground font-iransans">
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            {destination}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {toPersianNumber(duration)} شب
-          </span>
+    <div className={className}>
+      <div
+        className="flex flex-col w-full bg-background border border bg-muted text-foreground rounded-[22px] shadow-none overflow-hidden transition-colors duration-200"
+        onClick={handleClick}
+      >
+        <div className="relative">
+          <img
+            src={tour.imageSrc}
+            alt={tour.imageAlt}
+            className="w-full h-48 object-cover"
+          />
+          <div className="absolute end-3 top-3">
+            <div className="flex items-center bg-background/95 border text-foreground rounded-lg px-3 py-1 text-xs font-medium">
+              {tour.rating} <Star className="w-4 h-4 ms-1 fill-current" />
+            </div>
+          </div>
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <TourPriceTag price={price} originalPrice={originalPrice} label="از" />
-          <span className="inline-flex items-center gap-1 text-sm font-medium text-foreground font-iransans transition duration-200 group-hover:text-amber-600">
-            مشاهدهٔ جزئیات
-            <ArrowLeft className="h-4 w-4" />
-          </span>
+        <div className="flex flex-col p-4">
+          <h3 className="font-pinar text-lg leading-tight text-start mb-1.5">{tour.title}</h3>
+          <p className="font-iransans text-sm text-muted-foreground text-start mb-4">{tour.destination}</p>
+          <div className="flex items-center text-start mb-3">
+            <CalendarDays className="w-4 h-4 text-muted-foreground ms-0 me-1.5" />
+            <span className="font-iransans text-sm text-muted-foreground">{durationStr} روز</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="text-start">
+              <span className="font-iransans text-2xl font-medium">{priceStr}</span>
+              {tour.oldPrice && (
+                <>
+                  <span className="block text-muted-foreground text-xs">قدیمی</span>
+                  <span className="font-iransans text-sm line-through">{oldPriceStr}</span>
+                </>
+              )}
+            </div>
+            <button className="bg-muted text-foreground border text-foreground px-5 py-2 rounded-lg text-xs font-medium flex items-center transition-colors duration-200">
+              <span>جزئیات</span>
+              <ArrowLeft className="w-4 h-4 ms-1.5" />
+            </button>
+          </div>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
