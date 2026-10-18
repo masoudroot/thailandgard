@@ -1,42 +1,26 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react'
 
 export interface TourCardProps {
-  id?: string;
-  title: string;
-  price: number;
-  duration: string;
-  onReserve?: () => void;
+  title: string
+  duration: string
+  price: string
 }
 
-const faDigits = '۰۱۲۳۴۵۶۷۸۹';
-
-function toFaDigits(value: string): string {
-  return value.replace(/\d/g, (d) => faDigits.charAt(Number(d)));
-}
-
-export function TourCard({ title, price, duration, onReserve }: TourCardProps) {
+export const TourCard = ({ title, duration, price }: TourCardProps) => {
   return (
-    <div className="w-full bg-background border border rounded-[22px] transition duration-200">
-      <div className="p-6 flex flex-col gap-6">
-        <div className="flex flex-col gap-4">
-          <h3 className="font-pinar text-2xl text-start font-bold text-foreground">
-            {title}
-          </h3>
-          <p className="font-iransans text-foreground text-base text-start">
-            مدت سفر: {toFaDigits(duration)}
-          </p>
-          <p className="font-iransans text-foreground text-base text-start">
-            قیمت از: {price.toLocaleString('fa-IR')} تومان
-          </p>
-        </div>
-        <button
-          className="flex items-center justify-center gap-2 bg-background text-foreground border border px-6 py-3 rounded-lg transition duration-200"
-          onClick={onReserve}
-        >
-          <span className="font-iransans text-base">رزرو این تور</span>
-          <ArrowLeft className="w-5 h-5" />
+    <div className="bg-background border border-border rounded-lg overflow-hidden transition duration-200">
+      <div className="relative">
+        <img src="/placeholder-tour.jpg" alt={title} className="w-full h-48 object-cover" />
+        <button className="absolute end-4 top-4 bg-background text-foreground border border-border px-3 py-1.5 rounded flex items-center gap-1.5 text-sm hover:bg-muted transition duration-200">
+          <ArrowLeft className="w-4 h-4" />
+          رزرو
         </button>
       </div>
+      <div className="p-4 space-y-3">
+        <h3 className="font-pinar text-foreground text-lg leading-tight">{title}</h3>
+        <div className="text-muted-foreground text-sm font-iransans">مدت زمان: {duration}</div>
+        <div className="text-foreground text-xl font-bold">{price}</div>
+      </div>
     </div>
-  );
+  )
 }
