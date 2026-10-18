@@ -1,135 +1,41 @@
-'use client';
-
-import React from 'react';
-import Image from 'next/image';
-import { Star, Clock, MapPin, ArrowLeft } from 'lucide-react';
-
-export interface TourSummary {
-  id: string;
-  title: string;
-  destination: string;
-  durationDays: number;
-  price: number;
-  oldPrice?: number;
-  rating?: number;
-  image: string;
-  slug: string;
-}
+import { ArrowLeft } from 'lucide-react';
 
 export interface TourCardProps {
-  tour: TourSummary;
-  onCTA?: (slug: string) => void;
-  variant?: 'default' | 'compact';
+  id?: string;
+  title: string;
+  price: number;
+  duration: string;
+  onReserve?: () => void;
 }
 
-function toPersianDigits(num: number | string): string {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return num
-    .toString()
-    .replace(/\d/g, (x) => persianDigits[parseInt(x, 10)]);
+const faDigits = '۰۱۲۳۴۵۶۷۸۹';
+
+function toFaDigits(value: string): string {
+  return value.replace(/\d/g, (d) => faDigits.charAt(Number(d)));
 }
 
-function formatPrice(amount: number): string {
-  const formatted = amount.toLocaleString('en-US');
-  return toPersianDigits(formatted);
-}
-
-export function TourCard({
-  tour,
-  onCTA,
-  variant = 'default',
-}: TourCardProps) {
-  const handleCardClick = () => {
-    if (onCTA) {
-      onCTA(tour.slug);
-    }
-  };
-
-  const isCompact = variant === 'compact';
-
+export function TourCard({ title, price, duration, onReserve }: TourCardProps) {
   return (
-    <div
-      onClick={handleCardClick}
-      className={`group relative flex flex-col overflow-hidden rounded-[22px] border border-border bg-background transition-all duration-200 hover:border-muted-foreground/50 cursor-pointer`}
-    >
-      {/* Image Container */}
-      <div
-        className={`relative w-full overflow-hidden bg-muted ${
-          isCompact ? 'h-40' : 'h-52'
-        }`}
-      >
-        <Image
-          src={tour.image}
-          alt={tour.title}
-          fill
-          className="object-cover transition-transform duration-200 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
-        {tour.destination && (
-          <div className="absolute top-3 start-3 flex items-center gap-1 rounded-full bg-background/90 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-            <MapPin className="h-3.5 w-3.5 text-amber-500" />
-            <span>{tour.destination}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Content Container */}
-      <div className="flex flex-1 flex-col justify-between p-4">
-        <div className="flex flex-col gap-3">
-          {/* Rating and Duration */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              <span>مدت: {toPersianDigits(tour.durationDays)} روز</span>
-            </div>
-            {tour.rating !== undefined && ( 
-              <div className="flex items-center gap-1">
-                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                <span className="font-medium text-foreground">
-                  {toPersianDigits(tour.rating.toFixed(1))}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Title */}
-          <h3
-            className={`font-pinar font-bold text-foreground line-clamp-2 ${
-              isCompact ? 'text-base' : 'text-lg'
-            }`}
-          >
-            {tour.title}
+    <div className="w-full bg-background border border rounded-[22px] transition duration-200">
+      <div className="p-6 flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
+          <h3 className="font-pinar text-2xl text-start font-bold text-foreground">
+            {title}
           </h3>
+          <p className="font-iransans text-foreground text-base text-start">
+            مدت سفر: {toFaDigits(duration)}
+          </p>
+          <p className="font-iransans text-foreground text-base text-start">
+            قیمت از: {price.toLocaleString('fa-IR')} تومان
+          </p>
         </div>
-
-        {/* Footer / Price & CTA */}
-        <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-border">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">قیمت از</span>
-            <div className="flex flex-col items-end">
-              {tour.oldPrice && (
-                <span className="text-xs text-muted-foreground line-through">
-                  {formatPrice(tour.oldPrice)} تومان
-                </span>
-              )}
-              <span className="font-pinar text-base font-bold text-foreground">
-                {formatPrice(tour.price)} تومان
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onCTA) onCTA(tour.slug);
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-muted py-2.5 text-xs font-medium text-foreground transition-colors duration-200 hover:bg-muted/80"
-          >
-            <span>مشاهدهٔ جزئیات</span>
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-        </div>
+        <button
+          className="flex items-center justify-center gap-2 bg-background text-foreground border border px-6 py-3 rounded-lg transition duration-200"
+          onClick={onReserve}
+        >
+          <span className="font-iransans text-base">رزرو این تور</span>
+          <ArrowLeft className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
