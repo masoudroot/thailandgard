@@ -1,81 +1,140 @@
-import { ArrowLeft, MapPin, Moon } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, Star } from "lucide-react";
 
-interface ThailandTourCardProps {
+interface Tour {
+  id: string;
   title: string;
   destination: string;
-  price: number;
-  nights: number;
-  imageUrl: string;
-  badgeText?: string;
-  onReserve: () => void;
+  durationNights: number;
+  priceToman: number;
+  oldPriceToman?: number;
+  rating: number;
+  imageSrc: string;
+  imageAlt: string;
+  badges?: string[];
+}
+
+interface ThailandTourCardProps {
+  tour: Tour;
+  onOpenDetails?: (id: string) => void;
+  className?: string;
 }
 
 function toPersianNumber(num: number): string {
   const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
   return num
     .toString()
-    .replace(/\d/g, (d) => persianDigits[parseInt(d, 10)]);
+    .replace(/\d/g, (digit) => persianDigits[parseInt(digit)]);
 }
 
 function formatPrice(price: number): string {
-  const parts = price.toLocaleString("en-US").split(",");
-  return parts.map((part) => toPersianNumber(parseInt(part, 10))).join("٬");
+  const persian = toPersianNumber(price);
+  return persian.replace(/(\d)(?=(\d{3})+$)/g, "$1٬");
 }
 
 export function ThailandTourCard({
-  title,
-  destination,
-  price,
-  nights,
-  imageUrl,
-  badgeText,
-  onReserve,
+  tour,
+  onOpenDetails,
+  className,
 }: ThailandTourCardProps) {
+  const handleOpenDetails = () => {
+    if (onOpenDetails) {
+      onOpenDetails(tour.id);
+    }
+  };
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-[22px] border border-border bg-background transition duration-200 hover:border-muted-foreground/30">
+    <div
+      className={`group flex flex-col bg-background border rounded-[22px] overflow-hidden transition-all duration-200 hover:border-amber-500/50 ${className || ""}`}
+    >
+      {/* Image Section */}
       <div className="relative aspect-[16/10] overflow-hidden">
         <img
-          src={imageUrl}
-          alt={title}
-          className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+          src={tour.imageSrc}
+          alt={tour.imageAlt}
+          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
         />
-        {badgeText && (
-          <span className="absolute start-3 top-3 rounded-lg bg-muted px-2 py-1 text-sm font-medium text-foreground">
-            {badgeText}
-          </span>
+        {tour.badges && tour.badges.length > 0 && (
+          <div className="absolute top-3 end-3 flex flex-col gap-1.5">
+            {tour.badges.map((badge, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2.5 py-1 bg-background/90 backdrop-blur-sm text-foreground text-xs font-medium rounded-lg border"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <h3 className="font-pinar text-lg font-bold leading-tight text-foreground">
-          {title}
+
+      {/* Content Section */}
+      <div className="flex flex-col flex-1 p-4 gap-3">
+        {/* Title */}
+        <h3 className="font-pinar font-bold text-foreground text-base leading-relaxed line-clamp-2">
+          {tour.title}
         </h3>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4" />
-          <span className="font-iransans">{destination}</span>
+
+        {/* Info Rows */}
+        <div className="flex flex-col gap-2">
+          {/* Destination */}
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">مقصد</span>
+            <div className="flex items-center gap-1 text-foreground text-sm">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>{tour.destination}</span>
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">مدت اقامت</span>
+            <div className="flex items-center gap-1 text-foreground text-sm">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{toPersianNumber(tour.durationNights)} شب</span>
+            </div>
+          </div>
+
+          {/* Rating */}
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">امتیاز</span>
+            <div className="flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+              <span className="text-foreground text-sm font-medium">
+                {toPersianNumber(tour.rating)}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Moon className="h-4 w-4" />
-          <span className="font-iransans">
-            {toPersianNumber(nights)} شب
-          </span>
-        </div>
-        <div className="mt-auto flex items-end justify-between gap-2 pt-3">
-          <div className="flex flex-col items-start gap-0.5">
-            <span className="text-xs text-muted-foreground font-iransans">
-              قیمت از
-            </span>
-            <span className="font-pinar text-lg font-bold text-foreground">
-              {formatPrice(price)} تومان
+
+        {/* Separator */}
+        <div className="border-t" />
+
+        {/* Price Section */}
+        <div className="flex flex-col gap-1">
+          {tour.oldPriceToman !== undefined && tour.oldPriceToman > tour.priceToman && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">قیمت قبل</span>
+              <span className="text-muted-foreground text-sm line-through">
+                {formatPrice(tour.oldPriceToman)} تومان
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">قیمت نهایی</span>
+            <span className="text-amber-600 font-bold text-lg">
+              {formatPrice(tour.priceToman)} تومان
             </span>
           </div>
-          <button
-            onClick={onReserve}
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition duration-200 hover:bg-muted hover:text-foreground"
-          >
-            <span className="font-iransans">رزرو</span>
-            <ArrowLeft className="h-4 w-4" />
-          </button>
         </div>
+
+        {/* Action Button */}
+        <button
+          onClick={handleOpenDetails}
+          className="flex items-center justify-center gap-2 w-full mt-1 py-2.5 px-4 bg-foreground text-background font-medium text-sm rounded-lg transition-colors duration-200 hover:bg-foreground/90"
+        >
+          <span>مشاهده جزئیات تور</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
