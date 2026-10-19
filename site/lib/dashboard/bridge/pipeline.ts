@@ -17,9 +17,10 @@
  * می‌گذرند تا در تست mock شوند؛ هیچ تماس واقعی در تست گرفته نمی‌شود.
  */
 
-import { runQualityGate } from '../quality-gate';
+import { validatePatch } from './gate';
 import { commitToBridgeBranch, SITE_REPO } from './commit';
 import { getGithubConfig } from '../github';
+import { preMergeTypeCheck } from './pre-merge-check';
 import type { PatchFile } from '../github';
 
 export type BridgePatchStatus =
@@ -43,6 +44,7 @@ export interface BridgePatch {
   merge_sha?: string;
   revert_sha?: string;
   gate_errors?: string[];
+  rejection_reason?: string;
   decided_by?: string;
   decided_at?: string;
   created_at: string;
@@ -123,11 +125,12 @@ export async function gateAndCommit(
   if (patch.status !== 'proposed') {
     throw new Error(`فقط پچ proposed از دروازه رد می‌شود (وضعیت فعلی: ${patch.status}).`);
   }
-  const gate = runQualityGate(patch.files);
-  if (!gate.passed) {
-    patch.gate_errors = gate.checks
-      .filter((c) => !c.passed)
-      .map((c) => `[${c.name}] ${c.message}`);
+  // قیف یکپارچه (ممیزی مسیرهای دورزن C4): همان دروازهٔ کیفیت حلقهٔ زندهٔ
+  // پل (processProposedPatch)، نه دروازهٔ ضعیف‌تر quality-gate. همهٔ مسیرها
+  // باید از یک قیف رد شوند.
+  const gate = validatePatch(patch.files);
+  if (!gate.ok) {
+    patch.gate_errors = gate.errors;
     patch.updated_at = nowIso();
     store.save(patch);
     return { patch, gatePassed: false };
@@ -219,6 +222,19 @@ export async function mergePatch(
     throw new Error(`فقط پچ approved مرج می‌شود (وضعیت فعلی: ${patch.status}).`);
   }
   if (!patch.branch) throw new Error('شاخهٔ پل برای این پچ ثبت نشده است.');
+
+  // بررسی تایپ پیش از مرج (گلوگاه ۵): پچ روی کلون تازه اعمال و tsc اجرا می‌شود.
+  // اگر خطا داشت، پچ برمی‌گردد و به وضعیت rejected می‌رود.
+  const siteRepoUrl = `https://github.com/${SITE_REPO}.git`;
+  const preCheck = await preMergeTypeCheck(patch.files, siteRepoUrl, 'dev');
+  if (!preCheck.passed) {
+    patch.status = 'rejected';
+    patch.rejection_reason = `تایپ‌چک پیش‌مرج رد شد: ${preCheck.message} ${preCheck.errors.slice(0, 3).join(' | ')}`;
+    patch.updated_at = nowIso();
+    store.save(patch);
+    throw new Error(patch.rejection_reason);
+  }
+
   const token = await githubTokenOrThrow();
   const body = (await ghApi(`/repos/${SITE_REPO}/merges`, token, {
     method: 'POST',

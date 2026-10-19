@@ -29,13 +29,13 @@ export function getAdminUsername(): string | null {
   return u ? u : null;
 }
 
-/** هش bcrypt رمز از env (null اگر ست نشده یا قالب bcrypt نباشد). */
+/** هش رمز از env: bcrypt یا SHA-256 قدیمی (null اگر معتبر نباشد). */
 export function getAdminPasswordHash(): string | null {
   const h = process.env.ADMIN_PASSWORD_HASH?.trim();
   if (!h) return null;
-  // قالب bcrypt: $2a$ / $2b$ / $2y$ + cost + salt+hash
-  if (!/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(h)) return null;
-  return h;
+  if (/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(h)) return h;
+  if (/^[0-9a-f]{64}$/.test(h)) return h;
+  return null;
 }
 
 /** آیا احراز هویت یوزرنیم/پسوردی پیکربندی شده است؟ */
@@ -69,8 +69,12 @@ export async function verifyAdminCredentials(
     timingSafeEqual(Buffer.from('x'.repeat(b.length)), b);
   }
 
-  // bcrypt.compare خودش زمان‌ثابت است؛ همیشه اجراش کن.
-  const passOk = await compare(password, expectedHash);
+  const passOk = expectedHash.startsWith('$2')
+    ? await compare(password, expectedHash)
+    : timingSafeEqual(
+        Buffer.from(await sha256Hex(password), 'utf8'),
+        Buffer.from(expectedHash, 'utf8'),
+      );
   return userOk && passOk;
 }
 

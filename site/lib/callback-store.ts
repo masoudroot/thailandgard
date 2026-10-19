@@ -2,7 +2,7 @@
  * ذخیره‌سازی درخواست‌های تماس.
  *
  * قرارداد: هر پیاده‌سازی باید یک متد `save` داشته باشد.
- * الان: سوپابیس (جدول `leads`)؛ اگر متغیرهای محیطی نباشند، JSONL محلی.
+ * الان: سوپابیس (جدول `leads`)؛ اگر متغیرهای محیطی نباشند، ثبت با خطا متوقف می‌شود.
  * هیچ تغییری در روت API لازم نیست.
  *
  * پس از هر ثبت موفق در سوپابیس، خلاصه‌نویس lead-alert هم یک ردیف بدون PII
@@ -24,18 +24,12 @@ export interface CallbackStore {
   save(request: CallbackRequest): Promise<void>;
 }
 
-import { appendFile, mkdir } from "node:fs/promises";
-import { dirname, join } from "node:path";
 import { writeLeadAlertSummary } from "./lead-alert";
 import { getTour } from "./tours";
 
-const DATA_DIR = join(process.cwd(), "data");
-const FILE_PATH = join(DATA_DIR, "callbacks.jsonl");
-
-class JsonlCallbackStore implements CallbackStore {
-  async save(request: CallbackRequest): Promise<void> {
-    await mkdir(DATA_DIR, { recursive: true });
-    await appendFile(FILE_PATH, JSON.stringify(request) + "\n", "utf8");
+class UnavailableCallbackStore implements CallbackStore {
+  async save(): Promise<void> {
+    throw new Error("SUPABASE env missing");
   }
 }
 
@@ -91,8 +85,8 @@ class SupabaseCallbackStore implements CallbackStore {
 
 function pickStore(): CallbackStore {
   if (SUPABASE_URL && SERVICE_KEY) return new SupabaseCallbackStore();
-  console.warn("[callback-store] SUPABASE env missing; falling back to JSONL");
-  return new JsonlCallbackStore();
+  console.error("[callback-store] SUPABASE env missing; lead storage unavailable");
+  return new UnavailableCallbackStore();
 }
 
 export const callbackStore: CallbackStore = pickStore();

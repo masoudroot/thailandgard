@@ -26,11 +26,10 @@ export interface OperationEvent {
   created_at: string;
 }
 
-type ConnState = 'connecting' | 'sse' | 'polling' | 'error';
+type ConnState = 'connecting' | 'polling' | 'error';
 
 const CONN_LABEL: Record<ConnState, string> = {
   connecting: 'در حال اتصال',
-  sse: 'زنده',
   polling: 'پولینگ',
   error: 'قطع شد',
 };
@@ -183,7 +182,7 @@ function EventRow({ event }: { event: OperationEvent }) {
 
 /**
  * مودال تایم‌لاین زنده‌ی یک تیم در چرخه‌ی جاری.
- * اول تاریخچه (JSON)، بعد SSE برای تازه‌ها؛ اگر SSE قطع شد، پولینگ هر ۵ ثانیه.
+ * اول تاریخچه، بعد پولینگ هر ۵ ثانیه برای تازه‌ها.
  * پرامپت‌ها فقط همین‌جا (مسیر احرازشده) دیده می‌شوند و هرگز لاگ نمی‌شوند.
  */
 export default function TeamTimelineModal({
@@ -204,29 +203,16 @@ export default function TeamTimelineModal({
   const [errorMsg, setErrorMsg] = useState('');
   const [conn, setConn] = useState<ConnState>('connecting');
   const seenIds = useRef<Set<string>>(new Set());
-  const esRef = useRef<EventSource | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cursorRef = useRef<{ ts: string; id: string } | null>(null);
 
-  const baseUrl = useCallback(
-    (stream: boolean) => {
-      const u = new URL('/api/manager/live-stream', window.location.origin);
-      u.searchParams.set('cycle_id', cycleId);
-      u.searchParams.set('team', team);
-      if (stream) {
-        u.searchParams.set('stream', '1');
-        const c = cursorRef.current;
-        if (c) {
-          u.searchParams.set('since_ts', c.ts);
-          u.searchParams.set('since_id', c.id);
-        }
-      } else {
-        u.searchParams.set('limit', '300');
-      }
-      return u.toString();
-    },
-    [cycleId, team],
-  );
+  const baseUrl = useCallback(() => {
+    const u = new URL('/api/manager/live-stream', window.location.origin);
+    u.searchParams.set('cycle_id', cycleId);
+    u.searchParams.set('team', team);
+    u.searchParams.set('limit', '300');
+    return u.toString();
+  }, [cycleId, team]);
 
   /** ادغام رویدادهای تازه (جدیدترین اول)، بدون تکرار. */
   const mergeEvents = useCallback((incoming: OperationEvent[]) => {
@@ -246,7 +232,7 @@ export default function TeamTimelineModal({
     setConn('polling');
     const tick = async () => {
       try {
-        const res = await fetch(baseUrl(false), { cache: 'no-store' });
+        const res = await fetch(baseUrl(), { cache: 'no-store' });
         const json = await res.json().catch(() => null);
         if (!res.ok || json?.ok === false) return;
         const rows = (json?.data?.events ?? []) as OperationEvent[];
@@ -262,43 +248,6 @@ export default function TeamTimelineModal({
     pollRef.current = setInterval(() => void tick(), 5000);
   }, [baseUrl, mergeEvents]);
 
-  const connectSse = useCallback(() => {
-    if (typeof EventSource === 'undefined') {
-      startPolling();
-      return;
-    }
-    setConn('connecting');
-    const es = new EventSource(baseUrl(true));
-    esRef.current = es;
-
-    es.addEventListener('event', (e) => {
-      try {
-        const ev = JSON.parse((e as MessageEvent).data) as OperationEvent;
-        if (ev?.id) mergeEvents([ev]);
-      } catch {
-        /* پیام خراب را رد کن */
-      }
-    });
-    es.addEventListener('close', () => {
-      // پایان عمر ۵ دقیقه‌ای اتصال: با کرسر تازه reconnect کن
-      es.close();
-      esRef.current = null;
-      connectSse();
-    });
-    es.addEventListener('error', () => {
-      setErrorMsg('خطا در استریم زنده.');
-    });
-    es.onerror = () => {
-      if (es.readyState === EventSource.CLOSED) {
-        esRef.current = null;
-        if (!pollRef.current) startPolling();
-        else setConn('polling');
-      }
-    };
-    // پیام ready یعنی اتصال برقرار است
-    es.addEventListener('ready', () => setConn('sse'));
-  }, [baseUrl, mergeEvents, startPolling]);
-
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -311,7 +260,7 @@ export default function TeamTimelineModal({
 
     (async () => {
       try {
-        const res = await fetch(baseUrl(false), { cache: 'no-store' });
+        const res = await fetch(baseUrl(), { cache: 'no-store' });
         const json = await res.json().catch(() => null);
         if (cancelled) return;
         if (!res.ok || json?.ok === false) {
@@ -329,7 +278,7 @@ export default function TeamTimelineModal({
         if (rows.length > 0) cursorRef.current = { ts: rows[0].created_at, id: rows[0].id };
         setEvents(rows);
         setLoading(false);
-        connectSse();
+        startPolling();
       } catch {
         if (cancelled) return;
         setErrorMsg('اتصال به سرور برقرار نشد.');
@@ -340,14 +289,12 @@ export default function TeamTimelineModal({
 
     return () => {
       cancelled = true;
-      esRef.current?.close();
-      esRef.current = null;
       if (pollRef.current) {
         clearInterval(pollRef.current);
         pollRef.current = null;
       }
     };
-  }, [open, baseUrl, connectSse]);
+  }, [open, baseUrl, startPolling]);
 
   const meta = TEAM_META[team];
 
@@ -361,8 +308,8 @@ export default function TeamTimelineModal({
           <span className="font-mono text-xs" dir="ltr">
             {cycleRunId}
           </span>
-          <Badge variant={conn === 'sse' ? 'default' : conn === 'polling' ? 'secondary' : 'outline'}>
-            {conn === 'sse' && (
+          <Badge variant={conn === 'polling' ? 'secondary' : 'outline'}>
+            {conn === 'polling' && (
               <span className="relative me-1.5 inline-flex size-2" aria-hidden="true">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-success" />

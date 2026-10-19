@@ -56,8 +56,9 @@ function unwrapPayload(body: unknown): unknown {
   return body;
 }
 
-const TEAM_LABEL: Record<TeamName, string> = {
+const TEAM_LABEL: Partial<Record<TeamName, string>> = {
   leader: 'رهبر',
+  'tour-manager': 'مدیر تور',
   content: 'محتوا',
   seo: 'سئو',
   design: 'دیزاین',

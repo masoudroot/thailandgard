@@ -72,8 +72,9 @@ interface CycleReport extends Cycle {
   teams: TeamName[];
 }
 
-const TEAM_LABELS: Record<TeamName, string> = {
+const TEAM_LABELS: Partial<Record<TeamName, string>> = {
   leader: 'رهبر',
+  'tour-manager': 'مدیر تور',
   content: 'محتوا',
   seo: 'سئو',
   design: 'دیزاین',
@@ -82,6 +83,7 @@ const TEAM_LABELS: Record<TeamName, string> = {
 
 const ALL_TEAMS: TeamName[] = [
   'leader',
+  'tour-manager',
   'content',
   'seo',
   'design',
@@ -239,7 +241,7 @@ export default function ReportsPage() {
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {selected.teams.map((t) => (
                         <Badge key={t} variant="secondary">
-                          {TEAM_LABELS[t]}
+                          {TEAM_LABELS[t] ?? t}
                         </Badge>
                       ))}
                     </div>

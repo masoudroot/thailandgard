@@ -17,9 +17,9 @@ import { fail, ok } from '../../../../../../lib/dashboard/api';
 import { requireManagerAuth } from '../../../../../../lib/dashboard/manager-auth';
 import {
   getBridgePatch,
-  mergeBranchIntoDev,
   updateBridgePatch,
 } from '../../../../../../lib/dashboard/bridge';
+import { mergeBranchIntoDev } from '../../../../../../lib/dashboard/bridge/merge';
 import { GithubError } from '../../../../../../lib/dashboard/github-changes';
 
 function validId(id: string): boolean {
@@ -56,7 +56,7 @@ export async function POST(
 
     let merge: { sha: string | null; already_merged: boolean; pr_number: number | null };
     try {
-      merge = await mergeBranchIntoDev(patch.branch);
+      merge = await mergeBranchIntoDev(patch.branch, patch.files ?? []);
     } catch (err) {
       if (err instanceof GithubError) {
         return fail(err.message, err.status >= 400 && err.status < 600 ? err.status : 502);

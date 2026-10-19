@@ -1,0 +1,622 @@
+/**
+ * lib/critic-loop.ts — حلقه نقد ۳ مرحله‌ای مشترک همه تیم‌ها.
+ *
+ * معماری (سند: docs/critic-3round-loop.md):
+ * - دور ۱: مجری → منتقد (تأیید/رد + دستور دقیق)
+ * - دور ۲: مجری (با دستور) → منتقد (تأیید/رد + دستور دقیق)
+ * - دور ۳: نظارت — منتقد فقط نظر نهایی می‌دهد، حق رد ندارد
+ *
+ * قرارداد حکم (CriticVerdictV2):
+ * - approved: بولین
+ * - reason: شرح کامل دلیل رد (حداقل ۳۰ نویسه)
+ * - instruction: دستور دقیق قدم‌به‌قدم (حداقل ۵۰ نویسه، امری)
+ * - acceptance: معیار قبولی — «وقتی درست است که...»
+ * - finalOpinion: نظر نهایی (دور ۳)
+ *
+ * اعتبارسنجی خودکار: حکم رد بدون دستور کافی = نامعتبر، یک بار retry.
+ *
+ * گیت اعتبارسنجی خروجی (دستور مسعود):
+ * خروجی نامعتبر مجری (خالی، ناقص/قطع‌شده، بی‌معنا) «هرگز» تأیید نمی‌شود.
+ * این چک «ساختاری و قطعی» است و «قبل» از داوری کیفی منتقد انجام می‌شود؛
+ * خروجی نامعتبر اصلاً به مرحله امتیازدهی نمی‌رسد. در دورهای ۱ و ۲ حکم رد
+ * خودکار با دستور دقیق صادر می‌شود و در دور ۳ هم خروجی نامعتبر تأیید نمی‌شود
+ * (فقط نظر نهایی ثبت می‌شود).
+ */
+
+import { faDigits } from './format';
+import { recordEvent } from './operation-events';
+
+export interface CriticVerdictV2 {
+  approved: boolean;
+  /**
+   * امتیاز کیفی منتقد از ۰ تا ۱۰۰. وقتی منتقد امتیاز بدهد، همین عدد
+   * (نه بولین approved) تعیین‌کننده است: تأیید فقط با امتیاز ≥ ۸۰.
+   */
+  score?: number;
+  /** شرح کامل با جزئیات دلیل رد؛ وقتی approved=true خالی. */
+  reason: string;
+  /** دستور دقیق قدم‌به‌قدم برای مجری؛ وقتی approved=true خالی. */
+  instruction: string;
+  /** معیار قبولی؛ وقتی approved=true خالی. */
+  acceptance: string;
+  /** نظر نهایی منتقد (دور ۳). */
+  finalOpinion?: string;
+}
+
+export interface CriticLoopOptions<WorkerOutput> {
+  team: string;
+  runId: string;
+  /** اجرای مجری: (دور، دستور دور قبل) => خروجی */
+  runWorkers: (round: number, prevInstruction?: string) => Promise<WorkerOutput>;
+  /** اجرای منتقد: (خروجی، دور) => حکم */
+  runCritic: (output: WorkerOutput, round: number) => Promise<CriticVerdictV2>;
+  /**
+   * اعتبارسنجی ساختاری خروجی مجری، پیش از داوری کیفی.
+   * اگر تیم ندهد، اعتبارسنج عمومی به کار می‌رود.
+   * برمی‌گرداند: true (معتبر) یا false یا {valid, detail}.
+   */
+  isOutputValid?: (output: WorkerOutput) => boolean | { valid: boolean; detail?: string };
+  /** ثبت دانش هر دور */
+  onRoundKnowledge?: (round: number, verdict: CriticVerdictV2) => Promise<void>;
+  /** گزارش پیشرفت */
+  onProgress?: (msg: string) => void | Promise<void>;
+}
+
+export interface CriticLoopResult<WorkerOutput> {
+  /** خروجی نهایی (بهترین موجود). */
+  output: WorkerOutput;
+  /** آیا تأیید شد؟ */
+  approved: boolean;
+  /** در کدام دور تمام شد؟ */
+  finalRound: number;
+  /** همه احکام برای ثبت در دانش. */
+  verdicts: CriticVerdictV2[];
+  /** نظر نهایی منتقد. */
+  finalOpinion: string;
+  /** تعداد تلاش‌های مجدد مجری در همین چرخه (برای ردیابی). */
+  workerRetries: number;
+}
+
+/** سقف تلاش مجری در هر دور — همه در همین چرخه، بدون موکول به چرخه بعد. */
+const MAX_WORKER_ATTEMPTS_PER_ROUND = 3;
+
+/* ==========================================================================
+ * دروازه امتیاز منتقد (یافته تلخ «امتیاز ۸۰»)
+ *
+ * قرارداد: منتقد به خروجی امتیاز ۰ تا ۱۰۰ می‌دهد و «تأیید» فقط وقتی است
+ * که امتیاز ۸۰ یا بالاتر باشد. وقتی امتیاز معتبر داده شده، همین عدد
+ * تعیین‌کننده است و بولین approved نادیده گرفته می‌شود؛ وقتی امتیازی
+ * نیست، رفتار قبلی (بولین) حفظ می‌شود.
+ * ========================================================================== */
+
+/** آستانه قبولی منتقد: تأیید فقط با امتیاز ۸۰ یا بالاتر. */
+export const CRITIC_PASS_SCORE = 80;
+
+/**
+ * خط راهنمای امتیازدهی که به پرامپت همه منتقدها اضافه می‌شود تا
+ * کلید score را در JSON حکم بدهند.
+ */
+export const CRITIC_SCORE_PROMPT_LINE =
+  'به کیفیت کلی خروجی هم امتیاز ۰ تا ۱۰۰ بده (کلید score، عدد صحیح): ' +
+  '۸۰ یعنی «قابل قبول و آماده تحویل»؛ زیر ۸۰ یعنی «نیاز به اصلاح جدی».';
+
+/** استخراج امتیاز عددی از حکم خام؛ نامعتبر/ناموجود => null. */
+export function parseCriticScore(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return Math.max(0, Math.min(100, Math.round(raw)));
+  }
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    const n = Number(raw.trim().replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))));
+    if (Number.isFinite(n)) return Math.max(0, Math.min(100, Math.round(n)));
+  }
+  return null;
+}
+
+/**
+ * اعمال دروازه امتیاز روی حکم منتقد. وقتی score معتبر هست:
+ * approved = (score >= CRITIC_PASS_SCORE).
+ */
+export function applyScoreGate<V extends { approved?: boolean; score?: unknown }>(
+  verdict: V,
+): V {
+  const score = parseCriticScore((verdict as { score?: unknown }).score);
+  if (score === null) return verdict;
+  return { ...verdict, score, approved: score >= CRITIC_PASS_SCORE };
+}
+
+/**
+ * حکم ردِ سنتزشده وقتی دروازه امتیاز، تأییدِ منتقد را برمی‌گرداند
+ * (امتیاز زیر ۸۰ ولی approved=true). دلیل و دستورش شرط‌های
+ * validateRejection را می‌گذرانند تا حلقه بی‌نقص ادامه یابد.
+ */
+export function buildScoreGateRejection(score: number, criticReason?: string): {
+  reason: string;
+  instruction: string;
+  acceptance: string;
+} {
+  const reason =
+    `امتیاز منتقد ${faDigits(score)} از ۱۰۰ است؛ آستانه قبولی ${faDigits(CRITIC_PASS_SCORE)} است و این خروجی به آن نرسید.` +
+    (criticReason?.trim() ? ` نظر منتقد: ${criticReason.trim()}` : '');
+  return {
+    reason,
+    instruction:
+      `خروجی را بازبینی و تقویت کن تا امتیاز ${faDigits(CRITIC_PASS_SCORE)} یا بالاتر بگیرد: نقاط ضعف را یک‌به‌یک برطرف کن، ` +
+      'بخش‌های ناقص یا سطحی را کامل و مستدل بنویس، ادعاها را با شاهد و مثال تقویت کن، ' +
+      'و خروجی نهایی را تمیز و آماده تحویل بده. کم‌کاری پذیرفته نیست.',
+    acceptance:
+      `وقتی درست است که خروجی در داوری دوباره امتیاز ${faDigits(CRITIC_PASS_SCORE)} یا بالاتر بگیرد.`,
+  };
+}
+
+/**
+ * ترکیب دستور مستقیم منتقد از حلقه بیرونی ارکستراتور (همین چرخه) با
+ * دستور دور داخلی حلقه نقد. دستور بیرونی بالاترین اولویت را دارد و
+ * همیشه اول می‌آید. خروجی undefined یعنی دستوری نیست.
+ */
+export function combineReviewDirectives(
+  outerDirective?: string | null,
+  innerInstruction?: string | null,
+): string | undefined {
+  const outer = (outerDirective ?? '').trim()
+    ? `دستور مستقیم منتقد از حلقهٔ بیرونی (همین چرخه — بالاترین اولویت، حتماً اعمال کن):\n${(outerDirective ?? '').trim()}`
+    : undefined;
+  const inner = (innerInstruction ?? '').trim() || undefined;
+  const parts = [outer, inner].filter((p): p is string => !!p);
+  return parts.length > 0 ? parts.join('\n\n') : undefined;
+}
+
+/**
+ * تلاش مجدد یک کار ناپایدار (مثل ساخت پلن سرپرست) در همین چرخه.
+ * دستور مسعود: هیچ کاری به چرخهٔ بعد موکول نمی‌شود؛ تا سقف تلاش، همین‌جا تکرار می‌شود.
+ *
+ * @param fn کاری که باید موفق شود
+ * @param isValid اعتبارسنج نتیجه (خروجی معتبر؟)؛ اگر false برگرداند، تلاش بعدی
+ * @param opts.maxAttempts سقف تلاش (پیش‌فرض ۳)
+ * @param opts.label نام کار برای لاگ
+ * @param opts.onProgress گزارش پیشرفت
+ * @returns نتیجهٔ معتبر، یا null اگر همهٔ تلاش‌ها ناموفق بودند
+ */
+export async function retryInCycle<T>(
+  fn: () => Promise<T>,
+  isValid: (result: T) => boolean,
+  opts: {
+    maxAttempts?: number;
+    label?: string;
+    onProgress?: (msg: string) => void | Promise<void>;
+  } = {},
+): Promise<T | null> {
+  const maxAttempts = opts.maxAttempts ?? 3;
+  const label = opts.label ?? 'کار';
+  let lastResult: T | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const result = await fn();
+      if (isValid(result)) return result;
+      lastResult = result;
+      if (attempt < maxAttempts) {
+        await opts.onProgress?.(
+          `${label}: خروجی نامعتبر (تلاش ${attempt} از ${maxAttempts})؛ تلاش مجدد در همین چرخه.`,
+        );
+      }
+    } catch (err) {
+      if (attempt < maxAttempts) {
+        await opts.onProgress?.(
+          `${label}: خطا در تلاش ${attempt} از ${maxAttempts}؛ تلاش مجدد در همین چرخه.`,
+        );
+      }
+    }
+  }
+  return lastResult && isValid(lastResult) ? lastResult : null;
+}
+
+/** افعال امری فارسی برای اعتبارسنجی دستور. */
+const IMPERATIVE_VERBS = [
+  'بنویس', 'بازنویسی', 'حذف', 'اضافه', 'تغییر', 'اصلاح', 'جایگزین',
+  'بگذار', 'بردار', 'عوض', 'کوتاه', 'بلند', 'شفاف', 'مشخص', 'دقیق',
+  'بازسازی', 'مرتب', 'ساده', 'تقویت', 'حفظ', 'نگه', 'استفاده', 'بخوان',
+];
+
+/**
+ * اعتبارسنجی حکم رد: دلیل کافی؟ دستور کافی و امری؟ معیار قبولی هست؟
+ * برمی‌گرداند: {valid, issues[]}
+ */
+export function validateRejection(v: CriticVerdictV2): { valid: boolean; issues: string[] } {
+  const issues: string[] = [];
+  if (!v.reason || v.reason.trim().length < 30) {
+    issues.push('دلیل رد کمتر از ۳۰ نویسه است؛ شرح کامل با جزئیات لازم است.');
+  }
+  if (!v.instruction || v.instruction.trim().length < 50) {
+    issues.push('دستور کمتر از ۵۰ نویسه است؛ دستور دقیق قدم‌به‌قدم لازم است.');
+  } else {
+    const hasImperative = IMPERATIVE_VERBS.some((verb) => v.instruction.includes(verb));
+    if (!hasImperative) {
+      issues.push('دستور باید امری باشد (فعل امری فارسی داشته باشد).');
+    }
+  }
+  if (!v.acceptance || v.acceptance.trim().length < 20) {
+    issues.push('معیار قبولی مشخص نیست؛ بنویس «وقتی درست است که...».');
+  }
+  return { valid: issues.length === 0, issues };
+}
+
+/**
+ * اعمال اعتبارسنج تیم (در صورت وجود) وگرنه اعتبارسنج عمومی.
+ */
+function checkWorkerOutputValidity(
+  hook: ((output: unknown) => boolean | { valid: boolean; detail?: string }) | undefined,
+  output: unknown,
+): OutputValidity {
+  if (hook) {
+    const r = hook(output);
+    if (typeof r === 'boolean') {
+      return r
+        ? { valid: true, detail: '' }
+        : { valid: false, detail: 'اعتبارسنج تیم خروجی را نامعتبر دانست.' };
+    }
+    return r.valid
+      ? { valid: true, detail: '' }
+      : { valid: false, detail: r.detail?.trim() || 'اعتبارسنج تیم خروجی را نامعتبر دانست.' };
+  }
+  return validateWorkerOutput(output);
+}
+
+/** نتیجه اعتبارسنجی ساختاری خروجی مجری. */
+export interface OutputValidity {
+  valid: boolean;
+  /** وقتی نامعتبر است: «خروجی نامعتبر است: ...» */
+  detail: string;
+}
+
+/**
+ * کلیدهای «تحویلی» خروجی تیم‌ها (نه زمینه/مأموریت).
+ * اعتبارسنج عمومی محتوای همین زیردرخت‌ها را می‌سنجد؛
+ * کلیدهایی مثل missions و plan زمینه‌اند و نادیده گرفته می‌شوند.
+ */
+const DELIVERABLE_KEYS = new Set([
+  'outputs', 'workeroutputs', 'workersoutput', 'texts',
+  'draft', 'items', 'patch', 'patches', 'files', 'component',
+]);
+
+/** سقف حداقلی محتوای معنادار (حرف/رقم) برای یک تحویلی معتبر. */
+const MIN_SUBSTANTIVE_CHARS = 40;
+
+/** شمارش حروف و ارقام واقعی متن (بدون نقطه‌گذاری و فاصله)؛ ES5-safe. */
+function substantiveLength(text: string): number {
+  const stripped = text.replace(/[\s\u2000-\u206F!-/:-@\[-`{-~\u060C\u061B\u061F\u00AB\u00BB\u2026\u066B\u066C]/g, '');
+  return stripped.length;
+}
+
+/** همه رشته‌های برگ یک زیردرخت را جمع می‌کند. */
+function collectLeafStrings(value: unknown, acc: string[]): void {
+  if (typeof value === 'string') {
+    acc.push(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const v of value) collectLeafStrings(v, acc);
+    return;
+  }
+  if (value && typeof value === 'object') {
+    for (const v of Object.values(value as Record<string, unknown>)) collectLeafStrings(v, acc);
+  }
+}
+
+/** آیا رشته نشانه بریدگی/قطع‌شدگی دارد؟ */
+function isTruncatedLeaf(text: string): boolean {
+  const t = text.trimEnd();
+  if (!t) return false;
+  if (t.endsWith('…') || t.endsWith('...')) return true;
+  if (/\[بریده/.test(t) || /\[خروجی بریده/.test(t) || /truncated/i.test(t)) return true;
+  const fences = (t.match(/```/g) || []).length;
+  if (fences % 2 === 1) return true; // بلاک کد باز مانده
+  return false;
+}
+
+/**
+ * اعتبارسنج عمومی ساختاری خروجی مجری — قطعی و بدون LLM.
+ * ترتیب چک: نبود خروجی ← خالی بودن تحویلی‌ها ← بریدگی ← بی‌معنایی.
+ */
+export function validateWorkerOutput(output: unknown): OutputValidity {
+  if (output === null || output === undefined) {
+    return { valid: false, detail: 'خروجی‌ای تولید نشده است.' };
+  }
+
+  // زیردرخت‌های تحویلی را پیدا کن؛ اگر کلیدی نبود، کل خروجی را بسنج.
+  let deliverableSubtrees: unknown[] = [];
+  if (output && typeof output === 'object' && !Array.isArray(output)) {
+    for (const [key, value] of Object.entries(output as Record<string, unknown>)) {
+      if (DELIVERABLE_KEYS.has(key.toLowerCase())) deliverableSubtrees.push(value);
+    }
+  }
+  if (deliverableSubtrees.length === 0) deliverableSubtrees = [output];
+
+  const leaves: string[] = [];
+  for (const subtree of deliverableSubtrees) collectLeafStrings(subtree, leaves);
+
+  const nonEmpty = leaves.filter((s) => s.trim().length > 0);
+  if (nonEmpty.length === 0) {
+    return { valid: false, detail: 'خروجی خالی است؛ هیچ محتوایی از مجری تحویل گرفته نشد.' };
+  }
+
+  for (const leaf of nonEmpty) {
+    if (isTruncatedLeaf(leaf)) {
+      const preview = leaf.trim().slice(-60);
+      return { valid: false, detail: `خروجی ناقص و قطع‌شده است (پایان بریده: «…${preview}»).` };
+    }
+  }
+
+  const total = nonEmpty.reduce((sum, s) => sum + substantiveLength(s), 0);
+  if (total < MIN_SUBSTANTIVE_CHARS) {
+    return { valid: false, detail: 'خروجی بی‌معناست؛ دادهٔ قابل ارزیابی ندارد.' };
+  }
+
+  return { valid: true, detail: '' };
+}
+
+/**
+ * حکم رد خودکار برای خروجی نامعتبر — امتیاز صفر، بدون داوری کیفی.
+ * متن‌ها عمداً شرط‌های validateRejection را می‌گذرانند (دلیل ۳۰+، دستور ۵۰+ امری، معیار قبولی).
+ */
+export function buildAutoRejection(detail: string): CriticVerdictV2 {
+  return {
+    approved: false,
+    score: 0,
+    reason:
+      `خروجی نامعتبر است: ${detail} ` +
+      'چنین خروجی‌ای هرگز تأیید نمی‌شود؛ مجری موظف است خروجی کامل و قابل ارزیابی تحویل بدهد.',
+    instruction:
+      `خروجی قبلی‌ات نامعتبر بود (${detail}). ` +
+      'دوباره بنویس و این بار خروجی را «کامل» تحویل بده: بدون بریدگی، بدون بخش خالی، با محتوای واقعی و قابل ارزیابی. ' +
+      'خروجی را پیش از تحویل بازبینی و اصلاح کن؛ اگر ناقص است کاملش کن و بعد تحویل بده. کم‌کاری پذیرفته نیست.',
+    acceptance: 'وقتی خروجی کامل، بدون بریدگی و با محتوای واقعی قابل ارزیابی باشد.',
+  };
+}
+
+/**
+ * ساخت دستور تلاش مجدد مجری وقتی تلاش قبلی با خطا مرد.
+ *
+ * سازوکار یادگیری (درس هدررفت توکن تیم design): دلیل «دقیق» رد به پرامپت
+ * تلاش بعدی برمی‌گردد تا مجری همان اشتباه را تکرار نکند؛ قبلاً فقط یک تذکر
+ * کلی («خروجی قبلی‌ات ناقص بود») می‌آمد و هر سه تلاش همان خروجی را می‌ساختند.
+ * اگر دلیل دقیقاً مثل دفعهٔ قبل باشد، پیام «تشدید» می‌شود.
+ */
+export function buildWorkerRetryInstruction(
+  prevInstruction: string | undefined,
+  errText: string,
+  attempt: number,
+  isRepeat: boolean,
+): string {
+  const short = errText.length > 600 ? `${errText.slice(0, 600)}…` : errText;
+  const head = isRepeat
+    ? `اخطار جدی (تلاش ${attempt}): دقیقاً به همان دلیل قبلی رد شدی و چیزی را اصلاح نکردی.`
+    : `تذکر تلاش ${attempt}: خروجی قبلی‌ات رد شد.`;
+  const body = isRepeat
+    ? `دلیل تکراری رد: «${short}» دیگر این کار را نکن؛ دقیقاً همان‌طور که در دلیل گفته شد عمل کن و بعد تحویل بده.`
+    : `دلیل رد: «${short}» این بار دقیقاً همین ایراد را برطرف کن؛ همان اشتباه را تکرار نکن.`;
+  return [prevInstruction, '', head, body].filter(Boolean).join('\n');
+}
+
+/**
+ * اجرای حلقه نقد ۳ دوره‌ای.
+ */
+export async function runCriticLoop<WorkerOutput>(
+  opts: CriticLoopOptions<WorkerOutput>,
+): Promise<CriticLoopResult<WorkerOutput>> {
+  const { team, runId, runWorkers, runCritic, isOutputValid, onRoundKnowledge, onProgress } = opts;
+  const verdicts: CriticVerdictV2[] = [];
+  let output: WorkerOutput | undefined;
+  let prevInstruction: string | undefined;
+  let workerRetries = 0;
+
+  /* لایه ۱ دیده‌بان زنده (fail-soft): رویدادهای منتقد هر دور.
+   * پرامپت کامل در callback تیم (runCritic) ساخته می‌شود و در این سطح
+   * دیده نمی‌شود؛ پس prompt_sent فقط دور و تیم را ثبت می‌کند.
+   * پاسخ خام منتقد = آبجکت حکم بازگردانده‌شده از runCritic. */
+  const runCriticWithEvents = async (roundNo: number): Promise<CriticVerdictV2> => {
+    await recordEvent(runId, team, 'prompt_sent', {
+      round: roundNo,
+      note: 'پرامپت کامل منتقد در callback تیم (runCritic) ساخته می‌شود و در این سطح دیده نمی‌شود',
+    });
+    const v = await runCritic(output!, roundNo as 1 | 2 | 3);
+    await recordEvent(runId, team, 'llm_response', { round: roundNo, verdict: v });
+    return v;
+  };
+  const recordDecision = (roundNo: number, v: CriticVerdictV2): Promise<void> =>
+    recordEvent(runId, team, 'critic_decision', {
+      approved: v.approved,
+      score: v.score ?? null,
+      reason: v.reason ?? '',
+      round: roundNo,
+    });
+
+  /**
+   * اجرای مجری با تلاش مجدد در همین چرخه (دستور مسعود: رد باید در همان چرخه حل شود).
+   * هر دور تا ۳ تلاش؛ هیچ‌چیز به چرخهٔ بعد موکول نمی‌شود.
+   *
+   * نکتهٔ یادگیری: متن خطای هر تلاش در دستور تلاش بعدی تزریق می‌شود تا مجری
+   * «دلیل» رد را ببیند، نه فقط یک تذکر کلی؛ ردِ تکراریِ هم‌متن تشدید می‌شود.
+   */
+  const runWorkersWithRetry = async (
+    round: number,
+    instruction: string | undefined,
+  ): Promise<WorkerOutput> => {
+    let lastErr: unknown;
+    let lastErrText = '';
+    let currentInstruction = instruction;
+    for (let attempt = 1; attempt <= MAX_WORKER_ATTEMPTS_PER_ROUND; attempt++) {
+      try {
+        return await runWorkers(round, currentInstruction);
+      } catch (err) {
+        lastErr = err;
+        const errText = err instanceof Error ? err.message : String(err);
+        if (attempt < MAX_WORKER_ATTEMPTS_PER_ROUND) {
+          workerRetries++;
+          // یادگیری: دلیل دقیق رد در دستور تلاش بعدی؛ تکرارِ هم‌متن تشدید می‌شود.
+          const isRepeat = lastErrText !== '' && errText === lastErrText;
+          currentInstruction = buildWorkerRetryInstruction(
+            instruction,
+            errText,
+            attempt + 1,
+            isRepeat,
+          );
+          lastErrText = errText;
+          await onProgress?.(
+            `دور ${round}: خطای مجری (تلاش ${attempt} از ${MAX_WORKER_ATTEMPTS_PER_ROUND}): ${errText.slice(0, 120)}؛ تلاش مجدد با دلیل اصلاحی در همین چرخه.`,
+          );
+        }
+      }
+    }
+    throw lastErr;
+  };
+
+  for (let round = 1; round <= 3; round++) {
+    await onProgress?.(`دور ${round}: اجرای مجری`);
+
+    // اجرای مجری (با دستور دور قبل در دور ۲ و ۳) — با تلاش مجدد در همین چرخه
+    try {
+      output = await runWorkersWithRetry(round, prevInstruction);
+    } catch (err) {
+      // هر ۳ تلاش هر دور ناموفق بود.
+      // دور ۱: بدون هیچ خروجی نمی‌شود ادامه داد → خطا به تیم برمی‌گردد تا بلوکر در همین چرخه ثبت شود.
+      // دور ۲/۳: با بهترین خروجی موجود (دور قبل) ادامه می‌دهیم؛ چیزی به چرخهٔ بعد موکول نمی‌شود.
+      if (round === 1 || !output) throw err;
+      await onProgress?.(`دور ${round}: مجری پس از ${MAX_WORKER_ATTEMPTS_PER_ROUND} تلاش خروجی نداد؛ با خروجی دور قبل ادامه می‌دهیم (همین چرخه).`);
+    }
+
+    // گیت اعتبارسنجی ساختاری (دستور مسعود): خروجی نامعتبر هرگز به داوری کیفی نمی‌رسد.
+    // خالی، ناقص/قطع‌شده یا بی‌معنا = رد خودکار با امتیاز صفر، بدون امتیازدهی.
+    const validity = checkWorkerOutputValidity(
+      isOutputValid as ((output: unknown) => boolean | { valid: boolean; detail?: string }) | undefined,
+      output!,
+    );
+    if (!validity.valid) {
+      await onProgress?.(`دور ${round}: خروجی نامعتبر است (${validity.detail})؛ به داوری کیفی نرفت.`);
+      if (round === 3) {
+        // دور ۳: رد کیفی مجاز نیست، ولی خروجی نامعتبر هم هرگز تأیید نمی‌شود؛ فقط نظر نهایی.
+        const invalidVerdict: CriticVerdictV2 = {
+          approved: false,
+          score: 0,
+          reason: `خروجی نامعتبر است: ${validity.detail}`,
+          instruction: '',
+          acceptance: '',
+          finalOpinion:
+            `خروجی نامعتبر بود (${validity.detail}) و تأیید نشد؛ فقط نظر نهایی ثبت شد. ` +
+            'در چرخهٔ بعد مجری باید خروجی کامل و قابل ارزیابی تحویل بدهد.',
+        };
+        verdicts.push(invalidVerdict);
+        await recordDecision(round, invalidVerdict);
+        await onRoundKnowledge?.(round, invalidVerdict);
+        return {
+          output: output!,
+          approved: false,
+          finalRound: 3,
+          verdicts,
+          finalOpinion: invalidVerdict.finalOpinion!,
+          workerRetries,
+        };
+      }
+      const autoVerdict = buildAutoRejection(validity.detail);
+      verdicts.push(autoVerdict);
+      await recordDecision(round, autoVerdict);
+      await onRoundKnowledge?.(round, autoVerdict);
+      prevInstruction = [
+        `دستور منتقد (دور ${round}):`,
+        autoVerdict.instruction,
+        '',
+        `معیار قبولی: ${autoVerdict.acceptance}`,
+      ].join('\n');
+      await onProgress?.(`دور ${round}: رد خودکار خروجی نامعتبر؛ دستور اصلاح برای دور بعد آماده است.`);
+      continue;
+    }
+
+    await onProgress?.(`دور ${round}: داوری منتقد`);
+    let verdict = await runCriticWithEvents(round);
+
+    // دروازه امتیاز منتقد (یافته تلخ «امتیاز ۸۰»): در دورهای ۱ و ۲، وقتی
+    // منتقد امتیاز داده، تأیید فقط با امتیاز ۸۰ یا بالاتر است. اگر دروازه
+    // تأییدِ منتقد را برگرداند (امتیاز زیر ۸۰)، دلیل و دستور رد سنتز می‌شود
+    // تا حلقه با حکم معتبر ادامه یابد.
+    if (round < 3) {
+      const wasApproved = verdict.approved !== false;
+      const gated = applyScoreGate(verdict);
+      if (gated.score !== undefined && !gated.approved && wasApproved) {
+        const synth = buildScoreGateRejection(gated.score, verdict.reason);
+        verdict = {
+          ...gated,
+          reason: synth.reason,
+          instruction: synth.instruction,
+          acceptance: synth.acceptance,
+        };
+      } else {
+        verdict = gated;
+      }
+    }
+
+    // دور ۳: آخرین دور؛ حکم خام منتقد بدون تأیید اجباری ثبت می‌شود.
+    // اگر منتقد تأیید نکند، چرخه با approved=false تمام می‌شود (fail-closed).
+    if (round === 3) {
+      const finalApproved = verdict.approved === true;
+      verdicts.push(verdict);
+      await recordDecision(round, verdict);
+      await onRoundKnowledge?.(round, verdict);
+      return {
+        output: output!,
+        approved: finalApproved,
+        finalRound: 3,
+        verdicts,
+        finalOpinion: verdict.finalOpinion || verdict.reason || 'نظر نهایی ثبت شد.',
+        workerRetries,
+      };
+    }
+
+    // اعتبارسنجی حکم رد
+    if (!verdict.approved) {
+      const validation = validateRejection(verdict);
+      if (!validation.valid) {
+        await onProgress?.(`دور ${round}: حکم رد نامعتبر است (${validation.issues.join(' ')})؛ یک بار از منتقد می‌خواهیم کاملش کند.`);
+        // یک بار retry
+        verdict = await runCriticWithEvents(round);
+        const revalidation = validateRejection(verdict);
+        if (!verdict.approved && !revalidation.valid) {
+          // با همان حکم ناقص ادامه می‌دهیم ولی ثبت می‌شود
+          await onProgress?.(`دور ${round}: دستور همچنان ناقص است؛ در دانش ثبت می‌شود.`);
+        }
+      }
+    }
+
+    verdicts.push(verdict);
+    await recordDecision(round, verdict);
+    await onRoundKnowledge?.(round, verdict);
+
+    if (verdict.approved) {
+      return {
+        output: output!,
+        approved: true,
+        finalRound: round,
+        verdicts,
+        finalOpinion: verdict.finalOpinion || 'تأیید شد.',
+        workerRetries,
+      };
+    }
+
+    // رد شد؛ دستور برای دور بعد
+    prevInstruction = [
+      `دستور منتقد (دور ${round}):`,
+      verdict.instruction,
+      '',
+      `معیار قبولی: ${verdict.acceptance}`,
+    ].join('\n');
+
+    await onProgress?.(`دور ${round}: رد شد؛ دستور برای اصلاح آماده است.`);
+  }
+
+  // نباید به اینجا برسیم (دور ۳ همیشه برمی‌گردد)
+  return {
+    output: output!,
+    approved: false,
+    finalRound: 3,
+    verdicts,
+    finalOpinion: 'حلقه بدون نتیجه نهایی تمام شد.',
+    workerRetries,
+  };
+}

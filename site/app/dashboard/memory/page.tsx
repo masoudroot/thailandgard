@@ -14,9 +14,10 @@ import { Field } from '@/components/dashboard/ui/Input';
 import { SearchInput } from '@/components/dashboard/ui/search-input';
 import { Collapsible } from '@/components/dashboard/ui/collapsible';
 
-/** نام‌های فارسی خوانا برای ۵ تیم */
-const TEAM_LABELS: Record<TeamName, string> = {
+/** نام‌های فارسی خوانا برای ۶ تیم */
+const TEAM_LABELS: Partial<Record<TeamName, string>> = {
   leader: 'رهبر',
+  'tour-manager': 'مدیر تور',
   content: 'محتوا',
   seo: 'سئو',
   design: 'دیزاین',
@@ -173,7 +174,7 @@ function MemoryCard({ row }: { row: MemoryRow }) {
                 {row.key}
               </span>
               <span className="mt-0.5 block text-xs text-muted-foreground">
-                {TEAM_LABELS[row.team]} · {jalaliFormatter.format(new Date(row.updated_at))}
+                {TEAM_LABELS[row.team] ?? row.team} · {jalaliFormatter.format(new Date(row.updated_at))}
               </span>
             </span>
           </span>
@@ -289,7 +290,7 @@ export default function MemoryPage() {
                 { value: 'all', label: 'همهٔ تیم‌ها' },
                 ...TEAMS.map((t) => ({
                   value: t,
-                  label: `${TEAM_LABELS[t]} (${t})`,
+                  label: `${TEAM_LABELS[t] ?? t} (${t})`,
                 })),
               ]}
             />
@@ -350,7 +351,7 @@ export default function MemoryPage() {
             <>
               <Badge variant="secondary" className="mb-3">
                 {faDigits(filtered.length)} رکورد
-                {team !== 'all' && ` در حافظه ${TEAM_LABELS[team as TeamName]}`}
+                {team !== 'all' && ` در حافظه ${TEAM_LABELS[team as TeamName] ?? team}`}
               </Badge>
               <ul className="space-y-4">
                 {filtered.map((row) => (

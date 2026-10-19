@@ -19,7 +19,9 @@
 
 import { validatePatch } from './gate';
 import { commitToBridgeBranch, createBridgePR } from './commit';
-import { claimBridgePatch, getBridgePatch, mergeBranchIntoDev, updateBridgePatch } from '../bridge';
+import { claimBridgePatch, getBridgePatch, updateBridgePatch } from '../bridge';
+import { mergeBranchIntoDev, PreMergeGateError, isMergeConflictError } from './merge';
+import { enqueueDeploy } from './deploy-queue';
 import type { PatchFile } from '../types';
 
 export interface ProposeResult {
@@ -95,7 +97,7 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
 
   // ۴. مرج خودکار به dev (بدون تأیید دستی)
   try {
-    const merge = await mergeBranchIntoDev(branch);
+    const merge = await mergeBranchIntoDev(branch, files);
     const now = new Date().toISOString();
     await updateBridgePatch(patchId, {
       status: 'merged',
@@ -104,6 +106,23 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
       merge_sha: merge.sha,
     });
     console.log(`[bridge] پچ ${patchId} به‌صورت خودکار به dev مرج شد (sha=${merge.sha ?? 'already'}).`);
+
+    // صف دیپلوی (دستور مسعود ۱۴۰۵/۰۷/۲۷): به‌جای مرج فوری dev به main،
+    // پچ وارد صف ۷۰ اسلاته می‌شود؛ پردازشگر در اسلات ثابت دیپلوی می‌کند.
+    // این سقف ۱۰۰ دیپلوی روزانه ورسل را هیچ‌وقت پر نمی‌کند.
+    try {
+      const teamOfPatch = (await getBridgePatch(patchId))?.team ?? undefined;
+      const queued = await enqueueDeploy(patchId, teamOfPatch ?? undefined);
+      console.log(
+        `[bridge] پچ ${patchId} در صف دیپلوی قرار گرفت (اسلات ${queued.slot_time}).`,
+      );
+    } catch (queueErr) {
+      console.error(
+        `[bridge] خطای صف دیپلوی برای پچ ${patchId} (پچ merged ماند):`,
+        queueErr instanceof Error ? queueErr.message : queueErr,
+      );
+    }
+
     return {
       patchId,
       gated: true,
@@ -115,8 +134,73 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
       mergeSha: merge.sha ?? undefined,
     };
   } catch (err) {
-    // مرج ناموفق: پچ در committed می‌ماند تا بعداً دوباره تلاش شود؛ چرخه نمی‌میرد
+    // رد تایپ‌چک پیش‌مرج دائمی است (با تلاش مجدد درست نمی‌شود): پچ به
+    // needs_review می‌رود تا چرخه گیتِ پرهزینه را روی پچ خراب تکرار نکند.
+    if (err instanceof PreMergeGateError) {
+      const gateMessage = err.message;
+      await updateBridgePatch(patchId, {
+        status: 'needs_review',
+        gate_errors: JSON.stringify([gateMessage]),
+      });
+      console.error(
+        `[bridge] پچ ${patchId} در تایپ‌چک پیش‌مرج رد شد؛ وضعیت needs_review ثبت شد.`,
+      );
+      return {
+        patchId,
+        gated: true,
+        committed: true,
+        merged: false,
+        branch,
+        sha,
+        prUrl,
+        gateErrors: [gateMessage],
+      };
+    }
+    // تداخل مرج دائمی است (با تلاش مجدد درست نمی‌شود): پچ به needs_review
+    // می‌رود تا برای همیشه در حلقهٔ committed ← proposed نچرخد.
+    // (یافتهٔ ممیزی D1: ۶ پچ تکراری با تداخل add/add ساعت‌ها در این حلقه بودند
+    // چون خطای مرج هیچ‌جا ثبت نمی‌شد و هر ۳۰ دقیقه بازیابی می‌شدند.)
     const message = err instanceof Error ? err.message : String(err);
+    if (isMergeConflictError(err)) {
+      const conflictMessage =
+        `تداخل مرج با dev (دائمی): ${message} ` +
+        `(شاخهٔ ${branch}؛ احتمالاً همین فایل قبلاً با پچ دیگری مرج شده)`;
+      try {
+        await updateBridgePatch(patchId, {
+          status: 'needs_review',
+          gate_errors: JSON.stringify([conflictMessage]),
+        });
+      } catch (dbErr) {
+        console.error(
+          `[bridge] ثبت needs_review برای پچ متداخل ${patchId} ناموفق بود:`,
+          dbErr instanceof Error ? dbErr.message : dbErr,
+        );
+      }
+      console.error(`[bridge] پچ ${patchId} تداخل مرج دائمی دارد؛ به needs_review رفت.`);
+      return {
+        patchId,
+        gated: true,
+        committed: true,
+        merged: false,
+        branch,
+        sha,
+        prUrl,
+        gateErrors: [conflictMessage],
+      };
+    }
+    // مرج ناموفق (گذرا): پچ در committed می‌ماند تا بعداً دوباره تلاش شود؛ چرخه نمی‌میرد.
+    // خطا روی سطر پچ هم ثبت می‌شود تا در پنل دیده شود (قبلاً فقط در لاگ بود
+    // و علت گیرکردن پچ‌ها از دیتابیس پیدا نبود).
+    try {
+      await updateBridgePatch(patchId, {
+        gate_errors: JSON.stringify([`[مرج گذرا] ${message}`]),
+      });
+    } catch (dbErr) {
+      console.error(
+        `[bridge] ثبت خطای مرج گذرای پچ ${patchId} ناموفق بود:`,
+        dbErr instanceof Error ? dbErr.message : dbErr,
+      );
+    }
     console.error(`[bridge] مرج خودکار پچ ${patchId} به dev ناموفق بود:`, message);
     return {
       patchId,

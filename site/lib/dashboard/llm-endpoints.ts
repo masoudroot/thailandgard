@@ -65,10 +65,22 @@ export interface ResolvedTeamLLM {
 /** نام فارسی هر تیم برای نمایش در تنظیمات. */
 export const TEAM_FA_NAMES: Record<TeamName, string> = {
   leader: 'رهبر',
+  artdir: 'راهنمای هنری',
+  branding: 'برندینگ',
   content: 'محتوا',
   seo: 'سئو',
+  analytics: 'تحلیل داده',
+  intel: 'اطلاعات بازار',
+  lead: 'لید و فروش',
   design: 'طراحی',
+  seocontent: 'محتوای سئو',
+  vibefarsi: 'وایب‌فارسی',
+  farsiui: 'رابط فارسی',
+  'design-ir': 'طراحی ایرانی',
   dev: 'توسعه',
+  qa: 'کنترل کیفیت',
+  inspector: 'بازرس',
+  'tour-manager': 'مدیر تور',
 };
 
 /** ماسک کلید: sk-...abcd */
@@ -81,8 +93,7 @@ export function maskApiKey(key: string): string {
 
 /** آیا env سوپابیس ست است؟ اگر نه، UI باید صادقانه «متصل نیست» نشان بدهد. */
 export function isSupabaseConfigured(): boolean {
-  const url = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  return !!url && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
 function isTeamName(value: unknown): value is TeamName {

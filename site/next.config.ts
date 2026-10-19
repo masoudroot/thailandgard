@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   // استقرار روی Prisma Compute: خروجی standalone اجباری است
   // (بدون آن دپلوی موفق می‌شود ولی URL خطا می‌دهد).
-  output: "standalone",
+  output: process.env.NETLIFY ? undefined : "standalone",
   // ریدایرکت دائمی مسیر منتقل‌شدهٔ کمپین اکتبر (بریف سئو ۰۶:۳۵، ۱۴۰۵/۰۷/۲۰؛
   // قانون ۳۶: انتقال مسیر = ریدایرکت همان اجرا). permanent:true یعنی ۳۰۸ که
   // گوگل معادل ۳۰۱ می‌خواند.
@@ -31,6 +31,24 @@ const nextConfig: NextConfig = {
         destination: "/guide",
         permanent: true,
       },
+      {
+        source: "/dashboard",
+        has: [{ type: "host", value: "thailandgard.ir" }],
+        destination: "https://admin.thailandgard.ir/dashboard",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/:path*",
+        has: [{ type: "host", value: "thailandgard.ir" }],
+        destination: "https://admin.thailandgard.ir/dashboard/:path*",
+        permanent: false,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "admin.thailandgard.ir" }],
+        destination: "/dashboard",
+        permanent: false,
+      },
     ];
   },
   // دستور مسعود: مسیر ‎/dashboard‎ در گوگل ایندکس نشود.
@@ -40,6 +58,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/dashboard/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "admin.thailandgard.ir" }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
     ];

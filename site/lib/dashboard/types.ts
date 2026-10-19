@@ -1,14 +1,26 @@
 /**
  * Shared domain types for the ThailandGard agentic dashboard.
- * The 5 AI teams run in 3 waves per cycle.
+ * The 6 AI teams run in 3 waves per cycle (leader + tour-manager first, then builders).
  */
 
 export type TeamName =
   | 'leader'
+  | 'artdir'
+  | 'branding'
   | 'content'
   | 'seo'
+  | 'analytics'
+  | 'intel'
+  | 'lead'
   | 'design'
-  | 'dev';
+  | 'seocontent'
+  | 'vibefarsi'
+  | 'farsiui'
+  | 'design-ir'
+  | 'dev'
+  | 'qa'
+  | 'inspector'
+  | 'tour-manager';
 
 export type CycleStatus =
   | 'running'
@@ -91,8 +103,13 @@ export interface TeamRun {
   progress?: number;
   /** عنوان کار جاری تیم (آخرین مرحله‌ی گزارش‌شده). */
   current_task?: string | null;
-  /** آخرین به‌روزرسانی ردیف؛ مبنای «آخرین اقدام X پیش». */
+  /** آخرین به‌روزرسانی ردیف؛ پس از جداسازی ضربان = آخرین «پیشرفت واقعی». */
   updated_at?: string | null;
+  /**
+   * آخرین ضربان زنده‌بودن فرایند تیم (ارکستراتور هر ۶۰ ثانیه می‌نویسد).
+   * سیگنال «زنده‌بودن» است نه «پیشرفت»؛ مبنای تشخیص مرگ فرایند.
+   */
+  heartbeat_at?: string | null;
 }
 
 export interface QueuedTask {
@@ -117,7 +134,7 @@ export interface TeamResult {
   patches?: PatchFile[];
   /**
    * پچ پیشنهادی تیم برای پل «تیم → سایت» (اختیاری).
-   * شکل PatchFile در همین فایل تعریف شده — همان {path, content} در
+   * شکل PatchFile در همین فایل تعریف شده | همان {path, content} در
    * lib/github.ts است، ولی از آنجا ایمپورت نمی‌شود چون github.ts از
    * همین types ایمپورت می‌کند (چرخه‌ای می‌شد).
    * ارکستر آن را در جدول bridge_patches با وضعیت proposed ثبت می‌کند؛
@@ -153,21 +170,26 @@ export interface WaveDefinition {
   teams: TeamName[];
 }
 
-/** All 5 teams in canonical order. */
-export const TEAMS: TeamName[] = [
-  'leader',
-  'content',
-  'seo',
-  'design',
-  'dev',
-];
+/** ۶ تیم فعال (دستور مسعود، ۱۴۰۵/۰۷/۲۴ و ۱۴۰۵/۰۷/۲۶): leader و tour-manager اول، بعد ۴ سازنده. */
+export const TEAMS: TeamName[] = ['leader', 'tour-manager', 'content', 'seo', 'design', 'dev'];
 
 /**
- * Wave plan: wave 1 is leader only (builds the backlog),
- * wave 2 is content+seo, wave 3 is design+dev.
+ * طرح موج‌ها: موج ۱ leader (بک‌لاگ می‌سازد) + tour-manager (تسک‌های دامنهٔ تور)؛
+ * موج ۲ content+seo؛ موج ۳ design+dev.
+ * مرز: رهبر «چه کاری» را از روی داده می‌گوید؛ مدیر تور فقط دامنهٔ تور را پوشش می‌دهد.
  */
 export const WAVES: WaveDefinition[] = [
-  { wave: 1, teams: ['leader'] },
+  { wave: 1, teams: ['leader', 'tour-manager'] },
   { wave: 2, teams: ['content', 'seo'] },
   { wave: 3, teams: ['design', 'dev'] },
 ];
+
+/**
+ * سقف تلاش اصلاح یک تیم در «همین چرخه» (دستور مسعود، ۱۴۰۵/۰۷/۲۶):
+ * اگر خروجی تیم رد شد یا اجرایش ناموفق بود، کار به چرخهٔ بعد موکول
+ * نمی‌شود؛ در همین چرخه تا این سقف دوباره اجرا می‌شود (هر تلاش در تیک
+ * جداگانهٔ ورکر). پس از سقف، تیم «مسدود» ثبت می‌شود و چرخه جلو می‌رود.
+ * هر تلاش خودش تا ۲ دور داخلی (اجرا + اصلاح) دارد؛ پس بدترین حالت
+ * هر تیم در هر چرخه ۳ تلاش است، نه حلقهٔ بی‌پایان.
+ */
+export const MAX_SAME_CYCLE_FIX_ATTEMPTS = 3;

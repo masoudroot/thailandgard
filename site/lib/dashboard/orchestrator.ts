@@ -1,5 +1,5 @@
 /**
- * ارکستراتور چرخه: مدیریت چرخه‌های ۱۵ تیم در ۶ موج.
+ * ارکستراتور چرخه: مدیریت چرخه‌های ۵ تیم در ۳ موج (دستور مسعود، ۱۴۰۵/۰۷/۲۴).
  *
  * معماری: ورسل فقط داشبورد و API مدیریتی است. اجرای تیم‌ها با
  * ورکر گیت‌هاب اکشنز (worker/cycle-worker.ts) انجام می‌شود که در هر
@@ -16,13 +16,30 @@
  * خطای واضح fail می‌شود ولی بقیه‌ی تیم‌ها ادامه می‌دهند.
  */
 import { getSupabase } from './api';
-import { faDigits } from './format';
+import { recordEvent } from './operation-events';
 import { runKnowledgeSubagent } from './knowledge-subagent';
+import {
+  acquireLock as acquireLockNew,
+  claimTeam as claimTeamAtomic,
+  forceReleaseLock,
+  readLock as readLockNew,
+  releaseLock as releaseLockNew,
+  touchLock,
+  LockAcquisitionError,
+  type LockOwner,
+} from './lock';
 import { runWithTeamContext } from './llm';
 import { notifyTeamReport } from './notify';
-import { listApprovedTasksForTeam } from './taskqueue';
+import {
+  claimNextTaskForTeam,
+  isValidTaskId,
+  listApprovedTasksForTeam,
+  settleClaimedTask,
+  type ClaimedTaskOutcome,
+} from './taskqueue';
 import {
   ACTIVE_CYCLE_STATUSES,
+  MAX_SAME_CYCLE_FIX_ATTEMPTS,
   normalizeCycleStatus,
   WAVES,
   type CycleStatus,
@@ -35,13 +52,27 @@ import {
   type TeamRunStatus,
 } from './types';
 
+/**
+ * @deprecated قفل قدیمی (read-then-write با TTL ۱۵۰ دقیقه‌ای و بدون heartbeat).
+ * race condition دارد: دو فراخوان هم‌زمان می‌توانستند هر دو قفل را بگیرند.
+ * به‌جایش از lib/lock.ts استفاده کن (acquireLock/touchLock/releaseLock).
+ * این توابع فقط برای سازگاری نگه داشته شده‌اند و دیگر هیچ‌جا صدا زده نمی‌شوند.
+ */
 const LOCK_KEY = 'orchestrator:lock';
-/** A lock counts as "someone else is running" only while running and younger than this. */
+/**
+ * @deprecated بخشی از قفل قدیمی است؛ نگاه کن به LOCK_TTL_MS در lib/lock.ts.
+ */
 const LOCK_TTL_MINUTES = 150;
 /** How often a paused cycle re-reads its status while waiting for resume/cancel. */
 const PAUSE_POLL_MS = 5000;
 
-export class CycleLockedError extends Error {}
+/**
+ * چرخه‌ای دیگر در حال اجراست. از LockAcquisitionError ارث می‌برد تا هم
+ * قرارداد قدیمی API (گرفتن instanceof در روت‌ها => 409) حفظ شود، هم
+ * مصرف‌کننده‌های قفل جدید بتوانند آن را به‌عنوان «قفل دست دیگری است»
+ * بگیرند. پیام، همان پیام قفل جدید است (مالک + سن قفل).
+ */
+export class CycleLockedError extends LockAcquisitionError {}
 
 /** وقتی کاربر ساب‌ایجنت را متوقف می‌کند، در مرز مرحله‌ی بعدی پرتاب می‌شود. */
 export class SubagentStoppedError extends Error {
@@ -61,11 +92,145 @@ const CONTROL_POLL_MS = 5000;
 /** سقف انتظار برای ادامه‌یافتن (resume) یک ساب‌ایجنت متوقف‌شده: ۳۰ دقیقه. */
 const PAUSE_TIMEOUT_MS = 30 * 60_000;
 /**
- * حداکثر دورهای اجرای یک تیم در حلقهٔ بازبینی منتقد (دستور مسعود):
- * دور ۱ اجرای اول؛ اگر منتقد رد کرد، دور ۲ و ۳ بازاجرا با دستور دقیق منتقد.
- * دور ۳ پایانی است: منتقد فقط نظر می‌دهد و دیگر رد نمی‌کند.
+ * حداکثر دور اصلاح پس از چک سادهٔ رهبر (دستور مسعود، ۱۴۰۵/۰۷/۲۴):
+ * دور ۱ اجرای اول است؛ اگر چک ساده رد کرد، فقط ۱ دور اصلاح با دستور
+ * مشخص انجام می‌شود. بدون حلقهٔ ۳دوره‌ای.
  */
-const MAX_REVIEW_ROUNDS = 3;
+const MAX_FIX_ROUNDS = 1;
+
+/**
+ * خروجی چک سادهٔ رهبر روی کار تیم: «کار می‌کنه؟» بله/نه + یک جمله دلیل.
+ * نه نمره، نه چند دور.
+ */
+export interface SimpleCheckResult {
+  pass: boolean;
+  /** یک جمله دلیل، فارسی. */
+  note: string;
+  /** اگر رد شد، یک دستور مشخص برای دور اصلاح (اختیاری). */
+  fixDirective?: string;
+}
+
+/**
+ * چک سادهٔ رهبر روی خروجی یک تیم (جایگزین حلقهٔ نقد ۳دوره‌ای).
+ * اول چند قانون سبک قاعده‌محور، بعد یک فراخوان LLM سبک با حکم بله/نه.
+ * fail-soft: اگر LLM خطا داد، خروجی پذیرفته می‌شود (اعتماد به تیم) و
+ * این چک هرگز نتیجهٔ تیم را خراب نمی‌کند.
+ */
+export async function runSimpleCheck(team: TeamName, output: TeamResult): Promise<SimpleCheckResult> {
+  // ۱) قواعد سبک: خروجی خالی یا پر از بلاکر، بدون LLM رد می‌شود
+  const summary = (output.summary ?? '').trim();
+  const blockers = (output.blockers ?? []).filter((b) => b && b.trim().length > 0);
+  if (summary.length < 20) {
+    return {
+      pass: false,
+      note: 'خلاصهٔ خروجی خالی یا خیلی کوتاه است؛ تیم چیزی تحویل نداده.',
+      fixDirective: 'خروجی کامل را تولید کن و خلاصهٔ واقعی آن را بنویس؛ خروجی خالی قابل قبول نیست.',
+    };
+  }
+  if (output.approved === false && blockers.length > 0) {
+    return {
+      pass: false,
+      note: `تیم خودش خروجی را تأیید نکرد: ${blockers[0].slice(0, 300)}`,
+      fixDirective: `این ایراد را برطرف کن و خروجی کامل را از نو تولید کن: ${blockers[0].slice(0, 500)}`,
+    };
+  }
+  // استثنای سقف هوشمند: رهبر وقتی دادهٔ تازه‌ای نیست و صادقانه تسکی نساخته،
+  // این «کار درست» است نه خرابی؛ بدون قضاوت LLM عبور می‌کند.
+  if (
+    team === 'leader' &&
+    (output.tasks ?? []).length === 0 &&
+    /داده[ٔی]?\s+تازه/.test(summary)
+  ) {
+    return {
+      pass: true,
+      note: 'چک رهبر: دادهٔ تازه‌ای نبود؛ تسک نساختن تصمیم درست است.',
+    };
+  }
+  // ۲) داوری سبک LLM: فقط «کار می‌کنه؟» + یک جمله دلیل + دستور اصلاح
+  try {
+    const { callLLMJson } = await import('./llm');
+    const verdict = await callLLMJson<{ pass: boolean; note: string; fixDirective?: string }>(
+      [
+        `تو رهبر تیم‌های تایلندگرد هستی. خروجی تیم «${team}» را فقط با یک سؤال بسنج: «کار می‌کنه؟»`,
+        'یعنی: آیا تیم واقعاً کاری را که قولش را داده انجام داده و خروجی‌اش قابل استفاده است؟',
+        'نه نمره بده، نه چند دور؛ فقط بله یا نه + یک جمله دلیل.',
+        '',
+        'خلاصهٔ تیم:',
+        summary.slice(0, 3000),
+        blockers.length > 0 ? `\nبلاکرهای ثبت‌شده: ${blockers.slice(0, 3).join(' | ').slice(0, 1000)}` : '',
+        output.tasks && output.tasks.length > 0
+          ? `\nتسک‌های پیشنهادی تیم (${output.tasks.length}): ${output.tasks.map((t) => t.title).join(' | ').slice(0, 500)}`
+          : '',
+        '',
+        'فقط JSON معتبر بده: {"pass": true/false, "note": "یک جمله دلیل فارسی", "fixDirective": "اگر رد شد، یک دستور مشخص و اجرایی برای اصلاح"}',
+        'خروجی باید دقیقاً با { شروع و با } تمام شود. هیچ متن، توضیح یا کدفنس قبل و بعد از JSON ننویس.',
+      ].join('\n'),
+      { system: 'تو رهبر عمل‌گرای تیم‌های تایلندگرد هستی؛ حکم کوتاه و مشخص می‌دهی.' },
+    );
+    // fail-closed: فقط تأیید صریح true پذیرفته می‌شود؛ نبودِ کلید pass یعنی
+    // حکم ناقص است، نه تأیید ضمنی.
+    const pass = verdict.pass === true;
+    return {
+      pass,
+      note: String(verdict.note ?? '').trim().slice(0, 500) || (pass ? 'چک رهبر: قابل قبول.' : 'چک رهبر: رد شد.'),
+      fixDirective: pass ? undefined : String(verdict.fixDirective ?? '').trim().slice(0, 1000) || undefined,
+    };
+  } catch {
+    // fail-closed: خطای LLM یعنی چک انجام نشد؛ خروجی تأییدنشده منتشر نمی‌شود.
+    return {
+      pass: false,
+      note: 'چک خودکار رهبر انجام نشد؛ برای جلوگیری از انتشار خروجی تأییدنشده، رد شد و در دور بعد دوباره بررسی می‌شود.',
+    };
+  }
+}
+
+/**
+ * چرخهٔ یادگیری (دستور مسعود، ۱۴۰۵/۰۷/۲۴): بعد از هر اجرای تیم (موفق یا
+ * ناموفق)، یک فراخوان LLM سبک «از این اجرا چه درس کاربردی گرفتیم؟ (۱ جمله)»
+ * و ثبت آن با upsertGoldenRule. سقف ۱۰ قانون طلایی هر تیم و حذف
+ * کم‌اثرترینِ اضافه را همان ماژول دانش مدیریت می‌کند.
+ * کاملاً fail-soft: خطای ثبت درس هرگز نتیجهٔ تیم را خراب نمی‌کند.
+ */
+export async function recordRunLesson(
+  team: TeamName,
+  status: TeamRunStatus,
+  summary: string,
+): Promise<void> {
+  try {
+    const { callLLMJson } = await import('./llm');
+    const { upsertGoldenRule } = await import('./knowledge/golden-rules');
+    const lesson = await callLLMJson<{ lesson: string }>(
+      [
+        `تیم «${team}» تایلندگرد یک اجرا را با وضعیت «${status}» تمام کرد.`,
+        `خلاصهٔ اجرا: ${summary.slice(0, 1500) || '(خلاصه‌ای ثبت نشد)'}`,
+        '',
+        'از این اجرا چه درس کاربردی و مشخصی برای چرخه‌های بعدی همین تیم گرفتیم؟ فقط ۱ جملهٔ کوتاه و اجرایی بده؛ کلی‌گویی ممنوع.',
+        'فقط JSON معتبر بده: {"lesson": "یک جمله"}',
+        'خروجی باید دقیقاً با { شروع و با } تمام شود. هیچ متن، توضیح یا کدفنس قبل و بعد از JSON ننویس.',
+      ].join('\n'),
+      {
+        system:
+          'تو مربی تیم‌های تایلندگرد هستی؛ درس‌ها را کوتاه، مشخص و اجرایی می‌نویسی.',
+      },
+    );
+    const rule = String(lesson.lesson ?? '').trim().slice(0, 500);
+    if (!rule) return;
+    await upsertGoldenRule(
+      team,
+      rule,
+      `درس خودکار از اجرای تیم ${team} (وضعیت: ${status})`,
+      'learned',
+      50,
+    );
+    console.log(`[orchestrator] درس اجرای تیم ${team} در دانش ثبت شد.`);
+  } catch (err) {
+    // fail-soft: خطای ثبت درس هرگز نتیجهٔ تیم را خراب نمی‌کند
+    console.error(
+      '[orchestrator] ثبت درس تیم ناموفق بود (نادیده):',
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
 
 /** ورودی استاندارد هر تیم. */
 export interface TeamInput {
@@ -84,14 +249,13 @@ export interface TeamInput {
    */
   reportProgress: ProgressReporter;
   /**
-   * دور جاری اجرای تیم در حلقهٔ بازبینی منتقد (۱ = اجرای اول).
-   * ارکستر وقتی منتقد رد می‌کند، تیم را با همین ورودی ولی دور بالاتر
-   * دوباره اجرا می‌کند. حداکثر ۳ دور.
+   * دور جاری اجرای تیم (۱ = اجرای اول؛ ۲ = دور اصلاح پس از چک سادهٔ رهبر).
+   * بیش از ۱ دور اصلاح انجام نمی‌شود (MAX_FIX_ROUNDS).
    */
   round?: number;
   /**
-   * دستور دقیق منتقد از دور قبلی (دلیل رد + کار خواسته‌شده، مثل پرامپت).
-   * فقط از دور ۲ به بعد پر است. تیم‌ها آن را در ابتدای زمینه می‌بینند.
+   * دستور مشخص چک سادهٔ رهبر برای دور اصلاح (دلیل رد + کار خواسته‌شده).
+   * فقط در دور ۲ پر است. تیم‌ها آن را در ابتدای زمینه می‌بینند.
    */
   reviewDirective?: string;
 }
@@ -109,6 +273,7 @@ function makeRunId(): string {
   return `run-${stamp}-${rand}`;
 }
 
+/** @deprecated شکل قدیمی ردیف قفل (snake_case)؛ شکل جدید LockState در lib/lock.ts است. */
 interface LockRow {
   state:
     | {
@@ -122,7 +287,9 @@ interface LockRow {
   updated_at: string;
 }
 
+/** @deprecated به‌جایش readLock از lib/lock.ts. */
 async function readLock(): Promise<LockRow | null> {
+  console.warn('[orchestrator] deprecated: readLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
   const { data, error } = await getSupabase()
     .from('agent_state')
     .select('state, updated_at')
@@ -132,7 +299,9 @@ async function readLock(): Promise<LockRow | null> {
   return data as LockRow | null;
 }
 
+/** @deprecated به‌جایش touchLock/releaseLock/forceReleaseLock از lib/lock.ts. */
 async function writeLock(state: Record<string, unknown>): Promise<void> {
+  console.warn('[orchestrator] deprecated: writeLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
   const { error } = await getSupabase()
     .from('agent_state')
     .upsert(
@@ -142,7 +311,12 @@ async function writeLock(state: Record<string, unknown>): Promise<void> {
   if (error) throw new Error(`failed to write orchestrator lock: ${error.message}`);
 }
 
+/**
+ * @deprecated race دارد (read-then-write). به‌جایش acquireLock از lib/lock.ts
+ * که با compare-and-swap اتمیک است.
+ */
 async function acquireLock(runId: string): Promise<void> {
+  console.warn('[orchestrator] deprecated: acquireLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
   const existing = await readLock();
   if (existing?.state?.status === 'running') {
     const ref =
@@ -165,25 +339,41 @@ async function acquireLock(runId: string): Promise<void> {
 
 /** فقط قفل گرفتن + ساخت ردیف cycles (بدون اجرای موج‌ها). */
 export async function beginCycle(): Promise<{ cycleId: string; runId: string }> {
+  // رفع ریشه‌ای مشکل kill (مشکل ۶): پیش از گرفتن قفل، بقایای چرخه مرده
+  // (قفل stale، تسک‌های claimشده رها، وضعیت‌های ناتمام، پچ‌های gated یتیم)
+  // بازیابی می‌شوند تا چرخه جدید تمیز شروع شود. fail-soft است.
+  try {
+    const { recoverDeadCycles } = await import('./cycle-recovery');
+    await recoverDeadCycles();
+  } catch (err) {
+    console.error('[orchestrator] cycle recovery before beginCycle failed (continuing):', err instanceof Error ? err.message : err);
+  }
   const runId = makeRunId();
-  await acquireLock(runId);
+  // شناسه‌ی چرخه را همین‌جا می‌سازیم تا در همان لحظه‌ی گرفتن قفل، cycleId
+  // روی قفل ثبت شود؛ بازیابی چرخه‌ی مرده (cycle-recovery) با همین cycleId
+  // قفل را به چرخه‌ی درست وصل می‌کند. قفل جدید اتمیک است (CAS)؛ برخلاف
+  // قفل قدیمی، دو beginCycle هم‌زمان نمی‌توانند هر دو موفق شوند.
+  const cycleId = crypto.randomUUID();
+  const owner: LockOwner = {
+    engine: process.env.CYCLE_ENGINE ?? (process.env.GITHUB_RUN_ID ? 'github-actions' : 'manual'),
+    runId,
+  };
+  try {
+    await acquireLockNew(owner, cycleId);
+  } catch (err) {
+    // قرارداد API حفظ می‌شود: روت‌ها instanceof CycleLockedError را می‌گیرند (409)
+    if (err instanceof LockAcquisitionError) throw new CycleLockedError(err.message);
+    throw err;
+  }
   const sb = getSupabase();
-  const { data, error } = await sb
-    .from('cycles')
-    .insert({ run_id: runId, status: 'running' })
-    .select('id')
-    .single();
+  const { error } = await sb.from('cycles').insert({ id: cycleId, run_id: runId, status: 'running' });
   if (error) {
-    await writeLock({ status: 'idle', run_id: runId, released_at: new Date().toISOString() });
+    // ردیف چرخه ساخته نشد؛ قفل را پس بده تا چرخه‌ی بعدی گیر نکند
+    await releaseLockNew(owner).catch(() => {});
     throw new Error(`failed to create cycle row: ${error.message}`);
   }
-  const cycleId = data.id as string;
-  await writeLock({
-    status: 'running',
-    run_id: runId,
-    cycle_id: cycleId,
-    started_at: new Date().toISOString(),
-  });
+  // لایه ۱ دیده‌بان زنده: شروع چرخه (fail-soft)
+  await recordEvent(runId, 'orchestrator', 'cycle_started', { run_id: runId });
   return { cycleId, runId };
 }
 
@@ -221,14 +411,22 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function touchPausedLock(cycleId: string, runId: string | null): Promise<void> {
-  await writeLock({
-    status: 'running',
-    paused: true,
-    run_id: runId,
-    cycle_id: cycleId,
-    paused_at: new Date().toISOString(),
-  });
+/**
+ * ضربان قفل در حلقه‌ی انتظار pause: قفل را تازه نگه می‌دارد تا stale حساب
+ * نشود. برخلاف نسخه‌ی قدیمی (writeLock بدون بررسی مالکیت و raceدار)، فقط
+ * با هویت دارنده‌ی فعلی قفل heartbeat می‌زند؛ اگر قفل دست چرخه‌ی دیگری
+ * باشد، چیزی نمی‌نویسد. fail-soft است تا حلقه‌ی انتظار نشکند.
+ */
+async function touchPausedLock(cycleId: string): Promise<void> {
+  try {
+    const lock = await readLockNew();
+    const st = lock?.state;
+    if (!st || st.status !== 'running' || !st.owner) return;
+    if (st.cycleId && st.cycleId !== cycleId) return; // مال چرخه‌ی دیگری است
+    await touchLock(st.owner);
+  } catch (err) {
+    console.error('[orchestrator] touchPausedLock failed:', err instanceof Error ? err.message : err);
+  }
 }
 
 /**
@@ -248,7 +446,7 @@ async function checkpointBeforeWave(
   if (status === 'paused') {
     // تیم‌های موج جاری تمام شده‌اند؛ موج بعدی شروع نمی‌شود تا ادامه یا لغو برسد.
     for (;;) {
-      await touchPausedLock(cycleId, runId);
+      await touchPausedLock(cycleId);
       await sleep(PAUSE_POLL_MS);
       const s = await readCycleStatus(cycleId);
       if (s === 'canceled') return 'canceled';
@@ -287,15 +485,21 @@ export async function resumeCycle(cycleId: string): Promise<void> {
   }
   await setCycleStatus(cycleId, 'running');
 
-  // قفل را تازه می‌کنیم تا ورکر گیت‌هاب اکشنز در تیک بعدی چرخه را ادامه دهد.
-  // اجرا روی ورسل انجام نمی‌شود؛ ورسل فقط داشبورد و API مدیریتی است.
-  await writeLock({
-    status: 'running',
-    run_id: row.run_id,
-    cycle_id: cycleId,
-    resumed_at: new Date().toISOString(),
-    started_at: new Date().toISOString(),
-  });
+  // قفل را تازه نگه می‌داریم تا ورکر گیت‌هاب اکشنز در تیک بعدی چرخه را ادامه دهد.
+  // فقط اگر قفل هنوز دست همین چرخه است ضربان می‌زنیم؛ هرگز قفل چرخه‌ی
+  // دیگری را نمی‌دزدیم. fail-soft است چون سیگنال اصلی، وضعیت cycles است.
+  try {
+    const lock = await readLockNew();
+    const st = lock?.state;
+    if (st?.status === 'running' && st.owner && (!st.cycleId || st.cycleId === cycleId)) {
+      await touchLock(st.owner);
+    }
+  } catch (err) {
+    console.error(
+      '[orchestrator] resumeCycle: lock refresh failed (continuing):',
+      err instanceof Error ? err.message : err,
+    );
+  }
 }
 
 /** لغو چرخهٔ فعال: وضعیت canceled + آزاد شدن قفل. حلقه‌ی اجرا در اولین ایست‌بازرسی می‌ایستد. */
@@ -316,11 +520,9 @@ export async function cancelCycle(cycleId: string): Promise<void> {
     })
     .eq('id', cycleId);
   if (error) throw new Error(`failed to cancel cycle: ${error.message}`);
-  await writeLock({
-    status: 'canceled',
-    cycle_id: cycleId,
-    finished_at: new Date().toISOString(),
-  });
+  // آزادسازی قفل بدون توجه به مالکیت (لغو دستی از داشبورد)؛
+  // فقط اگر قفل مال همین چرخه باشد تا قفل چرخه‌ی تازه‌ای آزاد نشود.
+  await forceReleaseLock(cycleId, 'cancelCycle');
 }
 
 /** آیا چرخهٔ فعالی (running/pausing/paused) در دیتابیس هست؟ */
@@ -363,17 +565,21 @@ async function loadTeamMemory(team: TeamName): Promise<MemoryEntry[]> {
   try {
     const { data, error } = await getSupabase()
       .from('team_memory')
-      .select('team, kind, content')
+      .select('team, key, value, updated_at')
       .eq('team', team)
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .limit(30);
     if (error || !data) return [];
     const seen = new Set<string>();
     const out: MemoryEntry[] = [];
-    for (const row of data as { team: string; kind: string; content: string }[]) {
-      if (seen.has(row.kind)) continue;
-      seen.add(row.kind);
-      out.push({ team: row.team as TeamName, key: row.kind, value: row.content });
+    for (const row of data as { team: string; key: string; value: unknown }[]) {
+      if (seen.has(row.key)) continue;
+      seen.add(row.key);
+      out.push({
+        team: row.team as TeamName,
+        key: row.key,
+        value: typeof row.value === 'string' ? row.value : JSON.stringify(row.value),
+      });
     }
     return out;
   } catch {
@@ -393,6 +599,17 @@ function buildRagContext(previousWavesOutput: Record<string, TeamResult | null>)
 interface WaveCtx {
   runId: string;
   previousWavesOutput: Record<string, TeamResult | null>;
+  /**
+   * شمارهٔ تلاش اصلاح در همین چرخه (۱ = اجرای اول).
+   * وقتی تیمی در همین چرخه رد/ناموفق شده و دوباره اجرا می‌شود، > ۱ است
+   * (حلقهٔ اصلاح درون‌چرخه‌ای؛ دستور مسعود، ۱۴۰۵/۰۷/۲۶).
+   */
+  fixAttempt?: number;
+  /**
+   * دستور اصلاح به‌جامانده از رد/خطای قبلی همین چرخه؛ در دور اولِ تلاش
+   * اصلاح به‌عنوان دستور رهبر به زمینه تزریق می‌شود (بالاترین اولویت).
+   */
+  priorFixDirective?: string;
 }
 
 export interface RunWavesOptions {
@@ -531,16 +748,26 @@ export async function runSingleTeam(
     // ردیف از قبل با claimTeam اتمیک ساخته شده؛ فقط استفاده کن
     runRowId = teamRunId;
   } else {
-    const { data: runRow, error: insertErr } = await sb
-      .from('team_runs')
-      .insert({ cycle_id: cycleId, team, wave, status: 'running' })
-      .select('id')
-      .single();
-    if (insertErr || !runRow) {
-      throw new Error(`failed to create team_runs row for ${team}: ${insertErr?.message}`);
+    // claim اتمیک از lib/lock.ts (ایندکس یکتای team_runs_one_running_per_team):
+    // اگر ورکر دیگری هم‌زمان همین تیم را برداشت، null برمی‌گردد و این اجرا
+    // بی‌صدا رد می‌شود؛ برخلاف insert خام قبلی که race داشت و throw می‌کرد.
+    const claimed = await claimTeamAtomic(cycleId, team, wave, {
+      engine: 'orchestrator',
+      runId: ctx.runId,
+    });
+    if (!claimed) {
+      console.log(`[orchestrator] team ${team} already claimed by another worker; skipping`);
+      return null;
     }
-    runRowId = runRow.id as string;
+    runRowId = claimed;
   }
+
+  // لایه ۱ دیده‌بان زنده: شروع تیم + کرونومتر مدت اجرا (همه fail-soft)
+  const teamStartMs = Date.now();
+  await recordEvent(ctx.runId, team, 'team_started', {
+    wave,
+    team_run_id: runRowId,
+  });
 
   const finish = async (patch: Record<string, unknown>) => {
     const { error } = await sb
@@ -648,26 +875,39 @@ export async function runSingleTeam(
       subagentId = created.id as string;
     }
     await enforceControl(subagentId, task);
-    // مرحله‌ی قبلی تمام شد؛ بقیه‌ی «در حال اجرا»ها موفق ثبت می‌شوند.
-    const { error: closeErr } = await sb
+    // مرحله‌ی قبلی تمام شد؛ بقیه‌ی «در حال اجرا»ها بسته می‌شوند.
+    // صادقانه: اگر لیبل مرحله نشان‌دهندهٔ خطا/تلاش مجدد است، «موفق» ثبت نمی‌شود؛
+    // «خطا» ثبت می‌شود تا داشبورد گمراه‌کننده نباشد (دستور مسعود: وضعیت باید نتیجهٔ واقعی را نشان بدهد).
+    const { data: prevRunning } = await sb
       .from('subagents')
-      .update({ status: 'success', finished_at: new Date().toISOString() })
+      .select('id, label')
       .eq('team_run_id', runRowId)
       .eq('status', 'running')
       .neq('id', subagentId);
-    if (closeErr) console.error('[orchestrator] failed to close previous subagents:', closeErr.message);
+    const nowIso = new Date().toISOString();
+    for (const prev of prevRunning ?? []) {
+      const label = (prev as { label?: string }).label ?? '';
+      const isErrorStep = /خطا|ناموفق|شکست|error|failed/i.test(label);
+      const { error: closeOneErr } = await sb
+        .from('subagents')
+        .update({ status: isErrorStep ? 'failed' : 'success', finished_at: nowIso })
+        .eq('id', (prev as { id: string }).id);
+      if (closeOneErr) console.error('[orchestrator] failed to close previous subagent:', closeOneErr.message);
+    }
     await sb
       .from('subagents')
       .update({ current_task: task.slice(0, 500), progress: pct })
       .eq('id', subagentId);
   };
 
-  // ضربان: اگر تیم مدتی مرحله‌ای گزارش نکرد، ردیف لمس می‌شود تا معلوم باشد
-  // فرایند هنوز زنده است (updated_at تازه می‌ماند).
+  // ضربانِ زنده‌بودن: هر ۶۰ ثانیه فقط heartbeat_at نوشته می‌شود.
+  // عمداً updated_at لمس نمی‌شود تا «زنده‌بودن فرایند» از «پیشرفت واقعی»
+  // جدا بماند؛ وگرنه نگهبان (واچ‌داگ/ورکر) تیمِ هنگ‌کرده‌ی ضربان‌زن را
+  // «سالم» می‌بیند. تریگر دیتابیس هم همین جدایی را تضمین می‌کند.
   const heartbeat = setInterval(() => {
     void sb
       .from('team_runs')
-      .update({ current_task: lastTask || 'در حال اجرا', progress: Math.max(0, lastPct) })
+      .update({ heartbeat_at: new Date().toISOString() })
       .eq('id', runRowId)
       .then(({ error }) => {
         if (error) console.error(`[orchestrator] heartbeat failed for ${team}:`, error.message);
@@ -676,6 +916,37 @@ export async function runSingleTeam(
   if (typeof heartbeat === 'object' && 'unref' in heartbeat) {
     (heartbeat as unknown as { unref(): void }).unref();
   }
+
+  // رفع ریشه‌ای زامبی‌شدن صف (مشکل ۲): تسک claimشده باید در پایان هر اجرا
+  // (موفق/ردشده/ناموفق/متوقف/ناتمام) حتماً done شود. شناسه بیرون از بلوک
+  // claim نگه داشته می‌شود؛ settleClaimedTaskOnce با گارد once از مسیرهای
+  // صریح صدا زده می‌شود و finally هم تور آخر است | هیچ مسیری جا نمی‌ماند.
+  // گارد محلی فقط پس از موفقیت واقعی ست می‌شود تا خطای گذرای دیتابیس،
+  // تلاش مجدد در finally را از بین نبرد.
+  let claimedTask: { id: string; title: string } | null = null;
+  let claimedTaskSettled = false;
+  const settleClaimedTaskOnce = async (
+    outcome: ClaimedTaskOutcome,
+    summary: string,
+  ): Promise<void> => {
+    if (!claimedTask || claimedTaskSettled) return;
+    try {
+      await settleClaimedTask(claimedTask.id, outcome, {
+        team,
+        title: claimedTask.title,
+        summary,
+      });
+      claimedTaskSettled = true;
+      console.log(
+        `[orchestrator] تسک claimشدهٔ تیم ${team} با سرنوشت «${outcome}» بسته شد (id=${claimedTask.id})`,
+      );
+    } catch (err) {
+      console.error(
+        `[orchestrator] بستن تسک claimشده ${claimedTask.id} خطا داد:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  };
 
   try {
     await reportProgress('شروع اجرا', 5);
@@ -706,6 +977,37 @@ export async function runSingleTeam(
     resetLLMStats();
     const runTeam = await loadRunTeam(team);
     const memory = await loadTeamMemory(team);
+    // قدم ۳: تحویل اتمیک تسک از صف ساخت. اگر تسک بود، بریف آن (عنوان/شرح/معیار
+    // قبولی) به ورودی تیم تزریق می‌شود؛ اگر نبود، رفتار فعلی (حدسی) حفظ می‌شود.
+    let claimedTaskContext = '';
+    try {
+      const claimed = await claimNextTaskForTeam(team);
+      if (claimed && isValidTaskId(claimed.id)) {
+        // شناسه بیرون نگه داشته می‌شود تا در پایان اجرا (هر سرنوشتی) بسته شود.
+        claimedTask = { id: claimed.id, title: claimed.title };
+        claimedTaskContext =
+          `\n\nکار تحویل‌شده از صف ساخت (در اولویت اجرا):\n` +
+          `عنوان: ${claimed.title}\n` +
+          `شرح: ${(claimed.description ?? '').trim() || 'ثبت نشده'}\n` +
+          `معیار قبولی: ${(claimed.acceptance ?? '').trim() || 'ثبت نشده'}\n`;
+        console.log(`[orchestrator] تیم ${team}: کار «${claimed.title}» از صف claim شد (id=${claimed.id})`);
+        const { error: curErr } = await sb
+          .from('team_runs')
+          .update({ current_task: `کار صف: ${claimed.title}`.slice(0, 500) })
+          .eq('id', runRowId);
+        if (curErr) console.error(`[orchestrator] failed to set current_task for ${team}:`, curErr.message);
+      } else if (claimed) {
+        // تور آخر دفاعی: نباید رخ دهد (گارد در claimNextTaskForTeam)، ولی اگر
+        // ردیفی نامعتبر رسید، با لاگ تمیز نادیده گرفته می‌شود؛ شناسه‌ای ذخیره
+        // نمی‌شود تا completeTask هرگز با id نامعتبر صدا زده نشود.
+        console.log(`[orchestrator] تیم ${team}: خروجی claim معتبر نبود؛ نادیده گرفته شد.`);
+      }
+    } catch (err) {
+      console.error(
+        `[orchestrator] claim تسک برای تیم ${team} خطا داد (رفتار فعلی حفظ شد):`,
+        err instanceof Error ? err.message : err,
+      );
+    }
     // کارهای تأییدشدهٔ این تیم («برود در چرخه») در اولویت زمینهٔ اجرا قرار می‌گیرند.
     let approvedContext = '';
     try {
@@ -720,91 +1022,125 @@ export async function runSingleTeam(
       console.error(`[orchestrator] failed to load approved tasks for ${team}:`, err instanceof Error ? err.message : err);
     }
     const baseRagContext =
-      buildRagContext(ctx.previousWavesOutput) + approvedContext + knowledgeSnippet;
-    // حلقهٔ بازبینی منتقد (دستور مسعود): حداکثر ۳ دور، بدون حلقهٔ بی‌نهایت.
-    // دور ۱: اجرای عادی. اگر منتقد رد کرد ← دستور دقیقش (مثل پرامپت) به تیم برمی‌گردد و دور ۲ اجرا می‌شود.
-    // دور ۳ پایانی است: منتقد فقط نظر می‌دهد و دیگر رد نمی‌کند؛ اگر باز هم ایراد بود، rejected ثبت و چرخه ادامه می‌یابد.
-    const extractRejectReason = (r: TeamResult): string => {
-      const fromBlockers = (r.blockers ?? []).join(' ').trim();
-      return (fromBlockers || r.summary || 'دلیلی ثبت نشد').slice(0, 2000);
-    };
-    let result: TeamResult | null = null;
-    let reviewDirective: string | undefined;
-    const roundLog: Array<{ round: number; approved: boolean; reason: string; directive?: string }> = [];
-    for (let round = 1; round <= MAX_REVIEW_ROUNDS; round++) {
-      const directivePrefix =
-        round === 1
-          ? ''
-          : round < MAX_REVIEW_ROUNDS
-            ? `\n\nدستور منتقد برای دور ${faDigits(round)} از ${faDigits(MAX_REVIEW_ROUNDS)} (خروجی دور قبل رد شد):\n${reviewDirective}\n`
-            : `\n\nدور ${faDigits(round)} از ${faDigits(MAX_REVIEW_ROUNDS)} (دور پایانی): منتقد فقط نظر نهایی می‌دهد و خروجی را رد نمی‌کند؛ ایرادهای باقی‌مانده را به‌صورت نظر ثبت کن.\n${reviewDirective ? `آخرین دستور منتقد:\n${reviewDirective}\n` : ''}`;
+      buildRagContext(ctx.previousWavesOutput) + claimedTaskContext + approvedContext + knowledgeSnippet;
+    // دانش ذخیره‌شده تیم (قانون مسعود): همه تیم‌ها باید از دانششان استفاده کنند.
+    // به‌جای تکیه بر input.memory (که ۱۱ تیم نادیده می‌گرفتند)، مستقیم در ragContext تزریق می‌شود.
+    let teamKnowledgeContext = '';
+    if (memory.length > 0) {
+      const memLines = memory.map((m) => `- [${m.key}] ${String(m.value).slice(0, 500)}`);
+      teamKnowledgeContext = `\n\nدانش ذخیره‌شده تیم ${team} (حتماً در کارت استفاده کن):\n${memLines.join('\n')}`;
+      console.log(`[orchestrator] دانش تیم ${team}: ${memory.length} قلم تزریق شد`);
+    } else {
+      console.log(`[orchestrator] تیم ${team}: دانش ذخیره‌شده‌ای ندارد`);
+    }
+    const fullRagContext = baseRagContext + teamKnowledgeContext;
+    // حلقهٔ اصلاح درون‌چرخه‌ای (دستور مسعود، ۱۴۰۵/۰۷/۲۶): اگر این اجرا
+    // تلاش مجددِ همین چرخه است (تیم قبلاً رد/ناموفق شده)، شمارهٔ تلاش و
+    // دستور به‌جامانده از قبل را از ctx می‌خوانیم. لاگ شفاف تا در مانیتور
+    // معلوم باشد کدام تیم دارد در همین چرخه اصلاح می‌شود.
+    const fixAttempt = Math.max(1, ctx.fixAttempt ?? 1);
+    const priorFixDirective = (ctx.priorFixDirective ?? '').trim() || undefined;
+    if (fixAttempt > 1) {
+      console.log(
+        `[fix-loop] team ${team}: same-cycle fix attempt ${fixAttempt}/${MAX_SAME_CYCLE_FIX_ATTEMPTS}` +
+          (priorFixDirective ? ' (prior directive injected)' : ' (no prior directive)'),
+      );
+      await reportProgress(`تلاش اصلاح ${fixAttempt} در همین چرخه`, 6);
+    }
+    // چرخهٔ جدید (دستور مسعود، ۱۴۰۵/۰۷/۲۴): اجرای یک‌باره + گیت خروجی +
+    // چک سادهٔ رهبر («کار می‌کنه؟»)؛ در صورت رد، حداکثر ۱ دور اصلاح با
+    // دستور مشخص. بدون حلقهٔ ۳دوره‌ای.
+    const { validateWorkerOutput } = await import('./critic-loop');
+    const checkLog: Array<{
+      round: number;
+      approved: boolean;
+      reason: string;
+      directive?: string;
+    }> = [];
+
+    const runTeamOnce = async (fixRound: number, directive?: string): Promise<TeamResult> => {
+      // حلقهٔ اصلاح درون‌چرخه‌ای (دستور مسعود، ۱۴۰۵/۰۷/۲۶): در تلاش‌های
+      // اصلاح (fixAttempt>1)، دستور به‌جامانده از رد/خطای قبلیِ همین چرخه
+      // بالاترین اولویت را دارد و به دور اول تزریق می‌شود تا تیم دقیقاً
+      // همان ایراد را برطرف کند، نه اینکه از صفر حدس بزند.
+      const effectiveDirective =
+        fixRound === 0 && priorFixDirective ? priorFixDirective : directive;
+      const directivePrefix = effectiveDirective
+        ? `\n\nدستور رهبر برای دور اصلاح (خروجی دور قبل رد شد):\n${effectiveDirective}\n`
+        : '';
       const input: TeamInput = {
         cycleId,
         runId: ctx.runId,
-        ragContext: directivePrefix + baseRagContext,
+        ragContext: directivePrefix + fullRagContext,
         memory,
         previousWavesOutput: { ...ctx.previousWavesOutput },
         reportProgress,
-        round,
-        reviewDirective,
+        round: fixRound + 1,
+        reviewDirective: effectiveDirective,
       };
-      if (round > 1) {
-        await reportProgress(`دور ${faDigits(round)} از ${faDigits(MAX_REVIEW_ROUNDS)}: اجرای مجدد با دستور منتقد`, 5 + round * 5);
+      if (fixRound > 0) {
+        await reportProgress('دور اصلاح با دستور رهبر', 10);
       }
       // Ambient team context: every callLLM inside runTeam automatically uses
       // this team's configured endpoint + model (settings: llm_endpoints/team_models).
-      const roundResult = await runWithTeamContext(team, () => runTeam(input));
-      const approved = roundResult.approved !== false;
-      roundLog.push({
+      return runWithTeamContext(team, () => runTeam(input));
+    };
+
+    const checkOutput = async (round: number, output: TeamResult): Promise<void> => {
+      const gate = validateWorkerOutput(output);
+      const check = gate.valid
+        ? await runSimpleCheck(team, output)
+        : {
+            pass: false,
+            note: `گیت خروجی: ${gate.detail}`,
+            fixDirective: `خروجی نامعتبر است (${gate.detail}). خروجی کامل و معتبر تولید کن.`,
+          };
+      checkLog.push({
         round,
-        approved,
-        reason: approved ? 'تأیید شد' : extractRejectReason(roundResult),
-        ...(reviewDirective ? { directive: reviewDirective.slice(0, 2000) } : {}),
+        approved: check.pass,
+        reason: check.note,
+        ...(check.fixDirective ? { directive: check.fixDirective.slice(0, 2000) } : {}),
       });
-      result = roundResult;
-      if (approved) break;
-      if (round >= MAX_REVIEW_ROUNDS) break;
-      // دستور دقیق برای دور بعد — مثل پرامپت: دلیل رد + کار خواسته‌شده
-      const reason = extractRejectReason(roundResult);
-      reviewDirective =
-        `دلیل رد دور ${faDigits(round)}: ${reason}\n` +
-        `دستور: دقیقاً همین ایراد را برطرف کن و خروجی کامل را از نو تولید کن. ` +
-        `اگر بخشی از خروجی درست بود، همان را نگه دار و فقط بخش ردشده را اصلاح کن. ` +
-        `خروجی این دور باید بدون نیاز به اصلاح دیگری، آمادهٔ تحویل باشد.`;
+    };
+
+    // دور ۱: اجرای اول + گیت خروجی + چک سادهٔ رهبر
+    let result = await runTeamOnce(0);
+    await checkOutput(1, result);
+
+    // دور ۲ (حداکثر ۱ دور اصلاح): فقط اگر رد شد و دستور اصلاح مشخص داریم
+    const lastCheck = checkLog[checkLog.length - 1];
+    if (!lastCheck.approved && lastCheck.directive) {
+      result = await runTeamOnce(1, lastCheck.directive);
+      await checkOutput(2, result);
     }
-    if (!result) {
-      throw new Error(`حلقهٔ بازبینی تیم ${team} هیچ نتیجه‌ای تولید نکرد`);
+    const finalCheck = checkLog[checkLog.length - 1];
+    if (!finalCheck) {
+      throw new Error(`اجرای تیم ${team} هیچ نتیجه‌ای تولید نکرد`);
     }
     const llmCalls = getLLMStats().total;
-    // ثبت درس ردوبدل‌های منتقد در دانش تیم (دستور مسعود) — best-effort.
-    // (جزئیات هر دور را ماژول دانش با recordFeedbackRound ثبت می‌کند.)
-    if (roundLog.some((r) => !r.approved)) {
-      try {
-        const { extractCriticKnowledge } = await import('./knowledge/critic-knowledge');
-        const rejectedRounds = roundLog.filter((r) => !r.approved);
-        const verdictText =
-          `حلقهٔ بازبینی ${roundLog.length} دور طول کشید. ` +
-          rejectedRounds.map((r) => `دور ${r.round} رد شد: ${r.reason}`).join(' ');
-        await extractCriticKnowledge(
-          team,
-          {
-            approved: roundLog[roundLog.length - 1]?.approved ?? false,
-            reason: verdictText.slice(0, 2000),
-            domain: `حلقه بازبینی ${team}`,
-          },
-          ctx.runId,
-        );
-      } catch {
-        // خطای ثبت دانش نباید نتیجهٔ تیم را خراب کند
-      }
+    // چک سادهٔ رهبر تعیین‌کنندهٔ نهایی است: رد بعد از دور اصلاح → rejected
+    if (!finalCheck.approved) {
+      // حلقهٔ اصلاح درون‌چرخه‌ای (دستور مسعود، ۱۴۰۵/۰۷/۲۶): اگر سقف تلاش
+      // در همین چرخه خورده، تیم «مسدود» ثبت می‌شود — نه بی‌صدا به چرخهٔ
+      // بعد موکول می‌شود، نه بی‌دلیل رها می‌شود. دلیلش مشخص و اجرایی است.
+      const fixLoopNote =
+        fixAttempt >= MAX_SAME_CYCLE_FIX_ATTEMPTS
+          ? ` پس از ${fixAttempt} تلاش اصلاح در همین چرخه همچنان مردود است و «مسدود» ثبت شد (به چرخهٔ بعد موکول نشد)؛ نیاز به بررسی جدی علت دارد.`
+          : ` (تلاش اصلاح ${fixAttempt} از ${MAX_SAME_CYCLE_FIX_ATTEMPTS} در همین چرخه؛ در ادامهٔ همین چرخه دوباره تلاش می‌شود).`;
+      result = {
+        ...result,
+        approved: false,
+        summary: `${result.summary ?? ''}\n\nرد شد در چک رهبر: ${finalCheck.reason}${fixLoopNote}`.trim(),
+      };
     }
-    // تفکیک «رد منتقد» از «خطای سیستمی» (دستور مسعود):
-    // - approved=false یعنی تیم بدون خطای سیستمی اجرایش را تمام کرد ولی منتقد خروجی را رد کرد → 'rejected'
+    // تفکیک «رد رهبر» از «خطای سیستمی» (دستور مسعود):
+    // - approved=false یعنی تیم بدون خطای سیستمی اجرایش را تمام کرد ولی رهبر خروجی را رد کرد → 'rejected'
     // - 'failed' فقط برای خطای واقعی (exception، تایم‌اوت، خطای LLM) در بلوک catch پایین می‌ماند
-    const teamStatus: TeamRunStatus = result.approved === false ? 'rejected' : 'success';
-    // ساب‌ایجنت‌ها کارشان را تمام کرده‌اند؛ رد منتقد خطای آن‌ها نیست
+    // fail-closed: تنها تأیید صریح true موفق است؛ approved نامشخص یعنی رد.
+    const teamStatus: TeamRunStatus = result.approved === true ? 'success' : 'rejected';
+    // ساب‌ایجنت‌ها کارشان را تمام کرده‌اند؛ رد رهبر خطای آن‌ها نیست
     await closeSubagents('success');
-    // تیم ۹: ردیابی استفاده از دانش — کدام چانک‌ها تزریق شدند و آیا مفید بودند؟
+    // تیم ۹: ردیابی استفاده از دانش | کدام چانک‌ها تزریق شدند و آیا مفید بودند؟
     try {
       const { getLastRetrievedChunkIds, recordKnowledgeUsage } = await import('./rag');
       const usedChunkIds = getLastRetrievedChunkIds(team);
@@ -819,21 +1155,25 @@ export async function runSingleTeam(
       progress: 100,
       current_task:
         teamStatus === 'rejected'
-          ? `رد شد توسط منتقد (بعد از ${faDigits(roundLog.length)} دور بازبینی)`
-          : roundLog.length > 1
-            ? `پایان کار (تأیید در دور ${faDigits(roundLog.length)})`
-            : 'پایان کار',
+          ? `رد شد در چک رهبر (${finalCheck.reason.slice(0, 200)})`
+          : 'پایان کار',
       output_summary: result.summary?.slice(0, 4000) ?? null,
       error: teamStatus === 'rejected' ? (result.summary?.slice(0, 4000) ?? null) : null,
       llm_calls: llmCalls,
-      // لاگ همهٔ دورهای حلقهٔ بازبینی (دستور مسعود): دور، تأیید/رد، دلیل، دستور
-      review_rounds: roundLog,
+      // لاگ چک سادهٔ رهبر (دستور مسعود): دور، تأیید/رد، دلیل، دستور اصلاح
+      review_rounds: checkLog,
     });
+    // بستن قطعی تسک claimشده (مشکل ۲): موفق یا ردشده، هر دو done می‌شوند؛
+    // سرنوشت واقعی در result ثبت می‌ماند. best-effort: خطایش نتیجه تیم را خراب نمی‌کند.
+    await settleClaimedTaskOnce(
+      teamStatus === 'success' ? 'success' : 'rejected',
+      result.summary?.slice(0, 4000) ?? '(خلاصه‌ای ثبت نشد)',
+    );
     // دروازه ثبت پچ (دستور مسعود): فقط پچ تیم موفقِ تأییدشده وارد پل می‌شود.
     // تیم ردشده (approved=false → rejected) یا ناموفق (failed) اصلاً در bridge_patches ثبت نمی‌شود.
     if (teamStatus !== 'success') {
       console.log(
-        `[orchestrator] پچ تیم ${team} ثبت نشد چون منتقد رد کرد (وضعیت: ${teamStatus}).`,
+        `[orchestrator] پچ تیم ${team} ثبت نشد چون چک رهبر رد کرد (وضعیت: ${teamStatus}).`,
       );
     } else {
       // پچ پیشنهادی تیم → جدول bridge_patches (وضعیت proposed)؛
@@ -872,6 +1212,24 @@ export async function runSingleTeam(
       message: `گزارش تیم در چرخه ${ctx.runId}\n\n${result.summary ?? '(خلاصه‌ای ثبت نشد)'}`,
       cycleId,
     });
+    // لایه ۱ دیده‌بان زنده: پایان موفق/ردشده تیم (fail-soft)
+    await recordEvent(ctx.runId, team, 'team_finished', {
+      wave,
+      status: teamStatus,
+      duration_ms: Date.now() - teamStartMs,
+    });
+    // خودترمیمی در لحظه (دستور مسعود): تشخیص الگوی خرابی + ترمیم سیستم/تیم،
+    // بدون اثر روی نتیجهٔ این تیم. fail-soft: هرگز خطا پرتاب نمی‌کند.
+    try {
+      const { checkAndHealTeam } = await import('./self-heal');
+      await checkAndHealTeam(team, teamStatus, {
+        rejectionReasons: checkLog.filter((r) => !r.approved).map((r) => r.reason),
+      });
+    } catch {
+      /* نادیده: خودترمیمی نباید نتیجه تیم را خراب کند */
+    }
+    // چرخهٔ یادگیری (دستور مسعود): ثبت درس این اجرا در دانش تیم (fail-soft)
+    await recordRunLesson(team, teamStatus, result.summary ?? '');
     return result;
   } catch (err) {
     if (err instanceof SubagentStoppedError) {
@@ -882,10 +1240,24 @@ export async function runSingleTeam(
         message: `تیم در چرخه ${ctx.runId} توسط کاربر متوقف شد (مرحله: ${err.stage}).`,
         cycleId,
       });
+      await settleClaimedTaskOnce(
+        'stopped',
+        `تیم در چرخه ${ctx.runId} توسط کاربر متوقف شد (مرحله: ${err.stage}).`,
+      );
+      // لایه ۱ دیده‌بان زنده: پایان با توقف کاربر (fail-soft)
+      await recordEvent(ctx.runId, team, 'team_finished', {
+        wave,
+        status: 'stopped',
+        duration_ms: Date.now() - teamStartMs,
+      });
       return null;
     }
     const message = err instanceof Error ? err.message : String(err);
     console.error(`[orchestrator] team "${team}" failed:`, message);
+    // لایه ۱ دیده‌بان زنده: خطای اصلی تیم | فقط پیام، نه استک کامل (fail-soft)
+    await recordEvent(ctx.runId, team, 'error', {
+      message: message.slice(0, 2000),
+    });
     await closeSubagents('failed');
     await finish({ status: 'failed', current_task: 'خطا در اجرا', error: message.slice(0, 4000) });
     await notifyTeamReport({
@@ -893,9 +1265,32 @@ export async function runSingleTeam(
       message: `تیم در چرخه ${ctx.runId} ناموفق بود:\n\n${message.slice(0, 1500)}`,
       cycleId,
     });
+    await settleClaimedTaskOnce('failed', message.slice(0, 4000));
+    // لایه ۱ دیده‌بان زنده: پایان ناموفق تیم (fail-soft)
+    await recordEvent(ctx.runId, team, 'team_finished', {
+      wave,
+      status: 'failed',
+      duration_ms: Date.now() - teamStartMs,
+    });
+    // خودترمیمی در لحظه (دستور مسعود): اگر این خطا الگو شد (۲ بار پیاپی همسان)،
+    // مدل تیم خودکار عوض می‌شود. fail-soft.
+    try {
+      const { checkAndHealTeam } = await import('./self-heal');
+      await checkAndHealTeam(team, 'failed', { errorText: message });
+    } catch {
+      /* نادیده */
+    }
+    // چرخهٔ یادگیری (دستور مسعود): ثبت درس این اجرای ناموفق در دانش تیم (fail-soft)
+    await recordRunLesson(team, 'failed', message);
     return null;
   } finally {
     clearInterval(heartbeat);
+    // تور آخر (مشکل ۲): اگر هیچ‌کدام از مسیرهای بالا تسک claimشده را نبستند،
+    // اینجا با سرنوشت interrupted بسته می‌شود. گارد once از دوباره‌بستن جلوگیری می‌کند.
+    await settleClaimedTaskOnce(
+      'interrupted',
+      'اجرای تیم بدون رسیدن به نقطهٔ پایانی شناخته‌شده تمام شد.',
+    );
   }
 }
 
@@ -918,15 +1313,34 @@ export async function finishCycle(
       .maybeSingle();
     const { data: runs } = await sb
       .from('team_runs')
-      .select('status, llm_calls')
+      .select('team, status, llm_calls, started_at')
       .eq('cycle_id', cycleId);
-    const rows = (runs ?? []) as { status: string; llm_calls: number }[];
-    const stats: Record<string, number | string | boolean> = {
-      total_teams: rows.length,
-      success: rows.filter((r) => r.status === 'success').length,
-      failed: rows.filter((r) => r.status === 'failed').length,
-      rejected: rows.filter((r) => r.status === 'rejected').length,
-      llm_calls: rows.reduce((sum, r) => sum + (r.llm_calls ?? 0), 0),
+    const rows = (runs ?? []) as { team: string; status: string; llm_calls: number; started_at: string }[];
+    // حلقهٔ اصلاح درون‌چرخه‌ای ممکن است برای یک تیم چند ردیف بسازد؛
+    // آمار چرخه فقط «آخرین» اجرای هر تیم را می‌شمارد، نه همهٔ تلاش‌ها را.
+    const latest = new Map<string, { status: string; llm_calls: number }>();
+    const attempts = new Map<string, number>();
+    for (const r of rows) {
+      latest.set(r.team, { status: r.status, llm_calls: r.llm_calls ?? 0 });
+      attempts.set(r.team, (attempts.get(r.team) ?? 0) + 1);
+    }
+    // خلاصهٔ حلقه‌های اصلاح این چرخه (دستور مسعود): کدام تیم‌ها در همین
+    // چرخه اصلاح شدند، چند تلاش کردند و وضعیت نهایی‌شان چه شد.
+    const fixLoops: Record<string, { attempts: number; final_status: string }> = {};
+    attempts.forEach((n, team) => {
+      if (n > 1) {
+        fixLoops[team] = { attempts: n, final_status: latest.get(team)?.status ?? 'unknown' };
+      }
+    });
+    const latestRows: Array<{ status: string; llm_calls: number }> = [];
+    latest.forEach((v) => latestRows.push(v));
+    const stats: Record<string, number | string | boolean | object> = {
+      total_teams: latest.size,
+      success: latestRows.filter((r) => r.status === 'success').length,
+      failed: latestRows.filter((r) => r.status === 'failed').length,
+      rejected: latestRows.filter((r) => r.status === 'rejected').length,
+      llm_calls: latestRows.reduce((sum, r) => sum + (r.llm_calls ?? 0), 0),
+      fix_loops: fixLoops,
     };
     if (cycle) {
       stats.duration_minutes = Math.round(
@@ -943,17 +1357,20 @@ export async function finishCycle(
       })
       .eq('id', cycleId);
     if (error) console.error('[orchestrator] failed to update cycles row:', error.message);
+    // لایه ۱ دیده‌بان زنده: پایان چرخه (fail-soft)
+    await recordEvent(
+      (cycle as { run_id?: string } | null)?.run_id ?? cycleId,
+      'orchestrator',
+      'cycle_finished',
+      { status },
+    );
     // آزاد کردن قفل: وضعیت دیگر running نیست، ولی ردیف برای حسابرسی می‌ماند.
-    await writeLock({
-      status,
-      run_id: (cycle as { run_id?: string } | null)?.run_id ?? null,
-      cycle_id: cycleId,
-      finished_at: new Date().toISOString(),
-    });
+    // فقط اگر قفل مال همین چرخه باشد (تا قفل چرخه‌ی تازه‌ای را آزاد نکنیم).
+    await forceReleaseLock(cycleId, 'finishCycle');
   } catch (err) {
     console.error('[orchestrator] finishCycle failed:', err instanceof Error ? err.message : err);
     try {
-      await writeLock({ status, cycle_id: cycleId, finished_at: new Date().toISOString() });
+      await forceReleaseLock(cycleId, 'finishCycle');
     } catch {
       /* best effort */
     }
