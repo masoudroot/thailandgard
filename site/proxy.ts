@@ -35,6 +35,16 @@ const CRON_PATHS = new Set(['/api/rates/fetch']);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get('host')?.split(':')[0].toLowerCase();
+  const publicHost = host === 'thailandgard.ir' || host === 'www.thailandgard.ir';
+
+  if (publicHost && pathname.startsWith('/dashboard')) {
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    url.host = 'admin.thailandgard.ir';
+    url.port = '';
+    return NextResponse.redirect(url, 308);
+  }
 
   if (PUBLIC_PATHS.has(pathname)) {
     return NextResponse.next();
