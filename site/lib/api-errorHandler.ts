@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import { logger } from './logger';
 
+export class ApiError extends Error {
+  readonly statusCode: number;
+  readonly details?: unknown;
+  constructor(message: string, statusCode: number, details?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.statusCode = statusCode;
+    this.details = details;
+  }
+}
+
 export class ValidationError extends Error {
   readonly code: string;
-
   constructor(message: string, code = 'INVALID_INPUT') {
     super(message);
     this.name = 'ValidationError';
@@ -13,7 +23,6 @@ export class ValidationError extends Error {
 
 export class AuthenticationError extends Error {
   readonly code: string;
-
   constructor(message = 'Authentication required', code = 'UNAUTHENTICATED') {
     super(message);
     this.name = 'AuthenticationError';
@@ -23,7 +32,6 @@ export class AuthenticationError extends Error {
 
 export class AuthorizationError extends Error {
   readonly code: string;
-
   constructor(message = 'Permission denied', code = 'FORBIDDEN') {
     super(message);
     this.name = 'AuthorizationError';
@@ -36,13 +44,13 @@ export interface ApiErrorContext {
   method?: string;
 }
 
-interface ErrorDescriptor {
+export interface ErrorDescriptor {
   status: number;
   code: string;
   message: string;
 }
 
-interface NormalizedError {
+export interface NormalizedError {
   status: number;
   code: string;
   message: string;
@@ -75,7 +83,6 @@ function normalizeError(error: unknown): NormalizedError {
       stack: error.stack,
     };
   }
-
   if (error instanceof AuthenticationError) {
     return {
       status: 401,
@@ -85,7 +92,6 @@ function normalizeError(error: unknown): NormalizedError {
       stack: error.stack,
     };
   }
-
   if (error instanceof AuthorizationError) {
     return {
       status: 403,
@@ -95,7 +101,6 @@ function normalizeError(error: unknown): NormalizedError {
       stack: error.stack,
     };
   }
-
   if (error instanceof SyntaxError) {
     return {
       status: 400,
@@ -105,7 +110,16 @@ function normalizeError(error: unknown): NormalizedError {
       stack: error.stack,
     };
   }
-
+  if (error instanceof ApiError) {
+    return {
+      status: error.statusCode,
+      code: 'CUSTOM_ERROR',
+      message: error.message,
+      logMessage: error.message,
+      stack: error.stack,
+      cause: error.details,
+    };
+  }
   if (error instanceof Error) {
     return {
       status: 500,
@@ -116,7 +130,6 @@ function normalizeError(error: unknown): NormalizedError {
       cause: error.cause,
     };
   }
-
   return {
     status: 500,
     code: 'INTERNAL_ERROR',
@@ -129,7 +142,6 @@ function buildSafeMessage(status: number, requested: string): string {
   if (status === 400) {
     return requested;
   }
-
   const fallback = DEFAULT_MESSAGES[status] ?? DEFAULT_MESSAGES[500];
   const isProduction = process.env.NODE_ENV === 'production';
   return isProduction ? fallback : requested;
@@ -141,8 +153,7 @@ export function handleApiError(
 ): NextResponse {
   const normalized = normalizeError(error);
   const status = pickStatus(normalized.status);
-
-  logger.error('API request failed', {
+  logger.warn('API request failed', {
     route: context.route,
     method: context.method ?? 'UNKNOWN',
     status,
@@ -151,9 +162,7 @@ export function handleApiError(
     stack: normalized.stack,
     cause: normalized.cause,
   });
-
   const message = buildSafeMessage(status, normalized.message);
-
   return NextResponse.json(
     { error: { message, code: normalized.code } },
     { status },
@@ -197,14 +206,12 @@ function assertField(
     }
     return;
   }
-
   if (!matchesType(value, rule.type)) {
     throw new ValidationError(
       `Field "${field}" must be of type ${rule.type}.`,
       'INVALID_FIELD_TYPE',
     );
   }
-
   if (typeof value === 'string') {
     if (rule.minLength !== undefined && value.length < rule.minLength) {
       throw new ValidationError(
@@ -231,12 +238,9 @@ export function assertValidInput(
       'INVALID_BODY',
     );
   }
-
   const source = input as Record<string, unknown>;
-
   for (const [field, rule] of Object.entries(schema)) {
     assertField(field, source[field], rule);
   }
-
   return source;
 }
