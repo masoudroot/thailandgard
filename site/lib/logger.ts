@@ -216,14 +216,14 @@ export class Logger {
       return;
     }
 
-    const timestamp = new Date().toISOString();
     const safeMessage = stringifyUnknown(message);
     const sanitizedContext = sanitizeContext(context ?? {});
     const contextForLog =
       Object.keys(sanitizedContext).length > 0 ? sanitizedContext : undefined;
-    const formatted = this.formatMessage(level, timestamp, safeMessage, contextForLog);
-
-    Logger.log(level, formatted);
+    
+    const instance = new Logger();
+    const entry = instance.buildEntry(level, safeMessage, contextForLog);
+    instance.emit(entry);
   }
 }
 
