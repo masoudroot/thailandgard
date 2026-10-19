@@ -210,20 +210,29 @@ export class Logger {
     this.write('error', message, context, error);
   }
 
-  static api(message: unknown, context?: LogContext): void {
-    const level: LogLevel = 'info';
-    if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[resolveLevel()]) {
-      return;
-    }
-
+  static api(message: unknown, context?: LogContext): string {
+    const instance = new Logger();
     const safeMessage = stringifyUnknown(message);
     const sanitizedContext = sanitizeContext(context ?? {});
     const contextForLog =
       Object.keys(sanitizedContext).length > 0 ? sanitizedContext : undefined;
-    
-    const instance = new Logger();
-    const entry = instance.buildEntry(level, safeMessage, contextForLog);
-    instance.emit(entry);
+    const timestamp = new Date().toISOString();
+    const formatted = Logger.formatMessage(
+      instance.minLevel,
+      timestamp,
+      safeMessage,
+      contextForLog,
+    );
+
+    instance.emit({
+      level: instance.minLevel,
+      timestamp,
+      message: safeMessage,
+      context: contextForLog,
+      formatted,
+    });
+
+    return formatted;
   }
 }
 
