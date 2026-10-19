@@ -17,10 +17,89 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
   error: 40,
 };
 
+const SENSITIVE_KEYS: ReadonlySet<string> = new Set([
+  'authorization',
+  'proxy-authorization',
+  'cookie',
+  'cookies',
+  'set-cookie',
+  'x-api-key',
+  'api-key',
+  'apikey',
+  'password',
+  'passwd',
+  'pwd',
+  'secret',
+  'token',
+  'access-token',
+  'refresh-token',
+  'id-token',
+  'auth-token',
+  'session-id',
+  'sessionid',
+  'x-auth-token',
+]);
+
+function isSensitiveKey(key: string): boolean {
+  const normalized = key.trim().toLowerCase().replace(/_/g, '-');
+  return (
+    SENSITIVE_KEYS.has(normalized) ||
+    normalized.includes('token') ||
+    normalized.includes('secret') ||
+    normalized.includes('password') ||
+    normalized.includes('authorization') ||
+    normalized.includes('cookie') ||
+    normalized.includes('session') ||
+    normalized.includes('credential')
+  );
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function sanitizeValue(value: unknown, ancestors: object[] = []): unknown {
+  if (Array.isArray(value)) {
+    if (ancestors.includes(value)) {
+      return '[Circular]';
+    }
+    return value.map((item) => sanitizeValue(item, [...ancestors, value]));
+  }
+
+  if (isPlainObject(value)) {
+    if (ancestors.includes(value)) {
+      return '[Circular]';
+    }
+
+    const result: LogContext = {};
+    for (const [key, nestedValue] of Object.entries(value)) {
+      result[key] = isSensitiveKey(key)
+        ? '[REDACTED]'
+        : sanitizeValue(nestedValue, [...ancestors, value]);
+    }
+    return result;
+  }
+
+  return value;
+}
+
+export function sanitizeContext(context: LogContext): LogContext {
+  return sanitizeValue(context) as LogContext;
+}
+
 function resolveLevel(): LogLevel {
   const raw = typeof process !== 'undefined' ? process.env?.LOG_LEVEL : undefined;
   const normalized = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
-  if (normalized === 'debug' || normalized === 'info' || normalized === 'warn' || normalized === 'error') {
+  if (
+    normalized === 'debug' ||
+    normalized === 'info' ||
+    normalized === 'warn' ||
+    normalized === 'error'
+  ) {
     return normalized;
   }
   return 'info';
@@ -41,6 +120,19 @@ function toErrorPayload(error: unknown): unknown {
   return error;
 }
 
+function stringifyUnknown(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized === undefined ? String(value) : serialized;
+  } catch {
+    return String(value);
+  }
+}
+
 export class Logger {
   private readonly minLevel: LogLevel;
 
@@ -55,8 +147,7 @@ export class Logger {
   private buildEntry(level: LogLevel, message: string, meta?: LogContext): LogEntry {
     const timestamp = new Date().toISOString();
     const safeMessage = typeof message === 'string' ? message : String(message);
-    const context =
-      meta && Object.keys(meta).length > 0 ? { ...meta } : undefined;
+    const context = meta && Object.keys(meta).length > 0 ? { ...meta } : undefined;
     const formatted = Logger.formatMessage(level, timestamp, safeMessage, context);
     return { level, timestamp, message: safeMessage, context, formatted };
   }
@@ -92,11 +183,14 @@ export class Logger {
     if (!this.isEnabled(level)) {
       return;
     }
+
     const merged: LogContext = { ...(context ?? {}) };
     if (error !== undefined) {
       merged.error = toErrorPayload(error);
     }
-    const entry = this.buildEntry(level, message, merged);
+
+    const safeContext = sanitizeContext(merged);
+    const entry = this.buildEntry(level, message, safeContext);
     this.emit(entry);
   }
 
@@ -116,22 +210,20 @@ export class Logger {
     this.write('error', message, context, error);
   }
 
-  static api(message: string, context?: LogContext, error?: unknown): void {
+  static api(message: unknown, context?: LogContext): void {
     const level: LogLevel = 'info';
-    const minLevel = resolveLevel();
-    if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[minLevel]) {
+    if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[resolveLevel()]) {
       return;
     }
-    const timestamp = new Date().toISOString();
-    const safeMessage = typeof message === 'string' ? message : String(message);
-    const merged: LogContext = { ...(context ?? {}) };
-    if (error !== undefined) {
-      merged.error = toErrorPayload(error);
-    }
-    const contextForLog: LogContext | undefined =
-      Object.keys(merged).length > 0 ? merged : undefined;
-    const formatted = Logger.formatMessage(level, timestamp, safeMessage, contextForLog);
-    Logger.log(level, formatted);
+
+    const safeMessage = stringifyUnknown(message);
+    const sanitizedContext = sanitizeContext(context ?? {});
+    const contextForLog =
+      Object.keys(sanitizedContext).length > 0 ? sanitizedContext : undefined;
+    
+    const instance = new Logger();
+    const entry = instance.buildEntry(level, safeMessage, contextForLog);
+    instance.emit(entry);
   }
 }
 
