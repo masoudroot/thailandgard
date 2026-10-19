@@ -22,7 +22,6 @@ const H1_OVERRIDES: Record<string, string> = {
   "pattaya-fireworks-festival-azar": "فستیوال آتش‌بازی پاتایا",
   "thailand-visa-guide": "ویزای تایلند برای ایرانیان",
   "thailand-high-season-planning": "سفر به تایلند در پاییز",
-  "phuket-flight-routes": "پرواز از ایران به پوکت",
   "one-bangkok-second-anniversary": "دومین سالگرد وان بانکوک؛ جشنوارهٔ خرید پاییزی",
   "tehran-bangkok-direct-flight": "پرواز مستقیم تهران بانکوک؛ تنها مسیر بی‌توقف",
   "flights-from-iran-to-thailand": "مسیرهای پروازی ایران به تایلند؛ راهنمای کامل",
@@ -58,6 +57,9 @@ const H1_OVERRIDES: Record<string, string> = {
 
   // سئو (اجرای خودکار): h1 مستقل برای اسلاگ‌های تازه
   "phuket-vs-samui": "پوکت یا سامویی؛ راهنمای انتخاب مقصد مناسب",
+
+  // سئو (اجرای خودکار): h1 مستقل برای اسلاگ‌های تازه
+  "phuket-flight-routes": "مسیرهای پروازی و روش‌های سفر هوایی از ایران به پوکت",
 };
 
 /** قاعدهٔ مشتق‌سازی: h1 هرگز دقیقاً برابر title منهای پسوند برند نیست. */
