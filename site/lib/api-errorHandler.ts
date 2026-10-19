@@ -36,12 +36,6 @@ export interface ApiErrorContext {
   method?: string;
 }
 
-interface ErrorDescriptor {
-  status: number;
-  code: string;
-  message: string;
-}
-
 interface NormalizedError {
   status: number;
   code: string;
