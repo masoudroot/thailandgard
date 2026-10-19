@@ -1,104 +1,80 @@
-import { ArrowLeft, Star, Clock, Tag } from 'lucide-react';
+import React from 'react';
+import { Calendar, MapPin, ArrowLeft, Percent, Clock } from 'lucide-react';
 
-interface TourProps {
-  tour: {
-    name: string;
-    duration: string;
-    price: number;
-    currency: string;
-    image: string;
-    rating: number;
-    reviewsCount: number;
-    badge?: string;
-  };
-  variant?: 'standard' | 'compact';
-  showDiscount?: boolean;
-  onSelect?: (tour: TourProps['tour']) => void;
-}
-
-function formatPrice(amount: number, currency: string): string {
-  const formatted = amount.toLocaleString('fa-IR');
-  return `${formatted} ${currency}`;
+export interface ThailandTourCardProps {
+  title?: string;
+  destination?: string;
+  duration?: string;
+  startDate?: string;
+  originalPrice?: string;
+  discountedPrice?: string;
+  discountPercent?: string;
+  badgeText?: string;
+  onSelect?: () => void;
 }
 
 export function ThailandTourCard({
-  tour,
-  variant = 'standard',
-  showDiscount = false,
+  title = 'تور ویژه پوکت و بانکوک',
+  destination = 'تایلند، پوکت و بانکوک',
+  duration = '۷ روز و ۶ شب',
+  startDate = '۱۵ اردیبهشت ۱۴۰۴',
+  originalPrice = '۳۵٬۰۰۰٬۰۰۰',
+  discountedPrice = '۲۸٬۰۰۰٬۰۰۰',
+  discountPercent = '۲۰٪',
+  badgeText = 'تخفیف فصلی',
   onSelect,
-}: TourProps) {
-  const isCompact = variant === 'compact';
-
+}: ThailandTourCardProps) {
   return (
-    <div
-      className={`group relative flex flex-col bg-background border border-border rounded-lg transition duration-200 overflow-hidden ${
-        isCompact ? 'max-w-[280px]' : 'max-w-[380px]'
-      }`}
-    >
-      {/* Image container */}
-      <div className="relative w-full h-48 overflow-hidden">
-        <img
-          src={tour.image}
-          alt={tour.name}
-          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-        />
-        {tour.badge && (
-          <span className="absolute top-2 start-2 bg-background text-foreground text-xs font-iransans px-2 py-1 rounded-s rounded-e border border-border flex items-center gap-1">
-            <Tag className="w-3 h-3" />
-            <span>{tour.badge}</span>
-          </span>
-        )}
-        {showDiscount && (
-          <span className="absolute top-2 end-2 bg-amber-500 text-white text-xs font-iransans px-2 py-1 rounded-lg">
-            {'کد تخفیف'}
-          </span>
-        )}
+    <div className="flex flex-col rounded-[22px] border border-border bg-background p-5 transition-all duration-200 hover:border-foreground/3">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+          <Percent className="h-3.5 w-3.5 text-amber-600" />
+          {badgeText}
+        </span>
+        <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-600">
+          {discountPercent} تخفیف
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col p-4 gap-2">
-        {/* Title */}
-        <h3 className={`font-pinar text-foreground ${isCompact ? 'text-base' : 'text-lg'}`}>
-          {tour.name}
+      <div className="mt-4 flex flex-col gap-2">
+        <h3 className="font-pinar text-xl font-bold text-foreground text-start">
+          {title}
         </h3>
-
-        {/* Duration & Rating */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm font-iransans">{tour.duration}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-iransans text-foreground">
-              {tour.rating.toLocaleString('fa-IR')}
-            </span>
-            <span className="text-xs font-iransans text-muted-foreground">
-              ({tour.reviewsCount.toLocaleString('fa-IR')})
-            </span>
-          </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 shrink-0" />
+          <span className="text-start">{destination}</span>
         </div>
+      </div>
 
-        {/* Price */}
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex flex-col">
-            <span className="text-xs font-iransans text-muted-foreground">
-              {'قیمت'}
-            </span>
-            <span className="font-pinar text-lg text-foreground">
-              {formatPrice(tour.price, tour.currency)}
-            </span>
-          </div>
+      <div className="my-4 h-[1px] w-full bg-border" />
 
-          {/* CTA */}
-          <button
-            onClick={() => onSelect?.(tour)}
-            className="flex items-center gap-1 px-3 py-2 bg-muted text-foreground border border-border rounded-lg text-sm font-iransans transition duration-200 hover:bg-foreground hover:text-background"
-          >
-            <span>{'جزئیات'}</span>
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+      <div className="flex flex-col gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 shrink-0" />
+          <span className="text-start">مدت اقامت: {duration}</span>
         </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 shrink-0" />
+          <span className="text-start">تاریخ حرکت: {startDate}</span>
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-end justify-between border-t border-border pt-4">
+        <div className="flex flex-col text-start">
+          <span className="text-xs text-muted-foreground line-through">
+            {originalPrice} تومان
+          </span>
+          <span className="font-pinar text-lg font-bold text-foreground">
+            {discountedPrice} <span className="text-xs font-normal text-muted-foreground">تومان</span>
+          </span>
+        </div>
+        <button
+          onClick={onSelect}
+          className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:opacity-90"
+        >
+          <span>رزرو تور</span>
+          <ArrowLeft className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
