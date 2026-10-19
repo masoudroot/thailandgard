@@ -38,7 +38,7 @@ export async function proxy(request: NextRequest) {
   const host = request.headers.get('host')?.split(':')[0].toLowerCase();
   const publicHost = host === 'thailandgard.ir' || host === 'www.thailandgard.ir';
 
-  if (publicHost && pathname.startsWith('/dashboard')) {
+  if (publicHost && (pathname.startsWith('/dashboard') || pathname === '/login')) {
     const url = request.nextUrl.clone();
     url.protocol = 'https:';
     url.host = 'admin.thailandgard.ir';
