@@ -2568,7 +2568,7 @@ git commit -m "test(factory): add temporal end-to-end smoke script"
 - Create: `site/lib/factory/artifacts.ts`
 - Test: `site/factory/tests/artifacts.test.ts`
 - Create: `site/factory/Dockerfile.worker`
-- Create: `site/factory/.dockerignore`
+- Create: `site/.dockerignore`
 
 **Interfaces:**
 - Produces: `artifactKey()`, `createS3ArtifactStore()`, `factory-worker` image.
@@ -2666,15 +2666,17 @@ Expected: both pass.
 
 - [ ] **Step 5: Add the worker image**
 
-Create `site/factory/Dockerfile.worker`:
+Create `site/factory/Dockerfile.worker`. Use `bookworm-slim`, not Alpine: the Temporal core bridge requires glibc.
 
 ```dockerfile
-FROM node:22-alpine
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
+ARG NPM_REGISTRY=https://registry.npmjs.org/
+
 COPY --chown=node:node package.json package-lock.json ./
-RUN npm ci && chown -R node:node /app
+RUN npm ci --legacy-peer-deps --omit=dev --no-audit --no-fund --registry="$NPM_REGISTRY" && chown -R node:node /app
 
 ENV NODE_ENV=production
 
@@ -2685,7 +2687,7 @@ USER node
 CMD ["npm", "run", "factory:worker"]
 ```
 
-Create `site/factory/.dockerignore`:
+Create `site/.dockerignore`:
 
 ```text
 node_modules
@@ -2695,6 +2697,8 @@ factory/baseline
 .env
 .env.*
 ```
+
+`tsx` must stay in `dependencies`, not `devDependencies`, because the worker image omits dev dependencies.
 
 - [ ] **Step 6: Build the image**
 
@@ -2717,7 +2721,7 @@ Expected: prints the Node version.
 - [ ] **Step 7: Commit**
 
 ```powershell
-git add site/lib/factory/artifacts.ts site/factory/tests/artifacts.test.ts site/factory/Dockerfile.worker site/factory/.dockerignore
+git add site/lib/factory/artifacts.ts site/factory/tests/artifacts.test.ts site/factory/Dockerfile.worker site/.dockerignore
 git commit -m "feat(factory): add artifact storage and worker image"
 ```
 
@@ -3032,7 +3036,7 @@ Do not mark Phase 1 complete until all of the following are true:
 - [ ] `npm run factory:migrate` is idempotent.
 - [ ] `npm run factory:smoke` reaches `awaiting_approval`.
 - [ ] The smoke artifact `work-items/<id>/smoke.txt` exists in the `factory-artifacts` bucket.
-- [ ] The event log contains `WorkItemCreated` and two `WorkItemStatusChanged` events for the smoke item.
+- [ ] The event log contains `WorkItemCreated` and four `WorkItemStatusChanged` events for the smoke item.
 - [ ] The worker image builds and contains no `.env` file or secret value.
 - [ ] The service worker starts with no secret values in logs.
 - [ ] `GET /api/factory/health` returns `200` with `{ "ok": true }`.
