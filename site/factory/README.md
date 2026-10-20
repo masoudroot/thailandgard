@@ -98,13 +98,13 @@ Expected status: `awaiting_approval`. The script also writes `work-items/<id>/sm
 From `site/`:
 
 ```powershell
-npm run lint:factory
+npm run lint
 npm run typecheck
 npm test
 npm run build
 ```
 
-The full `npm run lint` currently fails on pre-existing React hook and `no-explicit-any` errors in the legacy dashboard. `lint:factory` is the blocking check for this Phase 1 work; the legacy lint debt is tracked separately.
+The pre-existing React hook and `no-explicit-any` violations in the legacy dashboard are recorded in `site/eslint-suppressions.json`. `npm run lint` fails on new violations. Run `npx eslint --prune-suppressions` after fixing legacy code. `npm run lint:factory` remains available for a focused check.
 
 ## Rollback
 

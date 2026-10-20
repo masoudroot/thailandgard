@@ -53,12 +53,9 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci --legacy-peer-deps
-      - run: npm run lint:factory
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm run factory:migrate
       - run: npm test
       - run: npm run build
       - run: docker build -f factory/Dockerfile.worker -t factory-worker:ci .
-      - name: Legacy lint (known pre-existing debt)
-        run: npm run lint
-        continue-on-error: true
