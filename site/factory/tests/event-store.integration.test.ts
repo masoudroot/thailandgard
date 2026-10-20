@@ -22,11 +22,26 @@ describe.skipIf(!hasDatabase)('event store integration', () => {
 
   it('appends an event and assigns a monotonic version', async () => {
     const aggregateId = newId();
+    const now = new Date().toISOString();
     const first = await appendEvent({
       aggregateType: 'work_item',
       aggregateId,
       eventType: 'WorkItemCreated',
-      payload: { id: aggregateId },
+      payload: {
+        id: aggregateId,
+        domain: 'content',
+        ownerRole: 'content',
+        title: 'Event store integration item',
+        risk: 'R1',
+        status: 'planned',
+        playbookVersion: 'v0',
+        policyVersion: 'v0',
+        kpiTarget: 'integration',
+        outcomeWindow: '1d',
+        budget: { tokens: 100, costUsd: 0.01, wallClockMinutes: 5 },
+        createdAt: now,
+        updatedAt: now,
+      },
       actor: 'integration-test',
     });
     const second = await appendEvent({
