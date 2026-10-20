@@ -240,15 +240,15 @@ export default function DeployQueuePage() {
             {activeItems.map((item, idx) => (
               <div
                 key={item.id}
-                className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${
+                className={`flex items-start justify-between gap-3 rounded-lg border p-3 ${
                   item.status === 'failed' ? 'border-destructive/40 bg-destructive/5' : 'border-border bg-card'
                 }`}
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold">
                     {faNum(idx + 1)}
                   </span>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={STATUS_VARIANT[item.status]}>{STATUS_FA[item.status]}</Badge>
                       {item.team && <span className="text-xs text-muted-foreground">{item.team}</span>}
@@ -262,9 +262,11 @@ export default function DeployQueuePage() {
                       {item.patch_id.slice(0, 8)}
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                      اسلات: {tehranDateTime(item.slot_time)}
+                      <span className="block">اسلات: {tehranDateTime(item.slot_time)}</span>
                       {item.last_error && (
-                        <span className="block truncate text-destructive">{item.last_error}</span>
+                        <span className="mt-1 line-clamp-2 block break-words text-destructive">
+                          {item.last_error}
+                        </span>
                       )}
                     </div>
                   </div>

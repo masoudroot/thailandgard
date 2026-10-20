@@ -195,7 +195,7 @@ export default function DashboardHomePage() {
       icon: Users,
       label: "تیم‌های آماده",
       value: faDigits(TEAMS.length),
-      hint: `در ${faDigits(6)} موج، آماده شروع`,
+      hint: `در ${faDigits(3)} موج، آماده شروع`,
       tint: "bg-success/10 text-success",
     },
     {
@@ -218,7 +218,7 @@ export default function DashboardHomePage() {
             icon: Activity,
             label: "موج جاری",
             value: `موج ${WAVE_WORDS[cycle.currentWave - 1] ?? faDigits(cycle.currentWave)}`,
-            hint: `از ${faDigits(6)} موج`,
+            hint: `از ${faDigits(3)} موج`,
             tint: "bg-brand/10 text-brand",
           },
         ] as StatCardProps[])
@@ -252,7 +252,7 @@ export default function DashboardHomePage() {
               داشبورد ایجنتیک تایلندگرد
             </h1>
             <p className="mt-3 text-justify text-lg leading-8 text-muted-foreground">
-              پنج تیم هوش مصنوعی در سه موج، پشت سر هم برای رشد تایلندگرد کار می‌کنند.
+              شش تیم هوش مصنوعی در سه موج، پشت سر هم برای رشد تایلندگرد کار می‌کنند.
               این‌جا می‌بینید هر تیم کجای کار است و چرخهٔ بعدی را از همین‌جا شروع می‌کنید.
             </p>
 
@@ -317,7 +317,7 @@ export default function DashboardHomePage() {
                     </span>
                   </span>
                   <span>
-                    موج جاری: موج {WAVE_WORDS[cycle.currentWave - 1]} از شش
+                    موج جاری: موج {WAVE_WORDS[cycle.currentWave - 1]} از سه
                   </span>
                   <span>
                     تیم فعال:{" "}
@@ -430,7 +430,7 @@ export default function DashboardHomePage() {
             <div>
               <h2 className="text-xl font-bold">موج‌های چرخه</h2>
               <p className="text-sm text-muted-foreground">
-                هر چرخه، پنج تیم را در سه موج پشت سر هم اجرا می‌کند.
+                هر چرخه، شش تیم را در سه موج پشت سر هم اجرا می‌کند.
               </p>
             </div>
           </div>
@@ -538,7 +538,7 @@ export default function DashboardHomePage() {
           if (!starting) setDialogOpen(o);
         }}
         title="چرخهٔ جدید شروع شود؟"
-        description="چرخهٔ تازه بعد از پایان موج جاری آغاز می‌شود و پنج تیم از اول وارد صف می‌شوند. چرخهٔ در حال اجرا متوقف نمی‌شود."
+        description="چرخهٔ تازه بعد از پایان موج جاری آغاز می‌شود و شش تیم از اول وارد صف می‌شوند. چرخهٔ در حال اجرا متوقف نمی‌شود."
         footer={
           <>
             <Button
