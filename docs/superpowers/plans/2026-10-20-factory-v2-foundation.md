@@ -107,7 +107,7 @@ Complete these before Task 1. They are operational, not code.
 
 - [ ] Export and store an encrypted database backup of the current dashboard state.
 - [ ] Record the current production commit SHA and deployment URL.
-- [ ] Capture the current sitemap and the top 50 organic landing pages.
+- [ ] Capture the current sitemap and the top 50 organic landing pages. Sitemap metadata recorded at `site/factory/baseline/2026-10-20T15-39-23-661Z.json` with SHA-256 `d22a8da741e7fe705e3f33b92a6d4ec1d4b0ebf3911a87695d96273f543008ae`; top 50 landing pages still pending.
 - [ ] Confirm `FACTORY_CONTROL_TOKEN` is generated with at least 32 random bytes.
 - [ ] Confirm a separate operational Postgres database exists for `factory-staging`.
 - [ ] Confirm a Temporal Cloud namespace exists for `factory-staging`; if not, use local Temporal for Phase 1 only.
