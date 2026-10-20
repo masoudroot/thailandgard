@@ -81,7 +81,9 @@ docker build -f factory/Dockerfile.worker -t factory-worker:local .
 docker run --rm factory-worker:local node -e "console.log(process.version)"
 ```
 
-The build context is `site/`, so `site/.dockerignore` excludes `node_modules`, `.next`, logs, and environment files. Run the image only with environment variables injected by the platform. Never pass an env file from inside the build context.
+The build context is `site/`, so `site/.dockerignore` excludes `node_modules`, `.next`, logs, and environment files. The image uses `node:22-bookworm-slim` because the Temporal core bridge requires glibc; do not switch it to Alpine. If the npm registry is slow, pass `--build-arg NPM_REGISTRY=<mirror>`.
+
+Run the image only with environment variables injected by the platform. Never pass an env file from inside the build context.
 
 ## Smoke test
 
