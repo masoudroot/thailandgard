@@ -21,7 +21,7 @@ Next.js با App Router، کامپوننت‌های وایب‌فارسی، تم
 - معماری: `docs/factory-v2/ARCHITECTURE.md`
 - نقشهٔ راه: `docs/factory-v2/ROADMAP.md`
 - پلن پایه: `docs/superpowers/plans/2026-10-20-factory-v2-foundation.md`
-- راهنمای اجرای محلی (پس از فاز ۱): `site/factory/README.md`
+- راهنمای اجرای محلی: `site/factory/README.md`
 
 مدل قدیمی تیم‌محور و جریان شاخهٔ `dev` بازنشسته شده‌اند. پروداکشن تا عبور از گیت Cutover فاز ۵ روی runtime قدیمی می‌ماند.
 
