@@ -19,7 +19,7 @@ const execFileAsync = promisify(execFile);
 
 /** دایرکتوری دائمی برای پیش‌مرج: node_modules بین اجراها کش می‌شود.
  * /tmp فقط ۵۱۲MB دارد و برای npm install تنگ است؛ این مسیر روی دیسک اصلی است. */
-const PREMERGE_WORKDIR = join(homedir(), 'workspace', 'thailandgard-dashboard', 'hidden_files', 'premerge');
+const PREMERGE_WORKDIR = join(homedir(), 'workspace', 'thailandgard', 'hidden_files', 'premerge');
 const PREMERGE_CLONE_DIR = join(PREMERGE_WORKDIR, 'site-clone');
 
 export interface PreMergeCheckResult {

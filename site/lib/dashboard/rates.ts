@@ -90,7 +90,7 @@ export async function fetchNavasanRates(): Promise<RatesFetchResult> {
   try {
     const res = await fetch(
       `http://api.navasan.tech/latest/?api_key=${encodeURIComponent(apiKey)}`,
-      { signal: controller.signal, headers: { 'User-Agent': 'thailandgard-dashboard/1.0' } },
+      { signal: controller.signal, headers: { 'User-Agent': 'thailandgard/1.0' } },
     );
     if (!res.ok) throw new Error(`نوسان پاسخ ${res.status} برگرداند.`);
     const data: unknown = await res.json();

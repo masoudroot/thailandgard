@@ -109,7 +109,7 @@ function parseRssItems(xml: string): NewsItem[] {
 async function fetchRssNews(query: NewsQuery): Promise<NewsItem[]> {
   const res = await fetch(googleNewsRssUrl(query), {
     signal: AbortSignal.timeout(12_000),
-    headers: { 'User-Agent': 'thailandgard-dashboard/1.0' },
+    headers: { 'User-Agent': 'thailandgard/1.0' },
   });
   if (!res.ok) throw new Error(`RSS پاسخ ${res.status} برگرداند.`);
   return parseRssItems(await res.text());
