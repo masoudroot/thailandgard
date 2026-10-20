@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/db-content";
 import { defaultOgImages } from "@/lib/og";
+import { Analytics } from "@vercel/analytics/next";
 
 /** همهٔ مسیرها استاتیک‌اند؛ هر رندر درخواستیِ آینده بیلد را قرمز می‌کند. */
 export const ensureStatic = "navigation";
@@ -88,6 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${pinar.variable}`}>
       <body className="flex min-h-screen flex-col">
         {children}
+        <Analytics />
       </body>
     </html>
   );
