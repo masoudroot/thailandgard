@@ -1459,6 +1459,8 @@ export function getCategory(slug: string): TourCategory | undefined {
  * - tourSlugs: همان تورها به همان ترتیب (فقط فعال‌ها)
  * - cities: تورهایی که route یا shortTitle شامل شهر(ها) باشد؛
  *   برای combo با دو شهر، هر دو شهر باید باشند
+ * - combo بدون tourSlugs/cities: فقط تورهایی که واقعاً دو مقصد یا بیشتر دارند
+ *   (تعریف رسمی: رکورد در tour_legs، مایگریشن ۰۰۷) — نه همهٔ تورهای فعال
  * - هیچ‌کدام: همهٔ تورهای فعال
  * مرتب‌سازی: قیمت به‌روز (isPriceFresh) اول، بعد ارزان‌تر اول،
  * تور بدون قیمت آخر.
@@ -1486,7 +1488,13 @@ export function getCategoryTours(
         : cities.some((c) => haystack.includes(c));
     });
   } else {
-    matched = tours.filter((t) => t.active);
+    // دستهٔ ترکیبی: فقط تورهایی که واقعاً دو مقصد یا بیشتر دارند؛
+    // تورِ دارای ≥۲ پا = تور ترکیبی (مایگریشن ۰۰۷). وگرنه همهٔ تورهای فعال.
+    matched = tours.filter((t) => {
+      if (!t.active) return false;
+      if (category.kind === "combo") return (t.legs?.length ?? 0) >= 2;
+      return true;
+    });
   }
 
   return matched
