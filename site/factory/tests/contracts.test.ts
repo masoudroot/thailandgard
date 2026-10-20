@@ -45,6 +45,12 @@ describe('work item transitions', () => {
       /done -> running/,
     );
   });
+
+  it('requires planned items to become ready before running', () => {
+    expect(() => assertWorkItemTransition('planned', 'running')).toThrow(
+      /planned -> running/,
+    );
+  });
 });
 
 describe('task transitions', () => {
