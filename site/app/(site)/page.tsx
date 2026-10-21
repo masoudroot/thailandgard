@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
-import { SeasonBanner } from "@/components/site/SeasonBanner";
 import { ThailandGazeGallery } from "@/components/site/ThailandGazeGallery";
 import { DestinationCards } from "@/components/site/DestinationCards";
 import { TrustStrip } from "@/components/site/TrustStrip";
@@ -227,10 +226,8 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* بنر ب (بین‌سکشنی)؛ حکم ۴. D-174: py-10 ← py-6 برای ریتم فشرده‌تر؛ D-208: کپسول تمام‌عرض ← ستون محتوا (max-w-6xl هم‌تراز سکشن بعدی). */}
-      <div className="mx-auto max-w-6xl px-6 py-6">
-        <SeasonBanner />
-      </div>
+      {/* بنر ب (SeasonBanner) با پایان نگهبانی D-068 در ۱۸ اکتبر از خانه برداشته شد؛
+          پیامش تاریخ‌دار بود («۱۸ اکتبر؛ ۳ پرواز هفتگی جدید به پوکت»). فایل کامپوننت سر جایش است. */}
 
       <section className="border-y border-border bg-muted/40">
         {/* D-258 (۱۴۰۵/۰۷/۲۱، نبض دیزاین): py-10 ← py-12؛ هم‌ریتم با سکشن‌های خانه (D-195/D-245) */}
