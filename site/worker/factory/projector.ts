@@ -1,8 +1,10 @@
 import { closePool, getPool } from '../../lib/factory/db';
+import { loadFactoryEnvFile } from '../../lib/factory/local-env';
 import { projectBatch } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 
 async function main(): Promise<void> {
+  loadFactoryEnvFile();
   const store = new PgProjectorStore(getPool());
   let running = true;
 

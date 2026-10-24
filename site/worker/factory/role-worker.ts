@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { NativeConnection, Worker } from '@temporalio/worker';
 import { loadFactoryConfig } from '../../lib/factory/config';
+import { loadFactoryEnvFile } from '../../lib/factory/local-env';
 import * as activities from '../../lib/factory/temporal/activities';
 import { temporalConnectionOptions } from '../../lib/factory/temporal/client';
 import {
@@ -9,6 +10,7 @@ import {
 } from '../../lib/factory/telemetry';
 
 async function main(): Promise<void> {
+  loadFactoryEnvFile();
   startFactoryTelemetry();
   const config = loadFactoryConfig();
   const connection = await NativeConnection.connect(

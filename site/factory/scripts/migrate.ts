@@ -1,8 +1,10 @@
 import path from 'node:path';
 import { closePool, getPool } from '../../lib/factory/db';
+import { loadFactoryEnvFile } from '../../lib/factory/local-env';
 import { listMigrations } from '../../lib/factory/migrations';
 
 async function main(): Promise<void> {
+  loadFactoryEnvFile();
   const dir = path.resolve(process.cwd(), 'factory/migrations');
   const migrations = await listMigrations(dir);
   const pool = getPool();

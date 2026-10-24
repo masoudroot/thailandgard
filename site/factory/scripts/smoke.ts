@@ -3,6 +3,7 @@ import {
   createS3ArtifactStore,
 } from '../../lib/factory/artifacts';
 import { closePool, getPool } from '../../lib/factory/db';
+import { loadFactoryEnvFile } from '../../lib/factory/local-env';
 import { projectBatch } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
@@ -27,6 +28,7 @@ async function waitForStatus(
 }
 
 async function main(): Promise<void> {
+  loadFactoryEnvFile();
   const item = await createWorkItem({
     domain: 'content',
     ownerRole: 'content',

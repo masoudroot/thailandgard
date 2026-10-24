@@ -122,7 +122,10 @@ export type Domain = z.infer<typeof DomainSchema>;
 export type Risk = z.infer<typeof RiskSchema>;
 export type WorkItemStatus = z.infer<typeof WorkItemStatusSchema>;
 export type TaskStatus = z.infer<typeof TaskStatusSchema>;
+export type TaskType = z.infer<typeof TaskTypeSchema>;
 export type WorkItem = z.infer<typeof WorkItemSchema>;
+export type Artifact = z.infer<typeof ArtifactSchema>;
+export type Evidence = z.infer<typeof EvidenceSchema>;
 export type TaskOutput = z.infer<typeof TaskOutputSchema>;
 
 const WORK_ITEM_TRANSITIONS: Record<WorkItemStatus, readonly WorkItemStatus[]> = {

@@ -48,7 +48,7 @@ describe.skipIf(!hasDatabase)('event store integration', () => {
       aggregateType: 'work_item',
       aggregateId,
       eventType: 'WorkItemStatusChanged',
-      payload: { from: 'planned', to: 'running' },
+      payload: { from: 'planned', to: 'ready' },
       actor: 'integration-test',
     });
 

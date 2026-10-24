@@ -94,6 +94,8 @@
 
 **خروج فاز:** R1 خودکار با evidence؛ Tour data به‌عنوان منبع معتبر در DAG.
 
+**Execution record:** P3 locally implemented and verified; live credentials are documented in `docs/factory-v2/P3-CREDENTIALS.md`. See `docs/superpowers/plans/2026-10-21-factory-v2-p3.md`.
+
 ### فاز ۴ — Design + Dev
 
 | ID | بستهٔ کاری | مسئول | وابستگی | خروجی | Gate خروج |

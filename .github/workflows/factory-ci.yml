@@ -40,6 +40,7 @@ jobs:
       FACTORY_ENV: local
       FACTORY_DATABASE_URL: postgres://factory:factory@localhost:5433/factory
       FACTORY_CONTROL_TOKEN: factory-ci-token-0123456789abcdef
+      FACTORY_EVIDENCE_SECRET: factory-ci-evidence-secret-0123456789
       TEMPORAL_ADDRESS: localhost:7233
       TEMPORAL_NAMESPACE: default
       TEMPORAL_TLS: "false"
@@ -54,6 +55,8 @@ jobs:
           cache-dependency-path: site/package-lock.json
       - run: npm ci --legacy-peer-deps
       - run: npm run lint
+      - run: npm run lint:factory
+      - run: npm run factory:schemas
       - run: npm run typecheck
       - run: npm run factory:migrate
       - run: npm test

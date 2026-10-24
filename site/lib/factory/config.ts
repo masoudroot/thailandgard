@@ -4,6 +4,7 @@ const EnvSchema = z.object({
   FACTORY_ENV: z.enum(['local', 'staging', 'production']).default('local'),
   FACTORY_DATABASE_URL: z.string().url(),
   FACTORY_CONTROL_TOKEN: z.string().min(32),
+  FACTORY_EVIDENCE_SECRET: z.string().min(32).optional(),
   TEMPORAL_ADDRESS: z.string().min(1).default('localhost:7233'),
   TEMPORAL_NAMESPACE: z.string().min(1).default('default'),
   TEMPORAL_TLS: z.enum(['true', 'false']).default('false'),
@@ -21,6 +22,7 @@ export interface FactoryConfig {
   env: 'local' | 'staging' | 'production';
   databaseUrl: string;
   controlToken: string;
+  evidenceSecret?: string;
   temporalAddress: string;
   temporalNamespace: string;
   temporalTls: boolean;
@@ -65,6 +67,7 @@ export function loadFactoryConfig(env: FactoryEnv = process.env): FactoryConfig 
     env: parsed.data.FACTORY_ENV,
     databaseUrl: parsed.data.FACTORY_DATABASE_URL,
     controlToken: parsed.data.FACTORY_CONTROL_TOKEN,
+    evidenceSecret: parsed.data.FACTORY_EVIDENCE_SECRET,
     temporalAddress: parsed.data.TEMPORAL_ADDRESS,
     temporalNamespace: parsed.data.TEMPORAL_NAMESPACE,
     temporalTls: parsed.data.TEMPORAL_TLS === 'true',
