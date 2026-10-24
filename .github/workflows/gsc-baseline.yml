@@ -1,0 +1,31 @@
+name: gsc-baseline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: site/package-lock.json
+      - run: npm install --legacy-peer-deps
+      - name: collect gsc 28d baseline
+        run: npx tsx factory/scripts/gsc-baseline.ts
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gsc-28d-baseline
+          path: site/factory/baseline/gsc-28d-*.json
+          if-no-files-found: warn
