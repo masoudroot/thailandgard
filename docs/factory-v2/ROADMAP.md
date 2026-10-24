@@ -28,7 +28,7 @@
 | کد | Workstream | مسئول | خروجی |
 |---|---|---|---|
 | GOV | Governance و تصمیم | Leader | Policy، تصمیم، بودجه، ریسک |
-| PLT | Platform | Dev/Platform | Temporal، worker، API، data |
+| PLT | Platform | Dev/Platform | runtime، API، data |
 | DOM | Domain Runtime | هر شش دامنه | Playbook، رادار، Task contract |
 | QLT | Quality و Release | Quality + Dev | Gate، evidence، release، rollback |
 | DAT | Data و Dashboard | Platform | Projection، داشبورد، observability |
@@ -55,10 +55,10 @@
 
 | ID | بستهٔ کاری | مسئول | وابستگی | خروجی | Gate خروج |
 |---|---|---|---|---|---|
-| P1-01 | Temporal Cloud + namespaceهای prod/staging | Platform | P0 | connectivity، retention، access | workflow آزمایشی |
+| P1-01 | runtime گیت‌هاب اکشنز + runner درون‌فرآیندی | Platform | P0 | اجرای موفق job آزمایشی | WorkItem آزمایشی |
 | P1-02 | Postgres عملیاتی + migration core | Platform | P0 | schema، backup، retention | migration up/down |
 | P1-03 | Object Storage + Secret Manager | Platform | P0 | bucket، policy، secretها | access test |
-| P1-04 | Worker image و deployment پایه | Dev/Platform | P1-01 | image، health، autoscale | worker در staging |
+| P1-04 | اجرای runner در CI + زمان‌بندی jobها | Dev/Platform | P1-01 | jobs سبز، health | اجرای آزمایشی در staging |
 | P1-05 | Control API skeleton | Platform | P1-01, P1-02 | start/status/health | auth test |
 | P1-06 | Event Log + Outbox + Projector | Platform | P1-02 | event schema، projection | rebuild test |
 | P1-07 | OTEL + health/readiness | Platform | P1-04 | trace، metric، alert | trace end-to-end |
@@ -72,10 +72,10 @@
 | ID | بستهٔ کاری | مسئول | وابستگی | خروجی | Gate خروج |
 |---|---|---|---|---|---|
 | P2-01 | قراردادهای دامنه + JSON Schema | Platform + Content | P1-05 | contracts، validation | contract test |
-| P2-02 | Content R0 worker | Content | P2-01 | draft/edit/fact-check | ۳ خروجی معتبر |
+| P2-02 | Content R0 (runner درون‌فرآیندی) | Content | P2-01 | draft/edit/fact-check | ۳ خروجی معتبر |
 | P2-03 | Gate Engine (content/SEO) | Quality | P2-01 | gate runner، evidence | evidence امضاشده |
 | P2-04 | Policy Engine v1 | Governance | P2-03 | R0/R1 rules | policy test |
-| P2-05 | Release Worker + Merge Queue + preview | Dev | P1-09, P2-03 | preview، merge، deploy | rollback test |
+| P2-05 | Release + Merge Queue + preview | Dev | P1-09, P2-03 | preview، merge، deploy | rollback test |
 | P2-06 | Walking Skeleton E2E | Platform | P2-02..P2-05 | WorkItem کامل روی صفحهٔ کم‌ریسک | ۳ WorkItem موفق |
 | P2-07 | Outcome v0 | Platform + SEO | P2-06 | ثبت baseline/outcome | outcome record |
 
@@ -218,11 +218,11 @@ P0 ──► P1 ──► P2 ──► P6 ──► P7
 | ریسک | اثر | کاهش |
 |---|---|---|
 | SEO regression در مهاجرت | از دست رفتن ترافیک | baseline، crawl diff، freeze، ۲۸ روز پایش |
-| ناسازگاری projection و Temporal | داشبورد اشتباه | Event Log، rebuild test، no dual-write |
+| ناسازگاری projection و رویدادها | داشبورد اشتباه | Event Log، rebuild test، no dual-write |
 | هزینهٔ مدل/ابزار | بودجه | budget ledger، circuit breaker، eval |
 | Gate flaky | توقف کارخانه | قرنطینه، retry policy، بازبینی threshold |
 | وتوی تخصصی بیش‌ازحد | کندی | evidence اجباری، SLA، داوری Leader |
-| Cold start worker | تأخیر | warm pool، autoscale بر backlog |
+| Cold start runner | تأخیر | موازی‌سازی jobها، محدودیت concurrency اکشنز |
 | نشت secret | خطر امنیتی | Secret Manager، token کوتاه‌عمر، scan |
 | وابستگی به vendor | قفل‌شدن | Gateway انتزاعی، قرارداد خروج |
 | دادهٔ تور نادرست | ضرر تجاری | Tour Manager veto، fact-check gate |

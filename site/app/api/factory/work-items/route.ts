@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CreateWorkItemRequestSchema } from '@/lib/factory/api';
 import { isFactoryAuthorized } from '@/lib/factory/auth';
 import { createWorkItem } from '@/lib/factory/repository';
-import { startWorkItemWorkflow } from '@/lib/factory/temporal/client';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!(await isFactoryAuthorized(request, { allowSession: false }))) {
@@ -20,10 +19,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const input = parsed.data;
   const item = await createWorkItem(input);
-  const workflowId = await startWorkItemWorkflow({
-    workItemId: item.id,
-    actor: input.actor,
-  });
 
-  return NextResponse.json({ workItem: item, workflowId }, { status: 202 });
+  // Execution is dispatched by the factory runtime; the same in-process
+  // runner hosts work items locally and inside GitHub Actions.
+  return NextResponse.json({ workItem: item }, { status: 202 });
 }

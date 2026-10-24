@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { loadFactoryConfig, type FactoryConfig } from './config';
 
@@ -41,4 +43,24 @@ export function createS3ArtifactStore(
       );
     },
   };
+}
+
+export function createFsArtifactStore(baseDir: string): ArtifactStore {
+  return {
+    async put(key, body) {
+      const file = join(baseDir, key);
+      await mkdir(dirname(file), { recursive: true });
+      await writeFile(file, body);
+    },
+  };
+}
+
+export function createArtifactStore(
+  config: FactoryConfig = loadFactoryConfig(),
+): ArtifactStore {
+  if (config.artifacts) return createS3ArtifactStore(config);
+  if (config.artifactDir) return createFsArtifactStore(config.artifactDir);
+  throw new Error(
+    'Artifact storage is not configured (set FACTORY_ARTIFACT_* or FACTORY_ARTIFACT_DIR)',
+  );
 }

@@ -56,8 +56,8 @@
 8. **Fail-closed:** ریسک ناشناخته، Gate نامشخص یا evidence گمشده = توقف.
 9. **Maker-checker:** نویسنده تأییدکنندهٔ نهایی نیست.
 10. **Vendor-neutral:** مدل و ابزار پشت Gateway؛ قابل تعویض بدون بازنویسی دامنه.
-11. **Managed و کم‌نگهداری:** Temporal Cloud، managed containers، managed Postgres و object storage.
-12. **قابل بازسازی:** projectionها از Event Log بازسازی می‌شوند؛ state جاری در Temporal است.
+11. **Managed و کم‌نگهداری:** GitHub Actions و Vercel به‌عنوان runtime و release، managed Postgres و object storage.
+12. **قابل بازسازی:** projection‌ها از Event Log بازسازی می‌شوند؛ state جاری در Event Log است.
 
 ---
 
@@ -88,12 +88,12 @@
 | سیستم | نقش | مرز اعتماد |
 |---|---|---|
 | GitHub | منبع حقیقت کد و محتوا؛ branch و PR | GitHub App با دسترسی حداقلی |
-| Vercel | preview و production | Release Worker با token محدود |
+| Vercel | preview و production | مسیر release با token محدود |
 | Supabase | دادهٔ سایت و auth داشبورد | فقط خواندن/نوشتن دامنهٔ سایت |
-| Temporal Cloud | اجرا و state workflow | namespace جدا برای prod/staging |
+| GitHub Actions | اجرا و زمان‌بندی WorkItemها | توکن محدود به ریپو |
 | Managed Postgres | projection و گزارش عملیاتی | جدا از DB سایت |
 | Object Storage | artifact، screenshot، trace، patch | دسترسی امضاشده |
-| Model Gateway | مسیریابی مدل بر اساس capability | بدون کلید خام در worker |
+| Model Gateway | مسیریابی مدل بر اساس capability | بدون کلید خام در اجراکننده |
 | Tool Gateway | GSC، crawler، CMS، analytics، ... | مجوز per-domain |
 | Secret Manager | secretها و tokenهای کوتاه‌عمر | هیچ secret در repo یا log |
 
@@ -140,13 +140,13 @@ Business Goals / KPIs / Portfolio
 | Portfolio Governor | OKR، بودجه، اولویت، ظرفیت، داوری | Leader |
 | Domain Operations | رادار، تحلیل، تصمیم، Playbook، KPI | هر شش دامنه |
 | Planning | تبدیل سیگنال به WorkItem و DAG | Leader + domain owner |
-| WorkItem Runtime | اجرای DAG، retry، timeout، قفل منابع | Temporal |
-| Role Workers | اجرای تخصصی Taskها | هر نقش |
+| WorkItem Runtime | اجرای DAG، retry، timeout، قفل منابع | runner درون‌فرآیندی |
+| اجراکننده‌های نقش | اجرای تخصصی Taskها | هر نقش |
 | Sandbox Executor | build/test/browser/security scan | Dev platform |
 | Gate Engine | اجرای Quality Gateها و تولید evidence | Quality |
 | Policy Engine | تصمیم ریسک و مسیر تأیید | Governance |
-| Release Worker | merge queue، deploy، health، rollback | Dev platform |
-| Outcome Worker | اندازه‌گیری اثر انتشار | Leader + domains |
+| مسیر Release | merge queue، deploy، health، rollback | Dev platform |
+| مسیر Outcome | اندازه‌گیری اثر انتشار | Leader + domains |
 | Control API | فرمان‌های داشبورد و agentها | Platform |
 | Projector | ساخت read model از Event Log | Platform |
 | Dashboard | مشاهده و کنترل، نه orchestration | Platform |
@@ -166,7 +166,7 @@ Business Goals / KPIs / Portfolio
 | `Evidence` | شاهد قابل‌استناد | `id`, `kind`, `hash`, `uri`, `gate`, `created_by`, `signature` |
 | `Decision` | تصمیم ثبت‌شده | `id`, `subject`, `actor`, `authority`, `decision`, `rationale`, `evidence_refs` |
 | `Release` | انتشار | `id`, `work_item_id`, `commit_sha`, `artifact_hash`, `evidence_bundle_hash`, `policy_decision_id`, `status` |
-| `Run` | تلاش اجرای Workflow/Activity | `id`, `workflow_id`, `task_id`, `attempt`, `started_at`, `finished_at`, `error` |
+| `Run` | تلاش اجرای یک مرحله | `id`, `runner_execution_id`, `task_id`, `attempt`, `started_at`, `finished_at`, `error` |
 | `Policy` | قاعدهٔ نسخه‌دار | `id`, `version`, `scope`, `rules`, `effective_at` |
 | `KnowledgeItem` | دانش دامنه | `id`, `domain`, `kind`, `content`, `source`, `valid_from`, `valid_to` |
 | `Playbook` | استراتژی و قرارداد دامنه | `id`, `domain`, `version`, `sections`, `owner`, `reviewed_at` |
@@ -314,45 +314,28 @@ candidate → preview_ready → gates_passed → policy_approved
 
 ## ۷. Runtime
 
-### ۷.۱ Temporal
+### ۷.۱ Runtime اجرا (GitHub Actions)
 
-- **Temporal Cloud** با namespaceهای `factory-prod` و `factory-staging`.
-- Workflowها:
-  - `PortfolioWorkflow`
-  - `DomainOpsWorkflow` × ۶
-  - `WorkItemWorkflow`
-  - `ReleaseWorkflow`
-  - `OutcomeWorkflow`
-- Workflowها deterministic هستند؛ همهٔ I/O در Activity.
-- Scheduleها برای cadence دامنه‌ها؛ رویدادها با Signal/Start.
-- `continue-as-new` برای حلقه‌های بلندمدت.
+- **GitHub Actions** بستر اجرا و زمان‌بندی است؛ بدون سرور orchestrator جدا (ADR-011).
+- اجراکننده یک runner درون‌فرآیندی است: `site/lib/factory/runner.ts` با `runWorkItem` / `runSeoOps` / `runTourOps` / `runOutreach`.
+- هر اجرا یک فرآیند کوتاه‌عمر است: اسکریپت محلی، CI یا job گیت‌هاب اکشنز.
+- Retry سیاست‌محور: سه تلاش با backoff نمایی؛ خطای nonRetryable بدون دوباره.
+- cadence دامنه‌ها با schedule همان workflowهای `.github/workflows`.
+- وضعیت اجرا در Event Log و projectionها؛ rebuild همیشه از Event Log.
 
-### ۷.۲ Task Queueها
+### ۷.۲ هم‌زمانی و صف
 
-```text
-orchestration
-role:leader
-role:tour-manager
-role:content
-role:seo
-role:design
-role:dev
-sandbox
-release
-```
+- صف توزیع‌شده حذف شده است؛ هر کار در همان فرآیندی که آن را شروع می‌کند اجرا می‌شود.
+- سقف هم‌زمانی با محدودیت گیت‌هاب اکشنز و اجرای محلی مدیریت می‌شود.
+- قفل منابع (بخش ۵.۴) همچنان در Event Log نگه داشته می‌شود.
 
-- `orchestration`: workflowهای سبک و هماهنگی.
-- `role:*`: worker تخصصی هر نقش.
-- `sandbox`: build/test/browser/security.
-- `release`: merge، deploy، health، rollback.
+### ۷.۳ اجراکننده‌ها
 
-### ۷.۳ Workerها
-
-- Stateless، containerized، managed.
-- هر نقش deployment، resource limit و concurrency خودش را دارد.
-- Workerها فقط Activity اجرا می‌کنند و artifact/evidence می‌نویسند.
-- هیچ workerی secret تولیدی یا دسترسی مستقیم به production ندارد.
-- Release Worker تنها جزء دارای مجوز promote/rollback است.
+- Stateless و کوتاه‌عمر: همان runner در اسکریپت، CI یا job.
+- هر دامنه قرارداد Task خودش را دارد؛ اجرا با budget و timeout همان WorkItem.
+- اجراکننده‌ها artifact/evidence می‌نویسند و state از Event Log می‌آید.
+- هیچ اجراکننده‌ای secret تولیدی یا دسترسی مستقیم به production ندارد.
+- مسیر Release فقط مجوز dry-run دارد؛ promote/rollback انسانی می‌ماند.
 
 ### ۷.۴ Sandbox
 
@@ -403,7 +386,7 @@ release
 ### ۷.۶ قابلیت اطمینان
 
 - Retry سیاست‌محور: خطای موقت retry؛ رد policy/content غیرقابل retry.
-- Timeout سه‌لایه: schedule-to-start، start-to-close، heartbeat.
+- Timeout سه‌لایه: شروع، اجرا، heartbeat.
 - کارهای طولانی به checkpointهای کوچک تقسیم می‌شوند.
 - Outbox/Inbox برای اثرات جانبی.
 - Circuit breaker برای providerها.
@@ -413,12 +396,12 @@ release
 
 ### ۷.۷ مرز داده
 
-- Temporal: state workflowهای در جریان.
+- runner: وضعیت اجرای در جریان (retry و قفل‌ها).
 - Postgres عملیاتی: projection/read model.
 - Object Storage: artifactها.
 - Event Log: audit و بازسازی.
 - DB سایت: فقط دادهٔ محتوا/محصول؛ Factory به آن write مستقیم ندارد.
-- Projector از Event Log و Temporal Visibility تغذیه می‌شود؛ dual-write ممنوع.
+- Projector از Event Log تغذیه می‌شود؛ dual-write ممنوع.
 
 ### ۷.۸ امنیت
 
@@ -508,7 +491,7 @@ WorkItem
 
 - Health check و smoke test فوری.
 - خطای بحرانی → rollback خودکار.
-- `OutcomeWorkflow` در ۲۴ ساعت، ۷ روز و ۲۸ روز اثر را می‌سنجد.
+- job اندازه‌گیری outcome در ۲۴ ساعت، ۷ روز و ۲۸ روز اثر را می‌سنجد.
 - نتیجه به Domain Scorecard و Playbook برمی‌گردد.
 - اثر منفی → follow-up یا rollback پیشنهادی.
 
@@ -526,7 +509,7 @@ WorkItem
 - **Approval Inbox:** diff، preview، ریسک، شواهد، URLها، rollback plan.
 - **Release Center:** تاریخچه، health، Outcome Window، rollback، incident.
 - **Playbook & Knowledge:** نسخه، diff، مالک، بازبینی.
-- **Ops & Cost:** صف Temporal، worker health، خطای مدل/ابزار، بودجه.
+- **Ops & Cost:** صف اجرا، سلامت runner، خطای مدل/ابزار، بودجه.
 - **Search & Audit:** جستجو بر اساس URL، تور، Signal، Decision، Release.
 
 مدل فرمان:
@@ -541,7 +524,7 @@ WorkItem
 
 | لایه | منبع حقیقت | نقش |
 |---|---|---|
-| Workflow در جریان | Temporal | وضعیت اجرا، retry، timer، signal |
+| وضعیت اجرا | Event Log + runner | وضعیت اجرا، retry، قفل منابع |
 | Projection | Postgres عملیاتی | داشبورد، جستجو، گزارش |
 | Artifact | Object Storage | patch، screenshot، build، trace |
 | Audit | Event Log | تاریخچهٔ تغییرناپذیر |
@@ -561,7 +544,7 @@ WorkItem
 - `model_calls`, `tool_calls`
 - `audit_log`, `outbox`, `inbox`
 
-`WorkItem` حداقل: `domain`, `owner_role`, `risk`, `playbook_version`, `policy_version`, `kpi_target`, `outcome_window`, `temporal_workflow_id`, `budget`, `spent`.
+`WorkItem` حداقل: `domain`, `owner_role`, `risk`, `playbook_version`, `policy_version`, `kpi_target`, `outcome_window`, `runner_execution_id`, `budget`, `spent`.
 `Release` حداقل: `commit_sha`, `artifact_hash`, `evidence_bundle_hash`, `policy_decision_id`, `approved_by`, `rollback_of`.
 
 Projectionها از Event Log بازسازی‌پذیرند.
@@ -570,7 +553,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 
 سه لایه:
 
-- **Technical:** صف Temporal، latency، خطای Activity، اشباع worker، سلامت مدل/ابزار.
+- **Technical:** نرخ اجرا، latency، خطای step، اشباع اجراکننده، سلامت مدل/ابزار.
 - **Agent Quality:** نرخ pass Gate، hallucination، کیفیت استناد، نرخ وتو، دقت Playbook، Eval Suite.
 - **Business:** organic traffic، conversion، margin، CWV، uptime، اثر Release.
 
@@ -608,7 +591,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 - `dev` به‌عنوان شاخهٔ دائمی بازنشسته می‌شود؛ branch per WorkItem.
 - صف deploy فریز می‌شود؛ آیتم‌های failed/dead پس از triage به WorkItem جدید تبدیل می‌شوند.
 - پچ‌های `proposed`/`needs_review` آرشیو می‌شوند؛ merge خودکار ممنوع.
-- GitHub Actions فقط CI؛ زمان‌بندی به Temporal.
+- GitHub Actions هم CI و هم runtime اجرا؛ زمان‌بندی با schedule همان workflowها.
 - `PRISMA_SERVICE_TOKEN` و توکن‌های پهن‌دامنه با GitHub App جایگزین می‌شوند.
 - Postgres عملیاتی جدا از DB سایت.
 
@@ -617,7 +600,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 | فاز | هدف | معیار خروج |
 |---|---|---|
 | ۰. تثبیت | Backup، tag، baseline crawl/GSC، فریز تغییرات پرریسک | baseline ثبت‌شده و rollback مستند |
-| ۱. زیرساخت | Temporal Cloud، Postgres، Object Storage، Secret Manager، worker images، OTEL، Control API، Projector | WorkItem آزمایشی بدون اثر production |
+| ۱. زیرساخت | Postgres، Object Storage، Secret Manager، runner، OTEL، Control API، Projector | WorkItem آزمایشی بدون اثر production |
 | ۲. Walking Skeleton | Content R0 end-to-end روی صفحهٔ کم‌ریسک | ۳ WorkItem موفق، صفر نوشتن مستقیم، rollback تست‌شده |
 | ۳. SEO + Tour Facts | Radar، GSC، schema، internal links، قرارداد داده تور | R1 خودکار با evidence |
 | ۴. Design + Dev | Design gates، visual regression، a11y، CI/e2e، R2 | یک تغییر R2 با rollout/rollback |
@@ -649,7 +632,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 
 | ID | تصمیم | وضعیت |
 |---|---|---|
-| ADR-001 | Temporal Cloud به‌عنوان control plane | تأییدشده |
+| ADR-001 | Temporal Cloud به‌عنوان control plane | جایگزین‌شده با ADR-011 |
 | ADR-002 | WorkItem واحد اجرا؛ حذف Cycle و قفل جهانی | تأییدشده |
 | ADR-003 | Git منبع حقیقت سایت | تأییدشده |
 | ADR-004 | ممنوعیت نوشتن مستقیم روی production | تأییدشده |
@@ -659,6 +642,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 | ADR-008 | Postgres عملیاتی جدا از DB سایت | تأییدشده |
 | ADR-009 | Model/Tool Gateway انتزاعی | تأییدشده |
 | ADR-010 | Evidence-first و maker-checker | تأییدشده |
+| ADR-011 | GitHub Actions به‌عنوان runtime اجرا؛ runner درون‌فرآیندی جای Temporal | تأییدشده (۲۰۲۶-۱۰-۲۴) |
 
 ---
 

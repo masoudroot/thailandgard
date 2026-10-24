@@ -1,31 +1,10 @@
-import {
-  artifactKey,
-  createS3ArtifactStore,
-} from '../../lib/factory/artifacts';
+import { artifactKey, createArtifactStore } from '../../lib/factory/artifacts';
 import { closePool, getPool } from '../../lib/factory/db';
 import { loadFactoryEnvFile } from '../../lib/factory/local-env';
-import { projectBatch } from '../../lib/factory/projector';
+import { drainProjections } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
-import { startWorkItemWorkflow } from '../../lib/factory/temporal/client';
-
-async function waitForStatus(
-  id: string,
-  expected: string,
-  timeoutMs = 60_000,
-): Promise<void> {
-  const store = new PgProjectorStore(getPool());
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    await projectBatch(store);
-    const item = await getWorkItem(id);
-    if (item?.status === expected) return;
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  }
-
-  throw new Error(`Timed out waiting for ${id} to reach ${expected}`);
-}
+import { runWorkItem } from '../../lib/factory/runner';
 
 async function main(): Promise<void> {
   loadFactoryEnvFile();
@@ -40,25 +19,35 @@ async function main(): Promise<void> {
     actor: 'factory-smoke',
   });
 
-  const workflowId = await startWorkItemWorkflow({
+  const result = await runWorkItem({
     workItemId: item.id,
     actor: 'factory-smoke',
   });
 
   const key = artifactKey(item.id, 'smoke.txt');
-  await createS3ArtifactStore().put(
+  await createArtifactStore().put(
     key,
     new TextEncoder().encode('factory-smoke'),
     'text/plain',
   );
 
-  await waitForStatus(item.id, 'awaiting_approval');
+  await drainProjections(new PgProjectorStore(getPool()));
+  const stored = await getWorkItem(item.id);
+
+  if (
+    result.status !== 'awaiting_approval' ||
+    stored?.status !== 'awaiting_approval'
+  ) {
+    throw new Error(
+      `Smoke expected awaiting_approval, got run=${result.status} stored=${stored?.status}`,
+    );
+  }
+
   console.log(
     JSON.stringify({
       workItemId: item.id,
-      workflowId,
       artifactKey: key,
-      status: 'awaiting_approval',
+      status: stored?.status,
     }),
   );
 }

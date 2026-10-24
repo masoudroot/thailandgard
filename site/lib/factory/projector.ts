@@ -34,3 +34,20 @@ export async function projectBatch(
 
   return applied;
 }
+
+/**
+ * Projects events until the checkpoint catches up with the event log.
+ * Used by scripts and the runner host to read up-to-date projections right
+ * after a synchronous run (no separate projector process required).
+ */
+export async function drainProjections(
+  store: ProjectorStore,
+  name = 'default',
+): Promise<number> {
+  let total = 0;
+  for (;;) {
+    const applied = await projectBatch(store, name);
+    total += applied;
+    if (applied === 0) return total;
+  }
+}
