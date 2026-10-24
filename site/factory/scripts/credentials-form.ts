@@ -20,10 +20,7 @@ const DEFAULTS: Record<string, string> = {
   FACTORY_DATABASE_URL: 'postgres://factory:factory@127.0.0.1:5433/factory',
   FACTORY_CONTROL_TOKEN: 'factory-local-control-token-0123456789',
   FACTORY_EVIDENCE_SECRET: 'factory-local-evidence-secret-0123456789',
-  TEMPORAL_ADDRESS: '127.0.0.1:7233',
-  TEMPORAL_NAMESPACE: 'default',
-  TEMPORAL_TLS: 'false',
-  FACTORY_TASK_QUEUE: 'factory-orchestration',
+  FACTORY_ARTIFACT_DIR: 'factory/.artifacts',
   FACTORY_ARTIFACT_ENDPOINT: 'http://127.0.0.1:9000',
   FACTORY_ARTIFACT_REGION: 'us-east-1',
   FACTORY_ARTIFACT_BUCKET: 'factory-artifacts',
@@ -58,10 +55,7 @@ const WRITE_ORDER = [
   'FACTORY_DATABASE_URL',
   'FACTORY_CONTROL_TOKEN',
   'FACTORY_EVIDENCE_SECRET',
-  'TEMPORAL_ADDRESS',
-  'TEMPORAL_NAMESPACE',
-  'TEMPORAL_TLS',
-  'FACTORY_TASK_QUEUE',
+  'FACTORY_ARTIFACT_DIR',
   'FACTORY_ARTIFACT_ENDPOINT',
   'FACTORY_ARTIFACT_REGION',
   'FACTORY_ARTIFACT_BUCKET',
@@ -76,7 +70,6 @@ const WRITE_ORDER = [
 type EnvValues = Record<string, string>;
 
 interface RestartResult {
-  worker: boolean;
   projector: boolean;
 }
 
@@ -147,13 +140,10 @@ function buildEnvFile(values: EnvValues): string {
     'FACTORY_DATABASE_URL',
     'FACTORY_CONTROL_TOKEN',
     'FACTORY_EVIDENCE_SECRET',
-    'TEMPORAL_ADDRESS',
-    'TEMPORAL_NAMESPACE',
-    'TEMPORAL_TLS',
-    'FACTORY_TASK_QUEUE',
   ]);
   lines.push('', '# --- Artifact storage ---');
   addAll([
+    'FACTORY_ARTIFACT_DIR',
     'FACTORY_ARTIFACT_ENDPOINT',
     'FACTORY_ARTIFACT_REGION',
     'FACTORY_ARTIFACT_BUCKET',
@@ -339,12 +329,10 @@ async function runPowerShell(script: string): Promise<string> {
   return stdout.trim();
 }
 
-function restartScripts(): { workerLog: string; workerErr: string; projectorLog: string; projectorErr: string } {
+function restartScripts(): { projectorLog: string; projectorErr: string } {
   const logDir = resolve(tmpdir(), 'opencode');
   mkdirSync(logDir, { recursive: true });
   return {
-    workerLog: resolve(logDir, 'factory-worker.log'),
-    workerErr: resolve(logDir, 'factory-worker.err.log'),
     projectorLog: resolve(logDir, 'factory-projector.log'),
     projectorErr: resolve(logDir, 'factory-projector.err.log'),
   };
@@ -352,29 +340,26 @@ function restartScripts(): { workerLog: string; workerErr: string; projectorLog:
 
 async function restartWorkers(): Promise<RestartResult> {
   const logs = restartScripts();
-  const kill = `$targets = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine -match 'role-worker|projector\\.ts' }; foreach ($t in $targets) { Stop-Process -Id $t.ProcessId -Force -ErrorAction SilentlyContinue }`;
+  const kill = `$targets = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine -match 'projector\\.ts' }; foreach ($t in $targets) { Stop-Process -Id $t.ProcessId -Force -ErrorAction SilentlyContinue }`;
   await runPowerShell(kill);
 
   const start = [
-    `Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','npm run factory:worker' -WorkingDirectory ${powershellQuote(SITE_ROOT)} -RedirectStandardOutput ${powershellQuote(logs.workerLog)} -RedirectStandardError ${powershellQuote(logs.workerErr)} -WindowStyle Hidden`,
     `Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','npm run factory:projector' -WorkingDirectory ${powershellQuote(SITE_ROOT)} -RedirectStandardOutput ${powershellQuote(logs.projectorLog)} -RedirectStandardError ${powershellQuote(logs.projectorErr)} -WindowStyle Hidden`,
   ].join('; ');
   await runPowerShell(start);
 
-  const check = `$w = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine -match 'role-worker' }).Count; $p = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine -match 'projector\\.ts' }).Count; Write-Output "$w,$p"`;
+  const check = `$p = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine -match 'projector\\.ts' }).Count; Write-Output "$p"`;
 
   const deadline = Date.now() + 15_000;
-  let worker = false;
   let projector = false;
   while (Date.now() < deadline) {
     await new Promise((resolveWait) => setTimeout(resolveWait, 1_000));
     const output = await runPowerShell(check);
-    const [workerCount, projectorCount] = output.split(',').map(Number);
-    worker = Number.isFinite(workerCount) && workerCount > 0;
+    const projectorCount = Number(output);
     projector = Number.isFinite(projectorCount) && projectorCount > 0;
-    if (worker && projector) break;
+    if (projector) break;
   }
-  return { worker, projector };
+  return { projector };
 }
 
 function relativeEnvPath(): string {

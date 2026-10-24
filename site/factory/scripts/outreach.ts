@@ -9,10 +9,10 @@ import {
   insertOutreachPlan,
   listProspects,
 } from '../../lib/factory/outreach/store';
-import { projectBatch } from '../../lib/factory/projector';
+import { drainProjections } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
-import { startOutreachWorkflow } from '../../lib/factory/temporal/client';
+import { runOutreach } from '../../lib/factory/runner';
 
 function option(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -21,22 +21,6 @@ function option(name: string): string | undefined {
 
 function print(value: unknown): void {
   console.log(JSON.stringify(value, null, 2));
-}
-
-async function waitForStatus(
-  id: string,
-  expected: string[],
-  timeoutMs = 120_000,
-): Promise<string> {
-  const store = new PgProjectorStore(getPool());
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    await projectBatch(store);
-    const item = await getWorkItem(id);
-    if (item && expected.includes(item.status)) return item.status;
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  }
-  throw new Error(`Timed out waiting for ${id} to reach ${expected.join(', ')}`);
 }
 
 async function main(): Promise<void> {
@@ -123,24 +107,24 @@ async function main(): Promise<void> {
 
     if (!item) throw new Error(`WorkItem not found: ${requestedId}`);
 
-    const workflowId = await startOutreachWorkflow({
+    const result = await runOutreach({
       workItemId: item.id,
       actor: 'outreach',
       limit: option('--limit') ? Number(option('--limit')) : 20,
       dryRunDispatch: process.argv.includes('--dry-run-dispatch'),
     });
 
-    const status = process.argv.includes('--no-wait')
-      ? 'started'
-      : await waitForStatus(item.id, [
-          'awaiting_approval',
-          'blocked',
-          'failed',
-          'done',
-        ]);
+    await drainProjections(new PgProjectorStore(getPool()));
+    const stored = await getWorkItem(item.id);
 
-    print({ workItemId: item.id, workflowId, status });
-    if (status === 'blocked' || status === 'failed') process.exitCode = 1;
+    print({
+      workItemId: item.id,
+      status: result.status,
+      projectionStatus: stored?.status,
+      planned: result.planned,
+      skipped: result.skipped,
+      dispatched: result.dispatched,
+    });
     return;
   }
 

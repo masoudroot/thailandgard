@@ -14,7 +14,7 @@ npm run factory:credentials
 
 سپس `http://127.0.0.1:4317` را باز کنید. فرم فیلدهای لازم را می‌پرسد، فایل
 JSON سرویس‌اکانت GSC را خودش به base64 تبدیل می‌کند، فایل
-`site/.env.factory.local` را می‌سازد و در صورت تمایل worker/projector را
+`site/.env.factory.local` را می‌سازد و در صورت تمایل projector را
 ری‌استارت می‌کند. هیچ secretی در لاگ چاپ نمی‌شود.
 
 ## ۱) جای محلی
@@ -25,9 +25,9 @@ JSON سرویس‌اکانت GSC را خودش به base64 تبدیل می‌ک�
 site/.env.factory.local
 ```
 
-اسکریپت‌های P3، worker و projector این فایل را خودشان load می‌کنند. اگر از
+اسکریپت‌های P3 و projector این فایل را خودشان load می‌کنند. اگر از
 PowerShell اجرا می‌کنید، لازم نیست `$env:` دستی بزنید. مقادیر از قبل موجود در
-محیط override نمی‌شوند. بعد از هر تغییر در این فایل، worker و projector را
+محیط override نمی‌شوند. بعد از هر تغییر در این فایل، projector را
 restart کنید.
 
 نمونهٔ ساختار فایل (مقدارها را جایگزین کنید):
@@ -55,12 +55,9 @@ FACTORY_ENV=local
 FACTORY_DATABASE_URL=postgres://factory:factory@127.0.0.1:5433/factory
 FACTORY_CONTROL_TOKEN=factory-local-control-token-0123456789
 FACTORY_EVIDENCE_SECRET=factory-local-evidence-secret-0123456789
-TEMPORAL_ADDRESS=127.0.0.1:7233
-TEMPORAL_NAMESPACE=default
-TEMPORAL_TLS=false
-FACTORY_TASK_QUEUE=factory-orchestration
+FACTORY_ARTIFACT_DIR=factory/.artifacts
 
-# --- Artifact storage (s3rver محلی) ---
+# --- Artifact storage (s3rver محلی؛ اختیاری وقتی FACTORY_ARTIFACT_DIR ست شده) ---
 FACTORY_ARTIFACT_ENDPOINT=http://127.0.0.1:9000
 FACTORY_ARTIFACT_REGION=us-east-1
 FACTORY_ARTIFACT_BUCKET=factory-artifacts
@@ -100,15 +97,17 @@ GitHub → Repository → Settings → Secrets and variables → Actions → New
 | `LLM_API_BASE` | بله | آدرس سازگار با OpenAI |
 | `LLM_API_KEY` | بله | کلید LLM |
 | `FACTORY_PREVIEW_BASE_URL` | بله | URL پیش‌نمایش برای R1 gate |
+| `FACTORY_ARTIFACT_DIR` | جایگزین | فقط در CI/اجرای فایل‌محور؛ جای S3 |
 | `SERPAPI_API_KEY` | اختیاری | فقط اگر SERP جدا می‌خواهید |
 | `FACTORY_OUTREACH_LIVE` | اختیاری | فقط بعد از تأیید صریح `true` شود |
 | `RESEND_API_KEY` | اختیاری | فقط برای ارسال واقعی outreach |
 | `FACTORY_OUTREACH_FROM_EMAIL` | اختیاری | فرستندهٔ outreach |
 | `FACTORY_OUTREACH_UNSUBSCRIBE_BASE` | اختیاری | endpoint واقعی unsubscribe |
 
-برای اجرای workflowهای SEO/Tour، پنج متغیر `FACTORY_ARTIFACT_*` هم لازم است
+برای اجرای workflowهای SEO/Tour، پنج متغیر `FACTORY_ARTIFACT_*` لازم است
 (endpoint، region، bucket، access key، secret key). در local با s3rver و در
-staging با S3/R2 پر می‌شوند.
+staging با S3/R2 پر می‌شوند؛ در گیت‌هاب اکشنز می‌توان به‌جای آن‌ها
+`FACTORY_ARTIFACT_DIR` را به یک مسیر موقت ست کرد.
 
 ## ۳) Supabase — از کجا بگیریم
 

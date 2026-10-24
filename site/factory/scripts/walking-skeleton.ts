@@ -1,27 +1,10 @@
 import type { ContentBrief } from '../../lib/factory/content/contracts';
 import { closePool, getPool } from '../../lib/factory/db';
-import { newId } from '../../lib/factory/ids';
 import { loadFactoryEnvFile } from '../../lib/factory/local-env';
-import { projectBatch } from '../../lib/factory/projector';
+import { drainProjections } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
-import { startWorkItemWorkflow } from '../../lib/factory/temporal/client';
-
-async function waitForStatus(
-  id: string,
-  expected: string,
-  timeoutMs = 90_000,
-): Promise<void> {
-  const store = new PgProjectorStore(getPool());
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    await projectBatch(store);
-    const item = await getWorkItem(id);
-    if (item?.status === expected) return;
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  }
-  throw new Error(`Timed out waiting for ${id} to reach ${expected}`);
-}
+import { runWorkItem } from '../../lib/factory/runner';
 
 async function main(): Promise<void> {
   loadFactoryEnvFile();
@@ -56,14 +39,15 @@ async function main(): Promise<void> {
     cta: 'برای مشاهدهٔ تورهای فعال، صفحهٔ تورهای تایلند را ببینید.',
   };
 
-  const workflowId = await startWorkItemWorkflow({
+  const result = await runWorkItem({
     workItemId: item.id,
     actor: 'walking-skeleton',
     mode: 'walking_skeleton',
     contentBrief,
   });
 
-  await waitForStatus(item.id, 'done');
+  await drainProjections(new PgProjectorStore(getPool()));
+  const stored = await getWorkItem(item.id);
 
   const counts = await getPool().query<{
     artifacts: string;
@@ -88,17 +72,22 @@ async function main(): Promise<void> {
   if (Number(row.evidence) < 2) {
     throw new Error(`Expected two evidence records for ${item.id}`);
   }
+  if (result.status !== 'done' || stored?.status !== 'done') {
+    throw new Error(
+      `Walking skeleton expected done, got run=${result.status} stored=${stored?.status}` +
+        (result.reasons ? `: ${result.reasons.join('; ')}` : ''),
+    );
+  }
 
   console.log(
     JSON.stringify({
       workItemId: item.id,
-      workflowId,
-      status: 'done',
+      status: result.status,
+      releaseId: result.releaseId,
       artifacts: Number(row.artifacts),
       evidence: Number(row.evidence),
       releases: Number(row.releases),
       outcomes: Number(row.outcomes),
-      executionId: newId(),
     }),
   );
 }

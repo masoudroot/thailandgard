@@ -1,64 +1,63 @@
 import { createHash } from 'node:crypto';
-import { ApplicationFailure } from '@temporalio/activity';
 import {
   artifactKey,
-  createS3ArtifactStore,
-} from '../artifacts';
-import { loadFactoryConfig } from '../config';
-import type { Artifact, Evidence, Risk, WorkItem } from '../contracts';
+  createArtifactStore,
+} from './artifacts';
+import { loadFactoryConfig } from './config';
+import type { Artifact, Evidence, Risk, WorkItem } from './contracts';
 import {
   ContentBriefSchema,
   ContentDraftSchema,
   type ContentBrief,
   type ContentDraft,
-} from '../content/contracts';
-import { DeterministicContentGenerator } from '../content/generator';
-import { appendEvent } from '../event-store';
-import { signEvidence } from '../evidence';
-import { runGates } from '../gates/run';
+} from './content/contracts';
+import { DeterministicContentGenerator } from './content/generator';
+import { appendEvent } from './event-store';
+import { signEvidence } from './evidence';
+import { runGates } from './gates/run';
 import {
   runTechnicalSeoGate,
   type TechnicalSeoExpectations,
-} from '../gates/technical-seo';
-import type { GateResult } from '../gates/types';
-import { newId } from '../ids';
-import { planOutreach } from '../outreach/planner';
-import { dispatchDueOutreach } from '../outreach/sender';
+} from './gates/technical-seo';
+import type { GateResult } from './gates/types';
+import { newId } from './ids';
+import { planOutreach } from './outreach/planner';
+import { dispatchDueOutreach } from './outreach/sender';
 import {
   getOutreachContext,
   insertOutreachPlan,
   listProspects,
-} from '../outreach/store';
-import { evaluatePolicy, type PolicyDecision } from '../policy';
-import { buildSeoPlan, type SeoPlan } from '../seo/plan';
-import { collectSeoRadar, type SeoSignal } from '../seo/radar';
-import { persistSeoSignals } from '../seo/store';
+} from './outreach/store';
+import { evaluatePolicy, type PolicyDecision } from './policy';
+import { buildSeoPlan, type SeoPlan } from './seo/plan';
+import { collectSeoRadar, type SeoSignal } from './seo/radar';
+import { persistSeoSignals } from './seo/store';
 import {
   buildTourFactGate,
   loadTourFacts,
   summarizeTourFacts,
   type TourFact,
-} from '../tours/facts';
-import { buildTourOpsPlan, type TourOpsPlan } from '../tours/plan';
-import { persistTourFacts } from '../tours/store';
+} from './tours/facts';
+import { buildTourOpsPlan, type TourOpsPlan } from './tours/plan';
+import { persistTourFacts } from './tours/store';
 import {
   buildReleaseManifest,
   releaseKey,
   renderPreviewHtml,
-} from '../release';
+} from './release';
 import {
   insertArtifact,
   insertEvidence,
   insertOutcome,
   insertRelease,
-} from '../records';
+} from './records';
 import {
   loadWorkItemFromEvents,
   transitionWorkItem,
-} from '../repository';
-import type { WorkItemWorkflowInput } from './workflows';
+} from './repository';
+import type { WorkItemRunInput } from './runner';
 
-export interface WalkingSkeletonInput extends WorkItemWorkflowInput {
+export interface WalkingSkeletonInput extends WorkItemRunInput {
   contentBrief: ContentBrief;
 }
 
@@ -81,16 +80,22 @@ function sha256(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
+function nonRetryable(message: string, type: string): Error {
+  const error = new Error(`[${type}] ${message}`);
+  return Object.assign(error, { type, nonRetryable: true });
+}
+
 function artifactUri(key: string): string {
   const config = loadFactoryConfig();
-  if (!config.artifacts) throw new Error('Artifact storage is not configured');
-  return `s3://${config.artifacts.bucket}/${key}`;
+  if (config.artifacts) return `s3://${config.artifacts.bucket}/${key}`;
+  if (config.artifactDir) return `file://${config.artifactDir}/${key}`;
+  throw new Error('Artifact storage is not configured');
 }
 
 function requireEvidenceSecret(): string {
   const secret = loadFactoryConfig().evidenceSecret;
   if (!secret) {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       'FACTORY_EVIDENCE_SECRET is not configured',
       'EVIDENCE_SECRET_MISSING',
     );
@@ -106,7 +111,7 @@ async function putTextArtifact(input: {
   producer: string;
   contentType: string;
 }): Promise<Artifact> {
-  const store = createS3ArtifactStore();
+  const store = createArtifactStore();
   const key = artifactKey(input.workItemId, input.name);
   const bytes = new TextEncoder().encode(input.body);
   await store.put(key, bytes, input.contentType);
@@ -130,7 +135,7 @@ async function recordGateEvidence(input: {
   subjectHash: string;
   subjectLabel: string;
 }): Promise<GateEvidenceRecord> {
-  const store = createS3ArtifactStore();
+  const store = createArtifactStore();
   const secret = requireEvidenceSecret();
   const createdAt = new Date().toISOString();
   const payload = {
@@ -186,7 +191,7 @@ async function recordGateEvidence(input: {
 async function loadRequiredItem(id: string): Promise<WorkItem> {
   const item = await loadWorkItemFromEvents(id);
   if (!item) {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `WorkItem not found: ${id}`,
       'WORK_ITEM_NOT_FOUND',
     );
@@ -194,12 +199,12 @@ async function loadRequiredItem(id: string): Promise<WorkItem> {
   return item;
 }
 
-export async function loadWorkItem(input: WorkItemWorkflowInput) {
+export async function loadWorkItem(input: WorkItemRunInput) {
   return loadRequiredItem(input.workItemId);
 }
 
 export async function markWorkItemRunning(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
   if (current.status === 'running') return;
@@ -207,7 +212,7 @@ export async function markWorkItemRunning(
     await transitionWorkItem(input.workItemId, 'ready', input.actor);
   }
   if (current.status !== 'planned' && current.status !== 'ready') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${current.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -216,7 +221,7 @@ export async function markWorkItemRunning(
 }
 
 export async function markWorkItemAwaitingApproval(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
 
@@ -227,7 +232,7 @@ export async function markWorkItemAwaitingApproval(
   const verifying = await loadRequiredItem(input.workItemId);
   if (verifying.status === 'awaiting_approval') return;
   if (verifying.status !== 'verifying') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${verifying.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -241,12 +246,12 @@ export async function markWorkItemAwaitingApproval(
 }
 
 export async function markWorkItemVerifying(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
   if (current.status === 'verifying') return;
   if (current.status !== 'running') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${current.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -255,12 +260,12 @@ export async function markWorkItemVerifying(
 }
 
 export async function markWorkItemReleasing(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
   if (current.status === 'releasing') return;
   if (current.status !== 'verifying') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${current.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -269,12 +274,12 @@ export async function markWorkItemReleasing(
 }
 
 export async function markWorkItemProductionVerified(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
   if (current.status === 'production_verified') return;
   if (current.status !== 'releasing') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${current.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -287,12 +292,12 @@ export async function markWorkItemProductionVerified(
 }
 
 export async function markWorkItemDone(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
   if (current.status === 'done') return;
   if (current.status !== 'production_verified') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${current.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -301,12 +306,12 @@ export async function markWorkItemDone(
 }
 
 export async function markWorkItemBlocked(
-  input: WorkItemWorkflowInput,
+  input: WorkItemRunInput,
 ): Promise<void> {
   const current = await loadRequiredItem(input.workItemId);
   if (current.status === 'blocked') return;
   if (current.status !== 'running' && current.status !== 'verifying') {
-    throw ApplicationFailure.nonRetryable(
+    throw nonRetryable(
       `Unexpected WorkItem status: ${current.status}`,
       'UNEXPECTED_STATUS',
     );
@@ -317,7 +322,7 @@ export async function markWorkItemBlocked(
 export async function generateContentDraft(
   input: WalkingSkeletonInput,
 ): Promise<GeneratedContent> {
-  const store = createS3ArtifactStore();
+  const store = createArtifactStore();
   const brief = ContentBriefSchema.parse(input.contentBrief);
   const draft = new DeterministicContentGenerator().generate(brief);
   const key = artifactKey(input.workItemId, 'content-draft.md');
@@ -359,7 +364,7 @@ export async function runContentGates(input: {
   actor: string;
   draft: ContentDraft;
 }): Promise<{ results: GateResult[]; evidence: GateEvidenceRecord[] }> {
-  const store = createS3ArtifactStore();
+  const store = createArtifactStore();
   const secret = requireEvidenceSecret();
   const draft = ContentDraftSchema.parse(input.draft);
   const results = runGates(draft);
@@ -434,7 +439,7 @@ export async function releaseDryRun(input: {
   gates: GateEvidenceRecord[];
   policyVersion: string;
 }): Promise<{ id: string; buildSha: string; previewKey: string }> {
-  const store = createS3ArtifactStore();
+  const store = createArtifactStore();
   const createdAt = new Date().toISOString();
   const manifest = buildReleaseManifest({
     workItemId: input.workItemId,
