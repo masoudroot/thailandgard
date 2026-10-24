@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-10-20):** This document describes the old growth engine. The approved architecture is `docs/factory-v2/ARCHITECTURE.md` and the execution plan is `docs/factory-v2/ROADMAP.md`.
+
 # موتور رشد خودگردان تایلندگرد
 
 سند معماری — نسخهٔ ۲، ۲۰ مهر ۱۴۰۵.

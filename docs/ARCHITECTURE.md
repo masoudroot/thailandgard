@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-10-20):** This document describes the old 13-team, 3-wave model. The approved architecture is `docs/factory-v2/ARCHITECTURE.md`. Do not implement from this file.
+
 # معماری اجرایی تایلندگرد
 
 این سند قرارداد کاری کل پروژه است. مدیر پروژه (میرزا) آن را نگه می‌دارد و هر تغییری در آن با تصمیم اوست.

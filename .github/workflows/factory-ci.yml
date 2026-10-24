@@ -1,0 +1,64 @@
+name: Factory CI
+
+on:
+  pull_request:
+    paths:
+      - "site/**"
+      - ".github/workflows/factory-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+      - ".github/workflows/factory-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: factory
+          POSTGRES_PASSWORD: factory
+          POSTGRES_DB: factory
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U factory"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: site
+    env:
+      FACTORY_ENV: local
+      FACTORY_DATABASE_URL: postgres://factory:factory@localhost:5433/factory
+      FACTORY_CONTROL_TOKEN: factory-ci-token-0123456789abcdef
+      FACTORY_EVIDENCE_SECRET: factory-ci-evidence-secret-0123456789
+      TEMPORAL_ADDRESS: localhost:7233
+      TEMPORAL_NAMESPACE: default
+      TEMPORAL_TLS: "false"
+      FACTORY_TASK_QUEUE: factory-orchestration
+      TEST_DATABASE_URL: postgres://factory:factory@localhost:5433/factory
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npm run lint
+      - run: npm run lint:factory
+      - run: npm run factory:schemas
+      - run: npm run typecheck
+      - run: npm run factory:migrate
+      - run: npm test
+      - run: npm run build
+      - run: docker build -f factory/Dockerfile.worker -t factory-worker:ci .

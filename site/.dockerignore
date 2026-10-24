@@ -1,0 +1,6 @@
+node_modules
+.next
+factory/baseline
+*.log
+.env
+.env.*
