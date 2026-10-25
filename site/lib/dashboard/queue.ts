@@ -20,7 +20,7 @@ import type { JobStatus } from './types';
 export interface Job {
   id: string;
   type: string;
-  payload: any;
+  payload: unknown;
   attempts: number;
   maxAttempts: number;
   timeoutMs: number;
@@ -33,14 +33,14 @@ export interface Job {
 interface JobRow {
   id: string;
   type: string;
-  payload: any;
+  payload: unknown;
   attempts: number;
   maxAttempts: number;
   timeoutMs: number;
   status: JobStatus;
   createdAt: string;
   error?: string;
-  result?: any;
+  result?: unknown;
   lockedAt?: string;
   expiresAt?: string;
   finishedAt?: string;
@@ -80,7 +80,7 @@ function toRow(job: Job): JobRow {
 }
 
 /** Parses a stored row back into a Job; returns null for foreign/corrupt rows. */
-function fromRow(key: string, value: any): Job | null {
+function fromRow(key: string, value: unknown): Job | null {
   if (!key.startsWith(KEY_PREFIX)) return null;
   if (typeof value !== 'object' || value === null) return null;
   const row = value as Partial<JobRow>;
@@ -162,7 +162,7 @@ async function saveRow(row: JobRow): Promise<void> {
  */
 export async function enqueue(
   type: string,
-  payload: any,
+  payload: unknown,
   opts?: { maxAttempts?: number; timeoutMs?: number },
 ): Promise<string> {
   const cleanType = type.trim();
@@ -270,7 +270,7 @@ export async function listJobs(): Promise<Job[]> {
  * Marks a job as successfully finished and stores its result.
  * @throws when the job does not exist.
  */
-export async function complete(id: string, result?: any): Promise<void> {
+export async function complete(id: string, result?: unknown): Promise<void> {
   const stored = await readStored(id);
   const next: JobRow = {
     ...stored.row,

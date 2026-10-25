@@ -35,6 +35,15 @@ export interface PreMergeCheckResult {
  * است؛ اگر این سقف تنگ باشد، گیتِ fail-closed همهٔ مرج‌ها را بلاک می‌کند. */
 const TIMEOUT_MS = 1_200_000;
 
+/** خروجی خام فرمان را از خطای اجرا بیرون می‌کشد، بدون استفاده از any. */
+function execFailureOutput(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return '';
+  const { stdout, stderr } = error as { stdout?: unknown; stderr?: unknown };
+  const out = typeof stdout === 'string' ? stdout : '';
+  const err = typeof stderr === 'string' ? stderr : '';
+  return out + err;
+}
+
 /**
  * پچ را روی کلون تازه از ریپوی سایت اعمال و tsc را اجرا می‌کند.
  * @param patchFiles فایل‌های پچ: {path, content}
@@ -99,8 +108,8 @@ export async function preMergeTypeCheck(
           timeout: TIMEOUT_MS,
         });
         console.log(`[pre-merge] npm install انجام شد: ${String(stdout).split('\n').slice(-2).join(' ').slice(0, 200)}`);
-      } catch (err: any) {
-        const out = String(err.stdout || '') + String(err.stderr || '');
+      } catch (err) {
+        const out = execFailureOutput(err);
         const tail = out.split('\n').filter((l) => l.trim()).slice(-5).join(' | ').slice(0, 500);
         return {
           passed: false,
@@ -122,8 +131,8 @@ export async function preMergeTypeCheck(
     // ۴. اجرای tsc
     try {
       await execFileAsync('npx', ['tsc', '--noEmit'], { cwd: siteDir, timeout: TIMEOUT_MS });
-    } catch (err: any) {
-      const output = String(err.stdout || '') + String(err.stderr || '');
+    } catch (err) {
+      const output = execFailureOutput(err);
       const errors = output.split('\n').filter((l) => l.includes('error TS')).slice(0, 20);
       if (errors.length === 0) {
         // tsc خطای تایپی نداد ولی خروجیش غیرصفر بود: یعنی اصلاً درست اجرا نشد
@@ -157,8 +166,8 @@ export async function preMergeTypeCheck(
           errors: [],
           message: 'تایپ‌چک و بیلد Next.js سبز است؛ تغییر آماده مرج به main است.',
         };
-      } catch (err: any) {
-        const output = String(err.stdout || '') + String(err.stderr || '');
+      } catch (err) {
+        const output = execFailureOutput(err);
         const lines = output.split('\n').filter((l) => l.trim());
         const errorLines = lines.filter((l) =>
           /error|failed|module not found|cannot find|type error|exited with/i.test(l),

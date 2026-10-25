@@ -48,15 +48,20 @@ export async function apiCall<T>(endpoint: string, options: ApiOptions = {}): Pr
 
     const data = await response.json();
     return data as T;
-  } catch (error: any) {
-    if (error && typeof error === 'object' && 'status' in error) {
-      throw error;
-    }
+  } catch (error) {
+      if (error && typeof error === 'object' && 'status' in error) {
+        throw error;
+      }
 
-    throw {
-      status: 500,
-      message: error.message || 'خطای شبکه یا عدم دسترسی به سرور',
-      data: null,
-    };
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'خطای شبکه یا عدم دسترسی به سرور';
+
+      throw {
+        status: 500,
+        message,
+        data: null,
+      };
+    }
   }
-}

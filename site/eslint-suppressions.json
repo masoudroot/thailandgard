@@ -1,14 +1,4 @@
 {
-  "app/api/cycles/route.ts": {
-    "prefer-const": {
-      "count": 1
-    }
-  },
-  "app/api/errorHandler.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
   "app/dashboard/bridge/page.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -174,16 +164,6 @@
       "count": 1
     }
   },
-  "components/home/CardTour.tsx": {
-    "@typescript-eslint/no-empty-object-type": {
-      "count": 1
-    }
-  },
-  "components/home/testimonials-section.tsx": {
-    "@typescript-eslint/no-empty-object-type": {
-      "count": 1
-    }
-  },
   "components/site/CallbackForm.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -224,39 +204,9 @@
       "count": 2
     }
   },
-  "lib/api-client.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "lib/api-logger.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "lib/dashboard/bridge/pre-merge-check.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "lib/dashboard/float.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
-    }
-  },
-  "lib/dashboard/memory.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
-  "lib/dashboard/queue.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    }
-  },
-  "prisma-compute/prisma-cloud.d.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
     }
   }
 }
