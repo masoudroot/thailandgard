@@ -1,16 +1,13 @@
 name: Factory CI
 
 on:
+  # Every pull request is gated: docs, config and schema changes included.
+  # Branch protection on main requires this check, so a path filter here
+  # would leave some PRs permanently unmergeable.
   pull_request:
-    paths:
-      - "site/**"
-      - ".github/workflows/factory-ci.yml"
   push:
     branches:
       - main
-    paths:
-      - "site/**"
-      - ".github/workflows/factory-ci.yml"
 
 permissions:
   contents: read
