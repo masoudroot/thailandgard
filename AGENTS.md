@@ -47,7 +47,8 @@
 
 ## ۴. قوانین تغییر (غیرقابل مذاکره)
 
-- هیچ کامیت مستقیم روی `main`. یک شاخه به ازای هر کار، با نام `type/scope` (مثل `fix/contact-form`).
+- شاخه `main` محافظت شده است. کامیت مستقیم و push مستقیم پذیرفته نمی شود. مسیر کار: شاخه `type/scope`، PR، سبز شدن چک `test`، سپس squash merge.
+- محافظ `main` شامل این موارد است: چک اجباری `test` روی آخرین `main`، بدون force push، بدون حذف شاخه، و اعمال برای ادمین ها هم.
 - هر تغییر باید شناسه تسک در `PLAN.md` داشته باشد.
 - در هر میکرو-تسک حداکثر ۲ تا ۳ فایل تغییر می کند. میکرو-تسک بزرگ تر را بشکن.
 - برای منطق، تست قبل از کد (TDD). برای رابط کاربری، بررسی واقعی DOM یا اسکرین در ۳۶۰ و ۱۲۸۰ پیکسل.
@@ -61,8 +62,8 @@
 
 - Node 22، npm 10.
 - next 16.4، react 19.3، tailwind 4، vitest 5.
-- نصب محلی تا رفع drift قفل: `cd site && npm ci --legacy-peer-deps`
-  (کد CI هم همین را اجرا می کند. رفع ریشه ای در تسک Q1-01.)
+- نصب محلی: `cd site && npm ci`
+  تنظیم `legacy-peer-deps=true` در `site/.npmrc` ثبت شده است، چون زنجیره Prisma Composer و `@effect/vitest` دامنه های peer متناقض دارند. این فایل را حذف نکن؛ بدون آن نصب با خطای بسته های گمشده می شکند.
 - دیتابیس سایت: Supabase. دیتابیس کارخانه: Postgres عملیاتی جدا (ADR-008).
 - تولید و پیش نمایش: Vercel. CI و اجرای کارخانه: GitHub Actions (ADR-011، ADR-012).
 
@@ -71,15 +72,11 @@
 یک تسک فقط وقتی در `PLAN.md` تیک می خورد که همه موارد زیر واقعا اجرا شده باشند:
 
 - تست نوشته یا به روز شده و سبز است.
-- `npm run typecheck` با کد خروج 0.
-- `npm run lint` و `npm run lint:factory` با کد خروج 0.
-- `npm test` با کد خروج 0.
+- `npm run verify` با کد خروج 0. این دستور چهار کار را پشت سر هم اجرا می کند: typecheck، lint، lint:factory و test.
 - برای تغییر رابط یا مسیر: `npm run build` سبز، به علاوه بررسی DOM یا اسکرین.
 - `git diff` فقط فایل های هدف را نشان می دهد و هیچ `console.log` دیباگ باقی نمانده.
 - `PLAN.md` و `STATE.md` به روز شده اند.
-- PR باز شده و CI (Factory CI) سبز است.
-
-دستور کوتاه بررسی: `cd site && npm run verify` (در Q1-04 اضافه می شود).
+- PR باز شده و چک `test` روی همان PR سبز است.
 
 ## ۷. قوانین رابط فارسی (VibeFarsi)
 
@@ -107,10 +104,10 @@
 ## ۹. تست و CI
 
 - تست ها: `site/factory/tests/**/*.test.ts` با vitest.
-- CI: `.github/workflows/factory-ci.yml` شامل lint، lint:factory، factory:schemas، typecheck، migrate، test، walking-skeleton و build.
-- تست یکپارچه به Postgres روی پورت 5433 نیاز دارد (`TEST_DATABASE_URL`).
+- `Factory CI` روی هر PR و هر push روی `main` اجرا می شود، بدون فیلتر مسیر: lint، lint:factory، factory:schemas، typecheck، migrate، test، walking-skeleton و build.
+- تست یکپارچه به Postgres روی پورت 5433 نیاز دارد (`TEST_DATABASE_URL`). بدون آن، فایل های وابسته skip می شوند و CI همان ها را با سرویس Postgres اجرا می کند.
 - `gh run watch` را هرگز pipe نکن؛ کد خروج پایپ گمراه کننده است.
-- بیلد سنگین روی CI اجرا می شود؛ محلی فقط typecheck، lint و test.
+- بیلد سنگین روی CI اجرا می شود؛ محلی فقط `npm run verify`.
 
 ## ۱۰. ارتباط و گزارش
 
