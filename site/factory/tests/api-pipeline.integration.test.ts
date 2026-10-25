@@ -91,7 +91,7 @@ describe.skipIf(!hasDatabase)('phase-1 exit: control API to projection', () => {
 
       const brief: ContentBrief = {
         workItemId: id,
-        title: 'چک خروج فاز یک',
+        title: 'راهنمای کامل سفر به تایلند در آبان ۱۴۰۵',
         slug: `phase1-exit-${id.slice(0, 8)}`,
         targetKeyword: 'سفر به تایلند',
         audience: 'مسافران فارسی‌زبان',
@@ -111,7 +111,7 @@ describe.skipIf(!hasDatabase)('phase-1 exit: control API to projection', () => {
         mode: 'walking_skeleton',
         contentBrief: brief,
       });
-      expect(result.status).toBe('done');
+      expect(result.status, JSON.stringify(result.reasons ?? [])).toBe('done');
 
       const applied = await drainProjections(new PgProjectorStore(getPool()));
       expect(applied).toBeGreaterThan(0);
