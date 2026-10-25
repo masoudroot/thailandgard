@@ -1,9 +1,6 @@
-import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 
-export interface CardTourProps {}
-
-export const CardTour: React.FC<CardTourProps> = () => {
+export const CardTour = () => {
   return (
     <div className="wfb-card w-full max-w-[320px] bg-background border border border-foreground text-foreground rounded-[22px] p-5 transition duration-200 hover:bg-muted">
       <div className="relative overflow-hidden rounded-[22px] mb-4">

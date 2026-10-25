@@ -1,9 +1,6 @@
-import React from 'react'
 import { Star } from 'lucide-react'
 
-export interface TestimonialsSectionProps {}
-
-export const TestimonialsSection: React.FC<TestimonialsSectionProps> = () => {
+export const TestimonialsSection = () => {
   return (
     <section className="bg-background py-24 px-4">
       <div className="max-w-7xl mx-auto">

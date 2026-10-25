@@ -52,7 +52,7 @@ export async function POST(): Promise<Response> {
 async function enrichCycle(cycle: Record<string, unknown>) {
   const sb = getSupabase();
   const cycleId = String(cycle.id ?? '');
-  let teamStatus: Record<string, string> = {};
+  const teamStatus: Record<string, string> = {};
   try {
     const { data } = await sb
       .from('team_runs')

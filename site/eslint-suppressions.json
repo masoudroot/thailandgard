@@ -1,9 +1,4 @@
 {
-  "app/api/cycles/route.ts": {
-    "prefer-const": {
-      "count": 1
-    }
-  },
   "app/dashboard/bridge/page.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -166,16 +161,6 @@
   },
   "components/dashboard/ui/toggle.tsx": {
     "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "components/home/CardTour.tsx": {
-    "@typescript-eslint/no-empty-object-type": {
-      "count": 1
-    }
-  },
-  "components/home/testimonials-section.tsx": {
-    "@typescript-eslint/no-empty-object-type": {
       "count": 1
     }
   },
