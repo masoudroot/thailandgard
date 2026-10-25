@@ -23,7 +23,8 @@
     "factory:tour-ops": "tsx factory/scripts/tour-ops.ts",
     "factory:outreach": "tsx factory/scripts/outreach.ts",
     "factory:schemas": "tsx factory/scripts/export-content-schemas.ts",
-    "factory:baseline": "node factory/scripts/baseline.mjs"
+    "factory:baseline": "node factory/scripts/baseline.mjs",
+    "factory:preview-probe": "node factory/scripts/preview-probe.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1153.0",

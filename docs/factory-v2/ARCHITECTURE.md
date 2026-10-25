@@ -319,6 +319,7 @@ candidate → preview_ready → gates_passed → policy_approved
 - **GitHub Actions** بستر اجرا و زمان‌بندی است؛ بدون سرور orchestrator جدا (ADR-011).
 - اجراکننده یک runner درون‌فرآیندی است: `site/lib/factory/runner.ts` با `runWorkItem` / `runSeoOps` / `runTourOps` / `runOutreach`.
 - هر اجرا یک فرآیند کوتاه‌عمر است: اسکریپت محلی، CI یا job گیت‌هاب اکشنز.
+- زمان‌بندی چرخه‌ها با `schedule:` خود ورک‌فلوها انجام می‌شود: `factory-daily` (کناری روزانه، ۰۷:۰۰ تهران) و `factory-preview-probe` (پروب ماهانهٔ مسیر انتشار، بدون توکن ذخیره‌شدهٔ Vercel — ADR-012).
 - Retry سیاست‌محور: سه تلاش با backoff نمایی؛ خطای nonRetryable بدون دوباره.
 - cadence دامنه‌ها با schedule همان workflowهای `.github/workflows`.
 - وضعیت اجرا در Event Log و projectionها؛ rebuild همیشه از Event Log.
@@ -643,6 +644,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 | ADR-009 | Model/Tool Gateway انتزاعی | تأییدشده |
 | ADR-010 | Evidence-first و maker-checker | تأییدشده |
 | ADR-011 | GitHub Actions به‌عنوان runtime اجرا؛ runner درون‌فرآیندی جای Temporal | تأییدشده (۲۰۲۶-۱۰-۲۴) |
+| ADR-012 | عملیات branch/PR با GITHUB_TOKEN کوتاه‌عمر و مجوز حداقلی (به‌جای GitHub App در وضعیت فعلی)؛ ورسل بدون توکن ذخیره‌شده و از مسیر ادغام بومی Git + GitHub Deployments API | تأییدشده (۲۰۲۶-۱۰-۲۵) |
 
 ---
 
