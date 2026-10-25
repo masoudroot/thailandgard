@@ -30,6 +30,9 @@
 
 | سنجه | مقدار فعلی | هدف |
 |---|---|---|
+| typecheck | سبز، صفر خطا (۳۵ ثانیه) | حفظ |
+| eslint | صفر خطا، ۵۴ هشدار، ۵۲ suppressor | کاهش هشدار و suppressor |
+| تست ها | ۷۷ موفق، ۸ skip در ۲۲ فایل (۴ فایل skip) | صفر skip در CI |
 | suppressor های eslint | ۵۲ ورودی در `site/eslint-suppressions.json` | کاهش تدریجی، بدون شکستن CI |
 | فراخوانی `console.log` | ۱۱۸ (۵۳ worker، ۳۸ lib/dashboard، ۱۷ bridge) | صفر در مسیر درخواست |
 | `text-left` یا `text-right` | ۱۱ مورد در ۵ فایل | صفر |
