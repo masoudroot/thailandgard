@@ -4,11 +4,6 @@
       "count": 1
     }
   },
-  "app/api/errorHandler.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
   "app/dashboard/bridge/page.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -221,16 +216,6 @@
   },
   "components/ui/sheet.tsx": {
     "react-hooks/set-state-in-effect": {
-      "count": 2
-    }
-  },
-  "lib/api-client.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "lib/api-logger.ts": {
-    "@typescript-eslint/no-explicit-any": {
       "count": 2
     }
   },
