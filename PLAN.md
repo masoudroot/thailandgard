@@ -72,10 +72,13 @@
   - نتیجه واقعی روی `main` تازه: `typecheck` سبز در ۳۵ ثانیه؛ `lint` سبز با ۵۴ هشدار و صفر خطا؛ `lint:factory` سبز؛ `npm test` با ۲۲ فایل موفق و ۴ فایل skip، ۷۷ تست موفق و ۸ skip در ۶ ثانیه.
   - تست های یکپارچه وابسته به Postgres محلی بدون `TEST_DATABASE_URL` skip می شوند؛ این شکاف در Q2-05 پوشش داده می شود.
   - `build` محلی اجرا نشد چون مرجع، بیلد CI است (تسک Q1-01 و Q1-04 آن را پوشش می دهند).
-- [ ] **Q2-02 کاهش suppressor های eslint**
-  - شاهد فعلی: ۵۲ ورودی در `site/eslint-suppressions.json`، بیشتر `react-hooks/set-state-in-effect` و `no-explicit-any`.
-  - روش: دسته های ۳ فایلی؛ شروع از `app/api/errorHandler.ts` (چهار `any`).
-  - پذیرش: تعداد suppressor در هر دسته کاهش یابد و `npm run lint` سبز بماند.
+- [ ] **Q2-02 کاهش suppressor های eslint** (در جریان)
+  - شاهد شروع دقیق: ۵۲ ورودی در `site/eslint-suppressions.json` که روی هم ۷۲ مورد suppressor است؛ بیشتر `react-hooks/set-state-in-effect` (۴۶ مورد) و `@typescript-eslint/no-explicit-any` (۲۲ مورد).
+  - دسته ۱ (PR #211، ادغام شد): حذف `app/api/errorHandler.ts` مرده، `unknown` جای `any` در queue/memory/pre-merge و بلوک های catch، حذف shim پرایزما و استفاده از تایپ واقعی بسته از طریق `tsconfig.json`، حذف پراپ اینترفیس خالی در دو کامپوننت و یک `prefer-const`. نتیجه: ۷۲ → ۴۷ مورد؛ `no-explicit-any` صفر شد.
+  - دسته ۲: سه هوک کوچک `lib/use-is-client.ts`، `lib/use-now.ts`، `lib/use-past-hero.ts` و بازنویسی شش کامپوننت سایت (`LiveStatusChip`، `ShareButtons`، `CallbackForm`، `TourStickyBar`، `MobileOctoberBar`، `OctoberTimeline`) تا `setState` داخل `useEffect` حذف شود. نتیجه: ۴۷ → ۴۰ مورد.
+  - باقی مانده: ۳۹ مورد `set-state-in-effect` در داشبورد و ۱ مورد `react-hooks/refs` در `components/dashboard/MobileNav.tsx`.
+  - روش ادامه: دسته های ۳ فایلی؛ ابتدا صفحه های بارگذاری داده (`app/dashboard/*`) بعد پنل های دانش و شیت ها.
+  - پذیرش: تعداد suppressor در هر دسته کاهش یابد و `npm run verify` سبز بماند.
 - [ ] **Q2-03 ساماندهی لاگ ها**
   - شاهد فعلی: ۱۱۸ فراخوانی `console.log` (۵۳ در `worker`، ۳۸ در `lib/dashboard`، ۱۷ در `lib/dashboard/bridge`، ۴ در `lib/factory`).
   - کار: logger ساختاریافته یا حذف لاگ دیباگ؛ هیچ `console.log` در مسیر درخواست نماند.
