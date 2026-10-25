@@ -1,0 +1,159 @@
+{
+  "site": "https://www.thailandgard.ir/",
+  "capturedAt": "2026-10-24T15:11:46.867Z",
+  "range": {
+    "startDate": "2026-09-23",
+    "endDate": "2026-10-21"
+  },
+  "queryTotals": {
+    "clicks": 0,
+    "impressions": 25,
+    "ctr": 0
+  },
+  "pageTotals": {
+    "clicks": 0,
+    "impressions": 51,
+    "ctr": 0
+  },
+  "rowCounts": {
+    "queries": 9,
+    "pages": 16
+  },
+  "topQueries": [
+    {
+      "key": "تور بانکوک اقساطی",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 53.5
+    },
+    {
+      "key": "تور تایلند اقساطی",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 47
+    },
+    {
+      "key": "تور ترکیبی بانکوک پوکت",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 54
+    },
+    {
+      "key": "تور ترکیبی تایلند",
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 65
+    },
+    {
+      "key": "تور سامویی",
+      "clicks": 0,
+      "impressions": 7,
+      "ctr": 0,
+      "position": 89.42857142857143
+    },
+    {
+      "key": "تور لحظه آخری تایلند",
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 10.333333333333334
+    },
+    {
+      "key": "تور پوکت اقساطی",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 45
+    },
+    {
+      "key": "تور پوکت سامویی",
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 52.75
+    },
+    {
+      "key": "قیمت تور جزیره فی فی تایلند",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 25
+    }
+  ],
+  "topPages": [
+    {
+      "key": "https://www.thailandgard.ir/",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "key": "https://www.thailandgard.ir/contact",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2
+    },
+    {
+      "key": "https://www.thailandgard.ir/guide/bangkok-world-best-city-2026",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "key": "https://www.thailandgard.ir/guide/compare-thailand-tours",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1
+    },
+    {
+      "key": "https://www.thailandgard.ir/guide/flights-from-iran-to-thailand",
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 8.4
+    },
+    {
+      "key": "https://www.thailandgard.ir/guide/tehran-bangkok-direct-flight",
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 8
+    },
+    {
+      "key": "https://www.thailandgard.ir/guide/thailand-winter-2026-new-flight-routes",
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5
+    },
+    {
+      "key": "https://www.thailandgard.ir/tours/bangkok-phuket-8-days",
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 54
+    },
+    {
+      "key": "https://www.thailandgard.ir/tours/combo",
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 65
+    },
+    {
+      "key": "https://www.thailandgard.ir/tours/installment",
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 49.75
+    }
+  ]
+}
