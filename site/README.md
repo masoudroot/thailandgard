@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# سایت تایلندگرد
 
-## Getting Started
+اپلیکیشن Next.js سایت `thailandgard.ir` و داشبورد `admin.thailandgard.ir`.
+هر دو از همین پوشه ساخته می‌شوند و روی Vercel اجرا می‌شوند. کارخانهٔ نسخه ۲ در `lib/factory` و `worker/factory` زندگی می‌کند.
 
-First, run the development server:
+## پیش‌نیاز
+
+- Node 22
+- npm 10
+
+## نصب
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd site
+npm ci
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+تنظیم `legacy-peer-deps=true` در `site/.npmrc` ثبت شده است. به همین دلیل `npm ci` بدون هیچ فلگ اضافه‌ای کار می‌کند؛ همین تنظیم در CI و روی Vercel هم خوانده می‌شود.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## دستورهای روزمره
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| دستور | کار |
+|---|---|
+| `npm run dev` | سرور توسعه |
+| `npm run build` | بیلد تولید |
+| `npm run typecheck` | بررسی نوع‌ها با `tsc --noEmit` |
+| `npm run lint` | ESLint کل پروژه |
+| `npm run lint:factory` | ESLint فقط دامنهٔ کارخانه |
+| `npm test` | تست‌های vitest (`factory/tests`) |
+| `npm run verify` | typecheck + lint + lint:factory + test، همان دروازهٔ محلی قبل از PR |
 
-## Learn More
+تست‌های یکپارچه به یک Postgres روی پورت ۵۴۳۳ نیاز دارند (`TEST_DATABASE_URL`). بدون آن، این فایل‌ها skip می‌شوند.
 
-To learn more about Next.js, take a look at the following resources:
+## کارخانه
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+اسکریپت‌های `factory:*` و نحوهٔ اجرای محلی در `site/factory/README.md` توضیح داده شده است.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## متغیرهای محیطی
 
-## Deploy on Vercel
+مقادیر هیچ‌وقت داخل مخزن نمی‌آیند. فقط نام‌ها در مستندات ذکر می‌شوند و مقدارها در `site/.env.factory.local` (لوکال، gitignored) یا در Vercel و GitHub Actions secrets قرار می‌گیرند.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## CI
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`Factory CI` روی هر pull request اجرا می‌شود: lint، lint:factory، factory:schemas، typecheck، migrate، test، walking-skeleton و build. شاخهٔ `main` محافظت شده است و بدون سبز بودن این چک، ادغام ممکن نیست.
