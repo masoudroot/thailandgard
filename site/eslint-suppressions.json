@@ -223,10 +223,5 @@
     "react-hooks/set-state-in-effect": {
       "count": 1
     }
-  },
-  "prisma-compute/prisma-cloud.d.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
   }
 }

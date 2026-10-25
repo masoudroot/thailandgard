@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@prisma/composer-prisma-cloud": ["./node_modules/@prisma/composer-prisma-cloud/dist/index.d.mts"],
+      "@prisma/composer-prisma-cloud/control": ["./node_modules/@prisma/composer-prisma-cloud/dist/control.d.mts"]
     }
   },
   "include": [
