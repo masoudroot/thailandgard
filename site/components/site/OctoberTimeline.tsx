@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { cn, fa } from "@/lib/utils";
+import { useNow } from "@/lib/use-now";
 import { formatJalali } from "@/lib/jalali";
 
 /**
@@ -25,10 +25,8 @@ const STATIONS = [
 ];
 
 export function OctoberTimeline() {
-  const [now, setNow] = useState<number | null>(null);
-  useEffect(() => {
-    setNow(Date.now());
-  }, []);
+  // زمان فقط روی کلاینت خوانده می شود تا پیش‌رندر استاتیک مقدار ثابت نگیرد.
+  const now = useNow();
 
   // الگوی activeIndex آیتم رجیستری: یک ایندکس واحد وضعیت را می‌راند، نه محاسبهٔ خام هر آیتم.
   const rawIndex = STATIONS.findIndex((st) => now === null || now <= st.date.getTime());

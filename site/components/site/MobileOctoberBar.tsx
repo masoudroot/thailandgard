@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Price } from "@/components/ui/price";
+import { usePastHero } from "@/lib/use-past-hero";
 
 /**
  * نوار چسبان موبایل لندینگ «پوکت؛ نیمهٔ دوم اکتبر»؛ حکم ۲ artdir + جهت M5
@@ -26,21 +26,7 @@ export function MobileOctoberBar({
   phoneHref: string;
   whatsappHref: string;
 }) {
-  const [pastHero, setPastHero] = useState(false);
-
-  useEffect(() => {
-    const sentinel = document.getElementById("october-hero-end");
-    if (!sentinel) {
-      setPastHero(true);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      ([entry]) => setPastHero(!entry.isIntersecting && entry.boundingClientRect.top < 0),
-      { threshold: 0 },
-    );
-    obs.observe(sentinel);
-    return () => obs.disconnect();
-  }, []);
+  const pastHero = usePastHero("october-hero-end");
 
   if (!pastHero) return null;
 

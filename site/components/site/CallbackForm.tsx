@@ -10,6 +10,7 @@ import { Alert } from "@/components/ui/alert";
 import { LoadingDots } from "@/components/animations/loading-dots";
 import { WHATSAPP_LINK, PHONE_MOBILE_LINK } from "@/lib/site";
 import { clarityEvent } from "@/lib/clarity";
+import { useNow } from "@/lib/use-now";
 import { isWithinWorkingHours, nextCallbackDayName, callbackSlotLabel } from "@/lib/working-hours";
 
 /** کلید first-touch در localStorage (هندآف تحلیل ۲۰ مهر ۱۴۰۵). */
@@ -105,11 +106,11 @@ export function CallbackForm({
     },
     [extra],
   );
-  // ساعت‌آگاهی فقط کلاینت‌ساید: در useEffect تا رندر استاتیک (prerender) نشکند.
-  // پیش‌فرض null = نسخهٔ داخل ساعت کاری (فقط تا hydrate؛ پیام موفقیت فقط پس از ثبت و روی کلاینت دیده می‌شود).
-  const [withinHours, setWithinHours] = React.useState<boolean | null>(null);
+  // ساعت‌آگاهی فقط کلاینت‌ساید (هوک useNow) تا رندر استاتیک نشکند؛
+  // null = نسخهٔ داخل ساعت کاری تا پیش از hydrate.
+  const timestamp = useNow();
+  const withinHours = timestamp === null ? null : isWithinWorkingHours(new Date(timestamp));
   React.useEffect(() => {
-    setWithinHours(isWithinWorkingHours());
     clarityEvent("callback_view", { tourSlug });
   }, [tourSlug]);
   // first-touch (هندآف تحلیل ۲۰ مهر): اگر ورود با UTM بود، همان‌جا ذخیره شود تا
