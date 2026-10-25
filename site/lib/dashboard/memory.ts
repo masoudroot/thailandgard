@@ -94,7 +94,7 @@ async function archivePreviousVersion(team: string, key: string): Promise<void> 
 export interface WriteMemoryArgs {
   team: string;
   key: string;
-  value: any;
+  value: unknown;
 }
 
 /**
@@ -105,12 +105,12 @@ export interface WriteMemoryArgs {
  *   writeMemory(team, key, value)
  *   writeMemory({ team, key, value })
  */
-export function writeMemory(team: string, key: string, value: any): Promise<void>;
+export function writeMemory(team: string, key: string, value: unknown): Promise<void>;
 export function writeMemory(args: WriteMemoryArgs): Promise<void>;
 export async function writeMemory(
   teamOrArgs: string | WriteMemoryArgs,
   key?: string,
-  value?: any,
+  value?: unknown,
 ): Promise<void> {
   const team = typeof teamOrArgs === 'string' ? teamOrArgs : teamOrArgs.team;
   const finalKey = typeof teamOrArgs === 'string' ? key! : teamOrArgs.key;

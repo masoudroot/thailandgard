@@ -219,24 +219,9 @@
       "count": 2
     }
   },
-  "lib/dashboard/bridge/pre-merge-check.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "lib/dashboard/float.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
-    }
-  },
-  "lib/dashboard/memory.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
-  "lib/dashboard/queue.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
     }
   },
   "prisma-compute/prisma-cloud.d.ts": {
