@@ -1,30 +1,34 @@
 # STATE.md - اشاره گر وضعیت پروژه
 
 آخرین به روزرسانی: 2026-10-25 (تهران)
-به روزرسانی بعدی: بعد از تسک Q0-05
+به روزرسانی بعدی: بعد از تسک Q2-02
 
 ## وضعیت فعلی
 
 | مورد | مقدار |
 |---|---|
-| فاز جاری | Q0 - مغز مشترک و دروازه کیفیت |
-| آخرین تسک تکمیل شده | Q0-04 (STATE.md) و Q0-02 (AGENTS.md با تایید مسعود) |
-| تسک در انتظار | Q0-05 باز کردن PR مغز مشترک، سپس Q1-01 |
-| شاخه کاری | `chore/agent-brain` (از `main`) |
-| شاخه `main` | `80d8a894` - «فاز ۱: تکمیل» (PR #204) |
-| آخرین CI روی main | Factory CI سبز، run `40163786407` |
+| فاز جاری | Q2 - سلامت کد |
+| آخرین تسک تکمیل شده | Q1-04 (دستور verify و README) |
+| تسک در انتظار | Q2-02 دسته اول suppressor های eslint |
+| شاخه کاری | `main` تمیز؛ شاخه بعدی از `main` ساخته می شود |
+| شاخه `main` | `cae09f6` - «chore: add npm run verify and real install docs» (PR #208) |
+| PRهای ادغام شده امروز | #205 مغز مشترک، #206 نصب تکرارپذیر، #207 گیت همه PRها، #208 verify و مستندات |
+| PRهای باز | صفر |
+| محافظ `main` | فعال: چک اجباری `test` با strict، الزام برای ادمین، بدون force push و بدون حذف |
+| آخرین CI سبز | PR #208، run `40201660174` (npm ci، lint، schemas، typecheck، migrate، test، walking-skeleton، build) |
 | تولید | `thailandgard.ir` روی Vercel، پاسخ 200 |
 | ادمین | `admin.thailandgard.ir`، بدون نشست به `/login` هدایت می شود |
 | فریز تولید | فعال؛ هیچ تغییر پرریسکی تایید نشده |
 | نسخه کارخانه | `FACTORY_RUNTIME` روی `new` نیست |
+| نصب محلی | `cd site && npm ci` بدون فلگ کار می کند (`.npmrc`) |
 
 ## شواهد بازبینی (2026-10-25)
 
 - مخزن تازه در `D:/projects/thailandgard` کلون شد؛ پوشه های قدیمی در `AppData/Local/Temp/opencode` مخزن گیت نبودند و مبنای کار نیستند.
-- تنها PR باز: #196 «Install Vercel Web Analytics» با وضعیت draft و `CONFLICTING`.
+- PR #196 (Vercel Analytics) بسته شد؛ دلیل آن به فارسی در همان PR ثبت و متن تایید شد.
 - هیچ issue بازی وجود ندارد.
 - ورک فلوهای فعال: Factory CI، Factory Daily، Factory Preview Probe، gsc-baseline. بقیه دستی غیرفعال شده اند.
-- محافظ شاخه `main` فعال نیست (پاسخ API: `Branch not protected`).
+- `npm ci` بدون فلگ قبلا شکست می خورد؛ ریشه: ناسازگاری peer در زنجیره Prisma Composer و `@effect/vitest`. با `site/.npmrc` حل شد و در CI واقعی تایید شد.
 
 ## بدهی فنی اندازه گیری شده (مبنای فاز Q2 و Q3)
 
@@ -32,25 +36,27 @@
 |---|---|---|
 | typecheck | سبز، صفر خطا (۳۵ ثانیه) | حفظ |
 | eslint | صفر خطا، ۵۴ هشدار، ۵۲ suppressor | کاهش هشدار و suppressor |
-| تست ها | ۷۷ موفق، ۸ skip در ۲۲ فایل (۴ فایل skip) | صفر skip در CI |
+| تست ها | ۷۷ موفق، ۸ skip در ۲۲ فایل (۴ فایل skip) | پوشش مسیرهای حساس در CI |
 | suppressor های eslint | ۵۲ ورودی در `site/eslint-suppressions.json` | کاهش تدریجی، بدون شکستن CI |
 | فراخوانی `console.log` | ۱۱۸ (۵۳ worker، ۳۸ lib/dashboard، ۱۷ bridge) | صفر در مسیر درخواست |
 | `text-left` یا `text-right` | ۱۱ مورد در ۵ فایل | صفر |
 | `tracking-*` روی متن فارسی | ۲ مورد | صفر |
 | خواص فیزیکی `ml/mr/pl/pr` | ۱ مورد | صفر |
 | `left-` یا `right-` عددی | ۲ مورد | صفر |
-| نصب محلی `npm ci` | شکست با `undici-types@8.3.0 missing` | سبز بدون فلگ |
+| نصب محلی `npm ci` | سبز بدون فلگ، ۱۰۵۱ بسته | حفظ |
 | URLهای sitemap | ۵۱ | پوشش کامل مسیرهای منتشرشده |
 
 ## قدم بعدی دقیق
 
-1. مسعود فازبندی `PLAN.md` را تایید کند.
-2. نوشتن `AGENTS.md` در ریشه با تایید دکمه ای (فایل محافظت شده است).
-3. باز کردن PR شاخه `chore/agent-brain` با سه فایل مغز مشترک و دریافت تایید ادغام.
-4. شروع Q1-01: رفع drift قفل وابستگی ها.
+1. ساخت شاخه `refactor/eslint-debt-1` از `main`.
+2. Q2-02 دسته اول: حذف suppressor های `no-explicit-any` در `app/api/errorHandler.ts` (چهار مورد) و دو فایل مجاور، با تایپ دقیق.
+3. اجرای `npm run verify` و سپس PR با چک اجباری `test`.
+4. بعد از آن Q2-03 (لاگ ها) و Q2-06 (ارتقای eslint).
 
 ## هشدارهای عملیاتی
 
-- `npm ci` بدون `--legacy-peer-deps` در وضعیت فعلی شکست می خورد. تا تسک Q1-01 از همان فلگ استفاده شود.
+- شاخه `main` محافظت شده است؛ هیچ push مستقیمی پذیرفته نمی شود. مسیر کار: شاخه، PR، سبز شدن `test`، squash merge.
 - `gh run watch` را هرگز pipe نکن؛ کد خروج پایپ گمراه کننده است.
 - نوشتن روی `AGENTS.md` همیشه نیازمند تایید انسانی است؛ بدون تایید انجام نمی شود.
+- تنظیم `legacy-peer-deps` در `site/.npmrc` عمدی است؛ حذف آن نصب را می شکند.
+- هر merge روی `main` یک بیلد تولید روی Vercel راه می اندازد؛ تغییرات مستندات را دسته بندی کن.
