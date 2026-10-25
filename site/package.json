@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run lint && npm run lint:factory && npm test",
     "factory:credentials": "tsx factory/scripts/credentials-form.ts",
     "factory:migrate": "tsx factory/scripts/migrate.ts",
     "factory:projector": "tsx worker/factory/projector.ts",
