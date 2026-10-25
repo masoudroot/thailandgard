@@ -63,7 +63,7 @@
 | P1-06 | Event Log + Outbox + Projector | Platform | P1-02 | event schema، projection | rebuild test |
 | P1-07 | OTEL + health/readiness | Platform | P1-04 | trace، metric، alert | trace end-to-end |
 | P1-08 | Local dev + CI | Dev | P1-01..P1-07 | compose، test، lint، build | CI سبز |
-| P1-09 | GitHub App + Vercel token محدود | Dev | P0-04 | app، scope، rotation | branch/preview test |
+| P1-09 | دسترسی حداقلی: GITHUB_TOKEN در Actions + مسیر انتشار Git-native ورسل (ADR-012) | Dev | P0-04 | توکن کوتاه‌عمر؛ بدون secret ذخیره‌شده | branch/preview test ✓ (P1-COMPLETION) |
 
 **خروج فاز:** یک WorkItem ساختگی از API تا projection اجرا شود؛ هیچ نوشتن production ندارد.
 
@@ -247,8 +247,8 @@ P0 ──► P1 ──► P2 ──► P6 ──► P7
 **به‌روزرسانی ۲۰۲۶-۱۰-۲۵:**
 
 - **P0:** تکمیل شد. تگ و baseline سایتمپ و عکس GSC ۲۸ روزه ثبت شد؛ صف قدیمی ساماندهی شد (۲۵ PR بسته، ۱۰۷ شاخه آرشیو و حذف، ۸ ورک‌فلو خاموش)؛ دستور برگشت نهایی شد و تمرین dry-run گرفت. اسناد: `docs/factory-v2/P0-TRIAGE.md`، `docs/factory-v2/P0-BRANCH-ARCHIVE.csv`، `docs/factory-v2/P0-ROLLBACK-RUNBOOK.md`. توقف تولید (freeze) همچنان برقرار است تا سوییچ فاز ۶.
-- **P1:** اجرا شد (PR #201). مانده: زمان‌بندی اجراهای خودکار کارخانه و دسترسی محدود GitHub App / Vercel (P1-09).
+- **P1:** تکمیل شد (۲۰۲۶-۱۰-۲۵). زمان‌بندی خودکار فعال شد (`factory-daily` روزانه ۰۷:۰۰ تهران + `factory-preview-probe` ماهانه)؛ دسترسی‌ها کوتاه‌عمر و حداقلی شد (GITHUB_TOKEN در Actions؛ بدون توکن ذخیره‌شدهٔ Vercel — ADR-012)؛ سکرت‌های TEMPORAL_* حذف شد. سند: `docs/factory-v2/P1-COMPLETION.md`.
 - **P2:** Walking Skeleton در CI به‌صورت end-to-end سبز است. انتشار واقعی (preview / merge queue) تا Cutover غیرفعال می‌ماند.
 - **P3:** کد پیاده‌سازی شده است (رادار سئو، قرارداد تور، گیت‌های R1، pipeline outreach). مانده: اجرای چرخه‌های واقعی در staging با دسترسی‌های واقعی.
 - **P4 / P5:** شروع نشده است. **P6 (Shadow/Cutover)** و **P7 (Decommission)** در انتظار Gateهای قبلی‌اند.
-- **قدم بعدی:** P1-09 (زمان‌بندی خودکار + توکن محدود)، تثبیت P3 در staging، سپس شروع P4/P5.
+- **قدم بعدی:** تثبیت P3 در staging (اجرای واقعی چرخه‌ها بدون تغییر production)، سپس شروع P4/P5 و فعال‌سازی مسیر انتشار P2-05 با تأیید انسانی.

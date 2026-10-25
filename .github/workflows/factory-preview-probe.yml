@@ -1,0 +1,47 @@
+name: Factory Preview Probe
+
+# Proves the factory's GitHub-native release path: a branch pushed by the
+# workflow bot must produce a working Vercel preview deployment. Runs with
+# zero stored Vercel credentials -- the preview is discovered through the
+# GitHub Deployments API that Vercel's git integration maintains (ADR-012).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 1 * *" # first day of each month, 08:30 Tehran (UTC+03:30)
+
+permissions:
+  contents: write
+  deployments: read
+
+concurrency:
+  group: factory-preview-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PROBE_BRANCH: factory-preview-probe-${{ github.run_id }}
+      PROBE_ALIAS_BASE: https://thailandgard-git-factory-preview-probe-${{ github.run_id }}-masouds-projects-5bba27f2.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create probe branch with marker file
+        run: |
+          set -euo pipefail
+          git config user.name "factory-probe[bot]"
+          git config user.email "factory-probe@users.noreply.github.com"
+          git checkout -b "$PROBE_BRANCH"
+          printf 'factory preview probe: %s\n' "$PROBE_BRANCH" > site/public/factory-preview-probe.txt
+          git add site/public/factory-preview-probe.txt
+          git commit -m "chore: factory preview probe $PROBE_BRANCH"
+          echo "PROBE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          git push -u origin "$PROBE_BRANCH"
+      - name: Verify preview deployment serves the probe marker
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node site/factory/scripts/preview-probe.mjs
+      - name: Delete probe branch
+        if: always()
+        run: git push origin --delete "$PROBE_BRANCH" || true
