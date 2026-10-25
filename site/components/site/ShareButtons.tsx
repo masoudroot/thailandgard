@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, Copy, MessageCircle, Send, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useIsClient } from "@/lib/use-is-client";
 
 export interface ShareButtonsProps {
   /** متن اشتراک؛ همان og:title صفحه */
@@ -27,12 +28,10 @@ export interface ShareButtonsProps {
  * مبنا: agents/farsiui/COMPARE/share-final-check-2026-10-11-0535.md
  */
 export function ShareButtons({ title, path, siteUrl, centered, divider, className }: ShareButtonsProps) {
-  const [nativeShare, setNativeShare] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    setNativeShare(typeof navigator !== "undefined" && "share" in navigator);
-  }, []);
+  const isClient = useIsClient();
+  const nativeShare =
+    isClient && typeof navigator !== "undefined" && "share" in navigator;
 
   const url = `${siteUrl}${path}`;
   const telegramHref = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;

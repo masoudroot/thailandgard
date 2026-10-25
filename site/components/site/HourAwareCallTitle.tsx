@@ -7,26 +7,24 @@
  *
  * منطق از تک‌منبع `site/lib/working-hours.ts` (همان `isWithinWorkingHours`
  * نشانگر زنده) تا تیتر هرگز با نشانگر تناقض نسازد. کلاینت + پیش‌فرض SSR
- * داخل-ساعت (الگوی درس ۱۵:۰۵) تا پیش‌رندر استاتیک نشکند.
+ * داخل-ساعت (هوک `useNow`) تا پیش‌رندر استاتیک نشکند.
  */
 "use client";
 
-import * as React from "react";
 import { isWithinWorkingHours } from "@/lib/working-hours";
 import { cn } from "@/lib/utils";
+import { useNow } from "@/lib/use-now";
 
 const TITLE_OPEN = "خودتان زنگ بزنید؛ سریع‌ترین راه است";
 const TITLE_CLOSED = "تماس مستقیم تلفنی";
 
 export function HourAwareCallTitle({ className }: { className?: string }) {
-  const [open, setOpen] = React.useState<boolean | null>(null);
-  React.useEffect(() => {
-    setOpen(isWithinWorkingHours(new Date()));
-  }, []);
   // پیش‌فرض SSR: داخل ساعت کاری (همان تیتر فعلی) تا هایدریشن تکان نخورد.
+  const now = useNow();
+  const open = now === null ? true : isWithinWorkingHours(new Date(now));
   return (
     <h2 className={cn("text-balance text-xl font-semibold", className)}>
-      {open === false ? TITLE_CLOSED : TITLE_OPEN}
+      {open ? TITLE_OPEN : TITLE_CLOSED}
     </h2>
   );
 }

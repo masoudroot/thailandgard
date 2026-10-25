@@ -4,7 +4,7 @@
  * منطق ساعت از تک‌منبع `site/lib/working-hours.ts` می‌آید (همان `isWithinWorkingHours`
  * که SmartTelLink استفاده می‌کند) تا متن نشانگر هرگز با رفتار لینک tel: تناقض نسازد.
  * رندر سمت کاربر (client) تا ساعت دستگاه کاربر ملاک باشد؛ پیش‌فرض SSR نسخهٔ
- * داخل-ساعت-کاری است (الگوی درس ۱۵:۰۵: useState-null + useEffect تا پیش‌رندر استاتیک نشکند).
+ * داخل-ساعت-کاری است (هوک `useNow` تا پیش‌رندر استاتیک نشکند).
  *
  * داخل ساعت کاری: نقطهٔ سبز + «الان پاسخ‌گوییم».
  * خارج ساعت کاری: نقطهٔ خاکستری + «خارج از ساعت کاری‌ایم؛ درخواست‌تان را بگذارید،
@@ -13,10 +13,10 @@
  */
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { isWithinWorkingHours, nextCallbackDayName } from "@/lib/working-hours";
 import { cn } from "@/lib/utils";
+import { useNow } from "@/lib/use-now";
 
 export function LiveStatusChip({
   className,
@@ -25,14 +25,10 @@ export function LiveStatusChip({
   className?: string;
   callbackHref?: string;
 }) {
-  const [open, setOpen] = React.useState<boolean | null>(null);
-  const [day, setDay] = React.useState("");
-  React.useEffect(() => {
-    const now = new Date();
-    setOpen(isWithinWorkingHours(now));
-    setDay(nextCallbackDayName(now));
-  }, []);
-  const isOpen = open ?? true; // پیش‌فرض SSR: داخل ساعت کاری
+  const timestamp = useNow();
+  const now = timestamp === null ? null : new Date(timestamp);
+  const isOpen = now ? isWithinWorkingHours(now) : true; // پیش‌فرض SSR: داخل ساعت کاری
+  const day = now ? nextCallbackDayName(now) : "";
   return (
     <p role="status" className={cn("flex items-center gap-2 text-sm", className)}>
       <span

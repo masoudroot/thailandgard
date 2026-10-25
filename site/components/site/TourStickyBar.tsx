@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PHONE_MOBILE_LINK, WHATSAPP_LINK } from "@/lib/site";
 import { clarityEvent } from "@/lib/clarity";
 import { isWithinWorkingHours } from "@/lib/working-hours";
+import { usePastHero } from "@/lib/use-past-hero";
 
 /**
  * نوار CTA چسبان صفحهٔ تور (M3؛ بریف اجرایی artdir، ۱۹ مهر ۱۴۰۵، ساعت ۱۹؛
@@ -28,21 +28,7 @@ import { isWithinWorkingHours } from "@/lib/working-hours";
  * لینک‌ها فقط از ثابت‌های سراسری (هاردکد ممنوع).
  */
 export function TourStickyBar() {
-  const [pastHero, setPastHero] = useState(false);
-
-  useEffect(() => {
-    const sentinel = document.getElementById("tour-hero-end");
-    if (!sentinel) {
-      setPastHero(true);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      ([entry]) => setPastHero(!entry.isIntersecting && entry.boundingClientRect.top < 0),
-      { threshold: 0 },
-    );
-    obs.observe(sentinel);
-    return () => obs.disconnect();
-  }, []);
+  const pastHero = usePastHero("tour-hero-end");
 
   if (!pastHero) return null;
 
