@@ -46,8 +46,9 @@
 
 - [ ] **Q1-01 رفع drift قفل وابستگی ها**
   - مشکل واقعی: `npm ci` بدون فلگ با خطای `Missing: undici-types@8.3.0 from lock file` شکست می خورد.
+  - شاهد دوم: نصب با فلگ ۱۹ دقیقه طول کشید و هشدارهای deprecated داد؛ از جمله `eslint@9.39.5` که دیگر پشتیبانی نمی شود و بایندینگ های `@yuku-*`.
   - فایل ها: `site/package.json`، `site/package-lock.json`، `.github/workflows/factory-ci.yml`.
-  - کار: هم ترازی `@types/node` و بازتولید قفل؛ حذف نیاز به `--legacy-peer-deps` در CI و مستندات.
+  - کار: هم ترازی `@types/node` و بازتولید قفل؛ حذف نیاز به `--legacy-peer-deps` در CI و مستندات؛ بررسی ارتقای eslint در همان PR یا تسک جدا.
   - پذیرش: `rm -rf node_modules && npm ci` با کد خروج ۰ و سپس `npm run typecheck` سبز.
 - [ ] **Q1-02 تعیین تکلیف PR #196**
   - وضعیت: پیش نویس، `CONFLICTING`، مربوط به Vercel Analytics.
