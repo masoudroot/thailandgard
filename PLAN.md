@@ -77,8 +77,14 @@
   - دسته ۱ (PR #211، ادغام شد): حذف `app/api/errorHandler.ts` مرده، `unknown` جای `any` در queue/memory/pre-merge و بلوک های catch، حذف shim پرایزما و استفاده از تایپ واقعی بسته از طریق `tsconfig.json`، حذف پراپ اینترفیس خالی در دو کامپوننت و یک `prefer-const`. نتیجه: ۷۲ → ۴۷ مورد؛ `no-explicit-any` صفر شد.
   - دسته ۲: سه هوک کوچک `lib/use-is-client.ts`، `lib/use-now.ts`، `lib/use-past-hero.ts` و بازنویسی شش کامپوننت سایت (`LiveStatusChip`، `ShareButtons`، `CallbackForm`، `TourStickyBar`، `MobileOctoberBar`، `OctoberTimeline`) تا `setState` داخل `useEffect` حذف شود. نتیجه: ۴۷ → ۴۰ مورد.
   - باقی مانده: ۳۹ مورد `set-state-in-effect` در داشبورد و ۱ مورد `react-hooks/refs` در `components/dashboard/MobileNav.tsx`.
-  - روش ادامه: دسته های ۳ فایلی؛ ابتدا صفحه های بارگذاری داده (`app/dashboard/*`) بعد پنل های دانش و شیت ها.
+  - یافتهٔ مهم (۲۰۲۶-۱۰-۲۵): قاعده `react-hooks/set-state-in-effect` فقط `setState` همزمان را نمی گیرد؛ فراخوانی تابع `async` بارگذاری داده را هم رد می کند، حتی وقتی اولین `setState` بعد از `await` است. آزمون واقعی روی `app/dashboard/page.tsx`: بعد از حذف `setLoading(true)` از ابتدای `load`، خطا روی خط `void load();` باقی ماند. پس کاهش این دسته بدون تغییر الگوی بارگذاری داده ممکن نیست.
+  - روش ادامه برای دسته های کوچک: ابتدا شیت ها و `MobileNav`، بعد در صورت تصمیم Q2-07 صفحه های بارگذاری داده.
   - پذیرش: تعداد suppressor در هر دسته کاهش یابد و `npm run verify` سبز بماند.
+- [ ] **Q2-07 تصمیم دربارهٔ لایهٔ دادهٔ داشبورد** (پیش نیاز باقی ماندهٔ Q2-02)
+  - شاهد: ۳۹ suppressor باقی مانده همه از یک الگوی واحد می آیند: `useEffect(() => { void load(); }, [load])` که `load` یک `useCallback` دارای `setState` است، در حدود ۳۳ فایل داشبورد.
+  - گزینه ها: (الف) نگه داشتن suppressor ها با توجیه مکتوب و صفر کردن بقیه دسته ها؛ (ب) هوک مشترک لایهٔ داده با `useSyncExternalStore` و ثبت رکوردها در یک store؛ (ج) انتقال بارگذاری اولیه به Server Component و نگه داشتن کلاینت فقط برای تعامل.
+  - نیازمند تصمیم مسعود و در صورت گزینه ب/ج یک ADR کوتاه، چون الگوی بارگذاری داده در ۲۰ صفحه تغییر می کند و ریسک رفتاری دارد.
+  - پذیرش: یک گزینه انتخاب و در `docs/factory-v2/ARCHITECTURE.md` ثبت شود؛ بعد اجرای دسته ای.
 - [ ] **Q2-03 ساماندهی لاگ ها**
   - شاهد فعلی: ۱۱۸ فراخوانی `console.log` (۵۳ در `worker`، ۳۸ در `lib/dashboard`، ۱۷ در `lib/dashboard/bridge`، ۴ در `lib/factory`).
   - کار: logger ساختاریافته یا حذف لاگ دیباگ؛ هیچ `console.log` در مسیر درخواست نماند.
