@@ -152,6 +152,14 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 /**
+ * نشانی داخلی ردیف هشدار. جدول `intel_feed` ستون `source_url` را اجباری دارد
+ * (`NOT NULL`)؛ بدون آن سوپابیس خطای ۲۳۵۰۲ می‌دهد و ردیف نوشته نمی‌شد (باگ #229).
+ * این ردیف منبع بیرونی ندارد، پس یک نشانی داخلی می‌گیرد، نه یک لینک جعلی.
+ */
+export const LEAD_ALERT_SOURCE_URL = "internal://lead-alert";
+export const LEAD_ALERT_SOURCE_NAME = "lead-alert";
+
+/**
  * به‌ازای ثبت لید و هر تغییر وضعیت، یک ردیف بدون PII با تگ lead-alert
  * در جدول intel_feed می‌نویسد (حکم مدیر، ساعت ۱۰، ۱۹ مهر؛ تکمیل ساعت ۱۱:
  * «هر تغییر وضعیت» هم ردیف می‌گیرد، نه فقط ثبت).
@@ -200,10 +208,17 @@ export async function writeLeadAlertSummary(
         title,
         summary: JSON.stringify(summary),
         tags: ["lead-alert"],
+        // ستون‌های اجباری جدول: بدون این دو، درج با خطای ۲۳۵۰۲ رد می‌شد و
+        // هشدار لید خاموش از دست می‌رفت (#229).
+        source_url: LEAD_ALERT_SOURCE_URL,
+        source_name: LEAD_ALERT_SOURCE_NAME,
       }),
     });
     if (!res.ok) {
-      console.warn(`[lead-alert] intel_feed insert failed: ${res.status}`);
+      // متن خطا برای تشخیص لازم است (مثل «ستون اجباری خالی است»)؛ خود ردیف
+      // هشدار هیچ PII ندارد، پس این متن هم PII ندارد.
+      const detail = await res.text().catch(() => "");
+      console.warn(`[lead-alert] intel_feed insert failed: ${res.status} ${detail.slice(0, 200)}`);
       return { ok: false };
     }
     return { ok: true };
