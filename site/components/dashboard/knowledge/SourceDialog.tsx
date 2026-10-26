@@ -215,7 +215,7 @@ export function SourceDialog({
             onChange={(e) => set("url", e.target.value)}
             placeholder="https://example.com/docs"
             error={errors.url}
-            className="text-left"
+            className="text-start"
           />
         </Field>
 

@@ -22,7 +22,7 @@ export default function TourCard({ name, price, duration, image, reserveLink }: 
         <div className="flex justify-between items-end mb-8">
           <div className="text-foreground">
             <span className="font-iransans text-3xl">{price.toLocaleString('fa-IR').replace(/,/g, '،')}</span>
-            <span className="font-iransans text-muted-foreground ml-2">تومان</span>
+            <span className="font-iransans text-muted-foreground ms-2">تومان</span>
           </div>
           <a
             href={reserveLink || '#'}

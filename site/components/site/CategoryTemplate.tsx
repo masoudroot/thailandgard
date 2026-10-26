@@ -138,19 +138,19 @@ export function CategoryTemplate({
               <table className="w-full min-w-[680px] border-collapse text-sm">
                 <thead>
                   <tr className="bg-secondary/60">
-                    <th scope="col" className="px-4 py-3 text-right font-semibold">
+                    <th scope="col" className="px-4 py-3 text-start font-semibold">
                       تور
                     </th>
-                    <th scope="col" className="px-4 py-3 text-right font-semibold">
+                    <th scope="col" className="px-4 py-3 text-start font-semibold">
                       مدت
                     </th>
-                    <th scope="col" className="px-4 py-3 text-right font-semibold">
+                    <th scope="col" className="px-4 py-3 text-start font-semibold">
                       مسیر
                     </th>
-                    <th scope="col" className="px-4 py-3 text-right font-semibold">
+                    <th scope="col" className="px-4 py-3 text-start font-semibold">
                       قیمت پایه
                     </th>
-                    <th scope="col" className="px-4 py-3 text-right font-semibold">
+                    <th scope="col" className="px-4 py-3 text-start font-semibold">
                       مناسب چه کسی
                     </th>
                   </tr>
@@ -158,7 +158,7 @@ export function CategoryTemplate({
                 <tbody>
                   {shownTours.map((t) => (
                     <tr key={t.slug} className="border-t border-border">
-                      <th scope="row" className="px-4 py-3 text-right font-medium">
+                      <th scope="row" className="px-4 py-3 text-start font-medium">
                         <Link
                           href={`/tours/${t.slug}`}
                           className="rounded-sm underline decoration-brand/60 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-brand focus-visible:bg-accent"
