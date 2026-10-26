@@ -170,7 +170,7 @@ function MemoryCard({ row }: { row: MemoryRow }) {
         trigger={
           <span className="flex w-full items-center justify-between gap-3 text-start">
             <span className="min-w-0">
-              <span className="block truncate text-left font-mono text-sm font-semibold text-foreground" dir="ltr">
+              <span className="block truncate text-start font-mono text-sm font-semibold text-foreground" dir="ltr">
                 {row.key}
               </span>
               <span className="mt-0.5 block text-xs text-muted-foreground">

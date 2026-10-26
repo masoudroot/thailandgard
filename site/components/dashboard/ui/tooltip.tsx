@@ -21,13 +21,13 @@ export function Tooltip({ content, side = "top", children, className }: TooltipP
         id={id}
         role="tooltip"
         className={cn(
-          "pointer-events-none absolute left-1/2 z-30 w-max max-w-56 -translate-x-1/2 rounded-sm bg-foreground px-2.5 py-1 text-xs text-background opacity-0 shadow transition-opacity duration-150",
+          "pointer-events-none absolute inset-x-0 z-30 mx-auto w-max max-w-56 rounded-sm bg-foreground px-2.5 py-1 text-xs text-background opacity-0 shadow transition-opacity duration-150",
           "group-hover/tt:opacity-100 group-focus-within/tt:opacity-100",
           side === "top" ? "bottom-full mb-2" : "top-full mt-2",
         )}
       >
         {content}
-        <span className={cn("absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-foreground", side === "top" ? "-bottom-1" : "-top-1")} />
+        <span className={cn("absolute inset-x-0 mx-auto size-2 rotate-45 bg-foreground", side === "top" ? "-bottom-1" : "-top-1")} />
       </span>
     </span>
   );

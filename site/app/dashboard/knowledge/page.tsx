@@ -566,7 +566,7 @@ function SourceDialog({
             onChange={(e) => set('url', e.target.value)}
             placeholder="https://…"
             error={errors.url}
-            className="text-left"
+            className="text-start"
           />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -745,7 +745,7 @@ function SourceTable({
       </TableHeader>
       <TableBody>
         {sources.map((s) => (
-          <TableRow key={s.id} className={s.stale ? 'border-r-2 border-r-warning' : ''}>
+          <TableRow key={s.id} className={s.stale ? 'border-s-2 border-s-warning' : ''}>
             <TableCell>
               <a
                 href={s.url}
@@ -755,7 +755,7 @@ function SourceTable({
               >
                 {s.name}
               </a>
-              <p dir="ltr" className="mt-0.5 truncate text-xs text-muted-foreground text-right">
+              <p dir="ltr" className="mt-0.5 truncate text-xs text-muted-foreground text-end">
                 {shortUrl(s.url)}
               </p>
               {s.last_test_ok === false && (
@@ -830,7 +830,7 @@ function SourceMobileCard({
 }) {
   const meta = TEAM_META[source.team as TeamName];
   return (
-    <div className={`rounded-xl border border-border bg-card p-4 ${source.stale ? 'border-r-2 border-r-warning' : ''}`}>
+    <div className={`rounded-xl border border-border bg-card p-4 ${source.stale ? 'border-s-2 border-s-warning' : ''}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <a

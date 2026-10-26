@@ -31,7 +31,7 @@ export function AboutCta({
               <p className="text-pretty mt-3 text-sm leading-[1.9] text-muted-foreground">
                 با {contactName} حرف بزنید؛ مشاوره رایگان است و هیچ تعهدی ندارد.
               </p>
-              <p className="mt-6 text-2xl font-bold tracking-tight">
+              <p className="mt-6 text-2xl font-bold">
                 <a
                   href={mobileLink}
                   className="rounded-sm underline decoration-brand decoration-2 underline-offset-4 focus-visible:bg-accent"

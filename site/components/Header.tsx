@@ -6,7 +6,7 @@ export default function Header(): React.ReactElement {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-2xl font-black text-emerald-600 tracking-tight">
+          <Link href="/" className="text-2xl font-black text-emerald-600">
             تایلندگرد
           </Link>
           <nav className="hidden md:flex items-center gap-6">

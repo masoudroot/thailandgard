@@ -206,7 +206,7 @@ export default function RatesPage() {
                       <p className="text-sm font-bold text-foreground">{faName}</p>
                       <p className="text-xs text-muted-foreground">تومان</p>
                     </div>
-                    <div className="text-left">
+                    <div className="text-end">
                       <p className="text-base font-bold tabular-nums text-foreground">
                         {v !== null ? faNum(v.toLocaleString('en-US')) : 'در دسترس نیست'}
                       </p>
