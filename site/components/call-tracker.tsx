@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { pathnamePagePart } from "@/lib/source-tracking";
+
 /**
  * ردیاب تماس (قفل ۵ موتور رشد): شنوندهٔ سراسری کلیک روی لینک‌های tel:.
  * هیچ PII جمع نمی‌کند؛ فقط «کدام شماره»، «کدام صفحه» و «از کدام کانال».
@@ -61,7 +63,7 @@ function buildSource(): string {
   else if (/google\.|bing\.com|duckduckgo\./.test(ref)) channel = "organic";
   else if (ref) channel = "referral";
 
-  const page = window.location.pathname.replace(/^\//, "") || "home";
+  const page = pathnamePagePart(window.location.pathname);
   return `${channel}|${page}|${utmCampaign}`;
 }
 
