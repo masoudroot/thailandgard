@@ -42,6 +42,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { shortLeadId, nextTouch } from "@/lib/lead-alert";
 import { getTour } from "@/lib/tours";
+import { logger } from "@/lib/logger";
 
 // نکته: این route از هدر درخواست می‌خواند، پس خودبه‌خود داینامیک است.
 // پیکربندی‌های قطعه (runtime/dynamic) با cacheComponents در Next.js ۱۶
@@ -776,7 +777,7 @@ function invalidateAfterOps(ops: SyncOp[], results: Array<{ ok: boolean }>): { t
     for (const t of tagList) revalidateTag(t, "max");
     for (const p of pathList) revalidatePath(p);
   } catch (e) {
-    console.error(`[content-sync] خطا در ابطال کش: ${e instanceof Error ? e.message : "نامشخص"}`);
+    logger.error("content-sync: cache invalidation failed", { route: "content-sync" }, e);
   }
   return { tags: tagList, paths: pathList };
 }
@@ -788,7 +789,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   // ۱) احراز هویت
   if (!process.env.INTERNAL_CONTENT_SECRET) {
-    console.error("[content-sync] INTERNAL_CONTENT_SECRET تنظیم نشده است.");
+    logger.error("content-sync: INTERNAL_CONTENT_SECRET is not configured", { route: "content-sync" });
     return NextResponse.json({ ok: false, error: "خطای پیکربندی سرور." }, { status: 500 });
   }
   if (!checkAuth(req)) {
@@ -831,7 +832,7 @@ export async function POST(req: NextRequest) {
   // ۴) اجرا
   const cfg = dbConfig();
   if (!cfg) {
-    console.error("[content-sync] متغیرهای سوپابیس تنظیم نشده‌اند.");
+    logger.error("content-sync: supabase env vars are not configured", { route: "content-sync" });
     return NextResponse.json({ ok: false, error: "خطای پیکربندی سرور." }, { status: 500 });
   }
 
@@ -839,11 +840,11 @@ export async function POST(req: NextRequest) {
   for (const op of validated) {
     try {
       const r = await applyOp(cfg, op);
-      console.log(`[content-sync] ok op=${op.op} slug=${op.guide_slug ?? op.tour_slug} matched=${r.matched}`);
+      logger.info("content-sync: op applied", { op: op.op, slug: op.guide_slug ?? op.tour_slug, matched: r.matched });
       results.push({ op: op.op, ok: true, note: r.note });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "خطای ناشناخته";
-      console.error(`[content-sync] fail op=${op.op}: ${msg}`);
+      logger.error("content-sync: op failed", { op: op.op, reason: msg });
       results.push({ op: op.op, ok: false, error: msg });
     }
   }
