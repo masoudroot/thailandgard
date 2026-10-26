@@ -38,6 +38,11 @@ export interface AccordionProps {
   contentBlock?: boolean;
 }
 
+/** محتوای متن خالص (رشته/عدد) تنها حالتی است که رپر <p> معنایی و امن می‌گیرد. */
+function isPlainText(content: React.ReactNode): boolean {
+  return typeof content === "string" || typeof content === "number";
+}
+
 /** آکاردئون. Chevron at the inline-end; height animates with CSS grid, no measuring. */
 export function Accordion({ items, multiple, defaultOpen = [], className, toggleIcon = "chevron", contentBlock = false }: AccordionProps) {
   const [open, setOpen] = React.useState<string[]>(defaultOpen);
@@ -75,8 +80,10 @@ export function Accordion({ items, multiple, defaultOpen = [], className, toggle
             </h3>
             <div id={`acc-${it.id}`} className={cn("grid transition-[grid-template-rows] duration-200 ease-out", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
               <div className="overflow-hidden">
-                {/* وقتی contentBlock=true، جواب FAQ ممکن است بلوک (مثل ul) داشته باشد پس رپر div می‌شود؛ وگرنه p معنایی است */}
-                {contentBlock ? (
+                {/* رپر محتوا: p فقط وقتی محتوا متن خالص است (معنایی‌تر). هر محتوای دیگر
+                    (JSX، ul، p داخلی) باید div بگیرد، وگرنه <p> داخل <p> ساخته می‌شود،
+                    مرورگر درخت را بازنویسی می‌کند و hydration می‌شکند. */}
+                {contentBlock || !isPlainText(it.content) ? (
                   <div className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</div>
                 ) : (
                   <p className="px-4 pb-4 text-sm leading-7 text-muted-foreground">{it.content}</p>
