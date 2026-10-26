@@ -22,14 +22,17 @@
 
 ## کانال هشدار
 
-**الان:** Issue گیت‌هاب با برچسب `ops` (کار می‌کند، بدون سکرت اضافه).
+**فعال:** تلگرام (بات `gozaresh_tilandgard_bot`) به‌همراه Issue با برچسب `ops`.
+هر هشدار هم به تلگرام می‌رود و هم Issue می‌سازد؛ اگر تلگرام از کار بیفتد، Issue باقی می‌ماند.
 
-**تلگرام (اختیاری، پیشنهادشده):** دو سکرت مخزن را اضافه کنید:
+سکرت‌های مخزن که این کار را ممکن می‌کنند (از `Settings → Secrets and variables → Actions`):
 
 - `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
+- `TELEGRAM_CHAT_ID` = `8014083639` (چت مسعود)
 
-از `Settings → Secrets and variables → Actions → New repository secret`. همین دو نام در `cycle-watchdog.yml` هم استفاده می‌شوند؛ الان ساخته نشده‌اند، پس هشدارهای آن watchdog هم بی‌صدا هستند. بعد از افزودن، همان اجرای بعدی probe پیام را به تلگرام می‌فرستد.
+همین دو نام در `cycle-watchdog.yml` استفاده می‌شوند، پس هشدارهای watchdog هم از این پس به تلگرام می‌رسند.
+
+اگر توکن بات را عوض کردید (BotFather → Revoke)، فقط سکرت `TELEGRAM_BOT_TOKEN` را به‌روز کنید.
 
 ## آزمون دستی کانال هشدار
 
