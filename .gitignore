@@ -11,3 +11,6 @@ dist/
 
 # Local Netlify folder
 .netlify
+
+# uptime probe local output
+uptime-report.json

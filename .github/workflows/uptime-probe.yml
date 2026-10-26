@@ -1,0 +1,58 @@
+name: Uptime Probe
+
+# Q4-01: پایش زندهٔ سایت تولید.
+# هر ۱۵ دقیقه سه نقطه را می‌زند (health، صفحه اصلی، صفحه تور). هر نقطه سه تلاش
+# دارد؛ خرابی فقط وقتی اعلام می‌شود که هر سه تلاش شکست بخورد.
+# وضعیت روی Issue با برچسب ops نگه داشته می‌شود: باز شدن Issue یعنی خرابی،
+# بستن آن یعنی بهبودی. پس هشدار تکراری فرستاده نمی‌شود.
+# اگر سکرت‌های تلگرام تنظیم شوند، همان متن به تلگرام هم می‌رود.
+
+on:
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: 'شبیه‌سازی خرابی برای آزمون کانال هشدار'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Probe production
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          ARGS=""
+          if [ "${{ inputs.simulate_failure }}" = "true" ]; then ARGS="--simulate-failure"; fi
+          node site/factory/scripts/uptime-probe.mjs $ARGS
+
+      - name: Upload probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uptime-report-${{ github.run_id }}
+          path: uptime-report.json
+          retention-days: 7
+          if-no-files-found: ignore
