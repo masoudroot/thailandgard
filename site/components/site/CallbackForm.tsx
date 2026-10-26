@@ -10,6 +10,7 @@ import { Alert } from "@/components/ui/alert";
 import { LoadingDots } from "@/components/animations/loading-dots";
 import { WHATSAPP_LINK, PHONE_MOBILE_LINK } from "@/lib/site";
 import { clarityEvent } from "@/lib/clarity";
+import { pathnamePagePart, tourPagePart } from "@/lib/source-tracking";
 import { useNow } from "@/lib/use-now";
 import { isWithinWorkingHours, nextCallbackDayName, callbackSlotLabel } from "@/lib/working-hours";
 
@@ -66,7 +67,7 @@ function buildSource(tourSlug?: string): string {
   else if (/google\.|bing\.com|duckduckgo\./.test(ref)) channel = "organic";
   else if (ref) channel = "referral";
 
-  const page = tourSlug ? `tour/${tourSlug}` : window.location.pathname.replace(/^\//, "") || "home";
+  const page = tourSlug ? tourPagePart(tourSlug) : pathnamePagePart(window.location.pathname);
   return `${channel}|${page}|${utmCampaign}`;
 }
 
