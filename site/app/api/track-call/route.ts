@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 /**
  * ردیاب تماس (قفل ۵ موتور رشد): دریافت کلیک‌های tel: از کلاینت.
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     /* ردیابی هرگز UX را نمی‌شکند؛ ولی علت را در لاگ سرور می‌نویسیم تا
        خرابی خاموش (مثل نبود env در دیپلوی) قابل‌تشخیص بماند. */
-    console.error(`[track-call] ذخیره‌سازی ناموفق: ${e instanceof Error ? e.message : "نامشخص"}`);
+    logger.error("track-call: insert failed", { route: "track-call" }, e);
   }
 
   return NextResponse.json({ ok: true });
