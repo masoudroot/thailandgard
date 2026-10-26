@@ -118,4 +118,32 @@ describe("quality gates", () => {
       `console در مسیر درخواست ممنوع است؛ از lib/logger استفاده کن:\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
+  it("keeps console usage in lib/worker/factory at the recorded baseline", () => {
+    const CONSOLE_CALL = /console\.(?:log|debug|info|warn|error|trace)\s*\(/g;
+    const baseline = JSON.parse(
+      read(path.join(SITE_ROOT, "factory", "quality-baseline.json")),
+    ) as { consoleLimits: Record<string, number> };
+
+    const files = [
+      ...walk(path.join(SITE_ROOT, "lib"), [".ts", ".tsx"]),
+      ...walk(path.join(SITE_ROOT, "worker"), [".ts", ".tsx"]),
+      ...walk(path.join(SITE_ROOT, "factory"), [".ts", ".tsx"]),
+    ];
+
+    const offenders: string[] = [];
+    let total = 0;
+    for (const file of files) {
+      const rel = relative(file);
+      if (rel.startsWith("factory/tests/")) continue;
+      const count = read(file).match(CONSOLE_CALL)?.length ?? 0;
+      if (count === 0) continue;
+      total += count;
+      const allowed = baseline.consoleLimits[rel] ?? 0;
+      if (count > allowed) offenders.push(`${rel}: ${count} فراخوانی، سقف ${allowed}`);
+    }
+
+    const ceiling = Object.values(baseline.consoleLimits).reduce((sum, n) => sum + n, 0);
+    expect(offenders, `console بیشتر از سقف ثبت‌شده:\n${offenders.join("\n")}`).toEqual([]);
+    expect(total, `مجموع console از سقف ${ceiling} گذشت`).toBeLessThanOrEqual(ceiling);
+  });
 });
