@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { settleOrphanedClaimedTasks } from './taskqueue';
+import { logger } from '../logger';
 
 /**
  * سلامت اجرای تیم‌ها: تشخیص «هنگ» در برابر «سالم» و «مرده».
@@ -146,19 +147,19 @@ async function readRunningTeams(sb: SupabaseClient, cycleId: string): Promise<Te
     .eq('status', 'running');
   if (!full.error) return (full.data ?? []) as TeamRunRow[];
   if (!isMissingHeartbeatColumn(full.error)) {
-    console.error('[team-health] خواندن team_runs ناموفق بود:', full.error.message);
+    logger.error('[team-health] خواندن team_runs ناموفق بود:', undefined, full.error.message);
     return [];
   }
   // مایگریشن ضربان هنوز اعمال نشده؛ بدون heartbeat_at ادامه بده
   // (classifyTeamRun در این حالت به updated_at برمی‌گردد).
-  console.warn('[team-health] ستون heartbeat_at نیست؛ بدون سیگنال ضربان بررسی شد.');
+  logger.warn('[team-health] ستون heartbeat_at نیست؛ بدون سیگنال ضربان بررسی شد.');
   const base = await sb
     .from('team_runs')
     .select('team, status, started_at, updated_at, current_task')
     .eq('cycle_id', cycleId)
     .eq('status', 'running');
   if (base.error) {
-    console.error('[team-health] خواندن team_runs ناموفق بود:', base.error.message);
+    logger.error('[team-health] خواندن team_runs ناموفق بود:', undefined, base.error.message);
     return [];
   }
   return (base.data ?? []) as TeamRunRow[];
@@ -180,7 +181,7 @@ export async function findUnhealthyTeams(
   try {
     rows = await readRunningTeams(sb, cycleId);
   } catch (err) {
-    console.error('[team-health] خطا در خواندن team_runs:', err instanceof Error ? err.message : err);
+    logger.error('[team-health] خطا در خواندن team_runs:', undefined, err instanceof Error ? err.message : err);
     return out;
   }
   for (const r of rows) {
@@ -194,7 +195,7 @@ export async function findUnhealthyTeams(
         now,
       });
     } catch (err) {
-      console.error(`[team-health] خطا در طبقه‌بندی تیم ${r.team}:`, err instanceof Error ? err.message : err);
+      logger.error(`[team-health] خطا در طبقه‌بندی تیم ${r.team}:`, undefined, err instanceof Error ? err.message : err);
       continue;
     }
     if (health === 'healthy') continue;
@@ -249,14 +250,14 @@ export async function sweepHungTeams(
         .eq('team', t.team)
         .eq('status', 'running');
       if (updErr) {
-        console.error(`[team-health] ثبت ناموفق برای تیم ${t.team} خطا داد:`, updErr.message);
+        logger.error(`[team-health] ثبت ناموفق برای تیم ${t.team} خطا داد:`, undefined, updErr.message);
         continue;
       }
     } catch (err) {
-      console.error(`[team-health] خطا در ثبت ناموفق تیم ${t.team}:`, err instanceof Error ? err.message : err);
+      logger.error(`[team-health] خطا در ثبت ناموفق تیم ${t.team}:`, undefined, err instanceof Error ? err.message : err);
       continue;
     }
-    console.log(`[team-health] تیم ${t.team} «${t.health === 'hung' ? 'هنگ' : 'مرده'}» شناخته و ناموفق ثبت شد.`);
+    logger.info(`[team-health] تیم ${t.team} «${t.health === 'hung' ? 'هنگ' : 'مرده'}» شناخته و ناموفق ثبت شد.`);
     // بستن تسک‌های یتیم: اگر فرایند تیم بدون settle مرده باشد (ری‌بوت/SIGKILL)،
     // تسک claimشده‌اش in_progress می‌ماند و چرخه‌ی بعدی همان کهنه را تحویل
     // می‌گیرد؛ این‌جا با سرنوشت interrupted بسته می‌شود. fail-soft است.
@@ -269,11 +270,12 @@ export async function sweepHungTeams(
           `فرایند اجراکننده در دسترس نیست (${error}).`,
       );
       if (settled > 0) {
-        console.log(`[team-health] ${settled} تسک یتیم تیم ${t.team} بسته شد.`);
+        logger.info(`[team-health] ${settled} تسک یتیم تیم ${t.team} بسته شد.`);
       }
     } catch (err) {
-      console.error(
+      logger.error(
         `[team-health] بستن تسک‌های یتیم تیم ${t.team} خطا داد:`,
+        undefined,
         err instanceof Error ? err.message : String(err),
       );
     }
@@ -342,7 +344,7 @@ export async function findEmptySuccessTeams(
       .eq('status', 'success')
       .order('started_at', { ascending: false });
     if (error) {
-      console.error('[team-health] خواندن اجراهای موفق ناموفق بود:', error.message);
+      logger.error('[team-health] خواندن اجراهای موفق ناموفق بود:', undefined, error.message);
       return out;
     }
     // فقط آخرین اجرای هر تیم؛ سرنوشت تلاش‌های قدیمی‌تر مشخص است.
@@ -360,7 +362,7 @@ export async function findEmptySuccessTeams(
         .select('team')
         .eq('cycle_id', cycleId);
       if (pErr) {
-        console.error('[team-health] خواندن bridge_patches ناموفق بود:', pErr.message);
+        logger.error('[team-health] خواندن bridge_patches ناموفق بود:', undefined, pErr.message);
       } else {
         for (const p of (patches ?? []) as Array<{ team?: string | null }>) {
           const t = p.team ?? '';
@@ -368,8 +370,9 @@ export async function findEmptySuccessTeams(
         }
       }
     } catch (err) {
-      console.error(
+      logger.error(
         '[team-health] خطا در خواندن bridge_patches:',
+        undefined,
         err instanceof Error ? err.message : err,
       );
     }
@@ -392,15 +395,16 @@ export async function findEmptySuccessTeams(
           hasSummary,
           reasons,
         });
-        console.log(
+        logger.info(
           `[team-health] «موفقیت توخالی» مشکوک برای تیم ${team} ` +
             `(پچ: ۰، خلاصه: ${hasSummary ? 'دارد' : 'ندارد'}، فراخوان LLM: ${llmCalls}).`,
         );
       }
     }
   } catch (err) {
-    console.error(
+    logger.error(
       '[team-health] خطا در بررسی موفقیت‌های توخالی:',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
