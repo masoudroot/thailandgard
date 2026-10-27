@@ -22,19 +22,14 @@ import { recoverDeadCycles, isAutoRestartableAfterKill } from '../lib/dashboard/
  * Ù¾Ø±ÙˆØ³Ù‡ Ø²Ù†Ø¯Ù‡ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯ ØªØ§ Ù†Ú¯Ù‡Ø¨Ø§Ù† Ù‡Ù†Ú¯ØŒ ØªÛŒÙ… Ø±Ø§ ØªÙ…ÛŒØ² Ù†Ø§Ù…ÙˆÙÙ‚ Ø«Ø¨Øª Ú©Ù†Ø¯.
  */
 process.on('unhandledRejection', (reason) => {
-  console.error(
-    '[cycle-worker] unhandledRejection (Ù¾Ø±ÙˆØ³Ù‡ Ø²Ù†Ø¯Ù‡ Ù…Ø§Ù†Ø¯):',
-    reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
-  );
+  logger.error('[cycle-worker] unhandledRejection (Ù¾Ø±ÙˆØ³Ù‡ Ø²Ù†Ø¯Ù‡ Ù…Ø§Ù†Ø¯):', undefined, reason instanceof Error ? (reason.stack ?? reason.message) : String(reason));
 });
 process.on('uncaughtException', (err) => {
-  console.error(
-    '[cycle-worker] uncaughtException (Ù¾Ø±ÙˆØ³Ù‡ Ø²Ù†Ø¯Ù‡ Ù…Ø§Ù†Ø¯):',
-    err instanceof Error ? (err.stack ?? err.message) : String(err),
-  );
+  logger.error('[cycle-worker] uncaughtException (Ù¾Ø±ÙˆØ³Ù‡ Ø²Ù†Ø¯Ù‡ Ù…Ø§Ù†Ø¯):', undefined, err instanceof Error ? (err.stack ?? err.message) : String(err));
 });
 
 import { sweepOrphanedBridgePatches } from '../lib/dashboard/bridge/sweep';
+import { logger } from '../lib/logger';
 
 /** Ø³Ù‚Ù Ù¾Ø±Ø¯Ø§Ø²Ø´ Ù¾Ú†â€ŒÙ‡Ø§ÛŒ ÛŒØªÛŒÙ… Ø¯Ø± Ù‡Ø± ØªÛŒÚ©ØŒ ØªØ§ Ø¨ÙˆØ¯Ø¬Ù‡â€ŒÛŒ Ø²Ù…Ø§Ù†ÛŒ Ø¬Ø§Ø¨ Ø®ÙˆØ±Ø¯Ù‡ Ù†Ø´ÙˆØ¯. */
 /** Ú©Ù„ÛŒØ¯ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø´Ø±ÙˆØ¹ Ø®ÙˆØ¯Ú©Ø§Ø± Ú†Ø±Ø®Ù‡â€ŒÛŒ Ø¨Ø¹Ø¯ÛŒ (Ù…Ù‚Ø§Ø¯ÛŒØ±: true/falseØ› Ù¾ÛŒØ´â€ŒÙØ±Ø¶ Ø±ÙˆØ´Ù†). */
@@ -69,7 +64,7 @@ const MAX_CONSECUTIVE_CYCLE_FAILURES = 3;
 async function autoStartNextCycleIfNeeded(): Promise<{ cycleId: string; runId: string } | null> {
   const autoStart = await getSetting<boolean>(AUTO_START_SETTING_KEY, true);
   if (autoStart === false) {
-    console.log('auto-start disabled by setting auto_start_next_cycle=false');
+    logger.info('auto-start disabled by setting auto_start_next_cycle=false');
     return null;
   }
   const sb = getSupabase();
@@ -79,7 +74,7 @@ async function autoStartNextCycleIfNeeded(): Promise<{ cycleId: string; runId: s
     .order('started_at', { ascending: false })
     .limit(MAX_CONSECUTIVE_CYCLE_FAILURES);
   if (error || !data || data.length === 0) {
-    console.log('no previous cycle; waiting for manual start');
+    logger.info('no previous cycle; waiting for manual start');
     return null;
   }
   const last = data[0] as { id: string; status: string; error?: string | null };
@@ -93,22 +88,18 @@ async function autoStartNextCycleIfNeeded(): Promise<{ cycleId: string; runId: s
       else break;
     }
     if (streak >= MAX_CONSECUTIVE_CYCLE_FAILURES) {
-      console.log(
-        `last ${streak} cycles failed consecutively; not auto-starting (needs attention)`,
-      );
+      logger.info(`last ${streak} cycles failed consecutively; not auto-starting (needs attention)`);
       return null;
     }
-    console.log(
-      `last cycle ${last.id} failed (streak ${streak}/${MAX_CONSECUTIVE_CYCLE_FAILURES}); auto-starting a new cycle`,
-    );
+    logger.info(`last cycle ${last.id} failed (streak ${streak}/${MAX_CONSECUTIVE_CYCLE_FAILURES}); auto-starting a new cycle`);
   } else if (last.status !== 'success' && !isAutoRestartableAfterKill(last)) {
-    console.log(`last cycle ${last.id} ended with '${last.status}'; not auto-starting (needs attention)`);
+    logger.info(`last cycle ${last.id} ended with '${last.status}'; not auto-starting (needs attention)`);
     return null;
   } else if (isAutoRestartableAfterKill(last)) {
-    console.log(`last cycle ${last.id} was killed and recovered; auto-starting a clean cycle`);
+    logger.info(`last cycle ${last.id} was killed and recovered; auto-starting a clean cycle`);
   }
   const { cycleId, runId } = await beginCycle();
-  console.log(`auto-started next cycle: ${runId} (${cycleId})`);
+  logger.info(`auto-started next cycle: ${runId} (${cycleId})`);
   return { cycleId, runId };
 }
 
@@ -133,7 +124,7 @@ async function heartbeatCycleLock(cycleId: string): Promise<void> {
     await touchLock(st.owner);
   } catch (err) {
     // Ù‚ÙÙ„ Ø±Ø§ Ø§Ø² Ø¯Ø³Øª Ø¯Ø§Ø¯Ù‡â€ŒØ§ÛŒÙ… ÛŒØ§ Ø®Ø·Ø§ÛŒ Ø¯ÛŒØªØ§Ø¨ÛŒØ³Ø› ØªÛŒÚ© Ø§Ø¯Ø§Ù…Ù‡ Ù…ÛŒâ€ŒÛŒØ§Ø¨Ø¯
-    console.error('[worker] cycle lock heartbeat failed:', err instanceof Error ? err.message : err);
+    logger.error('[worker] cycle lock heartbeat failed:', undefined, err instanceof Error ? err.message : err);
   }
 }
 
@@ -147,18 +138,18 @@ async function main(): Promise<void> {
   try {
     await recoverDeadCycles();
   } catch (err) {
-    console.error('[worker] cycle recovery at tick start failed (continuing):', err instanceof Error ? err.message : err);
+    logger.error('[worker] cycle recovery at tick start failed (continuing):', undefined, err instanceof Error ? err.message : err);
   }
 
   // Ø³Ø§Ø®Øª Ú†Ø±Ø®Ù‡ Ø¬Ø¯ÛŒØ¯
   if (action === 'start-cycle') {
     const active = await findActiveCycle();
     if (active) {
-      console.log(`active cycle exists: ${active.run_id}, skipping`);
+      logger.info(`active cycle exists: ${active.run_id}, skipping`);
       return;
     }
     const { cycleId, runId } = await beginCycle();
-    console.log(`new cycle started: ${runId} (${cycleId})`);
+    logger.info(`new cycle started: ${runId} (${cycleId})`);
     return;
   }
 
@@ -173,7 +164,7 @@ async function main(): Promise<void> {
     if (!active) {
       const auto = await autoStartNextCycleIfNeeded();
       if (!auto) {
-        console.log('no active cycle');
+        logger.info('no active cycle');
         return;
       }
       cycleId = auto.cycleId;
@@ -184,7 +175,7 @@ async function main(): Promise<void> {
       // ØªÙˆÙ‚ÙØŒ Ù‚ÙÙ„ stale Ø±Ø§ ØªØµØ§Ø­Ø¨ Ù†Ú©Ù†Ø¯Ø› Ù¾Ø³ Ø¶Ø±Ø¨Ø§Ù† Ù¾ÛŒØ´ Ø§Ø² Ø¨Ø±Ø±Ø³ÛŒ pause.
       await heartbeatCycleLock(active.id as string);
       if (active.status === 'pausing' || active.status === 'paused') {
-        console.log(`cycle ${active.run_id} is ${active.status}; skipping team claim`);
+        logger.info(`cycle ${active.run_id} is ${active.status}; skipping team claim`);
         return;
       }
       cycleId = active.id as string;
@@ -296,37 +287,37 @@ async function main(): Promise<void> {
   if (allDone) {
     const failed = Object.values(teamStatus).filter((s) => ['failed', 'stopped'].includes(s)).length;
     await finishCycle(cycleId, failed > 0 ? 'failed' : 'success');
-    console.log(`cycle finished: ${failed > 0 ? 'failed' : 'success'}`);
+    logger.info(`cycle finished: ${failed > 0 ? 'failed' : 'success'}`);
     return;
   }
 
   // Ù…ÙˆØ¬ Ø¬Ø§Ø±ÛŒ: Ø§ÙˆÙ„ÛŒÙ† Ù…ÙˆØ¬ Ù†Ø§ØªÙ…Ø§Ù…
   const currentWaveDef = WAVES.find((w) => !w.teams.every((t) => isDone(t)));
   if (!currentWaveDef) {
-    console.log('no pending wave');
+    logger.info('no pending wave');
     return;
   }
 
   // Ø§Ú¯Ø± ØªÛŒÙ…ÛŒ Ø¯Ø± Ø­Ø§Ù„ Ø§Ø¬Ø±Ø§Ø³ØªØŒ ØµØ¨Ø± Ú©Ù† (ØªÚ©â€ŒØªÛŒÙ…Ù‡ Ø¬Ù„Ùˆ Ù…ÛŒâ€ŒØ±ÙˆÛŒÙ…)
   const hasRunning = currentWaveDef.teams.some((t) => teamStatus[t] === 'running');
   if (hasRunning) {
-    console.log(`wave ${currentWaveDef.wave} has a running team; waiting`);
+    logger.info(`wave ${currentWaveDef.wave} has a running team; waiting`);
     return;
   }
 
   // Ø§ÙˆÙ„ÛŒÙ† ØªÛŒÙ… Ù…Ø¹Ù„Ù‚ Ù…ÙˆØ¬ Ø¬Ø§Ø±ÛŒ Ø±Ø§ Ø§Ø¬Ø±Ø§ Ú©Ù†
   const nextTeam = currentWaveDef.teams.find((t) => !isDone(t)) as TeamName | undefined;
   if (!nextTeam) {
-    console.log('no pending team in current wave');
+    logger.info('no pending team in current wave');
     return;
   }
 
   // Ø­Ù„Ù‚Ù‡Ù” Ø§ØµÙ„Ø§Ø­ Ø¯Ø±ÙˆÙ†â€ŒÚ†Ø±Ø®Ù‡â€ŒØ§ÛŒ: Ø´Ù…Ø§Ø±Ù‡Ù” ØªÙ„Ø§Ø´ Ùˆ Ø¯Ø³ØªÙˆØ± Ø¨Ù‡â€ŒØ¬Ø§Ù…Ø§Ù†Ø¯Ù‡ Ø§Ø² Ø±Ø¯ Ù‚Ø¨Ù„ÛŒ
   const fixAttempt = (teamAttempts[nextTeam] ?? 0) + 1;
   const prior = fixAttempt > 1 ? extractPriorFixDirective(nextTeam) : {};
-  console.log(`running team ${nextTeam} (wave ${currentWaveDef.wave})`);
+  logger.info(`running team ${nextTeam} (wave ${currentWaveDef.wave})`);
   if (fixAttempt > 1) {
-    console.log(
+    logger.info(
       `[fix-loop] team ${nextTeam}: same-cycle fix attempt ${fixAttempt}/${MAX_SAME_CYCLE_FIX_ATTEMPTS}` +
         (prior.reason ? ` (prev: ${prior.reason.slice(0, 200)})` : ''),
     );
@@ -339,7 +330,7 @@ async function main(): Promise<void> {
   };
   const teamRunId = await claimTeam(cycleId, nextTeam, currentWaveDef.wave, owner);
   if (!teamRunId) {
-    console.log(`team ${nextTeam} already claimed by another worker; skipping`);
+    logger.info(`team ${nextTeam} already claimed by another worker; skipping`);
     return;
   }
 
@@ -364,7 +355,7 @@ async function main(): Promise<void> {
         } catch {
           // Ù…Ø¯Ù„ Ø®Ø±Ø§Ø¨ Ø§Ø³ØªØ› ÙÙ‚Ø· Ù„Ø§Ú¯ Ù…ÛŒâ€ŒØ²Ù†ÛŒÙ…. Ø¬Ø§ÛŒÚ¯Ø²ÛŒÙ†ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø± Ù…Ø¯Ù„ Ø¯Ø± Ø§ÛŒÙ† ÙˆØ±Ú©Ø±
           // Ù¾ÛŒØ§Ø¯Ù‡ Ù†Ø´Ø¯Ù‡Ø› Ù…Ø¯ÛŒØ± Ø§Ø² Ù¾Ù†Ù„ Ù…Ø¯Ù„ Ø³Ø§Ù„Ù… Ø±Ø§ Ø¬Ø§ÛŒÚ¯Ø²ÛŒÙ† Ù…ÛŒâ€ŒÚ©Ù†Ø¯.
-          console.log(`proactive: team ${nextTeam} model unhealthy`);
+          logger.info(`proactive: team ${nextTeam} model unhealthy`);
         }
       }
     } catch { /* Ù†Ø§Ø¯ÛŒØ¯Ù‡ */ }
@@ -374,9 +365,9 @@ async function main(): Promise<void> {
       fixAttempt,
       priorFixDirective: prior.directive,
     }, teamRunId);
-    console.log(`team ${nextTeam} done`);
+    logger.info(`team ${nextTeam} done`);
   } catch (err) {
-    console.error(`team ${nextTeam} crashed:`, err instanceof Error ? err.message : String(err));
+    logger.error(`team ${nextTeam} crashed:`, undefined, err instanceof Error ? err.message : String(err));
     process.exitCode = 1;
   }
 
@@ -388,6 +379,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error('worker fatal:', err instanceof Error ? err.message : String(err));
+  logger.error('worker fatal:', undefined, err instanceof Error ? err.message : String(err));
   process.exitCode = 1;
 });
