@@ -72,7 +72,7 @@ export function TourCard({ tour, detailsLabel }: { tour: Tour; detailsLabel?: st
             {/* بج: برای ترکیبی فقط یک لکهٔ کهربایی «ترکیبی جدید»؛ بج shortTitle نمی‌آید (حکم ۲ بریف)
                 یافتهٔ ۲ ممیزی وایب‌فارسی (۲۰ مهر ۱۴۰۵): متن کهرباییِ تنها روی ماسک روشن ممنوع؛
                 فیل کهربایی + متن brand-foreground (اورراید در محل استفاده، قانون ۱۰) */}
-            <Badge variant="brand" className="bg-brand text-brand-foreground">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
+            <Badge variant="brand" className="bg-brand text-brand-ink">{isCombo ? "ترکیبی جدید" : tour.shortTitle}</Badge>
             {/* بج مدت‌زمان روی عکس (D-173): متن خاکستری تنها روی ماسک روشن
                 کم‌کنتراست بود؛ چیپ توپر گرافیتی + متن زمینه (الگوی چیپ
                 تخفیف Price در همین کارت)، خوانا روی عکس‌های روشن. */}
