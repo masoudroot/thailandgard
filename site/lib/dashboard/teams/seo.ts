@@ -35,6 +35,7 @@ import {
 } from '../knowledge/critic-knowledge';
 import { readSiteFile } from '../bridge/read';
 import { sanitizePersian, hasForbiddenDash, escapeTsString } from '../persian-text';
+import { logger } from '../../logger';
 import {
   runCriticLoop,
   combineReviewDirectives,
@@ -346,7 +347,7 @@ function insertH1Overrides(fileContent: string, items: SeoItem[]): string {
   if (markerIdx >= 0) {
     closeIdx = fileContent.lastIndexOf('};', markerIdx);
   } else {
-    console.warn('[seo] نشانگر درج seo-h1.ts پیدا نشد؛ درج پیش از آخرین «};» انجام شد.');
+    logger.warn('[seo] نشانگر درج seo-h1.ts پیدا نشد؛ درج پیش از آخرین «};» انجام شد.');
     closeIdx = fileContent.lastIndexOf('};');
   }
   if (closeIdx < 0) {
@@ -424,7 +425,7 @@ function insertMetaOverrides(fileContent: string, items: SeoItem[]): string {
   if (markerIdx >= 0) {
     closeIdx = fileContent.lastIndexOf('};', markerIdx);
   } else {
-    console.warn('[seo] نشانگر درج seo-meta.ts پیدا نشد؛ درج پیش از آخرین «};» انجام شد.');
+    logger.warn('[seo] نشانگر درج seo-meta.ts پیدا نشد؛ درج پیش از آخرین «};» انجام شد.');
     closeIdx = fileContent.lastIndexOf('};');
   }
   if (closeIdx < 0) {
@@ -626,7 +627,7 @@ async function loadRecentlyOptimizedSlugs(): Promise<Set<string>> {
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(
+    logger.warn(
       `[seo] خواندن سابقهٔ بهینه‌سازی ناموفق بود (${msg.slice(0, 120)})؛ بدون رد «اخیراً بهینه‌شده» ادامه می‌دهیم.`,
     );
   }
@@ -653,7 +654,7 @@ async function recordOptimizedSlugs(slugs: string[], runId: string): Promise<voi
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(
+      logger.warn(
         `[seo] ثبت رکورد بهینه‌سازی برای ${slug} ناموفق بود (${msg.slice(0, 120)})؛ رد «اخیراً بهینه‌شده» برای این اسلاگ فعال نمی‌شود.`,
       );
     }
@@ -886,12 +887,12 @@ export async function runTeam(input: SeoTeamInput): Promise<TeamResult> {
       );
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        console.warn(`[seo] تولید سئو برای اسلاگ ${slug} پس از همه‌ی تلاش‌ها ناموفق بود: ${msg.slice(0, 150)}`);
+        logger.warn(`[seo] تولید سئو برای اسلاگ ${slug} پس از همه‌ی تلاش‌ها ناموفق بود: ${msg.slice(0, 150)}`);
         continue;
       }
       // خروجی LLM ممکن است آبجکت نباشد (مثلاً عدد)؛ قبل از مقداردهی اعتبارسنجی می‌کنیم
       if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) {
-        console.warn(`[seo] خروجی نامعتبر LLM برای اسلاگ ${slug}:`, String(rawItem).slice(0, 100));
+        logger.warn(`[seo] خروجی نامعتبر LLM برای اسلاگ ${slug}:`, { detail: String(rawItem).slice(0, 100) });
         continue;
       }
       const item: SeoItem = rawItem;
@@ -903,13 +904,13 @@ export async function runTeam(input: SeoTeamInput): Promise<TeamResult> {
       item.metaDescription = sanitizePersian(item.metaDescription);
       const err = validateItem(item, page.title);
       if (err) {
-        console.warn(`[seo] قلم نامعتبر برای اسلاگ ${slug}: ${err}`);
+        logger.warn(`[seo] قلم نامعتبر برای اسلاگ ${slug}: ${err}`);
         continue;
       }
       items.push(item);
     }
     if (skipped.length > 0) {
-      console.warn(`[seo] اسلاگ‌های ناشناخته رد شدند (در هیچ منبع صفحه‌ای نیستند): ${skipped.join('، ')}`);
+      logger.warn(`[seo] اسلاگ‌های ناشناخته رد شدند (در هیچ منبع صفحه‌ای نیستند): ${skipped.join('، ')}`);
     }
     return items;
   };
@@ -967,7 +968,7 @@ export async function runTeam(input: SeoTeamInput): Promise<TeamResult> {
         );
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          console.warn(`[seo] سرپرست پس از همه‌ی تلاش‌ها ناموفق بود: ${msg.slice(0, 120)}؛ پس‌زدگی به ۲ اسلاگ اول.`);
+          logger.warn(`[seo] سرپرست پس از همه‌ی تلاش‌ها ناموفق بود: ${msg.slice(0, 120)}؛ پس‌زدگی به ۲ اسلاگ اول.`);
           pickRaw = '{}';
         }
         let slugs: string[] = [];

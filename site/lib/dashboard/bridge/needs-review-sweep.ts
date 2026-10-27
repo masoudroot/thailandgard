@@ -36,6 +36,7 @@ import { createHash } from 'node:crypto';
 import { getSupabase } from '../api';
 import { validatePatch } from './gate';
 import type { PatchFile } from '../types';
+import { logger } from '../../logger';
 
 /** سقف بررسی در هر اجرا تا بودجهٔ زمانی جاب خورده نشود. */
 export const NEEDS_REVIEW_SWEEP_LIMIT = 10;
@@ -169,7 +170,7 @@ async function transitionPatch(
     .select('id')
     .maybeSingle();
   if (error) {
-    console.error(`[needs-review-sweep] گذار پچ ${id} ناموفق بود:`, error.message);
+    logger.error(`[needs-review-sweep] گذار پچ ${id} ناموفق بود:`, undefined, error.message);
     return false;
   }
   return !!data;
@@ -177,7 +178,7 @@ async function transitionPatch(
 
 async function rejectPatch(id: string, reason: string): Promise<boolean> {
   const ok = await transitionPatch(id, { status: 'rejected', rejection_reason: reason });
-  if (ok) console.log(`[needs-review-sweep] پچ ${id} rejected شد: ${reason}`);
+  if (ok) logger.info(`[needs-review-sweep] پچ ${id} rejected شد: ${reason}`);
   return ok;
 }
 
@@ -197,7 +198,7 @@ async function findNewerMerged(): Promise<
     .order('created_at', { ascending: false })
     .limit(120);
   if (error) {
-    console.error('[needs-review-sweep] خواندن پچ‌های merged ناموفق بود:', error.message);
+    logger.error('[needs-review-sweep] خواندن پچ‌های merged ناموفق بود:', undefined, error.message);
     return [];
   }
   return ((data ?? []) as Array<Record<string, unknown>>).map((d) => ({
@@ -227,7 +228,7 @@ export async function sweepNeedsReviewPatches(): Promise<NeedsReviewSweepResult>
       .order('updated_at', { ascending: true })
       .limit(NEEDS_REVIEW_SWEEP_LIMIT);
     if (error) {
-      console.error('[needs-review-sweep] خواندن صف needs_review ناموفق بود:', error.message);
+      logger.error('[needs-review-sweep] خواندن صف needs_review ناموفق بود:', undefined, error.message);
       return result;
     }
     const rows = ((data ?? []) as Array<Record<string, unknown>>).map(toRow);
@@ -270,7 +271,7 @@ export async function sweepNeedsReviewPatches(): Promise<NeedsReviewSweepResult>
           case 'requeue': {
             const ok = await transitionPatch(row.id, { status: 'proposed', gate_errors: null });
             if (ok) {
-              console.log(`[needs-review-sweep] پچ ${row.id} دروازه را اکنون پاس کرد؛ به proposed برگشت.`);
+              logger.info(`[needs-review-sweep] پچ ${row.id} دروازه را اکنون پاس کرد؛ به proposed برگشت.`);
               result.requeued++;
             } else {
               result.left++;
@@ -283,20 +284,22 @@ export async function sweepNeedsReviewPatches(): Promise<NeedsReviewSweepResult>
             break;
         }
       } catch (err) {
-        console.error(
+        logger.error(
           `[needs-review-sweep] بررسی پچ ${row.id} خطا داد:`,
+          undefined,
           err instanceof Error ? err.message : err,
         );
         result.left++;
       }
     }
   } catch (err) {
-    console.error(
+    logger.error(
       '[needs-review-sweep] خطای غیرمنتظره:',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
-  console.log(
+  logger.info(
     `[needs-review-sweep] تمام شد: بررسی‌شده=${result.scanned}، کهنه=${result.rejectedStale}، تکراری=${result.rejectedDuplicate}، منسوخ=${result.rejectedSuperseded}، بازگشت به صف=${result.requeued}، مانده=${result.left}`,
   );
   return result;
