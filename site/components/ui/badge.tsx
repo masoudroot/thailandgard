@@ -11,7 +11,7 @@ type Variant = "default" | "secondary" | "outline" | "success" | "warning" | "br
 const variants: Record<Variant, string> = {
   default: "text-foreground",
   secondary: "text-muted-foreground",
-  outline: "text-foreground/55",
+  outline: "text-muted-foreground",
   // یافتهٔ ۱ ممیزی a11y ساعت ۱۷: text-success/text-warning روی پس‌زمینه
   // ۳٫۲۴:۱ و ۲٫۱۶:۱ می‌دادند؛ سایهٔ تیره‌تر همان توکن (۴٫۸۳:۱ و ۴٫۷:۱)
   success: "text-success-text",

@@ -87,7 +87,7 @@ function TourMiniCard({ tour }: { tour: Tour }) {
     <Card className="flex h-full flex-col">
       <CardContent className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-center justify-between gap-2">
-          <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-medium text-brand-foreground">
+          <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-medium text-brand-ink">
             {tour.shortTitle}
           </span>
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">

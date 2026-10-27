@@ -326,7 +326,7 @@ export default async function TourPage({ params }: Props) {
           <div aria-hidden className="absolute inset-0 bg-frame-mask-card" />
           <div className="absolute inset-x-0 bottom-0 space-y-2 p-5 sm:p-6">
             {/* یافتهٔ ۲ ممیزی وایب‌فارسی: فیل کهربایی + متن brand-foreground روی ماسک */}
-            <Badge variant="brand" className="bg-brand text-brand-foreground">{tour.shortTitle}</Badge>
+            <Badge variant="brand" className="bg-brand text-brand-ink">{tour.shortTitle}</Badge>
             <h1 className="font-display text-balance text-2xl text-foreground md:text-4xl">{h1}</h1>
           </div>
         </div>
