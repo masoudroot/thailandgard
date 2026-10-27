@@ -1,0 +1,32 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npx next start -p 3000",
+      "startServerReadyPattern": "Ready in",
+      "url": [
+        "http://localhost:3000/",
+        "http://localhost:3000/tours/phuket-7-days",
+        "http://localhost:3000/guide/thailand-visa-guide"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "throttlingMethod": "devtools",
+        "chromeFlags": "--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["error", { "minScore": 1 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
+        "total-blocking-time": ["error", { "maxNumericValue": 500 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 4000 }],
+        "first-contentful-paint": ["error", { "maxNumericValue": 4000 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "factory/.lighthouseci",
+      "reportFilenamePattern": "%%PATHNAME%%-%%DATETIME%%.report.%%EXTENSION%%"
+    }
+  }
+}
