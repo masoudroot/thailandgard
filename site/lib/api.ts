@@ -1,3 +1,4 @@
+import { logger } from './logger';
 export class Logger {
   private formatMessage(level: string, message: string, extras?: Record<string, unknown>): string {
     const timestamp = new Date().toISOString();
@@ -7,6 +8,6 @@ export class Logger {
 
   api(level: 'info' | 'warn' | 'error', message: string, extras?: Record<string, unknown>): void {
     const msg = this.formatMessage(level, message, extras);
-    console.log(msg);
+    logger.info(msg);
   }
 }

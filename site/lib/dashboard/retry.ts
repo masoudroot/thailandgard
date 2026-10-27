@@ -11,6 +11,7 @@
  */
 import { getSupabase } from './api';
 import type { MemoryEntry, TeamName, TeamResult } from './types';
+import { logger } from '../logger';
 
 export interface RetryInput {
   cycleId: string;
@@ -169,10 +170,10 @@ export async function retryFailedTeamRun(
           finished_at: new Date().toISOString(),
         })
         .eq('id', newRunId);
-      if (upErr) console.error(`[retry] failed to mark success for ${newRunId}:`, upErr.message);
+      if (upErr) logger.error(`[retry] failed to mark success for ${newRunId}:`, undefined, upErr.message);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`[retry] team "${failed.team}" failed again:`, message);
+      logger.error(`[retry] team "${failed.team}" failed again:`, undefined, message);
       const { error: upErr } = await sb
         .from('team_runs')
         .update({
@@ -181,7 +182,7 @@ export async function retryFailedTeamRun(
           finished_at: new Date().toISOString(),
         })
         .eq('id', newRunId);
-      if (upErr) console.error(`[retry] failed to record error for ${newRunId}:`, upErr.message);
+      if (upErr) logger.error(`[retry] failed to record error for ${newRunId}:`, undefined, upErr.message);
     }
   })();
 

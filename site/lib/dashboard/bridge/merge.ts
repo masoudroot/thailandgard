@@ -18,6 +18,7 @@ import { getGithubConfig } from '../github';
 import { GithubError } from '../github-changes';
 import { BRIDGE_BASE_BRANCH, BRIDGE_BRANCH_PREFIX, SITE_REPO } from './commit';
 import { preMergeTypeCheck } from './pre-merge-check';
+import { logger } from '../../logger';
 import {
   GITHUB_NOT_CONNECTED,
   getBridgePatch,
@@ -199,10 +200,10 @@ async function deleteBridgeBranch(
       signal: AbortSignal.timeout(15_000),
     });
     if (!delRes.ok && delRes.status !== 422) {
-      console.warn(`[bridge] حذف شاخهٔ ${branch} ناموفق بود (وضعیت ${delRes.status})؛ رد شد.`);
+      logger.warn(`[bridge] حذف شاخهٔ ${branch} ناموفق بود (وضعیت ${delRes.status})؛ رد شد.`);
     }
   } catch (err) {
-    console.warn(`[bridge] خطا در حذف شاخهٔ ${branch}:`, (err as Error)?.message ?? err);
+    logger.warn(`[bridge] خطا در حذف شاخهٔ ${branch}:`, { detail: (err as Error)?.message ?? err });
   }
 }
 
@@ -339,7 +340,7 @@ interface DevMainComparison {
 
 /** لاگ بلند و قابل‌جست‌وجو برای رویدادهای خط لولهٔ dev به main. */
 function alertDevMain(stage: string, detail: string): void {
-  console.error(`[bridge][dev→main][ALERT] [${stage}] ${detail}`);
+  logger.error(`[bridge][dev→main][ALERT] [${stage}] ${detail}`);
 }
 
 /**
@@ -526,7 +527,7 @@ export async function mergeDevIntoMainBestEffort(
         }
       }
       if (cmp.aheadBy === 0) {
-        console.log('[bridge] مرج خودکار dev←main: main از قبل به‌روز است.');
+        logger.info('[bridge] مرج خودکار dev←main: main از قبل به‌روز است.');
         return { merged: false, alreadyUpToDate: true, conflict: false, compareStatus: cmp.status };
       }
     } else {
@@ -537,7 +538,7 @@ export async function mergeDevIntoMainBestEffort(
     // نگهبان ۲: تایپ‌چک dev (fail-closed)
     try {
       await runDevMainTypeGate();
-      console.log(
+      logger.info(
         `[bridge] تایپ‌چک dev سبز است (sha=${cmp.devSha ?? 'unknown'})؛ مرج به main ادامه می‌یابد.`,
       );
     } catch (err) {
@@ -558,7 +559,7 @@ export async function mergeDevIntoMainBestEffort(
 
     if (mRes.status === 204) {
       // main از قبل شامل dev است؛ چیزی برای مرج نبود
-      console.log('[bridge] مرج خودکار dev←main: main از قبل به‌روز است.');
+      logger.info('[bridge] مرج خودکار dev←main: main از قبل به‌روز است.');
       return { merged: false, alreadyUpToDate: true, conflict: false, compareStatus: cmp.status };
     }
     if (mRes.status === 409) {
@@ -588,7 +589,7 @@ export async function mergeDevIntoMainBestEffort(
         `پاسخ مرج موفق بود (وضعیت ${mRes.status}) ولی sha نداشت؛ وضعیت main باید دستی راستی شود.`,
       );
     }
-    console.log(`[bridge] مرج خودکار dev←main انجام شد (sha=${mBody.sha ?? 'unknown'}). ورسل به‌زودی دیپلوی می‌کند.`);
+    logger.info(`[bridge] مرج خودکار dev←main انجام شد (sha=${mBody.sha ?? 'unknown'}). ورسل به‌زودی دیپلوی می‌کند.`);
     return {
       merged: true,
       alreadyUpToDate: false,

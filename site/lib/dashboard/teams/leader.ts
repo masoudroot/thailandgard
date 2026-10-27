@@ -35,6 +35,7 @@ import { getSupabase } from '../api';
 import { readSiteFile } from '../bridge/read';
 import { callLLMJson } from '../llm';
 import { enqueueTask, formatError } from '../taskqueue';
+import { logger } from '../../logger';
 import type {
   MemoryEntry,
   ProgressReporter,
@@ -735,7 +736,7 @@ export async function runTeam(input: TeamInput): Promise<TeamResult> {
         description = converted.description;
         filesHint = converted.files_hint;
         convertedSemantic++;
-        console.log(
+        logger.info(
           `[leader] تسک «${p.title}» با «${overlap.title}» هم‌پوشانی معنایی داشت؛ به [آپدیت] ${overlap.slug} تبدیل شد.`,
         );
         // تسک تبدیلی هم نباید با تسک باز دیگری تکراری باشد
@@ -759,7 +760,7 @@ export async function runTeam(input: TeamInput): Promise<TeamResult> {
       });
       openTasks.push({ team, title }); // ضدتکراری درون همین اجرا
       queued.push({ title, description, files_hint: filesHint, priority });
-      console.log(`[leader] تسک «${title}» برای تیم ${team} ثبت شد (id=${id}).`);
+      logger.info(`[leader] تسک «${title}» برای تیم ${team} ثبت شد (id=${id}).`);
     } catch (err) {
       const msg = formatError(err);
       blockers.push(`ثبت تسک «${title}» ناموفق بود: ${msg}`);

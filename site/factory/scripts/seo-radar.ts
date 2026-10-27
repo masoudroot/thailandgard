@@ -5,6 +5,7 @@ import {
   type SeoRadarInput,
 } from '../../lib/factory/seo/radar';
 import { persistSeoSignals } from '../../lib/factory/seo/store';
+import { logger } from '../../lib/logger';
 
 function dateDaysAgo(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
@@ -84,7 +85,7 @@ async function main(): Promise<void> {
     ? await persistSeoSignals(radar.signals)
     : null;
 
-  console.log(
+  logger.info(
     JSON.stringify(
       {
         generatedAt: radar.generatedAt,
@@ -100,8 +101,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error(
+  logger.error(
     '[seo-radar]',
+    undefined,
     error instanceof Error ? error.message : String(error),
   );
   process.exit(1);

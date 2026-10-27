@@ -5,6 +5,7 @@ import {
 } from '../../lib/factory/tours/facts';
 import { loadFactoryEnvFile } from '../../lib/factory/local-env';
 import { persistTourFacts } from '../../lib/factory/tours/store';
+import { logger } from '../../lib/logger';
 
 async function main(): Promise<void> {
   loadFactoryEnvFile();
@@ -27,7 +28,7 @@ async function main(): Promise<void> {
     persistence = await persistTourFacts(facts);
   }
 
-  console.log(
+  logger.info(
     JSON.stringify(
       {
         generatedAt: new Date().toISOString(),
@@ -45,8 +46,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error(
+  logger.error(
     '[tour-facts]',
+    undefined,
     error instanceof Error ? error.message : String(error),
   );
   process.exit(1);

@@ -22,6 +22,7 @@
 
 import { getSetting } from './settings';
 import { getSupabase } from './api';
+import { logger } from '../logger';
 
 // ---------------------------------------------------------------------------
 // پیکربندی
@@ -506,7 +507,7 @@ export async function applyTeamPatch(opts: ApplyOptions): Promise<ApplyResult> {
   if (insertErr || !inserted) {
     // کامیت انجام شده ولی ثبت حسابرسی نه؛ خطا را لاگ می‌کنیم ولی برنمی‌گردانیم
     // چون برگرداندن کامیت واقعی گیت‌هاب ممکن نیست.
-    console.error('[execution-guard] audit insert failed:', insertErr?.message);
+    logger.error('[execution-guard] audit insert failed:', undefined, insertErr?.message);
   }
 
   return {

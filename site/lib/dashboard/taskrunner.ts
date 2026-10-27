@@ -19,6 +19,7 @@ import {
   markTaskRunning,
 } from './taskqueue';
 import { TEAMS, type TeamName } from './types';
+import { logger } from '../logger';
 
 export interface DirectTaskInput {
   id: string;
@@ -165,7 +166,7 @@ export async function triggerTaskRun(id: string): Promise<void> {
       await completeTask(id, summary);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`[taskrunner] task ${id} failed:`, message);
+      logger.error(`[taskrunner] task ${id} failed:`, undefined, message);
       await markTaskFailed(id, message);
     }
   })();

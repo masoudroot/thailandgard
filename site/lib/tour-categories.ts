@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache';
 /* دسته‌بندی‌های تور تایلندگرد؛ محتوای واقعی فارسی برای صفحات لیستینگ.
    تورهای هر دسته با getCategoryTours از روی دادهٔ زندهٔ تورها ساخته می‌شود. */
 
@@ -1437,6 +1438,9 @@ export function getCategoryTours(
  */
 export async function getCategoryToursCached(category: TourCategory): Promise<Tour[]> {
   "use cache";
+  // Same reason as isPriceFreshCached: Next 16.4.3 needs an explicit cache
+  // lifetime before a cached entry may read the clock during prerender.
+  cacheLife({ stale: 900, revalidate: 900, expire: 3600 });
   const tours = await getTours();
   return getCategoryTours(category, tours, Date.now());
 }

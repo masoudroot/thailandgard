@@ -1,5 +1,6 @@
 import { runTechnicalSeoGate } from '../../lib/factory/gates/technical-seo';
 import { loadFactoryEnvFile } from '../../lib/factory/local-env';
+import { logger } from '../../lib/logger';
 
 function option(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -36,13 +37,14 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log(JSON.stringify({ url, result }, null, 2));
+  logger.info(JSON.stringify({ url, result }, null, 2));
   if (!result.passed) process.exitCode = 1;
 }
 
 main().catch((error) => {
-  console.error(
+  logger.error(
     '[seo-gate]',
+    undefined,
     error instanceof Error ? error.message : String(error),
   );
   process.exit(1);

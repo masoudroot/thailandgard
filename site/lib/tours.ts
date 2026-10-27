@@ -1,3 +1,5 @@
+import { cacheLife } from 'next/cache';
+
 /* فالبک بیلد؛ منبع اصلی دیتابیس است. */
 /** دادهٔ تورهای تایلندگرد. قیمت‌ها «قیمت پایه» و تقریبی‌اند. */
 
@@ -85,6 +87,12 @@ export async function isPriceFreshCached(
   priceUpdatedAt: string | null | undefined,
 ): Promise<boolean> {
   "use cache";
+  // Next 16.4.3 refuses to read the clock during prerender even inside
+  // "use cache" unless the entry has an explicit lifetime. `cacheLife` tells
+  // Next how long the value stays valid, so the timestamp is cached with it
+  // instead of being treated as an unstable read that aborts the build.
+  // 15 minutes matches the site's ISR window used across app/(site).
+  cacheLife({ stale: 900, revalidate: 900, expire: 3600 });
   return isPriceFresh(priceFrom, priceUpdatedAt, Date.now());
 }
 

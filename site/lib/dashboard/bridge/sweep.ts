@@ -21,6 +21,7 @@
 import { getSupabase } from '../api';
 import { sweepNeedsReviewPatches } from './needs-review-sweep';
 import { processDeployQueue } from './deploy-queue';
+import { logger } from '../../logger';
 
 /** سقف پردازش پچ‌های یتیم در هر اجرا، تا بودجه‌ی زمانی جاب خورده نشود. */
 export const ORPHAN_SWEEP_LIMIT = 3;
@@ -32,8 +33,9 @@ export async function sweepOrphanedBridgePatches(): Promise<void> {
   try {
     await sweepNeedsReviewPatches();
   } catch (err) {
-    console.error(
+    logger.error(
       '[bridge-sweep] جاروی needs_review خطا داد:',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
@@ -42,11 +44,12 @@ export async function sweepOrphanedBridgePatches(): Promise<void> {
   try {
     const dq = await processDeployQueue();
     if (dq.processed > 0 || dq.deployed > 0 || dq.failed > 0) {
-      console.log(`[bridge-sweep] صف دیپلوی: ${dq.message}`);
+      logger.info(`[bridge-sweep] صف دیپلوی: ${dq.message}`);
     }
   } catch (err) {
-    console.error(
+    logger.error(
       '[bridge-sweep] پردازشگر صف دیپلوی خطا داد:',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
@@ -63,18 +66,19 @@ export async function sweepOrphanedBridgePatches(): Promise<void> {
     for (const row of data as Array<{ id: string; team: string }>) {
       try {
         const res = await processProposedPatch(row.id);
-        console.log(
+        logger.info(
           `[bridge-sweep] patch ${row.id} (team ${row.team}): ` +
             (res.merged ? `merged به dev` : res.gated ? `committed ولی مرج نشد` : `needs_review`),
         );
       } catch (err) {
-        console.error(
+        logger.error(
           `[bridge-sweep] patch ${row.id} خطا داد:`,
+          undefined,
           err instanceof Error ? err.message : err,
         );
       }
     }
   } catch (err) {
-    console.error('[bridge-sweep] خطای غیرمنتظره:', err instanceof Error ? err.message : err);
+    logger.error('[bridge-sweep] خطای غیرمنتظره:', undefined, err instanceof Error ? err.message : err);
   }
 }

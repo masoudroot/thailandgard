@@ -40,6 +40,7 @@ export interface GithubCommit {
 }
 
 import type { PatchFile } from './types';
+import { logger } from '../logger';
 export type { PatchFile } from './types';
 
 const NOT_CONNECTED_MESSAGE =
@@ -327,7 +328,7 @@ async function reuseExistingBridgeBranch(
   } catch (err) {
     // بررسی idempotency بهترین تلاش است؛ شکستش بی‌صدا قورت داده نمی‌شود تا
     // در لاگ دیده شود، ولی خطای ۴۲۲ اصلیِ صداکننده همچنان بالا می‌آید.
-    console.warn(
+    logger.warn(
       `[github] بررسی استفادهٔ مجدد از شاخهٔ «${branch}» ناموفق بود: ${
         err instanceof Error ? err.message : String(err)
       }`,

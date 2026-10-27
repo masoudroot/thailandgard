@@ -7,6 +7,7 @@
 
 import { getSupabase } from './api';
 import type { MemoryEntry, TeamName } from './types';
+import { logger } from '../logger';
 
 interface MemoryRow {
   team: string;
@@ -83,10 +84,10 @@ async function archivePreviousVersion(team: string, key: string): Promise<void> 
       .from('memory_history')
       .insert({ team, key, value: (data as { value: unknown }).value });
     if (insertError) {
-      console.error('[memory] failed to archive previous version:', insertError.message);
+      logger.error('[memory] failed to archive previous version:', undefined, insertError.message);
     }
   } catch (err) {
-    console.error('[memory] history archive failed:', err instanceof Error ? err.message : err);
+    logger.error('[memory] history archive failed:', undefined, err instanceof Error ? err.message : err);
   }
 }
 

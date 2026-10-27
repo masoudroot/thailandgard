@@ -16,6 +16,7 @@
  */
 
 import { getSupabase } from './api';
+import { logger } from '../logger';
 import {
   EXPECTED_EMBEDDING_DIM,
   resolveEmbeddingChain,
@@ -100,7 +101,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
       outcome.status,
     );
     failures.push(`${cfg.model} (${outcome.status ?? 'خطا'})`);
-    console.warn(
+    logger.warn(
       `[embedding] کاندیدای ${i + 1}/${chain.length} ناموفق بود (${cfg.model}): ${outcome.status ?? outcome.kind}؛ تلاش با کاندیدای بعدی.`,
     );
     if (outcome.kind === 'skip-endpoint') {

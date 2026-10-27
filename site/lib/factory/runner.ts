@@ -12,6 +12,7 @@
 import * as activities from './activities';
 import type { ContentBrief } from './content/contracts';
 import type { TechnicalSeoExpectations } from './gates/technical-seo';
+import { logger } from '../logger';
 
 const {
   loadWorkItem,
@@ -114,9 +115,9 @@ async function withRetry<T>(run: () => Promise<T>): Promise<T> {
       return await run();
     } catch (error) {
       if (attempt >= RETRY.maximumAttempts || isNonRetryable(error)) throw error;
-      console.warn(
+      logger.warn(
         `[factory:runner] attempt ${attempt}/${RETRY.maximumAttempts} failed, retrying in ${delayMs}ms:`,
-        error instanceof Error ? error.message : String(error),
+        { detail: error instanceof Error ? error.message : String(error) },
       );
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       delayMs *= RETRY.backoffCoefficient;
@@ -192,7 +193,7 @@ export async function runWorkItem(
   );
   await step(() => markWorkItemDone(input));
 
-  console.log(
+  logger.info(
     `[factory:runner] walking skeleton completed workItemId=${input.workItemId} releaseId=${release.id}`,
   );
   return { status: 'done', releaseId: release.id, outcomeId: outcome.id };
@@ -243,7 +244,7 @@ export async function runSeoOps(input: SeoOpsRunInput): Promise<SeoOpsRunResult>
   }
 
   await step(() => markWorkItemAwaitingApproval(input));
-  console.log(
+  logger.info(
     `[factory:runner] SEO ops plan ready workItemId=${input.workItemId} risk=${item.risk} signalCount=${radar.signals.length}`,
   );
   return {
@@ -289,7 +290,7 @@ export async function runTourOps(
   }
 
   await step(() => markWorkItemAwaitingApproval(input));
-  console.log(
+  logger.info(
     `[factory:runner] tour ops plan ready workItemId=${input.workItemId} tours=${inspection.facts.length}`,
   );
   return {
@@ -325,7 +326,7 @@ export async function runOutreach(
   }
 
   await step(() => markWorkItemAwaitingApproval(input));
-  console.log(
+  logger.info(
     `[factory:runner] outreach plan ready workItemId=${input.workItemId} planned=${plan.planned} skipped=${plan.skipped}`,
   );
   return {

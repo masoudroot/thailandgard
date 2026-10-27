@@ -13,6 +13,7 @@
  */
 
 import { getSupabase } from '../lib/dashboard/api';
+import { logger } from '../lib/logger';
 
 interface RuleSeed {
   team: string;
@@ -213,7 +214,7 @@ interface RuleSeed {
 async function main(): Promise<void> {
   const sb = getSupabase();
   const all: RuleSeed[] = [...RULES, ...RULES_PART2, ...RULES_PART3, ...RULES_PART4];
-  console.log(`[seed-golden-rules] ${all.length} قانون برای سید`);
+  logger.info(`[seed-golden-rules] ${all.length} قانون برای سید`);
   let inserted = 0;
   let skipped = 0;
   for (const r of all) {
@@ -232,7 +233,7 @@ async function main(): Promise<void> {
       if (error.code === '23505') {
         skipped++;
       } else {
-        console.error(`[seed-golden-rules] خطا برای ${r.team}:`, error.message);
+        logger.error(`[seed-golden-rules] خطا برای ${r.team}:`, undefined, error.message);
       }
     } else {
       inserted++;
@@ -241,11 +242,11 @@ async function main(): Promise<void> {
   const { count } = await sb
     .from('team_golden_rules')
     .select('id', { count: 'exact', head: true });
-  console.log(`[seed-golden-rules] درج/به‌روزرسانی: ${inserted} | مجموع جدول: ${count}`);
-  if (skipped > 0) console.log(`[seed-golden-rules] تکراری ردشده: ${skipped}`);
+  logger.info(`[seed-golden-rules] درج/به‌روزرسانی: ${inserted} | مجموع جدول: ${count}`);
+  if (skipped > 0) logger.info(`[seed-golden-rules] تکراری ردشده: ${skipped}`);
 }
 
 main().catch((err) => {
-  console.error('[seed-golden-rules] خطای غیرمنتظره:', err instanceof Error ? err.message : err);
+  logger.error('[seed-golden-rules] خطای غیرمنتظره:', undefined, err instanceof Error ? err.message : err);
   process.exit(1);
 });

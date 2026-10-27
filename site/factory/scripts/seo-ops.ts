@@ -4,6 +4,7 @@ import { drainProjections } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
 import { runSeoOps } from '../../lib/factory/runner';
+import { logger } from '../../lib/logger';
 
 function option(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -61,7 +62,7 @@ async function main(): Promise<void> {
   await drainProjections(new PgProjectorStore(getPool()));
   const stored = await getWorkItem(item.id);
 
-  console.log(
+  logger.info(
     JSON.stringify(
       {
         workItemId: item.id,
@@ -80,8 +81,9 @@ async function main(): Promise<void> {
 
 main()
   .catch((error) => {
-    console.error(
+    logger.error(
       '[seo-ops]',
+      undefined,
       error instanceof Error ? error.message : String(error),
     );
     process.exitCode = 1;

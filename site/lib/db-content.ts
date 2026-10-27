@@ -47,6 +47,7 @@ import {
   type InlineLinkBlock,
 } from "./related";
 import { cacheTag } from "next/cache";
+import { logger } from './logger';
 
 /* ---------- شکل سطرهای دیتابیس (ستون‌ها snake_case) ---------- */
 
@@ -317,7 +318,7 @@ export async function getTours(): Promise<Tour[]> {
     fetchTable<TourLegRow>("tour_legs"),
   ]);
   if (!rows || !dayRows || !faqRows) {
-    console.warn("[db-content] getTours: دیتابیس در دسترس نیست؛ فالبک tours.ts");
+    logger.warn("[db-content] getTours: دیتابیس در دسترس نیست؛ فالبک tours.ts");
     return TOURS_FALLBACK;
   }
   const ordered = inFileOrder(rows, TOURS_FALLBACK.map((t) => t.slug));
@@ -340,7 +341,7 @@ export async function getGuides(): Promise<Guide[]> {
     fetchTable<GuideFaqRow>("guide_faqs"),
   ]);
   if (!rows || !sectionRows || !faqRows) {
-    console.warn("[db-content] getGuides: دیتابیس در دسترس نیست؛ فالبک guides.ts");
+    logger.warn("[db-content] getGuides: دیتابیس در دسترس نیست؛ فالبک guides.ts");
     return GUIDES_FALLBACK;
   }
   const ordered = inFileOrder(rows, GUIDES_FALLBACK.map((g) => g.slug));
@@ -350,7 +351,7 @@ export async function getGuides(): Promise<Guide[]> {
   const dbSlugs = new Set(dbGuides.map((g) => g.slug));
   const fileOnly = GUIDES_FALLBACK.filter((g) => !dbSlugs.has(g.slug));
   if (fileOnly.length > 0) {
-    console.warn(
+    logger.warn(
       `[db-content] getGuides: ${fileOnly.length} راهنما فقط در فایل است: ${fileOnly.map((g) => g.slug).join(", ")}`
     );
   }
@@ -366,7 +367,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   cacheTag('site-settings');
   const rows = await fetchTable<SettingRow>("site_settings");
   if (!rows) {
-    console.warn("[db-content] getSiteSettings: دیتابیس در دسترس نیست؛ فالبک site.ts");
+    logger.warn("[db-content] getSiteSettings: دیتابیس در دسترس نیست؛ فالبک site.ts");
     return SITE_SETTINGS_FALLBACK;
   }
   const byKey = new Map(rows.map((r) => [r.key, r.value]));
@@ -439,7 +440,7 @@ export async function getRelatedLinks(): Promise<RelatedLinks> {
   cacheTag('related-links');
   const rows = await fetchTable<RelatedRow>("related_links");
   if (!rows) {
-    console.warn("[db-content] getRelatedLinks: دیتابیس در دسترس نیست؛ فالبک related.ts");
+    logger.warn("[db-content] getRelatedLinks: دیتابیس در دسترس نیست؛ فالبک related.ts");
     return { guideToTours: GUIDE_TO_TOURS_FALLBACK, tourToGuides: TOUR_TO_GUIDES_FALLBACK };
   }
   const guideToTours: Record<string, InlineLinkBlock> = {};

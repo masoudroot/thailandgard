@@ -36,6 +36,7 @@
 import { getSupabase } from '../api';
 import { callLLMJson } from '../llm';
 import { enqueueTask, formatError } from '../taskqueue';
+import { logger } from '../../logger';
 import type {
   MemoryEntry,
   ProgressReporter,
@@ -484,7 +485,7 @@ export async function runTeam(input: TeamInput): Promise<TeamResult> {
         files_hint: p.files_hint,
         priority: p.priority,
       });
-      console.log(`[tour-manager] تسک «${p.title}» برای تیم ${p.team} ثبت شد (id=${id}).`);
+      logger.info(`[tour-manager] تسک «${p.title}» برای تیم ${p.team} ثبت شد (id=${id}).`);
     } catch (err) {
       const msg = formatError(err);
       blockers.push(`ثبت تسک «${p.title}» ناموفق بود: ${msg}`);

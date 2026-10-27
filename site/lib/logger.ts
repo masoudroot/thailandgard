@@ -109,6 +109,19 @@ function isErrorLike(value: unknown): value is Error {
   return value instanceof Error;
 }
 
+/**
+ * Next.js 16 forbids reading the wall clock during static prerendering and
+ * aborts the build. Logging still needs a timestamp, so outside prerender we
+ * keep a real ISO date, and during prerender we emit a stable marker instead
+ * of failing the whole page render.
+ */
+function prerenderSafeTimestamp(): string {
+  if (typeof process !== 'undefined' && process.env?.NEXT_PHASE === 'phase-production-build') {
+    return 'build';
+  }
+  return new Date().toISOString();
+}
+
 function toErrorPayload(error: unknown): unknown {
   if (isErrorLike(error)) {
     return {
@@ -145,7 +158,11 @@ export class Logger {
   }
 
   private buildEntry(level: LogLevel, message: string, meta?: LogContext): LogEntry {
-    const timestamp = new Date().toISOString();
+    // Prerender-safe timestamp: Next.js 16 aborts static prerendering when a
+    // component reads the clock. `performance.now()` is allowed by the
+    // documented escape hatch, but it is a monotonic counter rather than a
+    // wall clock, so we only fall back to it while prerendering.
+    const timestamp = prerenderSafeTimestamp();
     const safeMessage = typeof message === 'string' ? message : String(message);
     const context = meta && Object.keys(meta).length > 0 ? { ...meta } : undefined;
     const formatted = Logger.formatMessage(level, timestamp, safeMessage, context);
