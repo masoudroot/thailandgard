@@ -38,7 +38,7 @@
     "lib/dashboard/rag.ts": 1,
     "lib/dashboard/retry.ts": 3,
     "lib/dashboard/self-heal.ts": 5,
-    "lib/dashboard/taskqueue.ts": 11,
+    "lib/dashboard/taskqueue.ts": 0,
     "lib/dashboard/taskrunner.ts": 1,
     "lib/dashboard/team-health.ts": 0,
     "lib/dashboard/teams/design.ts": 5,
