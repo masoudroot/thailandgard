@@ -14,6 +14,7 @@
 
 import { getSupabase } from '../lib/dashboard/api';
 import { callLLM } from '../lib/dashboard/llm';
+import { logger } from '../lib/logger';
 
 /** منابع RSS؛ بدون کلید، عمومی. */
 const SOURCES: Array<{ name: string; url: string }> = [
@@ -155,7 +156,7 @@ async function enrichWithLLM(items: RssItem[]): Promise<Map<RssItem, EnrichedIte
   });
   const arr = extractJsonArray(text);
   if (!arr) {
-    console.error('[intel-daily] خروجی LLM آرایهٔ JSON معتبر نبود.');
+    logger.error('[intel-daily] خروجی LLM آرایهٔ JSON معتبر نبود.');
     return out;
   }
   arr.slice(0, items.length).forEach((v, i) => {
@@ -178,22 +179,22 @@ async function main(): Promise<void> {
         signal: AbortSignal.timeout(25000),
       });
       if (!res.ok) {
-        console.error(`[intel-daily] ${src.name}: HTTP ${res.status}`);
+        logger.error(`[intel-daily] ${src.name}: HTTP ${res.status}`);
         continue;
       }
       const xml = await res.text();
       const parsed = parseRss(xml, src.name);
-      console.log(`[intel-daily] ${src.name}: ${parsed.length} آیتم خام`);
+      logger.info(`[intel-daily] ${src.name}: ${parsed.length} آیتم خام`);
       for (const it of parsed) {
         if (seen.has(it.link)) continue;
         seen.add(it.link);
         if (isFresh(it) && isTravelRelevant(it)) candidates.push(it);
       }
     } catch (err) {
-      console.error(`[intel-daily] ${src.name} خطا:`, err instanceof Error ? err.message : err);
+      logger.error(`[intel-daily] ${src.name} خطا:`, undefined, err instanceof Error ? err.message : err);
     }
   }
-  console.log(`[intel-daily] ${candidates.length} آیتم تازه و مرتبط`);
+  logger.info(`[intel-daily] ${candidates.length} آیتم تازه و مرتبط`);
 
   // ۲) ضدتکراری با intel_feed (۱۴ روز اخیر)
   const since = new Date(Date.now() - DEDUP_DAYS * 24 * 3600 * 1000).toISOString();
@@ -202,21 +203,21 @@ async function main(): Promise<void> {
     .select('source_url')
     .gte('created_at', since);
   if (existErr) {
-    console.error('[intel-daily] خطا در خواندن intel_feed:', existErr.message);
+    logger.error('[intel-daily] خطا در خواندن intel_feed:', undefined, existErr.message);
     process.exit(1);
   }
   const knownUrls = new Set((existing ?? []).map((r: { source_url: string | null }) => r.source_url));
   const fresh = candidates.filter((it) => !knownUrls.has(it.link)).slice(0, MAX_ITEMS);
-  console.log(`[intel-daily] ${fresh.length} آیتم تازهٔ غیرتکراری`);
+  logger.info(`[intel-daily] ${fresh.length} آیتم تازهٔ غیرتکراری`);
   if (fresh.length === 0) {
-    console.log('[intel-daily] چیز تازه‌ای نیست؛ پایان.');
+    logger.info('[intel-daily] چیز تازه‌ای نیست؛ پایان.');
     return;
   }
 
   // ۳) غنی‌سازی با LLM
   const enriched = await enrichWithLLM(fresh);
   if (enriched.size === 0) {
-    console.error('[intel-daily] غنی‌سازی ناموفق بود؛ چیزی درج نشد.');
+    logger.error('[intel-daily] غنی‌سازی ناموفق بود؛ چیزی درج نشد.');
     process.exit(1);
   }
 
@@ -234,13 +235,13 @@ async function main(): Promise<void> {
   });
   const { error: insErr } = await sb.from('intel_feed').insert(rows);
   if (insErr) {
-    console.error('[intel-daily] خطا در درج:', insErr.message);
+    logger.error('[intel-daily] خطا در درج:', undefined, insErr.message);
     process.exit(1);
   }
-  console.log(`[intel-daily] ${rows.length} آیتم در intel_feed درج شد.`);
+  logger.info(`[intel-daily] ${rows.length} آیتم در intel_feed درج شد.`);
 }
 
 main().catch((err) => {
-  console.error('[intel-daily] خطای غیرمنتظره:', err instanceof Error ? err.message : err);
+  logger.error('[intel-daily] خطای غیرمنتظره:', undefined, err instanceof Error ? err.message : err);
   process.exit(1);
 });

@@ -56,7 +56,7 @@
     "worker/cycle-worker.ts": 0,
     "worker/factory/projector.ts": 1,
     "worker/gsc-daily.ts": 11,
-    "worker/intel-daily.ts": 12,
+    "worker/intel-daily.ts": 0,
     "worker/knowledge-review.ts": 5,
     "worker/planner-worker.ts": 3,
     "worker/seed-golden-rules.ts": 5
