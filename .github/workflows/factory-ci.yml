@@ -56,6 +56,43 @@ jobs:
       - run: npm test
       - run: npm run factory:walking-skeleton
       - run: npm run build
+      # Q2-08: security report only. `npm audit` exit codes must never block a
+      # PR, because some advisories live in dev-only or upstream packages we
+      # cannot patch ourselves. The report is kept as a CI artifact.
+      - name: npm audit report (non-blocking)
+        if: always()
+        continue-on-error: true
+        run: |
+          npm audit --json > npm-audit.json || true
+          node -e "
+            const fs = require('fs');
+            let report = null;
+            try { report = JSON.parse(fs.readFileSync('npm-audit.json', 'utf8').replace(/^\uFEFF/, '').trim()); } catch { report = null; }
+            if (!report || !report.metadata) {
+              console.log('npm audit produced no parsable JSON; skipping summary');
+              process.exit(0);
+            }
+            const v = report.metadata.vulnerabilities ?? {};
+            console.log('total=' + (v.total ?? 0) + ' critical=' + (v.critical ?? 0) + ' high=' + (v.high ?? 0) + ' moderate=' + (v.moderate ?? 0) + ' low=' + (v.low ?? 0));
+            const summary = ['# npm audit report', '', '| severity | count |', '|---|---|',
+              '| critical | ' + (v.critical ?? 0) + ' |',
+              '| high | ' + (v.high ?? 0) + ' |',
+              '| moderate | ' + (v.moderate ?? 0) + ' |',
+              '| low | ' + (v.low ?? 0) + ' |',
+              '| **total** | **' + (v.total ?? 0) + '** |', ''];
+            for (const [name, adv] of Object.entries(report.vulnerabilities ?? {})) {
+              summary.push('- ' + name + ' (' + adv.severity + ')');
+            }
+            fs.writeFileSync('npm-audit-summary.md', summary.join('\n'));
+          "
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-audit
+          path: |
+            site/npm-audit.json
+            site/npm-audit-summary.md
+          if-no-files-found: ignore
       # Q3-08: بودجهٔ کارایی + axe در همان job و همان چک اجباری `test`.
       # آستانه‌ها از docs/ops/perf-budget.md می‌آیند (ADR-013).
       - name: Lighthouse gate (performance budget + axe)
