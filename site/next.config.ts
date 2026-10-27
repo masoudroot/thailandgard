@@ -77,6 +77,18 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    /*
+     * F4 (بودجهٔ FCP): CSS سایت یک فایل ۹۹KB (۱۷KB gzip) است و به‌صورت
+     * render-blocking در head می‌آید. در ترِیس کندسازی واقعی، اولین رنگ‌آمیزی
+     * دقیقاً پس از رسیدن همین فایل شروع می‌شود (پایان CSS در ۱۶۴۲ms و یک تسک
+     * ۵۵۳ms بلافاصله بعدش). با inline شدن، CSS قبل از پایان پاسخ سند حاضر است
+     * و یک رفت‌وبرگشت کامل شبکه (RTT + دانلود) از مسیر بحرانی حذف می‌شود.
+     * هزینه: HTML هر صفحه ~۱۷KB بزرگ‌تر (با brotli کمتر) و از کش مشترک CSS
+     * بین صفحه‌ها خبری نیست؛ برای صفحهٔ فرود (اولین بازدید) بردش بیشتر است.
+     */
+    inlineCss: true,
+  },
   turbopack: {
     rules: {
       "*.css": {

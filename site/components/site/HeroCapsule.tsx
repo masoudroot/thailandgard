@@ -1,9 +1,7 @@
-"use client";
-
 import { MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/animations/reveal";
+import { RevealStatic } from "@/components/animations/reveal-static";
 import { BlurText } from "@/components/animations/blur-text";
 import { Meteors } from "@/components/animations/meteors";
 
@@ -71,9 +69,9 @@ export function HeroCapsule({
       <Meteors count={6} once className="motion-reduce:hidden" />
 
       <div className="relative mx-auto max-w-3xl">
-        <Reveal durationMs={200}>
+        <RevealStatic durationMs={200}>
           <Badge variant="brand">متخصص تایلند</Badge>
-        </Reveal>
+        </RevealStatic>
 
         {/* تیتر برند (تصمیم مسعود، ۲۵ مهر ۱۴۰۵): «تایلندگرد؛ مشاور شما برای
             انتخاب بهترین تور تایلند»؛ به‌جای تیتر قبلی («تایلندگرد؛ مشاورت برای
@@ -82,16 +80,16 @@ export function HeroCapsule({
           <BlurText text="تایلندگرد؛ مشاور شما برای انتخاب بهترین تور تایلند" delay={60} durationMs={300} />
         </h1>
 
-        <Reveal delay={120} durationMs={200}>
+        <RevealStatic delay={120} durationMs={200}>
           <p className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg">
             {/* سند برند ۱.۰: زیرتیتر تصمیم‌محور؛ بانکوک، پوکت، پاتایا یا ترکیبی —
                 تفاوت مقصدها را بشناس، بعد با مشاور ما گزینه مناسب خودت را انتخاب کن. */}
             بانکوک، پوکت، پاتایا یا سفر ترکیبی؟ تفاوت مقصدها، فصل سفر و جزئیات تور را
             بشناس؛ بعد با مشاور تایلندگرد گزینه مناسب خودت را انتخاب کن.
           </p>
-        </Reveal>
+        </RevealStatic>
 
-        <Reveal delay={240} durationMs={200} className="mt-8">
+        <RevealStatic delay={240} durationMs={200} className="mt-8">
           <div className="flex flex-col items-center justify-center gap-3">
             <Button asChild size="lg" variant="brand" className="rounded-full px-7">
               <a href={phoneHref} data-call-context="hero">
@@ -110,19 +108,19 @@ export function HeroCapsule({
               <span className="sr-only"> (در تب جدید)</span>
             </a>
           </div>
-        </Reveal>
+        </RevealStatic>
 
         {/* امضای ایرانی: خط‌حایل مویی با لوزی + جملهٔ انسانی.
             لهجهٔ کوچکِ برند، نه تزئین اضافه (حکم برندینگ: شعارزدگی ممنوع).
             نکته (۲۴ مهر ۱۴۰۵): لوزی با text-brand-foreground (سبز عمیق)
             روی خط مویی می‌نشیند تا با پالت برند بخواند. */}
-        <Reveal delay={360} durationMs={200} className="mt-10">
+        <RevealStatic delay={360} durationMs={200} className="mt-10">
           <div aria-hidden className="mx-auto flex max-w-xs items-center gap-3">
             <span className="h-px flex-1 bg-foreground/10" />
             <span className="text-[10px] leading-none text-brand-foreground">◆</span>
             <span className="h-px flex-1 bg-foreground/10" />
           </div>
-        </Reveal>
+        </RevealStatic>
       </div>
     </section>
   );
