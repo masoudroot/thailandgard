@@ -51,6 +51,7 @@ import {
   type TeamResult,
   type TeamRunStatus,
 } from './types';
+import { logger } from '../logger';
 
 /**
  * @deprecated قفل قدیمی (read-then-write با TTL ۱۵۰ دقیقه‌ای و بدون heartbeat).
@@ -222,11 +223,12 @@ export async function recordRunLesson(
       'learned',
       50,
     );
-    console.log(`[orchestrator] درس اجرای تیم ${team} در دانش ثبت شد.`);
+    logger.info(`[orchestrator] درس اجرای تیم ${team} در دانش ثبت شد.`);
   } catch (err) {
     // fail-soft: خطای ثبت درس هرگز نتیجهٔ تیم را خراب نمی‌کند
-    console.error(
+    logger.error(
       '[orchestrator] ثبت درس تیم ناموفق بود (نادیده):',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
@@ -289,7 +291,7 @@ interface LockRow {
 
 /** @deprecated به‌جایش readLock از lib/lock.ts. */
 async function readLock(): Promise<LockRow | null> {
-  console.warn('[orchestrator] deprecated: readLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
+  logger.warn('[orchestrator] deprecated: readLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
   const { data, error } = await getSupabase()
     .from('agent_state')
     .select('state, updated_at')
@@ -301,7 +303,7 @@ async function readLock(): Promise<LockRow | null> {
 
 /** @deprecated به‌جایش touchLock/releaseLock/forceReleaseLock از lib/lock.ts. */
 async function writeLock(state: Record<string, unknown>): Promise<void> {
-  console.warn('[orchestrator] deprecated: writeLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
+  logger.warn('[orchestrator] deprecated: writeLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
   const { error } = await getSupabase()
     .from('agent_state')
     .upsert(
@@ -316,7 +318,7 @@ async function writeLock(state: Record<string, unknown>): Promise<void> {
  * که با compare-and-swap اتمیک است.
  */
 async function acquireLock(runId: string): Promise<void> {
-  console.warn('[orchestrator] deprecated: acquireLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
+  logger.warn('[orchestrator] deprecated: acquireLock قدیمی صدا زده شد؛ از lib/lock.ts استفاده کن');
   const existing = await readLock();
   if (existing?.state?.status === 'running') {
     const ref =
@@ -346,7 +348,7 @@ export async function beginCycle(): Promise<{ cycleId: string; runId: string }> 
     const { recoverDeadCycles } = await import('./cycle-recovery');
     await recoverDeadCycles();
   } catch (err) {
-    console.error('[orchestrator] cycle recovery before beginCycle failed (continuing):', err instanceof Error ? err.message : err);
+    logger.error('[orchestrator] cycle recovery before beginCycle failed (continuing):', undefined, err instanceof Error ? err.message : err);
   }
   const runId = makeRunId();
   // شناسه‌ی چرخه را همین‌جا می‌سازیم تا در همان لحظه‌ی گرفتن قفل، cycleId
@@ -425,7 +427,7 @@ async function touchPausedLock(cycleId: string): Promise<void> {
     if (st.cycleId && st.cycleId !== cycleId) return; // مال چرخه‌ی دیگری است
     await touchLock(st.owner);
   } catch (err) {
-    console.error('[orchestrator] touchPausedLock failed:', err instanceof Error ? err.message : err);
+    logger.error('[orchestrator] touchPausedLock failed:', undefined, err instanceof Error ? err.message : err);
   }
 }
 
@@ -495,8 +497,9 @@ export async function resumeCycle(cycleId: string): Promise<void> {
       await touchLock(st.owner);
     }
   } catch (err) {
-    console.error(
+    logger.error(
       '[orchestrator] resumeCycle: lock refresh failed (continuing):',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
@@ -677,27 +680,28 @@ async function registerProposedPatches(
         .limit(1)
         .maybeSingle();
       const existingId = (existing as { id?: string } | null)?.id ?? null;
-      console.log(
+      logger.info(
         `[orchestrator] پچ تیم ${opts.team} در چرخه ${opts.runId} از قبل ثبت شده بود (id=${existingId})؛ ثبت تکراری رد شد.`,
       );
       return existingId;
     }
     if (error.code === '42P01') {
-      console.error(
+      logger.error(
         `[orchestrator][DB-ENGINEER] جدول bridge_patches هنوز اعمال نشده؛ ` +
           `${files.length} فایل پیشنهادی تیم ${opts.team} در چرخه ${opts.runId} ثبت نشد. ` +
           `مهندس دیتابیس: مایگریشن supabase/migrations/20261015200000_bridge_patches.sql را اعمال کن.`,
       );
     } else {
-      console.error(
+      logger.error(
         `[orchestrator] ثبت bridge_patches برای تیم ${opts.team} خطا داد:`,
+        undefined,
         error.message,
       );
     }
     return null;
   }
   const patchId = (data as { id?: string } | null)?.id ?? null;
-  console.log(
+  logger.info(
     `[orchestrator] پچ پیشنهادی تیم ${opts.team} (${files.length} فایل) در bridge_patches با وضعیت proposed ثبت شد (id=${patchId}).`,
   );
   return patchId;
@@ -712,23 +716,24 @@ async function autoProcessBridgePatch(patchId: string, team: TeamName): Promise<
     const { processProposedPatch } = await import('./bridge/propose');
     const res = await processProposedPatch(patchId);
     if (!res.gated) {
-      console.log(
+      logger.info(
         `[orchestrator] پچ ${patchId} تیم ${team} در دروازه رد شد (needs_review)؛ چرخه ادامه می‌یابد.`,
       );
       return;
     }
     if (res.merged) {
-      console.log(
+      logger.info(
         `[orchestrator] پچ ${patchId} تیم ${team} خودکار به dev مرج شد (merge_sha=${res.mergeSha ?? 'already'}).`,
       );
     } else {
-      console.log(
+      logger.info(
         `[orchestrator] پچ ${patchId} تیم ${team} کامیت شد ولی مرج خودکار ناموفق بود: ${res.mergeError ?? 'نامشخص'}.`,
       );
     }
   } catch (err) {
-    console.error(
+    logger.error(
       `[orchestrator] پردازش خودکار پچ ${patchId} تیم ${team} خطا داد:`,
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
@@ -756,7 +761,7 @@ export async function runSingleTeam(
       runId: ctx.runId,
     });
     if (!claimed) {
-      console.log(`[orchestrator] team ${team} already claimed by another worker; skipping`);
+      logger.info(`[orchestrator] team ${team} already claimed by another worker; skipping`);
       return null;
     }
     runRowId = claimed;
@@ -774,7 +779,7 @@ export async function runSingleTeam(
       .from('team_runs')
       .update({ ...patch, finished_at: new Date().toISOString() })
       .eq('id', runRowId);
-    if (error) console.error(`[orchestrator] failed to update team_run ${runRowId}:`, error.message);
+    if (error) logger.error(`[orchestrator] failed to update team_run ${runRowId}:`, undefined, error.message);
   };
 
   /** بستن همه‌ی ساب‌ایجنت‌های باز این اجرا با وضعیت نهایی. */
@@ -784,7 +789,7 @@ export async function runSingleTeam(
       .update({ status, finished_at: new Date().toISOString() })
       .eq('team_run_id', runRowId)
       .in('status', ['pending', 'running', 'paused']);
-    if (error) console.error(`[orchestrator] failed to close subagents of ${runRowId}:`, error.message);
+    if (error) logger.error(`[orchestrator] failed to close subagents of ${runRowId}:`, undefined, error.message);
   };
 
   /** خواندن سیگنال کنترلی یک ساب‌ایجنت (run/pause/stop). */
@@ -844,7 +849,7 @@ export async function runSingleTeam(
       .from('team_runs')
       .update({ progress: pct, current_task: task.slice(0, 500) })
       .eq('id', runRowId);
-    if (error) console.error(`[orchestrator] failed to report progress for ${team}:`, error.message);
+    if (error) logger.error(`[orchestrator] failed to report progress for ${team}:`, undefined, error.message);
 
     if (PSEUDO_TASKS.has(task)) return;
     // ساب‌ایجنت این مرحله: بساز یا بیاور، بعد کنترل کاربر را اعمال کن.
@@ -869,7 +874,7 @@ export async function runSingleTeam(
         .select('id')
         .single();
       if (createErr || !created) {
-        console.error(`[orchestrator] failed to create subagent row:`, createErr?.message);
+        logger.error(`[orchestrator] failed to create subagent row:`, undefined, createErr?.message);
         return;
       }
       subagentId = created.id as string;
@@ -892,7 +897,7 @@ export async function runSingleTeam(
         .from('subagents')
         .update({ status: isErrorStep ? 'failed' : 'success', finished_at: nowIso })
         .eq('id', (prev as { id: string }).id);
-      if (closeOneErr) console.error('[orchestrator] failed to close previous subagent:', closeOneErr.message);
+      if (closeOneErr) logger.error('[orchestrator] failed to close previous subagent:', undefined, closeOneErr.message);
     }
     await sb
       .from('subagents')
@@ -910,7 +915,7 @@ export async function runSingleTeam(
       .update({ heartbeat_at: new Date().toISOString() })
       .eq('id', runRowId)
       .then(({ error }) => {
-        if (error) console.error(`[orchestrator] heartbeat failed for ${team}:`, error.message);
+        if (error) logger.error(`[orchestrator] heartbeat failed for ${team}:`, undefined, error.message);
       });
   }, HEARTBEAT_MS);
   if (typeof heartbeat === 'object' && 'unref' in heartbeat) {
@@ -937,12 +942,13 @@ export async function runSingleTeam(
         summary,
       });
       claimedTaskSettled = true;
-      console.log(
+      logger.info(
         `[orchestrator] تسک claimشدهٔ تیم ${team} با سرنوشت «${outcome}» بسته شد (id=${claimedTask.id})`,
       );
     } catch (err) {
-      console.error(
+      logger.error(
         `[orchestrator] بستن تسک claimشده ${claimedTask.id} خطا داد:`,
+        undefined,
         err instanceof Error ? err.message : err,
       );
     }
@@ -965,11 +971,12 @@ export async function runSingleTeam(
         knowledgeSnippet = `\n\nیافته‌های تازهٔ دانش این چرخه:\n${knowledgeResult.contextSnippet}`;
       }
       if (knowledgeResult.summary) {
-        console.log(`[orchestrator] ساب‌ایجنت دانش تیم ${team}: ${knowledgeResult.summary}`);
+        logger.info(`[orchestrator] ساب‌ایجنت دانش تیم ${team}: ${knowledgeResult.summary}`);
       }
     } catch (err) {
-      console.error(
+      logger.error(
         `[orchestrator] ساب‌ایجنت دانش تیم ${team} خطا داد (نادیده گرفته شد):`,
+        undefined,
         err instanceof Error ? err.message : err,
       );
     }
@@ -990,21 +997,22 @@ export async function runSingleTeam(
           `عنوان: ${claimed.title}\n` +
           `شرح: ${(claimed.description ?? '').trim() || 'ثبت نشده'}\n` +
           `معیار قبولی: ${(claimed.acceptance ?? '').trim() || 'ثبت نشده'}\n`;
-        console.log(`[orchestrator] تیم ${team}: کار «${claimed.title}» از صف claim شد (id=${claimed.id})`);
+        logger.info(`[orchestrator] تیم ${team}: کار «${claimed.title}» از صف claim شد (id=${claimed.id})`);
         const { error: curErr } = await sb
           .from('team_runs')
           .update({ current_task: `کار صف: ${claimed.title}`.slice(0, 500) })
           .eq('id', runRowId);
-        if (curErr) console.error(`[orchestrator] failed to set current_task for ${team}:`, curErr.message);
+        if (curErr) logger.error(`[orchestrator] failed to set current_task for ${team}:`, undefined, curErr.message);
       } else if (claimed) {
         // تور آخر دفاعی: نباید رخ دهد (گارد در claimNextTaskForTeam)، ولی اگر
         // ردیفی نامعتبر رسید، با لاگ تمیز نادیده گرفته می‌شود؛ شناسه‌ای ذخیره
         // نمی‌شود تا completeTask هرگز با id نامعتبر صدا زده نشود.
-        console.log(`[orchestrator] تیم ${team}: خروجی claim معتبر نبود؛ نادیده گرفته شد.`);
+        logger.info(`[orchestrator] تیم ${team}: خروجی claim معتبر نبود؛ نادیده گرفته شد.`);
       }
     } catch (err) {
-      console.error(
+      logger.error(
         `[orchestrator] claim تسک برای تیم ${team} خطا داد (رفتار فعلی حفظ شد):`,
+        undefined,
         err instanceof Error ? err.message : err,
       );
     }
@@ -1019,7 +1027,7 @@ export async function runSingleTeam(
         approvedContext = `\n\nکارهای تأییدشدهٔ در انتظار این تیم (در اولویت انجام):\n${lines.join('\n')}`;
       }
     } catch (err) {
-      console.error(`[orchestrator] failed to load approved tasks for ${team}:`, err instanceof Error ? err.message : err);
+      logger.error(`[orchestrator] failed to load approved tasks for ${team}:`, undefined, err instanceof Error ? err.message : err);
     }
     const baseRagContext =
       buildRagContext(ctx.previousWavesOutput) + claimedTaskContext + approvedContext + knowledgeSnippet;
@@ -1029,9 +1037,9 @@ export async function runSingleTeam(
     if (memory.length > 0) {
       const memLines = memory.map((m) => `- [${m.key}] ${String(m.value).slice(0, 500)}`);
       teamKnowledgeContext = `\n\nدانش ذخیره‌شده تیم ${team} (حتماً در کارت استفاده کن):\n${memLines.join('\n')}`;
-      console.log(`[orchestrator] دانش تیم ${team}: ${memory.length} قلم تزریق شد`);
+      logger.info(`[orchestrator] دانش تیم ${team}: ${memory.length} قلم تزریق شد`);
     } else {
-      console.log(`[orchestrator] تیم ${team}: دانش ذخیره‌شده‌ای ندارد`);
+      logger.info(`[orchestrator] تیم ${team}: دانش ذخیره‌شده‌ای ندارد`);
     }
     const fullRagContext = baseRagContext + teamKnowledgeContext;
     // حلقهٔ اصلاح درون‌چرخه‌ای (دستور مسعود، ۱۴۰۵/۰۷/۲۶): اگر این اجرا
@@ -1041,7 +1049,7 @@ export async function runSingleTeam(
     const fixAttempt = Math.max(1, ctx.fixAttempt ?? 1);
     const priorFixDirective = (ctx.priorFixDirective ?? '').trim() || undefined;
     if (fixAttempt > 1) {
-      console.log(
+      logger.info(
         `[fix-loop] team ${team}: same-cycle fix attempt ${fixAttempt}/${MAX_SAME_CYCLE_FIX_ATTEMPTS}` +
           (priorFixDirective ? ' (prior directive injected)' : ' (no prior directive)'),
       );
@@ -1172,7 +1180,7 @@ export async function runSingleTeam(
     // دروازه ثبت پچ (دستور مسعود): فقط پچ تیم موفقِ تأییدشده وارد پل می‌شود.
     // تیم ردشده (approved=false → rejected) یا ناموفق (failed) اصلاً در bridge_patches ثبت نمی‌شود.
     if (teamStatus !== 'success') {
-      console.log(
+      logger.info(
         `[orchestrator] پچ تیم ${team} ثبت نشد چون چک رهبر رد کرد (وضعیت: ${teamStatus}).`,
       );
     } else {
@@ -1200,8 +1208,9 @@ export async function runSingleTeam(
           await autoProcessBridgePatch(patchId, team);
         }
       } catch (err) {
-        console.error(
+        logger.error(
           `[orchestrator] خطای غیرمنتظره در پل خودکار تیم ${team}:`,
+          undefined,
           err instanceof Error ? err.message : err,
         );
       }
@@ -1253,7 +1262,7 @@ export async function runSingleTeam(
       return null;
     }
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`[orchestrator] team "${team}" failed:`, message);
+    logger.error(`[orchestrator] team "${team}" failed:`, undefined, message);
     // لایه ۱ دیده‌بان زنده: خطای اصلی تیم | فقط پیام، نه استک کامل (fail-soft)
     await recordEvent(ctx.runId, team, 'error', {
       message: message.slice(0, 2000),
@@ -1356,7 +1365,7 @@ export async function finishCycle(
         ...(errorMessage ? { error: errorMessage.slice(0, 4000) } : {}),
       })
       .eq('id', cycleId);
-    if (error) console.error('[orchestrator] failed to update cycles row:', error.message);
+    if (error) logger.error('[orchestrator] failed to update cycles row:', undefined, error.message);
     // لایه ۱ دیده‌بان زنده: پایان چرخه (fail-soft)
     await recordEvent(
       (cycle as { run_id?: string } | null)?.run_id ?? cycleId,
@@ -1368,7 +1377,7 @@ export async function finishCycle(
     // فقط اگر قفل مال همین چرخه باشد (تا قفل چرخه‌ی تازه‌ای را آزاد نکنیم).
     await forceReleaseLock(cycleId, 'finishCycle');
   } catch (err) {
-    console.error('[orchestrator] finishCycle failed:', err instanceof Error ? err.message : err);
+    logger.error('[orchestrator] finishCycle failed:', undefined, err instanceof Error ? err.message : err);
     try {
       await forceReleaseLock(cycleId, 'finishCycle');
     } catch {

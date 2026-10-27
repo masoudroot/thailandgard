@@ -33,7 +33,7 @@
     "lib/dashboard/model-health.ts": 8,
     "lib/dashboard/notify.ts": 5,
     "lib/dashboard/operation-events.ts": 2,
-    "lib/dashboard/orchestrator.ts": 40,
+    "lib/dashboard/orchestrator.ts": 0,
     "lib/dashboard/rag-index-health.ts": 2,
     "lib/dashboard/rag.ts": 1,
     "lib/dashboard/retry.ts": 3,
