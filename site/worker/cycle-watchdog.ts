@@ -30,6 +30,7 @@ import { notifyTeamReport } from '../lib/dashboard/notify';
 import { faNum } from '../lib/dashboard/format';
 import { findUnhealthyTeams, type UnhealthyTeam } from '../lib/dashboard/team-health';
 import { pathToFileURL } from 'node:url';
+import { logger } from '../lib/logger';
 
 /** Ø¢Ø³ØªØ§Ù†Ù‡â€ŒÛŒ ØªÙˆÙ‚Ù: Ø¨ÛŒØ´ Ø§Ø² Ø§ÛŒÙ† Ø¯Ù‚ÛŒÙ‚Ù‡ Ø¨Ø¯ÙˆÙ† Ù¾ÛŒØ´Ø±ÙØª ÙˆØ§Ù‚Ø¹ÛŒ ÛŒØ¹Ù†ÛŒ Ú¯ÛŒØ± Ú©Ø±Ø¯Ù‡ Ø§Ø³Øª. */
 const STALL_THRESHOLD_MINUTES = 10;
@@ -101,12 +102,12 @@ async function recentlyAlerted(sb: SupabaseClient, cycleId: string, dedupKey?: s
     if (dedupKey) q = q.ilike('message', `%${dedupKey}%`);
     const { data, error } = await q.limit(1);
     if (error) {
-      console.error('[cycle-watchdog] Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ø´Ø¯Ø§Ø± Ù‚Ø¨Ù„ÛŒ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:', error.message);
+      logger.error('[cycle-watchdog] Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ø´Ø¯Ø§Ø± Ù‚Ø¨Ù„ÛŒ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:', undefined, error.message);
       return false;
     }
     return (data?.length ?? 0) > 0;
   } catch (err) {
-    console.error('[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ø´Ø¯Ø§Ø± Ù‚Ø¨Ù„ÛŒ:', err instanceof Error ? err.message : err);
+    logger.error('[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ø´Ø¯Ø§Ø± Ù‚Ø¨Ù„ÛŒ:', undefined, err instanceof Error ? err.message : err);
     return false;
   }
 }
@@ -139,7 +140,7 @@ async function checkOneCycle(cycle: { id: string; run_id: string; started_at: st
   try {
     await checkHungTeams(sb, cycle);
   } catch (err) {
-    console.error(`[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ù†Ú¯ ØªÛŒÙ…â€ŒÙ‡Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id}:`, err instanceof Error ? err.message : err);
+    logger.error(`[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ù†Ú¯ ØªÛŒÙ…â€ŒÙ‡Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id}:`, undefined, err instanceof Error ? err.message : err);
   }
 
   const { data: runs, error } = await sb
@@ -147,7 +148,7 @@ async function checkOneCycle(cycle: { id: string; run_id: string; started_at: st
     .select('id, team, status, started_at, finished_at, updated_at')
     .eq('cycle_id', cycle.id);
   if (error) {
-    console.error(`[cycle-watchdog] Ø®ÙˆØ§Ù†Ø¯Ù† team_runs Ø¨Ø±Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id} Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:`, error.message);
+    logger.error(`[cycle-watchdog] Ø®ÙˆØ§Ù†Ø¯Ù† team_runs Ø¨Ø±Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id} Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:`, undefined, error.message);
     return;
   }
   const teamRuns = (runs ?? []) as TeamRun[];
@@ -155,12 +156,12 @@ async function checkOneCycle(cycle: { id: string; run_id: string; started_at: st
   const stallMinutes = (Date.now() - new Date(last.at).getTime()) / 60000;
 
   if (stallMinutes <= STALL_THRESHOLD_MINUTES) {
-    console.log(`[cycle-watchdog] Ú†Ø±Ø®Ù‡ ${cycle.run_id} Ø³Ø§Ù„Ù… Ø§Ø³ØªØ› Ø¢Ø®Ø±ÛŒÙ† Ù¾ÛŒØ´Ø±ÙØª ${Math.floor(stallMinutes)} Ø¯Ù‚ÛŒÙ‚Ù‡ Ù¾ÛŒØ´.`);
+    logger.info(`[cycle-watchdog] Ú†Ø±Ø®Ù‡ ${cycle.run_id} Ø³Ø§Ù„Ù… Ø§Ø³ØªØ› Ø¢Ø®Ø±ÛŒÙ† Ù¾ÛŒØ´Ø±ÙØª ${Math.floor(stallMinutes)} Ø¯Ù‚ÛŒÙ‚Ù‡ Ù¾ÛŒØ´.`);
     return;
   }
 
   if (await recentlyAlerted(sb, cycle.id)) {
-    console.log(`[cycle-watchdog] Ú†Ø±Ø®Ù‡ ${cycle.run_id} Ú¯ÛŒØ± Ú©Ø±Ø¯Ù‡ ÙˆÙ„ÛŒ Ù‡Ø´Ø¯Ø§Ø± ØªØ§Ø²Ù‡ ÙØ±Ø³ØªØ§Ø¯Ù‡ Ø´Ø¯Ù‡Ø› Ø±Ø¯ Ø´Ø¯.`);
+    logger.info(`[cycle-watchdog] Ú†Ø±Ø®Ù‡ ${cycle.run_id} Ú¯ÛŒØ± Ú©Ø±Ø¯Ù‡ ÙˆÙ„ÛŒ Ù‡Ø´Ø¯Ø§Ø± ØªØ§Ø²Ù‡ ÙØ±Ø³ØªØ§Ø¯Ù‡ Ø´Ø¯Ù‡Ø› Ø±Ø¯ Ø´Ø¯.`);
     return;
   }
 
@@ -179,7 +180,7 @@ async function checkOneCycle(cycle: { id: string; run_id: string; started_at: st
     message,
     cycleId: cycle.id,
   });
-  console.log(
+  logger.info(
     `[cycle-watchdog] Ù‡Ø´Ø¯Ø§Ø± ØªÙˆÙ‚Ù Ø¨Ø±Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id} ÙØ±Ø³ØªØ§Ø¯Ù‡ Ø´Ø¯ ` +
       `(ØªÙˆÙ‚Ù ${faDuration(stallMinutes)}ØŒ Ù¾Ù†Ù„: ${panelId ?? 'Ù†Ø§Ù…ÙˆÙÙ‚'}ØŒ ØªÙ„Ú¯Ø±Ø§Ù…: ${telegramMessageId ?? 'Ù†Ø§Ù…ÙˆÙÙ‚'}).`,
   );
@@ -243,17 +244,14 @@ export async function checkHungTeams(
   try {
     bad = await findUnhealthyTeams(sb, cycle.id);
   } catch (err) {
-    console.error(
-      `[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ù†Ú¯ ØªÛŒÙ…â€ŒÙ‡Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id}:`,
-      err instanceof Error ? err.message : err,
-    );
+    logger.error(`[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ù‡Ù†Ú¯ ØªÛŒÙ…â€ŒÙ‡Ø§ÛŒ Ú†Ø±Ø®Ù‡ ${cycle.run_id}:`, undefined, err instanceof Error ? err.message : err);
     return;
   }
 
   for (const t of bad) {
     const dedupKey = `[hang:${t.team}:${t.health}]`;
     if (await recentlyAlerted(sb, cycle.id, dedupKey)) {
-      console.log(`[cycle-watchdog] ØªÛŒÙ… ${t.team} (${t.health}) Ù‚Ø¨Ù„Ø§Ù‹ Ù‡Ø´Ø¯Ø§Ø± Ø¯Ø§Ø¯Ù‡ Ø´Ø¯Ù‡Ø› Ø±Ø¯ Ø´Ø¯.`);
+      logger.info(`[cycle-watchdog] ØªÛŒÙ… ${t.team} (${t.health}) Ù‚Ø¨Ù„Ø§Ù‹ Ù‡Ø´Ø¯Ø§Ø± Ø¯Ø§Ø¯Ù‡ Ø´Ø¯Ù‡Ø› Ø±Ø¯ Ø´Ø¯.`);
       continue;
     }
     const message = buildHangAlertMessage(cycle.run_id, t, dedupKey);
@@ -262,7 +260,7 @@ export async function checkHungTeams(
       message,
       cycleId: cycle.id,
     });
-    console.log(
+    logger.info(
       `[cycle-watchdog] Ù‡Ø´Ø¯Ø§Ø± Â«${t.health === 'hung' ? 'Ù‡Ù†Ú¯' : 'Ù…Ø±Ú¯ ÙØ±Ø§ÛŒÙ†Ø¯'}Â» Ø¨Ø±Ø§ÛŒ ØªÛŒÙ… ${t.team} ` +
         `Ø¯Ø± Ú†Ø±Ø®Ù‡ ${cycle.run_id} ÙØ±Ø³ØªØ§Ø¯Ù‡ Ø´Ø¯ (Ù¾Ù†Ù„: ${panelId ?? 'Ù†Ø§Ù…ÙˆÙÙ‚'}ØŒ ØªÙ„Ú¯Ø±Ø§Ù…: ${telegramMessageId ?? 'Ù†Ø§Ù…ÙˆÙÙ‚'}).`,
     );
@@ -278,18 +276,18 @@ async function main(): Promise<void> {
       .in('status', ACTIVE_CYCLE_STATUSES)
       .order('started_at', { ascending: false });
     if (error) {
-      console.error('[cycle-watchdog] Ø®ÙˆØ§Ù†Ø¯Ù† Ú†Ø±Ø®Ù‡â€ŒÙ‡Ø§ÛŒ ÙØ¹Ø§Ù„ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:', error.message);
+      logger.error('[cycle-watchdog] Ø®ÙˆØ§Ù†Ø¯Ù† Ú†Ø±Ø®Ù‡â€ŒÙ‡Ø§ÛŒ ÙØ¹Ø§Ù„ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:', undefined, error.message);
       return;
     }
     if (!cycles || cycles.length === 0) {
-      console.log('[cycle-watchdog] Ú†Ø±Ø®Ù‡â€ŒÛŒ ÙØ¹Ø§Ù„ÛŒ Ù†ÛŒØ³ØªØ› Ú©Ø§Ø±ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.');
+      logger.info('[cycle-watchdog] Ú†Ø±Ø®Ù‡â€ŒÛŒ ÙØ¹Ø§Ù„ÛŒ Ù†ÛŒØ³ØªØ› Ú©Ø§Ø±ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.');
     } else {
-      console.log(`[cycle-watchdog] ${faNum(cycles.length)} Ú†Ø±Ø®Ù‡â€ŒÛŒ ÙØ¹Ø§Ù„ Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯.`);
+      logger.info(`[cycle-watchdog] ${faNum(cycles.length)} Ú†Ø±Ø®Ù‡â€ŒÛŒ ÙØ¹Ø§Ù„ Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯.`);
       for (const cycle of cycles) {
         try {
           await checkOneCycle(cycle as { id: string; run_id: string; started_at: string });
         } catch (err) {
-          console.error(`[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ú†Ø±Ø®Ù‡:`, err instanceof Error ? err.message : err);
+          logger.error(`[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ú†Ø±Ø®Ù‡:`, undefined, err instanceof Error ? err.message : err);
         }
       }
     }
@@ -297,10 +295,10 @@ async function main(): Promise<void> {
     try {
       await checkSiteDevBuild();
     } catch (err) {
-      console.error('[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª:', err instanceof Error ? err.message : err);
+      logger.error('[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±Ø±Ø³ÛŒ Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª:', undefined, err instanceof Error ? err.message : err);
     }
   } catch (err) {
-    console.error('[cycle-watchdog] Ø®Ø·Ø§ÛŒ Ú©Ù„ÛŒ:', err instanceof Error ? err.message : err);
+    logger.error('[cycle-watchdog] Ø®Ø·Ø§ÛŒ Ú©Ù„ÛŒ:', undefined, err instanceof Error ? err.message : err);
   }
 }
 
@@ -319,7 +317,7 @@ async function checkSiteDevBuild(): Promise<void> {
     // Ø¨Ø¯ÙˆÙ† ØªÙˆÚ©Ù†ØŒ Ø¨Ø±Ø±Ø³ÛŒ Ø¨ÛŒÙ„Ø¯ Ù…Ù…Ú©Ù† Ù†ÛŒØ³Øª
   }
   if (!token) {
-    console.log('[cycle-watchdog] ØªÙˆÚ©Ù† Ú¯ÛŒØªâ€ŒÙ‡Ø§Ø¨ Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ù†ÛŒØ³ØªØ› Ø¨Ø±Ø±Ø³ÛŒ Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª Ø±Ø¯ Ø´Ø¯.');
+    logger.info('[cycle-watchdog] ØªÙˆÚ©Ù† Ú¯ÛŒØªâ€ŒÙ‡Ø§Ø¨ Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ù†ÛŒØ³ØªØ› Ø¨Ø±Ø±Ø³ÛŒ Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª Ø±Ø¯ Ø´Ø¯.');
     return;
   }
   const api = `https://api.github.com/repos/${SITE_REPO}/actions/workflows/${SITE_DEPLOY_WORKFLOW}/runs?branch=${SITE_DEV_BRANCH}&per_page=5`;
@@ -334,23 +332,23 @@ async function checkSiteDevBuild(): Promise<void> {
       signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) {
-      console.error(`[cycle-watchdog] Ø®ÙˆØ§Ù†Ø¯Ù† ÙˆØ¶Ø¹ÛŒØª Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯ (ÙˆØ¶Ø¹ÛŒØª ${res.status}).`);
+      logger.error(`[cycle-watchdog] Ø®ÙˆØ§Ù†Ø¯Ù† ÙˆØ¶Ø¹ÛŒØª Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯ (ÙˆØ¶Ø¹ÛŒØª ${res.status}).`);
       return;
     }
     const body = (await res.json()) as { workflow_runs?: typeof runs };
     runs = Array.isArray(body.workflow_runs) ? body.workflow_runs : [];
   } catch (err) {
-    console.error('[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± ÙØ±Ø§Ø®ÙˆØ§Ù†ÛŒ API Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª:', err instanceof Error ? err.message : err);
+    logger.error('[cycle-watchdog] Ø®Ø·Ø§ Ø¯Ø± ÙØ±Ø§Ø®ÙˆØ§Ù†ÛŒ API Ø¨ÛŒÙ„Ø¯ Ø³Ø§ÛŒØª:', undefined, err instanceof Error ? err.message : err);
     return;
   }
   // Ø¢Ø®Ø±ÛŒÙ† Ø§Ø¬Ø±Ø§ÛŒ ØªÚ©Ù…ÛŒÙ„â€ŒØ´Ø¯Ù‡
   const done = runs.find((r) => r.status === 'completed');
   if (!done) {
-    console.log('[cycle-watchdog] Ø§Ø¬Ø±Ø§ÛŒ ØªÚ©Ù…ÛŒÙ„â€ŒØ´Ø¯Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø¨ÛŒÙ„Ø¯ dev Ø³Ø§ÛŒØª Ù¾ÛŒØ¯Ø§ Ù†Ø´Ø¯.');
+    logger.info('[cycle-watchdog] Ø§Ø¬Ø±Ø§ÛŒ ØªÚ©Ù…ÛŒÙ„â€ŒØ´Ø¯Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø¨ÛŒÙ„Ø¯ dev Ø³Ø§ÛŒØª Ù¾ÛŒØ¯Ø§ Ù†Ø´Ø¯.');
     return;
   }
   if (done.conclusion === 'success') {
-    console.log(`[cycle-watchdog] Ø¨ÛŒÙ„Ø¯ dev Ø³Ø§ÛŒØª Ø³Ø§Ù„Ù… Ø§Ø³Øª (Ø§Ø¬Ø±Ø§ÛŒ ${done.id}).`);
+    logger.info(`[cycle-watchdog] Ø¨ÛŒÙ„Ø¯ dev Ø³Ø§ÛŒØª Ø³Ø§Ù„Ù… Ø§Ø³Øª (Ø§Ø¬Ø±Ø§ÛŒ ${done.id}).`);
     return;
   }
   // Ù†Ø§Ù…ÙˆÙÙ‚: Ø¢ÛŒØ§ Ù‚Ø¨Ù„Ø§Ù‹ Ø¨Ø±Ø§ÛŒ Ù‡Ù…ÛŒÙ† Ø§Ø¬Ø±Ø§ Ù‡Ø´Ø¯Ø§Ø± Ø¯Ø§Ø¯Ù‡â€ŒØ§ÛŒÙ…ØŸ
@@ -365,7 +363,7 @@ async function checkSiteDevBuild(): Promise<void> {
       .gte('sent_at', cutoff)
       .limit(1);
     if (!error && (data?.length ?? 0) > 0) {
-      console.log(`[cycle-watchdog] Ø¨ÛŒÙ„Ø¯ Ø´Ú©Ø³ØªÙ‡â€ŒÛŒ dev (Ø§Ø¬Ø±Ø§ÛŒ ${done.id}) Ù‚Ø¨Ù„Ø§Ù‹ Ù‡Ø´Ø¯Ø§Ø± Ø¯Ø§Ø¯Ù‡ Ø´Ø¯Ù‡Ø› Ø±Ø¯ Ø´Ø¯.`);
+      logger.info(`[cycle-watchdog] Ø¨ÛŒÙ„Ø¯ Ø´Ú©Ø³ØªÙ‡â€ŒÛŒ dev (Ø§Ø¬Ø±Ø§ÛŒ ${done.id}) Ù‚Ø¨Ù„Ø§Ù‹ Ù‡Ø´Ø¯Ø§Ø± Ø¯Ø§Ø¯Ù‡ Ø´Ø¯Ù‡Ø› Ø±Ø¯ Ø´Ø¯.`);
       return;
     }
   } catch {
@@ -389,7 +387,7 @@ async function checkSiteDevBuild(): Promise<void> {
     team: BUILD_WATCH_LABEL,
     message,
   });
-  console.log(
+  logger.info(
     `[cycle-watchdog] Ù‡Ø´Ø¯Ø§Ø± Ø¨ÛŒÙ„Ø¯ Ø´Ú©Ø³ØªÙ‡ Ø¨Ø±Ø§ÛŒ dev ÙØ±Ø³ØªØ§Ø¯Ù‡ Ø´Ø¯ ` +
       `(Ø§Ø¬Ø±Ø§ÛŒ ${done.id}ØŒ Ù¾Ù†Ù„: ${panelId ?? 'Ù†Ø§Ù…ÙˆÙÙ‚'}ØŒ ØªÙ„Ú¯Ø±Ø§Ù…: ${telegramMessageId ?? 'Ù†Ø§Ù…ÙˆÙÙ‚'}).`,
   );
