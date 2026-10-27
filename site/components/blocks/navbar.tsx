@@ -9,9 +9,18 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 import { Menu, Phone } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { Sheet } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+
+/**
+ * F4 (کاهش بار کلاینت): کشوی موبایل فقط با اولین کلیک «منو» دانلود می‌شود
+ * (ssr:false). پیش از این، بایت‌های کشو و تلهٔ فوکوسش برای همه می‌آمد.
+ */
+const MobileMenuSheet = dynamic(
+  () => import("@/components/blocks/mobile-menu-sheet").then((m) => m.MobileMenuSheet),
+  { ssr: false },
+);
 
 export interface NavLink { label: string; href: string; active?: boolean }
 
@@ -80,28 +89,17 @@ export function Navbar({ logo, homeHref = "/", links, primary = { label: "تما
         </nav>
       </header>
       {/* A sibling of the header: backdrop-blur would otherwise trap the fixed sheet inside it. */}
-      <Sheet open={open} onOpenChange={setOpen} title={logo}>
-        <ul className="flex flex-col p-2">
-          {links.map((l) => {
-            const active = l.active ?? isCurrent(l.href);
-            return (
-              <li key={l.label}><a href={l.href} aria-current={active ? "page" : undefined} className={cn("block rounded-md px-3 py-3 text-sm hover:bg-accent focus-visible:bg-accent", active ? "text-foreground font-semibold" : "text-muted-foreground")} onClick={() => setOpen(false)}>{l.label}</a></li>
-            );
-          })}
-        </ul>
-        <div className="mt-auto flex flex-col gap-2 border-t border-border p-4">
-          {primary.href ? (
-            <Button asChild variant="brand" className="w-full"><a href={primary.href} onClick={() => setOpen(false)}>{primary.label}</a></Button>
-          ) : (
-            <Button variant="brand">{primary.label}</Button>
-          )}
-          {secondary.href ? (
-            <Button asChild variant="outline" className="w-full"><a href={secondary.href} onClick={() => setOpen(false)}>{secondary.label}</a></Button>
-          ) : (
-            <Button variant="outline">{secondary.label}</Button>
-          )}
-        </div>
-      </Sheet>
+      {open && (
+        <MobileMenuSheet
+          open={open}
+          onOpenChange={setOpen}
+          title={logo}
+          links={links}
+          primary={primary}
+          secondary={secondary}
+          isCurrent={isCurrent}
+        />
+      )}
     </>
   );
 }
