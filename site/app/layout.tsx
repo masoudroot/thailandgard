@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/db-content";
 import { defaultOgImages } from "@/lib/og";
@@ -7,38 +6,19 @@ import { defaultOgImages } from "@/lib/og";
 /** همهٔ مسیرها استاتیک‌اند؛ هر رندر درخواستیِ آینده بیلد را قرمز می‌کند. */
 export const ensureStatic = "navigation";
 
-const vazirmatn = localFont({
-  variable: "--font-vazirmatn",
-  display: "swap",
-  src: [
-    {
-      path: "./fonts/vazirmatn/Vazirmatn-arabic.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "./fonts/vazirmatn/Vazirmatn-latin.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "./fonts/vazirmatn/Vazirmatn-latin-ext.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-  ],
-});
-
-const pinar = localFont({
-  variable: "--font-pinar",
-  display: "swap",
-  src: [
-    { path: "./fonts/Pinar-FD-Regular.woff2", weight: "400" },
-    { path: "./fonts/Pinar-FD-Medium.woff2", weight: "500" },
-    { path: "./fonts/Pinar-FD-SemiBold.woff2", weight: "600" },
-    { path: "./fonts/Pinar-FD-Bold.woff2", weight: "700" },
-  ],
-});
+/**
+ * قلم‌ها (Q3-05): @font-face صریح در globals.css روی public/fonts/site.
+ * دلیلِ کنار گذاشتن next/font محلی: در Next 16.4 این پروژه هیچ
+ * `<link rel="preload">` برای قلم تولید نمی‌شد؛ قلم‌ها بعد از اولین رنگ‌آمیزی
+ * می‌رسیدند، h1 اول با قلم فالبک می‌شکست و بعد جابه‌جا می‌شد
+ * (CLS 0.10 و LCP 3.9s). با URL پایدار، این سه فایل پیش‌بارگذاری می‌شوند و
+ * قلم قبل از اولین متن آماده است. فالبک هم‌متریک در globals.css مانده است.
+ */
+const PRELOADED_FONTS = [
+  "/fonts/site/Vazirmatn-arabic.woff2",
+  "/fonts/site/Vazirmatn-latin.woff2",
+  "/fonts/site/Pinar-FD-Bold.woff2",
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
@@ -85,7 +65,12 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} ${pinar.variable}`}>
+    <html lang="fa" dir="rtl">
+      <head>
+        {PRELOADED_FONTS.map((href) => (
+          <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="anonymous" />
+        ))}
+      </head>
       <body className="flex min-h-screen flex-col">
         {children}
       </body>

@@ -6,6 +6,64 @@
  * طلایی گرم #C49A4A و فیروزه‌ای #248D85 (مکمل)، ذغالی سبز #24312F (متن).
  * زبان طراحی گرافیت حفظ شد (خط مویی ۱px، گوشه‌های ۸/۲۲، حرکت ۲۰۰ms).
  */
+/*
+ * قلم‌های سایت (Q3-05). فایل‌ها در public/fonts/site و در layout.tsx پیش‌بارگذاری
+ * می‌شوند. جانشین next/font محلی شد (که در این نسخهٔ نکست هیچ preload تولید
+ * نمی‌کرد)؛ نتیجهٔ اندازه‌گیری قبل: قلم دیرتر از اولین رنگ‌آمیزی می‌رسید، h1 با
+ * فالبک می‌شکست و بعد جابه‌جا می‌شد. فالبک‌های هم‌متریک، همان اعداد تولیدشدهٔ
+ * نکست‌اند (size-adjust و override) تا پنجرهٔ تعویض قلم پرش چیدمان نسازد.
+ *
+ * font-display: optional است، نه swap. اندازه‌گیری با کندسازی واقعی (devtools،
+ * Slow-4G و CPU چهار برابر کندتر) نشان داد با swap قلم بعد از اولین رنگ‌آمیزی
+ * می‌رسد و h1 بین قلم فالبک و پینار جابه‌جا می‌شود: CLS = ۰٫۱۶ و بودجه ۰٫۱ است.
+ * با optional، اگر قلم تا اولین چیدمان آماده نشود همان صفحه با فالبک هم‌متریک
+ * و بدون هیچ پرشی می‌ماند؛ چون فایل‌ها preload و با کش immutable سرو می‌شوند،
+ * در بازدید بعدی و در بیشتر اتصال‌های واقعی پینار می‌نشیند.
+ */
+@font-face {
+  font-family: "TG Vazir";
+  src: url("/fonts/site/Vazirmatn-arabic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "TG VazirLatin";
+  src: url("/fonts/site/Vazirmatn-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: optional;
+  /* فقط لاتین پایه و نشانه‌های پرکاربرد؛ فارسی از خانوادهٔ بالا می‌آید */
+  unicode-range: U+0000-00FF, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "TG Pinar";
+  src: url("/fonts/site/Pinar-FD-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "TG Vazir Fallback";
+  src: local("Arial");
+  ascent-override: 102.54%;
+  descent-override: 53.71%;
+  line-gap-override: 0%;
+  size-adjust: 100%;
+}
+
+@font-face {
+  font-family: "TG Pinar Fallback";
+  src: local("Arial");
+  ascent-override: 125.48%;
+  descent-override: 74.36%;
+  line-gap-override: 0%;
+  size-adjust: 105.07%;
+}
+
 :root {
   color-scheme: light;
 
@@ -161,9 +219,9 @@
   --ease-motion: var(--motion-ease);
   --spacing-sticky-bar-clearance: var(--sticky-bar-clearance);
   --spacing-sticky-bar-october-clearance: var(--sticky-bar-october-clearance);
-  --font-sans: var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "TG Vazir", "TG VazirLatin", "TG Vazir Fallback", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
   /* تیترها پینار می‌ماند (تصمیم مسعود، ۲۴ مهر ۱۴۰۵)؛ فقط رنگ‌ها به پالت برند آمد */
-  --font-display: var(--font-pinar), var(--font-vazirmatn), "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "TG Pinar", "TG Pinar Fallback", "TG Vazir", "TG VazirLatin", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
 
   /* حرکت اسکلت: sweep براقیت راست‌به‌چپ + نبض نرم (زیر prefers-reduced-motion صفر می‌شوند) */
   --animate-shine: shine 2.2s linear infinite;
@@ -192,6 +250,42 @@ html {
 @keyframes blur-in {
   from { opacity: 0; filter: blur(10px); transform: translateY(6px); }
   to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+/*
+ * انیمیشن ورود سکشن‌ها (components/animations/reveal.tsx) - Q3-05.
+ * تایمر CSS جای تایمر جاوااسکریپت را می‌گیرد تا متن بالای صفحه بدون انتظار
+ * هیدریشن دیده شود. کلاس `.reveal-deferred` فقط روی بلوک‌هایی می‌نشیند که بعد
+ * از هیدریشن هنوز بیرون از دیداند؛ پس انیمیشن اسکرول پایین صفحه حفظ می‌شود.
+ */
+@keyframes reveal-rise {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: none; }
+}
+
+.reveal {
+  animation: reveal-rise var(--reveal-duration, 700ms) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms) both;
+}
+
+.reveal-deferred {
+  animation: none;
+  opacity: 0;
+}
+
+.reveal-in {
+  animation: reveal-rise var(--reveal-duration, 700ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .reveal-deferred {
+    opacity: 1;
+  }
 }
 
 /* شکاف آیتم (قید artdir قدم ۵): خود رجیستری reduced-motion ندارد؛ پس این‌جا صفرش می‌کنیم. */

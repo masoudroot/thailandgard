@@ -57,6 +57,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Q3-05: قلم‌های سایت از URL پایدار و بدون هش سرو می‌شوند؛ بدون کش
+        // بلندمدت، هر بازدید یک درخواست شرطی می‌سازد و در نسخهٔ بعدی همان
+        // پنجرهٔ FOUT/CLS برمی‌گردد. قاعده: هنگام تغییر فایل قلم، نام فایل هم
+        // عوض می‌شود (بازنویسی بی‌نام در این کش نمی‌نشیند).
+        source: "/fonts/site/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
         source: "/dashboard/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
