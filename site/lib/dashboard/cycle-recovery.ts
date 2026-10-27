@@ -29,6 +29,7 @@
 import { getSupabase } from './api';
 import { ACTIVE_CYCLE_STATUSES, type CycleStatus } from './types';
 import { forceReleaseLock } from './lock';
+import { logger } from '../logger';
 
 /** پیشوند خطای چرخه‌های killشده؛ مبنای شروع خودکار چرخه بعدی. */
 export const CYCLE_KILLED_ERROR_PREFIX = 'KILLED:';
@@ -99,7 +100,7 @@ async function isCycleDead(cycle: CycleRow, quietMs: number): Promise<boolean> {
     .order('updated_at', { ascending: false })
     .limit(5);
   if (error) {
-    console.error(`[cycle-recovery] failed to read team_runs heartbeats for ${cycle.id}:`, error.message);
+    logger.error(`[cycle-recovery] failed to read team_runs heartbeats for ${cycle.id}:`, undefined, error.message);
     return false; // در شک، مرده اعلام نکن
   }
   for (const row of (data ?? []) as Array<{ heartbeat_at?: string | null; updated_at?: string | null }>) {
@@ -119,7 +120,7 @@ async function releaseLockForCycle(cycleId: string): Promise<boolean> {
   try {
     return await forceReleaseLock(cycleId, 'cycle-recovery');
   } catch (err) {
-    console.error('[cycle-recovery] failed to release lock:', err instanceof Error ? err.message : err);
+    logger.error('[cycle-recovery] failed to release lock:', undefined, err instanceof Error ? err.message : err);
     return false;
   }
 }
@@ -144,12 +145,12 @@ async function reapDeadCycle(cycle: CycleRow, report: CycleRecoveryReport): Prom
     .select('id');
   if (!updatedCycle || (updatedCycle as unknown[]).length === 0) return; // دیگری زودتر بست
   report.reapedCycles.push(cycle.id);
-  console.log(`[cycle-recovery] چرخه مرده بسته شد: ${cycle.id} (run_id=${cycle.run_id ?? '?'})`);
+  logger.info(`[cycle-recovery] چرخه مرده بسته شد: ${cycle.id} (run_id=${cycle.run_id ?? '?'})`);
 
   // ۲. قفل stale متعلق به همین چرخه
   if (await releaseLockForCycle(cycle.id)) {
     report.releasedLocks += 1;
-    console.log(`[cycle-recovery] قفل stale چرخه ${cycle.id} آزاد شد.`);
+    logger.info(`[cycle-recovery] قفل stale چرخه ${cycle.id} آزاد شد.`);
   }
 
   // ۳. ردیف‌های team_runs گیرکرده در running
@@ -170,7 +171,7 @@ async function reapDeadCycle(cycle: CycleRow, report: CycleRecoveryReport): Prom
       .in('id', stuckRunIds)
       .eq('status', 'running');
     if (failErr) {
-      console.error('[cycle-recovery] failed to fail stuck team_runs:', failErr.message);
+      logger.error('[cycle-recovery] failed to fail stuck team_runs:', undefined, failErr.message);
     } else {
       report.failedTeamRuns += stuckRunIds.length;
     }
@@ -181,7 +182,7 @@ async function reapDeadCycle(cycle: CycleRow, report: CycleRecoveryReport): Prom
       .in('team_run_id', stuckRunIds)
       .in('status', ['pending', 'running', 'paused']);
     if (subErr) {
-      console.error('[cycle-recovery] failed to close subagents:', subErr.message);
+      logger.error('[cycle-recovery] failed to close subagents:', undefined, subErr.message);
     } else {
       report.closedSubagents += count ?? 0;
     }
@@ -199,7 +200,7 @@ async function reapDeadCycle(cycle: CycleRow, report: CycleRecoveryReport): Prom
     .eq('status', 'in_progress')
     .lt('created_at', stuckBefore);
   if (qErr) {
-    console.error('[cycle-recovery] failed to list stuck queue tasks:', qErr.message);
+    logger.error('[cycle-recovery] failed to list stuck queue tasks:', undefined, qErr.message);
   } else {
     const ids = ((stuckTasks ?? []) as Array<{ id: string }>).map((r) => r.id);
     for (const id of ids) {
@@ -212,7 +213,7 @@ async function reapDeadCycle(cycle: CycleRow, report: CycleRecoveryReport): Prom
         .eq('id', id)
         .eq('status', 'in_progress');
       if (rErr) {
-        console.error(`[cycle-recovery] failed to reset queue task ${id}:`, rErr.message);
+        logger.error(`[cycle-recovery] failed to reset queue task ${id}:`, undefined, rErr.message);
       } else {
         report.resetQueueTasks += 1;
       }
@@ -246,7 +247,7 @@ async function requeueStuckBridgePatches(
     .in('status', ['gated', 'committed'])
     .lt('updated_at', patchBefore);
   if (pErr) {
-    console.error('[cycle-recovery] failed to list stuck bridge patches:', pErr.message);
+    logger.error('[cycle-recovery] failed to list stuck bridge patches:', undefined, pErr.message);
     return;
   }
   for (const p of (stuckPatches ?? []) as Array<{ id: string; status: string }>) {
@@ -256,10 +257,10 @@ async function requeueStuckBridgePatches(
       .eq('id', p.id)
       .in('status', ['gated', 'committed']);
     if (rpErr) {
-      console.error(`[cycle-recovery] failed to requeue patch ${p.id}:`, rpErr.message);
+      logger.error(`[cycle-recovery] failed to requeue patch ${p.id}:`, undefined, rpErr.message);
     } else {
       report.reproposedPatches += 1;
-      console.log(`[cycle-recovery] پچ یتیم ${p.id} (${p.status}) به proposed برگشت.`);
+      logger.info(`[cycle-recovery] پچ یتیم ${p.id} (${p.status}) به proposed برگشت.`);
     }
   }
 }
@@ -280,7 +281,7 @@ export async function recoverDeadCycles(): Promise<CycleRecoveryReport> {
       .in('status', [...ACTIVE_CYCLE_STATUSES] as string[])
       .order('started_at', { ascending: false });
     if (error) {
-      console.error('[cycle-recovery] failed to list active cycles:', error.message);
+      logger.error('[cycle-recovery] failed to list active cycles:', undefined, error.message);
       return report;
     }
     for (const cycle of (data ?? []) as CycleRow[]) {
@@ -289,7 +290,7 @@ export async function recoverDeadCycles(): Promise<CycleRecoveryReport> {
           await reapDeadCycle(cycle, report);
         }
       } catch (err) {
-        console.error(`[cycle-recovery] failed to reap cycle ${cycle.id}:`, err instanceof Error ? err.message : err);
+        logger.error(`[cycle-recovery] failed to reap cycle ${cycle.id}:`, undefined, err instanceof Error ? err.message : err);
       }
     }
     // پچ‌های پل یتیم (gated/committed کهنه) در هر تیک برمی‌گردند، نه فقط
@@ -299,17 +300,17 @@ export async function recoverDeadCycles(): Promise<CycleRecoveryReport> {
     try {
       await requeueStuckBridgePatches(sb, report);
     } catch (err) {
-      console.error('[cycle-recovery] requeue stuck patches failed:', err instanceof Error ? err.message : err);
+      logger.error('[cycle-recovery] requeue stuck patches failed:', undefined, err instanceof Error ? err.message : err);
     }
     if (report.reapedCycles.length > 0) {
-      console.log(
+      logger.info(
         `[cycle-recovery] بازیابی تمام شد: ${report.reapedCycles.length} چرخه مرده، ` +
           `${report.failedTeamRuns} اجرای تیم، ${report.closedSubagents} ساب‌ایجنت، ` +
           `${report.resetQueueTasks} تسک صف، ${report.reproposedPatches} پچ پل.`,
       );
     }
   } catch (err) {
-    console.error('[cycle-recovery] unexpected error:', err instanceof Error ? err.message : err);
+    logger.error('[cycle-recovery] unexpected error:', undefined, err instanceof Error ? err.message : err);
   }
   return report;
 }
