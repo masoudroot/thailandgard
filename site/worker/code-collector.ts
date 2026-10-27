@@ -21,6 +21,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, normalize, relative, resolve, sep } from 'node:path';
 import type { TeamName } from '../lib/dashboard/types';
+import { logger } from '../lib/logger';
 
 /** Ø±ÛŒÙ¾ÙˆÛŒ Ø³Ø§ÛŒØªØ› Ø¬Ø§ÛŒÛŒ Ú©Ù‡ Ú©Ø¯ ØªÛŒÙ…â€ŒÙ‡Ø§ Ø¨Ø§ÛŒØ¯ Ø¨Ù†Ø´ÛŒÙ†Ø¯. */
 export const SITE_REPO = 'masoudroot/thailandgard';
@@ -339,9 +340,9 @@ async function recordFiles(
       pushed_at: push ? new Date().toISOString() : null,
     }));
     const { error } = await sb.from('team_code_files').insert(rows);
-    if (error) console.error('[code-collector] Ø«Ø¨Øª Ù…ØªØ§Ø¯ÛŒØªØ§ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:', error.message);
+    if (error) logger.error('[code-collector] Ø«Ø¨Øª Ù…ØªØ§Ø¯ÛŒØªØ§ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯:', undefined, error.message);
   } catch (err) {
-    console.error('[code-collector] Ø®Ø·Ø§ Ø¯Ø± Ø«Ø¨Øª Ù…ØªØ§Ø¯ÛŒØªØ§:', err instanceof Error ? err.message : String(err));
+    logger.error('[code-collector] Ø®Ø·Ø§ Ø¯Ø± Ø«Ø¨Øª Ù…ØªØ§Ø¯ÛŒØªØ§:', undefined, err instanceof Error ? err.message : String(err));
   }
 }
 
@@ -503,7 +504,7 @@ async function cli(): Promise<void> {
   const team = process.argv[2] as TeamName | undefined;
   const runId = process.argv[3] ?? `manual-${Date.now()}`;
   if (!team) {
-    console.error('Ø§Ø³ØªÙØ§Ø¯Ù‡: npx tsx worker/code-collector.ts <team> <run-id> [--dry-run]');
+    logger.error('Ø§Ø³ØªÙØ§Ø¯Ù‡: npx tsx worker/code-collector.ts <team> <run-id> [--dry-run]');
     process.exit(1);
   }
   const res = await collectAndCommitTeamCode({
@@ -512,7 +513,7 @@ async function cli(): Promise<void> {
     approved: true,
     dryRun: process.argv.includes('--dry-run'),
   });
-  console.log(JSON.stringify(res, null, 2));
+  logger.info(JSON.stringify(res, null, 2));
 }
 
 const invokedDirectly =
@@ -522,7 +523,7 @@ const invokedDirectly =
   /code-collector(\.ts)?$/.test(process.argv[1]);
 if (invokedDirectly) {
   cli().catch((err) => {
-    console.error(err instanceof Error ? err.message : String(err));
+    logger.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
   });
 }

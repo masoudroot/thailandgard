@@ -6,6 +6,7 @@
  */
 
 import { getSupabase } from './api';
+import { logger } from '../logger';
 
 export type OperationEventType =
   | 'prompt_sent'
@@ -62,11 +63,12 @@ export async function recordEvent(
       payload: truncatePayload(payload),
     });
     if (error) {
-      console.error('[operation-events] insert failed:', error.message);
+      logger.error('[operation-events] insert failed:', undefined, error.message);
     }
   } catch (err) {
-    console.error(
+    logger.error(
       '[operation-events] recordEvent failed:',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }

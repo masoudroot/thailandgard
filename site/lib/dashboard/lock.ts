@@ -23,6 +23,7 @@
  */
 
 import { getSupabase } from './api';
+import { logger } from '../logger';
 
 /** کلید ردیف قفل در جدول agent_state. */
 export const ORCHESTRATOR_LOCK_KEY = 'orchestrator:lock';
@@ -266,7 +267,7 @@ export function startHeartbeat(owner: LockOwner, intervalMs: number = LOCK_HEART
     try {
       await touchLock(owner);
     } catch (err) {
-      console.error('[lock] heartbeat failed, stopping:', (err as Error).message);
+      logger.error('[lock] heartbeat failed, stopping:', undefined, (err as Error).message);
       clearInterval(timer);
       stopped = true;
     }
@@ -299,7 +300,7 @@ export async function forceReleaseLock(cycleId?: string, reason = 'force'): Prom
   try {
     existing = await readLock();
   } catch (err) {
-    console.error('[lock] forceReleaseLock: failed to read lock:', (err as Error).message);
+    logger.error('[lock] forceReleaseLock: failed to read lock:', undefined, (err as Error).message);
     return false;
   }
   if (!existing?.state || existing.state.status !== 'running') return false;
@@ -322,7 +323,7 @@ export async function forceReleaseLock(cycleId?: string, reason = 'force'): Prom
     })
     .eq('agent', ORCHESTRATOR_LOCK_KEY);
   if (error) {
-    console.error('[lock] forceReleaseLock: failed to release:', error.message);
+    logger.error('[lock] forceReleaseLock: failed to release:', undefined, error.message);
     return false;
   }
   return true;
@@ -384,5 +385,5 @@ export async function releaseTeamClaim(teamRunId: string, errorMessage: string):
     })
     .eq('id', teamRunId)
     .eq('status', 'running');
-  if (error) console.error(`[lock] failed to release team claim ${teamRunId}:`, error.message);
+  if (error) logger.error(`[lock] failed to release team claim ${teamRunId}:`, undefined, error.message);
 }

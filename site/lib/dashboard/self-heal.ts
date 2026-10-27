@@ -23,6 +23,7 @@
 
 import { getSupabase } from './api';
 import type { TeamName } from './types';
+import { logger } from '../logger';
 
 /** ۲ خطای پیاپیِ همسان → تعویض مدل. */
 const CONSECUTIVE_SAME_ERROR_TO_SWITCH_MODEL = 2;
@@ -217,7 +218,7 @@ async function switchTeamModel(
     // کش کشف مدل درگاه تازه را بی‌اعتبار نکن؛ فقط لاگ
     return `تیم «${team}» دو بار پیاپی با همان خطا افتاد → مدل عوض شد: «${failedModel || 'نامشخص'}» ← «${candidate.model}» روی درگاه «${candidate.endpointName}»`;
   } catch (err) {
-    console.warn('[self-heal] switchTeamModel failed:', err instanceof Error ? err.message : String(err));
+    logger.warn('[self-heal] switchTeamModel failed:', { detail: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }
@@ -252,7 +253,7 @@ async function strengthenTeamPrompt(
     );
     return `تیم «${team}» سه بار پیاپی رد شد → پرامپت تقویت شد (قانون طلایی تازه از بازخورد منتقد)`;
   } catch (err) {
-    console.warn('[self-heal] strengthenTeamPrompt failed:', err instanceof Error ? err.message : String(err));
+    logger.warn('[self-heal] strengthenTeamPrompt failed:', { detail: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }
@@ -293,7 +294,7 @@ async function quarantineChronicallyFailingModels(): Promise<string[]> {
       }
     }
   } catch (err) {
-    console.warn('[self-heal] quarantine failed:', err instanceof Error ? err.message : String(err));
+    logger.warn('[self-heal] quarantine failed:', { detail: err instanceof Error ? err.message : String(err) });
   }
   return messages;
 }
@@ -380,11 +381,11 @@ export async function checkAndHealTeam(
     const q = await quarantineChronicallyFailingModels();
     for (const m of q) actions.push({ kind: 'model_quarantined', message: m });
   } catch (err) {
-    console.warn('[self-heal] checkAndHealTeam failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[self-heal] checkAndHealTeam failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
   }
 
   for (const a of actions) {
-    if (a.kind !== 'none') console.log(`[self-heal] ${a.message}`);
+    if (a.kind !== 'none') logger.info(`[self-heal] ${a.message}`);
   }
   return actions;
 }

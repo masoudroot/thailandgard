@@ -26,6 +26,7 @@ export interface CallbackStore {
 
 import { writeLeadAlertSummary } from "./lead-alert";
 import { getTour } from "./tours";
+import { logger } from './logger';
 
 class UnavailableCallbackStore implements CallbackStore {
   async save(): Promise<void> {
@@ -75,17 +76,17 @@ class SupabaseCallbackStore implements CallbackStore {
           preferredCallTime: request.preferredCallTime,
         });
       } else {
-        console.warn("[callback-store] lead id missing; lead-alert summary skipped");
+        logger.warn("[callback-store] lead id missing; lead-alert summary skipped");
       }
     } catch (err) {
-      console.warn("[callback-store] lead-alert summary failed", err);
+      logger.warn("[callback-store] lead-alert summary failed", { detail: err });
     }
   }
 }
 
 function pickStore(): CallbackStore {
   if (SUPABASE_URL && SERVICE_KEY) return new SupabaseCallbackStore();
-  console.error("[callback-store] SUPABASE env missing; lead storage unavailable");
+  logger.error("[callback-store] SUPABASE env missing; lead storage unavailable");
   return new UnavailableCallbackStore();
 }
 

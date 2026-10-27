@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from './logger';
 
 export interface ApiErrorResponse {
   success: false;
@@ -7,7 +8,7 @@ export interface ApiErrorResponse {
 }
 
 export function handleApiError(error: unknown, defaultMessage: string = 'خطایی در سرور رخ داده است'): NextResponse<ApiErrorResponse> {
-  console.error('API Error:', error);
+  logger.error('API Error:', undefined, error);
 
   let message = defaultMessage;
 

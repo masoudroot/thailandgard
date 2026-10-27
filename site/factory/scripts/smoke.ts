@@ -5,6 +5,7 @@ import { drainProjections } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
 import { runWorkItem } from '../../lib/factory/runner';
+import { logger } from '../../lib/logger';
 
 async function main(): Promise<void> {
   loadFactoryEnvFile();
@@ -43,7 +44,7 @@ async function main(): Promise<void> {
     );
   }
 
-  console.log(
+  logger.info(
     JSON.stringify({
       workItemId: item.id,
       artifactKey: key,
@@ -54,7 +55,7 @@ async function main(): Promise<void> {
 
 main()
   .catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : String(error));
+    logger.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
   })
   .finally(async () => {

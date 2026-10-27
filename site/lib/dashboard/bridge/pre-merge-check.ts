@@ -14,6 +14,7 @@ import { promisify } from 'util';
 import { writeFile, mkdir, access } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
+import { logger } from '../../logger';
 
 const execFileAsync = promisify(execFile);
 
@@ -107,7 +108,7 @@ export async function preMergeTypeCheck(
           cwd: siteDir,
           timeout: TIMEOUT_MS,
         });
-        console.log(`[pre-merge] npm install انجام شد: ${String(stdout).split('\n').slice(-2).join(' ').slice(0, 200)}`);
+        logger.info(`[pre-merge] npm install انجام شد: ${String(stdout).split('\n').slice(-2).join(' ').slice(0, 200)}`);
       } catch (err) {
         const out = execFailureOutput(err);
         const tail = out.split('\n').filter((l) => l.trim()).slice(-5).join(' | ').slice(0, 500);

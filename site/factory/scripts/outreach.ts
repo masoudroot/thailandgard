@@ -13,6 +13,7 @@ import { drainProjections } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
 import { createWorkItem, getWorkItem } from '../../lib/factory/repository';
 import { runOutreach } from '../../lib/factory/runner';
+import { logger } from '../../lib/logger';
 
 function option(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -20,7 +21,7 @@ function option(name: string): string | undefined {
 }
 
 function print(value: unknown): void {
-  console.log(JSON.stringify(value, null, 2));
+  logger.info(JSON.stringify(value, null, 2));
 }
 
 async function main(): Promise<void> {
@@ -133,8 +134,9 @@ async function main(): Promise<void> {
 
 main()
   .catch((error) => {
-    console.error(
+    logger.error(
       '[outreach]',
+      undefined,
       error instanceof Error ? error.message : String(error),
     );
     process.exitCode = 1;

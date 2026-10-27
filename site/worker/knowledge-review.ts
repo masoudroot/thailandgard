@@ -15,6 +15,7 @@
  */
 import { getSupabase } from '../lib/dashboard/api';
 import { TEAMS } from '../lib/dashboard/types';
+import { logger } from '../lib/logger';
 
 /** آستانه‌ی بازبینی (روز) به تفکیک منشأ دانش؛ بقیه از پیش‌فرض استفاده می‌کنند. */
 const REVIEW_DAYS_BY_ORIGIN: Record<string, number> = {
@@ -46,7 +47,7 @@ async function main(): Promise<void> {
       .lte('expires_at', nowIso)
       .select('id');
     if (archErr) {
-      console.error(`[knowledge-review] archive failed for ${team}: ${archErr.message}`);
+      logger.error(`[knowledge-review] archive failed for ${team}: ${archErr.message}`);
     } else {
       report.archived = archivedRows?.length ?? 0;
     }
@@ -69,7 +70,7 @@ async function main(): Promise<void> {
       else q = q.neq('origin', 'critic-lesson');
       const { data, error } = await q;
       if (error) {
-        console.error(
+        logger.error(
           `[knowledge-review] stale-flag failed for ${team} (origin=${origin ?? 'other'}): ${error.message}`,
         );
         return 0;
@@ -82,7 +83,7 @@ async function main(): Promise<void> {
 
     reports.push(report);
     if (report.archived > 0 || report.stale > 0) {
-      console.log(
+      logger.info(
         `[knowledge-review] ${team}: ${report.archived} آرشیو شد، ${report.stale} نیازمند بازبینی`,
       );
     }
@@ -90,12 +91,12 @@ async function main(): Promise<void> {
 
   const totalArchived = reports.reduce((s, r) => s + r.archived, 0);
   const totalStale = reports.reduce((s, r) => s + r.stale, 0);
-  console.log(
+  logger.info(
     `[knowledge-review] تمام شد: ${totalArchived} آرشیو، ${totalStale} نیازمند بازبینی در ${TEAMS.length} تیم`,
   );
 }
 
 main().catch((err) => {
-  console.error('[knowledge-review] fatal:', err instanceof Error ? err.message : String(err));
+  logger.error('[knowledge-review] fatal:', undefined, err instanceof Error ? err.message : String(err));
   process.exitCode = 1;
 });

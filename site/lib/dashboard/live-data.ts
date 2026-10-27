@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '../logger';
 
 /**
  * خوانش مقاوم team_runs برای صفحه‌های زنده.
@@ -97,12 +98,12 @@ export async function fetchSubagents(
       .in('team_run_id', runIds)
       .order('started_at', { ascending: true });
     if (error) {
-      console.warn('[live-data] جدول subagents خوانده نشد:', error.message);
+      logger.warn('[live-data] جدول subagents خوانده نشد:', { detail: error.message });
       return { data: [], tableReady: false };
     }
     return { data: (data ?? []) as Record<string, unknown>[], tableReady: true };
   } catch (err) {
-    console.warn('[live-data] خطا در خواندن subagents:', err instanceof Error ? err.message : err);
+    logger.warn('[live-data] خطا در خواندن subagents:', { detail: err instanceof Error ? err.message : err });
     return { data: [], tableReady: false };
   }
 }

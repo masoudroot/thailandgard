@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { logger } from '../../lib/logger';
 
 type Webmasters = ReturnType<typeof google.webmasters>;
 
@@ -90,10 +91,10 @@ async function main(): Promise<void> {
     `gsc-28d-${capturedAt.replace(/[:.]/g, '-')}.json`,
   );
   await writeFile(outputFile, JSON.stringify(payload, null, 2), 'utf8');
-  console.log(JSON.stringify({ outputFile, ...payload }, null, 2));
+  logger.info(JSON.stringify({ outputFile, ...payload }, null, 2));
 }
 
 main().catch((error) => {
-  console.error(error);
+  logger.error(error);
   process.exitCode = 1;
 });

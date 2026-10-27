@@ -20,6 +20,7 @@
  */
 
 import { fa } from "./utils";
+import { logger } from './logger';
 
 /** مهلت پاسخ اول (SLA) به میلی‌ثانیه: ۶ ساعت */
 export const LEAD_SLA_MS = 6 * 3600_000;
@@ -175,7 +176,7 @@ export async function writeLeadAlertSummary(
   input: LeadAlertSummaryInput,
 ): Promise<LeadAlertSummaryResult> {
   if (!SUPABASE_URL || !SERVICE_KEY) {
-    console.warn("[lead-alert] SUPABASE env missing; summary skipped");
+    logger.warn("[lead-alert] SUPABASE env missing; summary skipped");
     return { ok: false, skipped: true };
   }
   const short = shortLeadId(input.leadId);
@@ -218,12 +219,12 @@ export async function writeLeadAlertSummary(
       // متن خطا برای تشخیص لازم است (مثل «ستون اجباری خالی است»)؛ خود ردیف
       // هشدار هیچ PII ندارد، پس این متن هم PII ندارد.
       const detail = await res.text().catch(() => "");
-      console.warn(`[lead-alert] intel_feed insert failed: ${res.status} ${detail.slice(0, 200)}`);
+      logger.warn(`[lead-alert] intel_feed insert failed: ${res.status} ${detail.slice(0, 200)}`);
       return { ok: false };
     }
     return { ok: true };
   } catch (err) {
-    console.warn("[lead-alert] intel_feed insert error", err);
+    logger.warn("[lead-alert] intel_feed insert error", { detail: err });
     return { ok: false };
   }
 }

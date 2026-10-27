@@ -1,4 +1,5 @@
-/**
+
+import { logger } from '../logger';/**
  * lib/rag-index-health.ts: سلامت مسیر ایندکس دانش (تیم ۳، رفع ریشه‌ای مشکل ۳).
  *
  * زمینه: ۱۳۵ ران با صفر دانش ایندکس‌شده و هیچ‌کس نفهمید، چون همه‌ی مسیرهای
@@ -145,8 +146,8 @@ export async function reportIndexOutcome(
   input: IndexOutcomeInput,
   deps: ReportIndexDeps = {},
 ): Promise<void> {
-  const log = deps.log ?? ((line: string) => console.log(line));
-  const errorLog = deps.errorLog ?? ((line: string) => console.error(line));
+  const log = deps.log ?? ((line: string) => logger.info(line));
+  const errorLog = deps.errorLog ?? ((line: string) => logger.error(line));
 
   const cleanError = (input.error ?? '').trim().slice(0, 500);
 

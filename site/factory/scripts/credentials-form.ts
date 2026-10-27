@@ -4,6 +4,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { tmpdir } from 'node:os';
 import { relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
+import { logger } from '../../lib/logger';
 
 const execFileAsync = promisify(execFile);
 
@@ -444,6 +445,6 @@ const server = createServer((request, response) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`credentials form: http://127.0.0.1:${String(PORT)}`);
-  console.log(`env file: ${relativeEnvPath()}`);
+  logger.info(`credentials form: http://127.0.0.1:${String(PORT)}`);
+  logger.info(`env file: ${relativeEnvPath()}`);
 });

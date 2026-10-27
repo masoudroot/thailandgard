@@ -13,6 +13,8 @@
  * وقتی به قاعدهٔ ۳ رسیدیم، در لاگ بیلد هشدار می‌دهیم تا content ستون h1 را پر کند.
  */
 
+import { logger } from './logger';
+
 /** متن‌های نهایی h1 (seocontent، اجرای ۲۱ مهر ۱۴۰۵؛ راستی‌آزمایی: کلمهٔ عیناً + ≠ تایتل + ≤۶۰ نویسه + فارسی تمیز) */
 const H1_OVERRIDES: Record<string, string> = {
   // تورها
@@ -71,7 +73,7 @@ export function resolveH1(slug: string, title: string, dbH1?: string | null): st
   if (curated) return curated;
   // قانون بریف: خالی بودن headline در لاگ بیلد گزارش می‌شود تا content پرش کند.
   if (typeof process !== "undefined" && process.env) {
-    console.warn(`[h1] ستون h1 خالی و نگاشت ندارد (slug=${slug})؛ از قاعدهٔ مشتق‌سازی استفاده شد.`);
+    logger.warn(`[h1] ستون h1 خالی و نگاشت ندارد (slug=${slug})؛ از قاعدهٔ مشتق‌سازی استفاده شد.`);
   }
   return deriveH1(title);
 }

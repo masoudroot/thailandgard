@@ -30,6 +30,7 @@
 import { callLLM, callLLMJson } from '../llm';
 import { buildKnowledgePromptSection } from '../rag';
 import { SITE_REPO_FULL, getGithubConfig } from '../github';
+import { logger } from '../../logger';
 import {
   ALLOW_DESIGN_CREATE,
   findDuplicate,
@@ -156,7 +157,7 @@ async function listSiteComponents(): Promise<string[] | null> {
   try {
     const { token } = await getGithubConfig();
     if (!token) {
-      console.warn('[design] توکن گیت‌هاب نیست؛ فهرست کامپوننت‌ها از API گرفته نشد (null).');
+      logger.warn('[design] توکن گیت‌هاب نیست؛ فهرست کامپوننت‌ها از API گرفته نشد (null).');
       return null;
     }
     const out: string[] = [];
@@ -183,14 +184,14 @@ async function listSiteComponents(): Promise<string[] | null> {
     };
     await walk('site/components');
     if (!listed) {
-      console.warn('[design] گیت‌هاب فهرست site/components را نداد (شاخهٔ dev؟)؛ null برمی‌گردد.');
+      logger.warn('[design] گیت‌هاب فهرست site/components را نداد (شاخهٔ dev؟)؛ null برمی‌گردد.');
       return null;
     }
     return out;
   } catch (err) {
-    console.warn(
+    logger.warn(
       '[design] خطا در گرفتن فهرست کامپوننت‌ها از گیت‌هاب:',
-      err instanceof Error ? err.message : String(err),
+      { detail: err instanceof Error ? err.message : String(err) },
     );
     return null;
   }
@@ -542,7 +543,7 @@ export async function runTeam(input: TeamInput): Promise<TeamResult> {
         ? 'ریپوی محلی سایت'
         : 'نامشخص (نه API نه محلی)';
   if (apiFiles === null) {
-    console.warn(
+    logger.warn(
       `[design] فهرست API در دسترس نبود؛ ${localFiles.length} فایل از ریپوی محلی خوانده شد.`,
     );
   }
@@ -594,7 +595,7 @@ export async function runTeam(input: TeamInput): Promise<TeamResult> {
       return { team: TEAM, summary: msg, blockers, tasks, approved: false };
     }
     if (exists === null) {
-      console.warn(`[design] بود/نبود ${fp} در گیت‌هاب نامشخص ماند؛ با احتیاط ادامه می‌دهیم.`);
+      logger.warn(`[design] بود/نبود ${fp} در گیت‌هاب نامشخص ماند؛ با احتیاط ادامه می‌دهیم.`);
     }
   }
 

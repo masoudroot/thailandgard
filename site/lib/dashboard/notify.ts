@@ -11,6 +11,7 @@
 
 import { getSupabase } from './api';
 import { getSetting } from './settings';
+import { logger } from '../logger';
 
 const TIME_ZONE = 'Asia/Tehran';
 const LOCALE = 'fa-IR-u-nu-latn';
@@ -75,7 +76,7 @@ export async function sendTelegram(team: string, message: string): Promise<strin
   const { token, chatId } = await getTelegramConfig();
 
   if (!token || !chatId) {
-    console.warn('[notify] تلگرام پیکربندی نشده؛ پیام فقط لاگ شد.', { team, text });
+    logger.warn('[notify] تلگرام پیکربندی نشده؛ پیام فقط لاگ شد.', { team, text });
     return null;
   }
 
@@ -86,14 +87,14 @@ export async function sendTelegram(team: string, message: string): Promise<strin
       body: JSON.stringify({ chat_id: chatId, text }),
     });
     if (!res.ok) {
-      console.error('[notify] ارسال به تلگرام ناموفق بود.', await res.text());
+      logger.error('[notify] ارسال به تلگرام ناموفق بود.', undefined, await res.text());
       return null;
     }
     const json = (await res.json()) as { ok?: boolean; result?: { message_id?: number } };
     const messageId = json?.result?.message_id;
     return typeof messageId === 'number' ? String(messageId) : null;
   } catch (err) {
-    console.error('[notify] خطا در ارسال به تلگرام.', err);
+    logger.error('[notify] خطا در ارسال به تلگرام.', undefined, err);
     return null;
   }
 }
@@ -117,12 +118,12 @@ async function saveToPanel(
       .select('id')
       .single();
     if (error || !data) {
-      console.error('[notify] ثبت در پنل ناموفق بود.', error?.message);
+      logger.error('[notify] ثبت در پنل ناموفق بود.', undefined, error?.message);
       return null;
     }
     return data.id as string;
   } catch (err) {
-    console.error('[notify] خطا در ثبت پنل.', err instanceof Error ? err.message : err);
+    logger.error('[notify] خطا در ثبت پنل.', undefined, err instanceof Error ? err.message : err);
     return null;
   }
 }

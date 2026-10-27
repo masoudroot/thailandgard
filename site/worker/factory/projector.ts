@@ -2,6 +2,7 @@ import { closePool, getPool } from '../../lib/factory/db';
 import { loadFactoryEnvFile } from '../../lib/factory/local-env';
 import { projectBatch } from '../../lib/factory/projector';
 import { PgProjectorStore } from '../../lib/factory/projector-pg';
+import { logger } from '../../lib/logger';
 
 async function main(): Promise<void> {
   loadFactoryEnvFile();
@@ -26,6 +27,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error));
+  logger.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });

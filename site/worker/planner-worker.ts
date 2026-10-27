@@ -17,6 +17,7 @@
  *          PLANNER_TEAMS (مثل "content:builder,brand:reviewer") برای بازنویسی رستر.
  */
 import { runPlanner } from '../lib/dashboard/planner/planner';
+import { logger } from '../lib/logger';
 
 async function main(): Promise<void> {
   const weekKey = process.env.PLANNER_WEEK_KEY?.trim() || undefined;
@@ -29,13 +30,13 @@ async function main(): Promise<void> {
     totalInserted += r.inserted;
     totalSkipped += r.skipped;
     if (r.error) totalFailed += 1;
-    console.log(
+    logger.info(
       `[planner-weekly] team=${team} generated=${r.generated} ` +
         `inserted=${r.inserted} skipped=${r.skipped}` +
         (r.error ? ` error=${r.error}` : ''),
     );
   }
-  console.log(
+  logger.info(
     `[planner-weekly] done week=${result.weekKey} ` +
       `inserted=${totalInserted} skipped=${totalSkipped} failed_teams=${totalFailed}`,
   );
@@ -43,6 +44,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error('[planner-weekly] fatal:', err instanceof Error ? err.message : String(err));
+  logger.error('[planner-weekly] fatal:', undefined, err instanceof Error ? err.message : String(err));
   process.exit(1);
 });

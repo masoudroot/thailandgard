@@ -17,6 +17,7 @@
 
 import { getSupabase } from '../api';
 import { mergeDevIntoMainBestEffort } from './merge';
+import { logger } from '../../logger';
 
 /* ------------------------------------------------------------------ */
 /* ثابت‌ها                                                              */
@@ -157,7 +158,7 @@ export async function enqueueDeploy(patchId: string, team?: string): Promise<Dep
     .single();
 
   if (error) throw new Error(`enqueueDeploy failed: ${error.message}`);
-  console.log(
+  logger.info(
     `[deploy-queue] پچ ${patchId} در صف دیپلوی قرار گرفت (اسلات ${slotTime.toISOString()}).`,
   );
   return data as DeployQueueItem;
@@ -240,7 +241,7 @@ export async function retryDeployItem(id: string): Promise<DeployQueueItem> {
     .select('*')
     .single();
   if (error) throw new Error(`retryDeployItem failed: ${error.message}`);
-  console.log(`[deploy-queue] تلاش مجدد دستی برای آیتم ${id} (اسلات ${slotTime.toISOString()}).`);
+  logger.info(`[deploy-queue] تلاش مجدد دستی برای آیتم ${id} (اسلات ${slotTime.toISOString()}).`);
   return data as DeployQueueItem;
 }
 
@@ -307,7 +308,7 @@ export async function processDeployQueue(): Promise<ProcessDeployQueueResult> {
     }
 
     result.processed = 1;
-    console.log(`[deploy-queue] شروع دیپلوی اسلات (آیتم ${head.id}، پچ ${head.patch_id}).`);
+    logger.info(`[deploy-queue] شروع دیپلوی اسلات (آیتم ${head.id}، پچ ${head.patch_id}).`);
 
     // اجرای واقعی دیپلوی: dev → main (ورسل خودکار دیپلوی می‌کند)
     const merge = await mergeDevIntoMainBestEffort(head.patch_id);
@@ -324,7 +325,7 @@ export async function processDeployQueue(): Promise<ProcessDeployQueueResult> {
       result.message = merge.merged
         ? `${dueIds.length} آیتم دیپلوی شد.`
         : 'main از قبل به‌روز بود؛ آیتم‌های due علامت خوردند.';
-      console.log(`[deploy-queue] دیپلوی موفق: ${result.message}`);
+      logger.info(`[deploy-queue] دیپلوی موفق: ${result.message}`);
     } else {
       // ناموفق
       const newRetry = (claimed.retry_count ?? 0) + 1;
@@ -336,7 +337,7 @@ export async function processDeployQueue(): Promise<ProcessDeployQueueResult> {
           .eq('id', head.id);
         result.dead = 1;
         result.message = `آیتم ${head.id} پس از ${newRetry} تلاش مرد (dead): ${errMsg}`;
-        console.error(`[deploy-queue] ${result.message}`);
+        logger.error(`[deploy-queue] ${result.message}`);
       } else {
         const slotTime = nextGridSlot(new Date());
         // ناموفق ولی تلاش باقی مانده: وضعیت failed می‌ماند (در پنل دیده می‌شود)
@@ -352,12 +353,12 @@ export async function processDeployQueue(): Promise<ProcessDeployQueueResult> {
           .eq('id', head.id);
         result.failed = 1;
         result.message = `دیپلوی ناموفق (تلاش ${newRetry}/${MAX_DEPLOY_RETRIES})؛ تلاش مجدد در اسلات ${slotTime.toISOString()}: ${errMsg}`;
-        console.error(`[deploy-queue] ${result.message}`);
+        logger.error(`[deploy-queue] ${result.message}`);
       }
     }
   } catch (err) {
     result.message = `خطای پردازشگر: ${err instanceof Error ? err.message : String(err)}`;
-    console.error(`[deploy-queue] ${result.message}`);
+    logger.error(`[deploy-queue] ${result.message}`);
   }
 
   return result;

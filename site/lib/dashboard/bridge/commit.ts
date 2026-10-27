@@ -9,6 +9,7 @@
  */
 
 import { applyPatchViaGithub, getGithubConfig, type PatchFile } from '../github';
+import { logger } from '../../logger';
 
 /** ریپوی سایت تایلندگرد. */
 export const SITE_REPO = 'masoudroot/thailandgard';
@@ -61,7 +62,7 @@ async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 3): 
       if (!isTransientError(err) || i === attempts - 1) throw err;
       const waitMs = 1000 * 2 ** i; // ۱ثانیه، ۲ثانیه
       const detail = err instanceof Error ? err.message : String(err);
-      console.warn(
+      logger.warn(
         `[bridge] ${label}: خطای موقتی (${detail.slice(0, 120)})؛ تلاش ${i + 2}/${attempts} پس از ${waitMs}ms`,
       );
       await new Promise((r) => setTimeout(r, waitMs));

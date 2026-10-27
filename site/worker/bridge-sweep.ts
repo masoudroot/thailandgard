@@ -24,16 +24,19 @@
  */
 import { recoverDeadCycles } from '../lib/dashboard/cycle-recovery';
 import { sweepOrphanedBridgePatches } from '../lib/dashboard/bridge/sweep';
+import { logger } from '../lib/logger';
 
 process.on('unhandledRejection', (reason) => {
-  console.error(
+  logger.error(
     '[bridge-sweep] unhandledRejection:',
+    undefined,
     reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
   );
 });
 process.on('uncaughtException', (err) => {
-  console.error(
+  logger.error(
     '[bridge-sweep] uncaughtException:',
+    undefined,
     err instanceof Error ? (err.stack ?? err.message) : String(err),
   );
 });
@@ -42,16 +45,17 @@ async function main(): Promise<void> {
   try {
     await recoverDeadCycles();
   } catch (err) {
-    console.error(
+    logger.error(
       '[bridge-sweep] cycle recovery failed (continuing):',
+      undefined,
       err instanceof Error ? err.message : err,
     );
   }
   await sweepOrphanedBridgePatches();
-  console.log('[bridge-sweep] done');
+  logger.info('[bridge-sweep] done');
 }
 
 main().catch((err) => {
-  console.error('[bridge-sweep] fatal:', err instanceof Error ? err.message : String(err));
+  logger.error('[bridge-sweep] fatal:', undefined, err instanceof Error ? err.message : String(err));
   process.exitCode = 1;
 });

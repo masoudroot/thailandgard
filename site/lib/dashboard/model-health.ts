@@ -25,6 +25,7 @@
  */
 
 import { getSupabase } from './api';
+import { logger } from '../logger';
 
 export type ModelErrorType =
   | 'rate_limit_429'
@@ -154,7 +155,7 @@ export async function isModelHealthy(
       lastSuccessAt: data.last_success_at as string | null,
     };
   } catch (err) {
-    console.warn('[model-health] isModelHealthy failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] isModelHealthy failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
     return { healthy: true };
   }
 }
@@ -195,7 +196,7 @@ export async function recordModelFailure(
       rule.baseMin * Math.pow(2, Math.min(fails - 1, 5)),
       rule.capMin,
     );
-    console.log(
+    logger.info(
       `[model-health] ${m}: ${rule.fa} (خطای پیاپی ${fails})؛ cooldown ${cooldownMin} دقیقه`,
     );
     return {
@@ -204,7 +205,7 @@ export async function recordModelFailure(
       cooldownMinutes: cooldownMin,
     };
   } catch (err) {
-    console.warn('[model-health] recordModelFailure failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] recordModelFailure failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }
@@ -234,7 +235,7 @@ export async function recordModelSuccess(
       .or('consecutive_failures.gt.0,cooldown_until.not.is.null,last_error_type.not.is.null');
     if (error) throw error;
   } catch (err) {
-    console.warn('[model-health] recordModelSuccess failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] recordModelSuccess failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
   }
 }
 
@@ -258,7 +259,7 @@ export async function clearModelCooldown(
       .eq('model', m);
     if (error) throw error;
   } catch (err) {
-    console.warn('[model-health] clearModelCooldown failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] clearModelCooldown failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
   }
 }
 
@@ -294,7 +295,7 @@ export async function getCooldownKeys(
       out.add(`${r.endpoint_id}::${normModelKey(r.model)}`);
     }
   } catch (err) {
-    console.warn('[model-health] getCooldownKeys failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] getCooldownKeys failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
   }
   return out;
 }
@@ -323,7 +324,7 @@ export async function getModelSuccessMap(
       out.set(`${r.endpoint_id}::${normModelKey(r.model)}`, ts);
     }
   } catch (err) {
-    console.warn('[model-health] getModelSuccessMap failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] getModelSuccessMap failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
   }
   return out;
 }
@@ -359,7 +360,7 @@ export async function getUnhealthyModels(
       };
     });
   } catch (err) {
-    console.warn('[model-health] getUnhealthyModels failed (fail-soft):', err instanceof Error ? err.message : String(err));
+    logger.warn('[model-health] getUnhealthyModels failed (fail-soft):', { detail: err instanceof Error ? err.message : String(err) });
     return [];
   }
 }

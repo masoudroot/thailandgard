@@ -20,6 +20,7 @@
 
 import { google } from 'googleapis';
 import { getSupabase } from '../lib/dashboard/api';
+import { logger } from '../lib/logger';
 
 const SITE_URL = process.env.GSC_SITE_URL ?? 'sc-domain:thailandgard.ir';
 /** تأخیر دادهٔ GSC (روز)؛ روز هدف = امروز منهای این عدد. */
@@ -78,7 +79,7 @@ async function fetchGscRows(
 async function main(): Promise<void> {
   const saJsonB64 = process.env.GSC_SERVICE_ACCOUNT_JSON;
   if (!saJsonB64) {
-    console.log(
+    logger.info(
       '[gsc-daily] سکرت GSC_SERVICE_ACCOUNT_JSON ست نشده است؛ ' +
         'کلید service account گوگل با دسترسی Search Console لازم است. ' +
         'بدون درج خارج می‌شود.',
@@ -92,7 +93,7 @@ async function main(): Promise<void> {
       unknown
     >;
   } catch {
-    console.error('[gsc-daily] GSC_SERVICE_ACCOUNT_JSON معتبر نیست (base64/JSON خراب).');
+    logger.error('[gsc-daily] GSC_SERVICE_ACCOUNT_JSON معتبر نیست (base64/JSON خراب).');
     process.exit(1);
   }
 
@@ -103,14 +104,14 @@ async function main(): Promise<void> {
 
   const target = new Date(Date.now() - GSC_LAG_DAYS * 24 * 3600 * 1000);
   const dateStr = target.toISOString().slice(0, 10);
-  console.log(`[gsc-daily] سایت: ${SITE_URL} | روز هدف: ${dateStr}`);
+  logger.info(`[gsc-daily] سایت: ${SITE_URL} | روز هدف: ${dateStr}`);
 
   const sb = getSupabase();
 
   // ۱) page → page_analytics
   try {
     const pageRows = await fetchGscRows(auth, 'page', dateStr);
-    console.log(`[gsc-daily] ${pageRows.length} ردیف page از GSC`);
+    logger.info(`[gsc-daily] ${pageRows.length} ردیف page از GSC`);
     // تجمیع بر اساس page_path (ممکن است URLهای متفاوت، path یکسان داشته باشند)
     const byPath = new Map<string, { views: number; impressions: number; posSum: number; n: number }>();
     for (const r of pageRows) {
@@ -138,17 +139,17 @@ async function main(): Promise<void> {
         .from('page_analytics')
         .upsert(pagePayload, { onConflict: 'page_path,date' });
       if (error) throw new Error(error.message);
-      console.log(`[gsc-daily] ${pagePayload.length} ردیف در page_analytics ثبت شد.`);
+      logger.info(`[gsc-daily] ${pagePayload.length} ردیف در page_analytics ثبت شد.`);
     }
   } catch (err) {
-    console.error('[gsc-daily] خطا در page:', err instanceof Error ? err.message : err);
+    logger.error('[gsc-daily] خطا در page:', undefined, err instanceof Error ? err.message : err);
     process.exit(1);
   }
 
   // ۲) query → gsc_queries
   try {
     const queryRows = await fetchGscRows(auth, 'query', dateStr);
-    console.log(`[gsc-daily] ${queryRows.length} ردیف query از GSC`);
+    logger.info(`[gsc-daily] ${queryRows.length} ردیف query از GSC`);
     const queryPayload = queryRows.map((r) => ({
       query: r.keys[0] ?? '',
       clicks: r.clicks,
@@ -162,17 +163,17 @@ async function main(): Promise<void> {
         .from('gsc_queries')
         .upsert(queryPayload, { onConflict: 'query,date' });
       if (error) throw new Error(error.message);
-      console.log(`[gsc-daily] ${queryPayload.length} ردیف در gsc_queries ثبت شد.`);
+      logger.info(`[gsc-daily] ${queryPayload.length} ردیف در gsc_queries ثبت شد.`);
     }
   } catch (err) {
-    console.error('[gsc-daily] خطا در query:', err instanceof Error ? err.message : err);
+    logger.error('[gsc-daily] خطا در query:', undefined, err instanceof Error ? err.message : err);
     process.exit(1);
   }
 
-  console.log('[gsc-daily] تمام شد.');
+  logger.info('[gsc-daily] تمام شد.');
 }
 
 main().catch((err) => {
-  console.error('[gsc-daily] خطای غیرمنتظره:', err instanceof Error ? err.message : err);
+  logger.error('[gsc-daily] خطای غیرمنتظره:', undefined, err instanceof Error ? err.message : err);
   process.exit(1);
 });
