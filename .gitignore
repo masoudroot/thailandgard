@@ -14,3 +14,7 @@ dist/
 
 # uptime probe local output
 uptime-report.json
+
+# Lighthouse CI reports (Q3-08)
+site/factory/.lighthouseci/
+site/.lighthouseci/

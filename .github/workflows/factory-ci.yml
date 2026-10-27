@@ -56,3 +56,7 @@ jobs:
       - run: npm test
       - run: npm run factory:walking-skeleton
       - run: npm run build
+      # Q3-08: بودجهٔ کارایی + axe در همان job و همان چک اجباری `test`.
+      # آستانه‌ها از docs/ops/perf-budget.md می‌آیند (ADR-013).
+      - name: Lighthouse gate (performance budget + axe)
+        run: npx lhci autorun
