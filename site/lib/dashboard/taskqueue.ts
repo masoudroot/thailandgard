@@ -2,6 +2,7 @@ import { getSupabase } from './api';
 import type { QueuedTask } from './types';
 import { TEAMS, type TeamName } from './types';
 import { getEndpoint, resolveTeamConfig, InputError } from './llm-endpoints';
+import { logger } from '../logger';
 
 /**
  * Task-queue service backed by the existing `build_queue` table.
@@ -296,7 +297,7 @@ export async function enqueueTask(
       // خطاها بلند بالا می‌آیند تا بی‌صدا داده گم نشود (درس ممیزی B2).
       const msg = formatError(err);
       if (isMissingColumnError(err, msg) && attempt + 1 < attempts.length) {
-        console.warn(
+        logger.warn(
           `[taskqueue] build_queue misses a fallback column; enqueueing with fewer fields (attempt ${attempt + 2}). cause: ${msg}`,
         );
         attempt += 1;
@@ -531,7 +532,7 @@ export async function markTaskRunning(id: string): Promise<void> {
     .from('build_queue')
     .update({ status: 'in_progress' })
     .eq('id', id);
-  if (error) console.error(`[taskqueue] markTaskRunning fell back to approved: ${error.message}`);
+  if (error) logger.error(`[taskqueue] markTaskRunning fell back to approved: ${error.message}`);
 }
 
 /**
@@ -549,12 +550,12 @@ export async function markTaskFailed(id: string, errorMessage: string): Promise<
     .update({ ...patch, status: 'failed' })
     .eq('id', id);
   if (error) {
-    console.error(`[taskqueue] markTaskFailed status update failed: ${error.message}`);
+    logger.error(`[taskqueue] markTaskFailed status update failed: ${error.message}`);
     const { error: fallbackError } = await getSupabase()
       .from('build_queue')
       .update(patch)
       .eq('id', id);
-    if (fallbackError) console.error(`[taskqueue] markTaskFailed fallback failed: ${fallbackError.message}`);
+    if (fallbackError) logger.error(`[taskqueue] markTaskFailed fallback failed: ${fallbackError.message}`);
   }
 }
 
@@ -641,7 +642,7 @@ export async function claimNextTaskForTeam(team: string): Promise<QueuedTaskOutp
     // all-null برمی‌گرداند (id=null)؛ این «تسک» نیست، «صف خالی» است و دور
     // با لاگ تمیز رد می‌شود، نه با claim جعلی و خطای بعدی در completeTask.
     if (!row || !isValidTaskId(row.id)) {
-      console.log(`[taskqueue] تیم ${team}: تسک آماده‌ای در صف نیست (claim برگشتی معتبر نداد)؛ رد شد.`);
+      logger.info(`[taskqueue] تیم ${team}: تسک آماده‌ای در صف نیست (claim برگشتی معتبر نداد)؛ رد شد.`);
       return null;
     }
     return toOutput(row);
@@ -649,7 +650,7 @@ export async function claimNextTaskForTeam(team: string): Promise<QueuedTaskOutp
     const msg = err instanceof Error ? err.message : String(err);
     const code = (err as { code?: string })?.code;
     if (code === 'PGRST202' || code === '42883' || /claim_next_build_task/i.test(msg)) {
-      console.warn(
+      logger.warn(
         '[taskqueue] claim_next_build_task is not applied on the DB yet; using best-effort claim. Apply migration 20261016134000_build_queue_claim_and_approved.sql.',
       );
       return claimNextTaskBestEffort(team);
@@ -688,7 +689,7 @@ export async function applyTaskCriticVerdict(
   }
   if (task.estimate === 1) {
     await approveTask(id);
-    console.log(`[taskqueue] task ${id} auto-approved (estimate=1, critic-verified).`);
+    logger.info(`[taskqueue] task ${id} auto-approved (estimate=1, critic-verified).`);
     return 'approved';
   }
   return 'pending';
@@ -796,7 +797,7 @@ export async function settleOrphanedClaimedTasks(
     .eq('team', team)
     .eq('status', 'in_progress');
   if (error) {
-    console.error(`[taskqueue] خواندن تسک‌های یتیم تیم ${team} خطا داد:`, formatError(error));
+    logger.error(`[taskqueue] خواندن تسک‌های یتیم تیم ${team} خطا داد:`, undefined, formatError(error));
     return 0;
   }
   let settled = 0;
@@ -821,15 +822,15 @@ export async function settleOrphanedClaimedTasks(
         .eq('status', 'in_progress')
         .select('id');
       if (updErr) {
-        console.error(`[taskqueue] بستن تسک یتیم ${row.id} خطا داد:`, formatError(updErr));
+        logger.error(`[taskqueue] بستن تسک یتیم ${row.id} خطا داد:`, undefined, formatError(updErr));
         continue;
       }
       if (updated && (updated as unknown[]).length > 0) {
         settled += 1;
-        console.log(`[taskqueue] تسک یتیم تیم ${team} با سرنوشت «interrupted» بسته شد (id=${row.id}).`);
+        logger.info(`[taskqueue] تسک یتیم تیم ${team} با سرنوشت «interrupted» بسته شد (id=${row.id}).`);
       }
     } catch (err) {
-      console.error(`[taskqueue] بستن تسک یتیم ${row.id} خطا داد:`, formatError(err));
+      logger.error(`[taskqueue] بستن تسک یتیم ${row.id} خطا داد:`, undefined, formatError(err));
     }
   }
   return settled;
