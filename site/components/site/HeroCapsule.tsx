@@ -82,7 +82,7 @@ export function HeroCapsule({
           <BlurText text="تایلندگرد؛ مشاور شما برای انتخاب بهترین تور تایلند" delay={60} durationMs={300} />
         </h1>
 
-        <Reveal delay={450} durationMs={200}>
+        <Reveal delay={120} durationMs={200}>
           <p className="mx-auto mt-5 max-w-xl text-muted-foreground sm:text-lg">
             {/* سند برند ۱.۰: زیرتیتر تصمیم‌محور؛ بانکوک، پوکت، پاتایا یا ترکیبی —
                 تفاوت مقصدها را بشناس، بعد با مشاور ما گزینه مناسب خودت را انتخاب کن. */}
@@ -91,7 +91,7 @@ export function HeroCapsule({
           </p>
         </Reveal>
 
-        <Reveal delay={800} durationMs={200} className="mt-8">
+        <Reveal delay={240} durationMs={200} className="mt-8">
           <div className="flex flex-col items-center justify-center gap-3">
             <Button asChild size="lg" variant="brand" className="rounded-full px-7">
               <a href={phoneHref} data-call-context="hero">
@@ -116,7 +116,7 @@ export function HeroCapsule({
             لهجهٔ کوچکِ برند، نه تزئین اضافه (حکم برندینگ: شعارزدگی ممنوع).
             نکته (۲۴ مهر ۱۴۰۵): لوزی با text-brand-foreground (سبز عمیق)
             روی خط مویی می‌نشیند تا با پالت برند بخواند. */}
-        <Reveal delay={950} durationMs={200} className="mt-10">
+        <Reveal delay={360} durationMs={200} className="mt-10">
           <div aria-hidden className="mx-auto flex max-w-xs items-center gap-3">
             <span className="h-px flex-1 bg-foreground/10" />
             <span className="text-[10px] leading-none text-brand-foreground">◆</span>
