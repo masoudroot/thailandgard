@@ -16,11 +16,36 @@
     },
     "assert": {
       "assertions": {
-        "categories:accessibility": ["error", { "minScore": 1 }],
-        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
-        "total-blocking-time": ["error", { "maxNumericValue": 500 }],
-        "largest-contentful-paint": ["error", { "maxNumericValue": 4000 }],
-        "first-contentful-paint": ["error", { "maxNumericValue": 4000 }]
+        "categories:accessibility": [
+          "error",
+          {
+            "minScore": 1
+          }
+        ],
+        "cumulative-layout-shift": [
+          "error",
+          {
+            "maxNumericValue": 0.05
+          }
+        ],
+        "total-blocking-time": [
+          "error",
+          {
+            "maxNumericValue": 500
+          }
+        ],
+        "largest-contentful-paint": [
+          "error",
+          {
+            "maxNumericValue": 100
+          }
+        ],
+        "first-contentful-paint": [
+          "error",
+          {
+            "maxNumericValue": 4000
+          }
+        ]
       }
     },
     "upload": {
