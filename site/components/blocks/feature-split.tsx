@@ -31,7 +31,8 @@ export function FeatureSplit({ items }: { items: SplitFeature[] }) {
                 </ul>
               )}
             </div>
-            <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-secondary">
+            {/* Q3-05: relative برای next/image با fill (مدیای صفحهٔ خانه). */}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-secondary">
               {f.media ?? (
                 /* D-212 (الگوی جای‌نگه‌دار تایپوگرافیک D-117): اگر مدیا داده نشد،
                    به‌جای قاب خالی، پوستر تایپوگرافیک عمدی با عنوان خود آیتم */
