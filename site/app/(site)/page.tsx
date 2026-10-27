@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, CalendarDays, Clock, Compass, Phone, PhoneCall, ShieldCheck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { HeroCapsule } from "@/components/site/HeroCapsule";
@@ -149,7 +150,7 @@ export default async function HomePage() {
         </div>
         {/* قلم ۶ اسپک (یافتهٔ تطبیق): گرید کارت‌ها در animations/reveal بایت‌به‌بایت پیچیده شد؛
             تنشِ «حکم ۵ می‌گوید دست نزنید» با واقعیت (هیچ reveal روی گرید نبود) به نفع واقعیت حل شد. */}
-        <Reveal className="mt-8 grid gap-6 duration-(--motion) sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featuredTours.map((tour) => (
             <TourCard key={tour.slug} tour={tour} />
           ))}
@@ -179,12 +180,14 @@ export default async function HomePage() {
           "پشتیبانی فارسی‌زبان در مقصد",
         ],
         media: (
-          <img
+          /* Q3-05: تصویر سکشن با next/image (قبلاً <img> خام ۱۱۰KB)؛ قاب
+             aspect-[4/3] در FeatureSplit ابعاد را از قبل رزرو کرده است. */
+          <Image
             src="/images/hero-phuket-sunset.webp"
             alt="غروب ساحل پوکت"
-            loading="lazy"
-            decoding="async"
-            className="size-full object-cover"
+            fill
+            sizes="(max-width: 767px) 100vw, 480px"
+            className="object-cover"
           />
         ),
       }]} />

@@ -16,6 +16,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Carousel } from "@/components/ui/carousel";
 
 type Frame = { src: string; caption: string };
@@ -45,8 +46,16 @@ export function ThailandGazeGallery() {
       <Carousel slideWidth={w} showDots={false} className="mt-6">
         {FRAMES.map((f) => (
           <figure key={f.src}>
-            <div className="aspect-[4/3] overflow-hidden rounded-control border border-border">
-              <img src={f.src} alt={f.caption} loading="lazy" decoding="async" className="size-full object-cover" />
+            {/* Q3-05: قاب‌های گالری از next/image می‌آیند (قبلاً <img> خام اصل فایل
+                ۱۳۷KB را می‌کشید)؛ ابعاد از aspect قاب می‌آید پس CLS ندارد. */}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-control border border-border">
+              <Image
+                src={f.src}
+                alt={f.caption}
+                fill
+                sizes="(max-width: 767px) 72vw, 30vw"
+                className="object-cover"
+              />
             </div>
             {/* کپشن تک‌خطی زیر قاب، نه روی عکس (بریف؛ حکم ۴۷: فقط نام صحنه، بدون تفسیر) */}
             <figcaption title={f.caption} className="mt-2 truncate text-xs text-muted-foreground">{f.caption}</figcaption>
