@@ -23,6 +23,7 @@ import { claimBridgePatch, getBridgePatch, updateBridgePatch } from '../bridge';
 import { mergeBranchIntoDev, PreMergeGateError, isMergeConflictError } from './merge';
 import { enqueueDeploy } from './deploy-queue';
 import type { PatchFile } from '../types';
+import { logger } from '../../logger';
 
 export interface ProposeResult {
   patchId: string;
@@ -60,7 +61,7 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
       status: 'needs_review',
       gate_errors: JSON.stringify(gate.errors),
     });
-    console.log(
+    logger.info(
       `[bridge] پچ ${patchId} در دروازه کیفیت رد شد؛ وضعیت needs_review ثبت شد.`,
     );
     return { patchId, gated: false, committed: false, merged: false, gateErrors: gate.errors };
@@ -77,7 +78,7 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
   } catch (err) {
     await updateBridgePatch(patchId, { status: 'proposed' });
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`[bridge] کامیت پچ ${patchId} ناموفق بود؛ به proposed برگشت:`, message);
+    logger.error(`[bridge] کامیت پچ ${patchId} ناموفق بود؛ به proposed برگشت:`, undefined, message);
     throw new Error(`کامیت پچ ${patchId} ناموفق بود و برای تلاش بعدی به proposed برگشت: ${message}`);
   }
   await updateBridgePatch(patchId, { status: 'committed', branch, commit_sha: sha });
@@ -105,7 +106,7 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
       decided_at: now,
       merge_sha: merge.sha,
     });
-    console.log(`[bridge] پچ ${patchId} به‌صورت خودکار به dev مرج شد (sha=${merge.sha ?? 'already'}).`);
+    logger.info(`[bridge] پچ ${patchId} به‌صورت خودکار به dev مرج شد (sha=${merge.sha ?? 'already'}).`);
 
     // صف دیپلوی (دستور مسعود ۱۴۰۵/۰۷/۲۷): به‌جای مرج فوری dev به main،
     // پچ وارد صف ۷۰ اسلاته می‌شود؛ پردازشگر در اسلات ثابت دیپلوی می‌کند.
@@ -113,12 +114,13 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
     try {
       const teamOfPatch = (await getBridgePatch(patchId))?.team ?? undefined;
       const queued = await enqueueDeploy(patchId, teamOfPatch ?? undefined);
-      console.log(
+      logger.info(
         `[bridge] پچ ${patchId} در صف دیپلوی قرار گرفت (اسلات ${queued.slot_time}).`,
       );
     } catch (queueErr) {
-      console.error(
+      logger.error(
         `[bridge] خطای صف دیپلوی برای پچ ${patchId} (پچ merged ماند):`,
+        undefined,
         queueErr instanceof Error ? queueErr.message : queueErr,
       );
     }
@@ -142,7 +144,7 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
         status: 'needs_review',
         gate_errors: JSON.stringify([gateMessage]),
       });
-      console.error(
+      logger.error(
         `[bridge] پچ ${patchId} در تایپ‌چک پیش‌مرج رد شد؛ وضعیت needs_review ثبت شد.`,
       );
       return {
@@ -171,12 +173,13 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
           gate_errors: JSON.stringify([conflictMessage]),
         });
       } catch (dbErr) {
-        console.error(
+        logger.error(
           `[bridge] ثبت needs_review برای پچ متداخل ${patchId} ناموفق بود:`,
+          undefined,
           dbErr instanceof Error ? dbErr.message : dbErr,
         );
       }
-      console.error(`[bridge] پچ ${patchId} تداخل مرج دائمی دارد؛ به needs_review رفت.`);
+      logger.error(`[bridge] پچ ${patchId} تداخل مرج دائمی دارد؛ به needs_review رفت.`);
       return {
         patchId,
         gated: true,
@@ -196,12 +199,13 @@ export async function processProposedPatch(patchId: string): Promise<ProposeResu
         gate_errors: JSON.stringify([`[مرج گذرا] ${message}`]),
       });
     } catch (dbErr) {
-      console.error(
+      logger.error(
         `[bridge] ثبت خطای مرج گذرای پچ ${patchId} ناموفق بود:`,
+        undefined,
         dbErr instanceof Error ? dbErr.message : dbErr,
       );
     }
-    console.error(`[bridge] مرج خودکار پچ ${patchId} به dev ناموفق بود:`, message);
+    logger.error(`[bridge] مرج خودکار پچ ${patchId} به dev ناموفق بود:`, undefined, message);
     return {
       patchId,
       gated: true,

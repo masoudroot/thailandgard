@@ -23,6 +23,7 @@
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { TeamName } from './types';
+import { logger } from '../logger';
 import {
   getEndpoint,
   getTeamModelMap,
@@ -287,7 +288,7 @@ async function buildChatRouteGroups(opts: LLMCallOptions): Promise<ChatRoutePlan
   // اگر endpoint ورودی اصلی حذف شده باشد، به پیکربندی تیم/پیش‌فرض برگرد
   const primaryEpId = primaryEntry?.endpointId ?? null;
   if (primaryEntry && primaryEpId && !endpoints.some((e) => e.id === primaryEpId)) {
-    console.log(
+    logger.info(
       `[llm-smart] endpoint ورودی اصلی (${primaryEpId}) دیگر وجود ندارد؛ برگشت به پیکربندی تیم`,
     );
     primaryEntry = null;
@@ -462,11 +463,11 @@ async function autoReplaceTeamModel(
     const map = await getTeamModelMap();
     map[team] = { endpointId, model };
     await saveTeamModelMap(map);
-    console.log(
+    logger.info(
       `[llm-smart] team=${team}: مدل اصلی با 404 مرده بود؛ جایگزین خودکار ثبت شد: ${model}`,
     );
   } catch (err) {
-    console.log(
+    logger.info(
       `[llm-smart] team=${team}: ثبت خودکار جایگزین ناموفق بود: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
@@ -503,7 +504,7 @@ export async function callLLMSmart(
     plan = await buildChatRouteGroups(opts);
   } catch (err) {
     // settings در دسترس نیست؛ مسیر اضطراری env
-    console.log(
+    logger.info(
       `${tag} خواندن تنظیمات ناموفق بود، مسیر اضطراری env: ${err instanceof Error ? err.message : String(err)}`,
     );
     try {
@@ -524,7 +525,7 @@ export async function callLLMSmart(
     throw new LLMError(msg);
   }
 
-  console.log(
+  logger.info(
     `${tag} کاندیداها: ${usableGroups
       .map((g) => `${g.endpoint.name}:[${g.models.map((m) => m.model).join(', ')}]`)
       .join(' | ')}`,
@@ -537,7 +538,7 @@ export async function callLLMSmart(
   for (const group of usableGroups) {
     const ep = group.endpoint;
     if (isEndpointKeyBad(ep.id)) {
-      console.log(`${tag} درگاه ${ep.name} رد شد (کلید نامعتبر، در استراحت)`);
+      logger.info(`${tag} درگاه ${ep.name} رد شد (کلید نامعتبر، در استراحت)`);
       continue;
     }
     for (const cand of group.models) {
@@ -565,7 +566,7 @@ export async function callLLMSmart(
           stats.smartReroutes += 1;
         }
         stats.lastRoute = `${ep.name} / ${cand.model}`;
-        console.log(
+        logger.info(
           `${tag} پاسخ از ${ep.name}/${cand.model} در ${ms}ms (تلاش ${attempted})` +
             (trace.length > 0 ? `؛ قبلش: ${trace.join('؛ ')}` : ''),
         );
@@ -580,7 +581,7 @@ export async function callLLMSmart(
           err instanceof Error ? err.message.slice(0, 120) : String(err).slice(0, 120);
         await applyFailureCooldown(ep.id, cand.model, c.kind, short);
         trace.push(`${ep.name}/${cand.model}: ${c.fa}`);
-        console.log(`${tag} ${ep.name}/${cand.model} ← ${c.fa}: ${short}`);
+        logger.info(`${tag} ${ep.name}/${cand.model} ← ${c.fa}: ${short}`);
         if (
           c.kind === 'gone' &&
           cand.isPrimary &&
@@ -835,7 +836,7 @@ export async function getEmbeddingSmart(
       const embedding = await postEmbeddings(cand.baseUrl, cand.apiKey, cand.model, trimmed, timeoutMs);
       routeCooldowns.delete(cooldownKey(cand.endpointId, cand.model));
       await recordModelSuccess(cand.endpointId, cand.model);
-      console.log(
+      logger.info(
         `${tag} پاسخ از ${epName}/${cand.model} (تلاش ${attempted})` +
           (trace.length > 0 ? `؛ قبلش: ${trace.join('؛ ')}` : ''),
       );
@@ -846,7 +847,7 @@ export async function getEmbeddingSmart(
         err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
       await applyFailureCooldown(cand.endpointId, cand.model, c.kind, short);
       trace.push(`${epName}/${cand.model}: ${c.fa}`);
-      console.log(`${tag} ${epName}/${cand.model} ← ${c.fa}`);
+      logger.info(`${tag} ${epName}/${cand.model} ← ${c.fa}`);
       // روی 401/403 حلقه ادامه می‌دهد ولی isEndpointKeyBad بقیه‌ی
       // کاندیداهای همان درگاه را رد می‌کند
     }
