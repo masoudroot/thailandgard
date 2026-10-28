@@ -662,6 +662,9 @@ export async function postChatCompletions(
         messages,
         max_tokens: opts.maxTokens,
         temperature: opts.temperature,
+        // بدون این، بعضی درگاه‌ها (مثل 9router) پیش‌فرض SSE برمی‌گردانند و
+        // res.json() خالی می‌شود؛ پاسخ باید کامل و یک‌جا باشد.
+        stream: false,
       }),
       signal: controller.signal,
     });
