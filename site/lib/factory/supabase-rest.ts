@@ -17,6 +17,7 @@ export async function fetchSupabaseRows<T>(
   table: string,
   search: URLSearchParams,
   config = readSupabaseRestConfig(),
+  timeoutMs = 15_000,
 ): Promise<T[]> {
   if (!config) {
     throw new Error('SUPABASE_CONFIG_MISSING');
@@ -29,7 +30,7 @@ export async function fetchSupabaseRows<T>(
         apikey: config.key,
         Authorization: `Bearer ${config.key}`,
       },
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(timeoutMs),
     },
   );
   if (!response.ok) {
