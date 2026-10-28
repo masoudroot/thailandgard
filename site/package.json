@@ -27,7 +27,8 @@
     "factory:schemas": "tsx factory/scripts/export-content-schemas.ts",
     "factory:baseline": "node factory/scripts/baseline.mjs",
     "factory:lead-weekly": "tsx factory/scripts/lead-weekly.ts",
-    "factory:preview-probe": "node factory/scripts/preview-probe.mjs"
+    "factory:preview-probe": "node factory/scripts/preview-probe.mjs",
+    "factory:copy-audit": "tsx factory/scripts/copy-audit.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1157.0",
