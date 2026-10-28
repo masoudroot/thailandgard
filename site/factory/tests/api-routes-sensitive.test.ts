@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { hashSync } from "bcryptjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimits } from "@/lib/form-rate-limit";
 
 /**
  * Q2-05 (ادامه): تست قرارداد روت‌های حساس `contact-message`، `rates` و `auth/login`.
@@ -55,6 +56,9 @@ const VALID_CONTACT = {
 
 describe("POST /api/contact-message", () => {
   beforeEach(() => {
+    // Q4-04: محدودکنندهٔ نرخ بین تست‌ها مشترک است؛ بدون این پاک‌سازی، تست پنجم
+    // به‌جای ۵۰۰ یا ۲۰۰، ۴۲۹ می‌گیرد.
+    resetRateLimits();
     saveMock.mockReset();
     saveMock.mockResolvedValue(undefined);
   });
@@ -99,6 +103,23 @@ describe("POST /api/contact-message", () => {
     const res = await POST(jsonRequest(CONTACT_URL, VALID_CONTACT));
     expect(res.status).toBe(500);
     expect((await res.json()) as { ok: boolean }).toMatchObject({ ok: false });
+  });
+
+  it("stops a loop after the per-IP ceiling with 429 and Retry-After", async () => {
+    const { POST } = await import("@/app/api/contact-message/route");
+
+    for (let i = 0; i < 5; i += 1) {
+      const res = await POST(jsonRequest(CONTACT_URL, VALID_CONTACT));
+      expect(res.status).toBe(200);
+    }
+
+    const blocked = await POST(jsonRequest(CONTACT_URL, VALID_CONTACT));
+
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
+    expect((await blocked.json()) as { ok: boolean }).toMatchObject({ ok: false });
+    // The sixth attempt must not reach storage.
+    expect(saveMock).toHaveBeenCalledTimes(5);
   });
 });
 

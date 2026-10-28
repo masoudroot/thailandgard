@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callbackStore } from "@/lib/callback-store";
+import { clientIp } from "@/lib/dashboard/rate-limit";
+import { allowSubmission } from "@/lib/form-rate-limit";
 import { en } from "@/lib/utils";
 
 interface ContactBody {
@@ -37,6 +39,17 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "فرم درست ارسال نشد؛ لطفاً یک بار دیگر تلاش کنید." }, { status: 400 });
+  }
+
+  // Q4-04: همان سقف فرم درخواست تماس؛ کلید شامل نام مسیر است تا سهم هر فرم
+  // جدا شمرده شود.
+  const limit = allowSubmission(`contact:${clientIp(req)}`);
+  if (!limit.allowed) {
+    const mins = Math.max(1, Math.ceil(limit.retryAfterSeconds / 60));
+    return NextResponse.json(
+      { ok: false, error: `تعداد درخواست‌ها زیاد بود. ${mins} دقیقه دیگر دوباره تلاش کنید.` },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";

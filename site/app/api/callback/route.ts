@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callbackStore } from "@/lib/callback-store";
+import { clientIp } from "@/lib/dashboard/rate-limit";
+import { allowSubmission } from "@/lib/form-rate-limit";
 import { en } from "@/lib/utils";
 
 interface CallbackBody {
@@ -32,6 +34,17 @@ export async function POST(req: NextRequest) {
     // یافتهٔ ۲ لید (کارت ۰۵): «بدنهٔ درخواست معتبر نیست.» زبان فنی بود و کاربر
     // را مقصر می‌دانست (خلاف محور ۶ لحن: راه‌حل جلوتر از عذرخواهی، زبان فنی ممنوع).
     return NextResponse.json({ ok: false, error: "فرم درست ارسال نشد؛ لطفاً یک بار دیگر تلاش کنید." }, { status: 400 });
+  }
+
+  // Q4-04: سقف ارسال فرم (۵ در ۱۰ دقیقه از هر IP). بدون این، فرم عمومی
+  // می‌تواند با یک حلقه، مخزن لید و هشدار تیم را پر کند.
+  const limit = allowSubmission(`callback:${clientIp(req)}`);
+  if (!limit.allowed) {
+    const mins = Math.max(1, Math.ceil(limit.retryAfterSeconds / 60));
+    return NextResponse.json(
+      { ok: false, error: `تعداد درخواست‌ها زیاد بود. ${mins} دقیقه دیگر دوباره تلاش کنید.` },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
