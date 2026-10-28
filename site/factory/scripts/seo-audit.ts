@@ -13,6 +13,7 @@
  */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { runTechnicalSeoGate } from '../../lib/factory/gates/technical-seo';
 import { logger } from '../../lib/logger';
 
@@ -51,15 +52,39 @@ async function fetchText(url: string, timeoutMs: number): Promise<string> {
   return response.text();
 }
 
-function sitemapUrls(xml: string): string[] {
+export function sitemapUrls(xml: string): string[] {
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/gi)].map((m) => m[1].trim());
 }
 
-interface PageReport {
+export interface PageReport {
   url: string;
   passed: boolean;
   failedChecks: string[];
   elapsedMs: number;
+}
+
+export interface AuditSummary {
+  audited: number;
+  passed: number;
+  failed: number;
+  failures: PageReport[];
+  slowest: PageReport[];
+}
+
+/**
+ * Pure report shaping. Kept separate from the CLI so the regression test can
+ * assert the numbers without touching the network.
+ */
+export function summarizeReports(reports: PageReport[], slowestCount = 5): AuditSummary {
+  const sorted = [...reports].sort((a, b) => a.url.localeCompare(b.url));
+  const failures = sorted.filter((r) => !r.passed);
+  return {
+    audited: sorted.length,
+    passed: sorted.length - failures.length,
+    failed: failures.length,
+    failures,
+    slowest: [...reports].sort((a, b) => b.elapsedMs - a.elapsedMs).slice(0, slowestCount),
+  };
 }
 
 async function auditOne(url: string): Promise<PageReport> {
@@ -111,18 +136,16 @@ async function main(): Promise<void> {
 
   await Promise.all(Array.from({ length: Math.min(concurrency, urls.length) }, worker));
 
-  reports.sort((a, b) => a.url.localeCompare(b.url));
-  const failing = reports.filter((r) => !r.passed);
-  const slowest = [...reports].sort((a, b) => b.elapsedMs - a.elapsedMs).slice(0, 5);
+  const { audited, passed, failed, failures, slowest } = summarizeReports(reports);
 
   out('');
-  out(`URLs audited : ${reports.length}`);
-  out(`Passed       : ${reports.length - failing.length}`);
-  out(`Failed       : ${failing.length}`);
+  out(`URLs audited : ${audited}`);
+  out(`Passed       : ${passed}`);
+  out(`Failed       : ${failed}`);
   out('');
-  if (failing.length > 0) {
+  if (failures.length > 0) {
     out('Failures:');
-    for (const report of failing) {
+    for (const report of failures) {
       out(`- ${report.url}`);
       for (const check of report.failedChecks) out(`    ${check}`);
     }
@@ -143,10 +166,26 @@ async function main(): Promise<void> {
     out(`Report written to ${target}`);
   }
 
-  if (failing.length > 0) process.exitCode = 1;
+  if (failed > 0) process.exitCode = 1;
 }
 
-main().catch((error) => {
-  logger.error('[seo-audit] failed', undefined, error instanceof Error ? error.message : error);
-  process.exitCode = 1;
-});
+/**
+ * Importing this module from a test must not start a network audit, so the CLI
+ * only runs when the file is the entry point.
+ */
+function isDirectRun(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return import.meta.url === pathToFileURL(entry).href;
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
+  main().catch((error) => {
+    logger.error('[seo-audit] failed', undefined, error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
+}
