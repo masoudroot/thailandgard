@@ -21,6 +21,7 @@
     "factory:seo-radar": "tsx factory/scripts/seo-radar.ts",
     "factory:seo-gate": "tsx factory/scripts/seo-gate.ts",
     "factory:seo-ops": "tsx factory/scripts/seo-ops.ts",
+    "factory:seo-audit": "tsx factory/scripts/seo-audit.ts",
     "factory:tour-ops": "tsx factory/scripts/tour-ops.ts",
     "factory:outreach": "tsx factory/scripts/outreach.ts",
     "factory:schemas": "tsx factory/scripts/export-content-schemas.ts",
