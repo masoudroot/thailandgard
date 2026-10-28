@@ -73,6 +73,44 @@ const nextConfig: NextConfig = {
         has: [{ type: "host", value: "admin.thailandgard.ir" }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
+      {
+        /*
+         * Q4-04: هدرهای امنیتی لبه. HSTS را Vercel روی خود دامنه می‌فرستد
+         * (max-age=63072000)، پس اینجا تکرار نمی‌شود.
+         *
+         * CSP فعلاً Report-Only است، نه اجرایی: صفحه‌ها ۵۴ اسکریپت inline
+         * دارند (Next) و Clarity هم از دو دامنه بارگذاری می‌شود. با حالت
+         * اجرایی، اولین بازدید کاربر واقعی می‌شکند. بعد از جمع‌شدن گزارش‌ها
+         * در Vercel و پاک‌شدن نقض‌ها، این هدر به
+         * Content-Security-Policy تبدیل می‌شود.
+         */
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=()",
+          },
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://www.clarity.ms https://scripts.clarity.ms",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://www.clarity.ms https://*.clarity.ms https://*.supabase.co",
+              "frame-src 'self' https://www.clarity.ms",
+              "frame-ancestors 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "object-src 'none'",
+            ].join("; "),
+          },
+        ],
+      },
     ];
   },
   cacheComponents: true,
