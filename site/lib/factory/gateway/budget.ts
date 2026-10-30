@@ -10,13 +10,14 @@ import "./server-guard";
  * false برمی‌گرداند؛ رزرو، سطر reservation می‌نویسد و خرج را بالا می‌برد؛
  * release، سطر release می‌نویسد و خرج را با کف صفر کم می‌کند.
  *
- * دو تفاوت آگاهانه با R2 که با اتصال RPC واقعی برمی‌گردد:
+ * دو تفاوت آگاهانه با R2 که با آداپتور PostgREST سر جایش می‌ماند:
  * ۱) سقف کار اگر تنظیم نشده باشد، یعنی «بدون سقف» (در R2، limit تهی
  *    یعنی رد). Gateway جدول کار ندارد، پس سقف نامشخص را رد نمی‌کند.
  * ۲) تاریخ روز با ساعت UTC گرفته می‌شود.
  *
  * اتصال به RPCهای واقعی reserve_budget و release_budget با PostgREST
- * سمت سرور، بستهٔ بعدی است.
+ * سمت سرور، در `ledger.ts` (PostgrestBudgetLedger) آمده است و
+ * Gateway از راه واسط BudgetLedger با هر دو حالت کار می‌کند.
  */
 export type LedgerEntryKind =
   | "reservation"

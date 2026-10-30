@@ -168,6 +168,7 @@
 - [x] REBUILD-R2A انتقال هستهٔ یکپارچهٔ کارخانه به شاخهٔ اصلی (شاخهٔ rebuild/factory-r2؛ کامیت 24b01b6؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل شد، بدون مرج و بدون PR)
 - [x] REBUILD-R2A.1 تثبیت و بستن شکاف‌های R2-A پیش از R2-B (شاخهٔ rebuild/factory-r2؛ کامیت کد cd6a0b7؛ آزمون‌های زندهٔ §۸، ۲۰ از ۲۰ گذشت؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل می‌شود، بدون مرج و بدون PR)
 - [x] REBUILD-R3-A قرارداد Model Gateway با Mock Provider، بدون فراخوان واقعی (شاخهٔ rebuild/r3-model-gateway؛ تست قرارداد r3-gateway-contract با ۸ تست، بدون مرج و بدون PR)
+- [x] REBUILD-R3A دلتا: بودجهٔ enforceشده در کد و دیتابیس با تفکیک estimated_cost و actual_cost (شاخهٔ rebuild/r3-model-gateway؛ تست قرارداد r3-gateway-contract با ۱۲ تست؛ اثبات Staging با آداپتور PostgREST؛ بدون مرج و بدون PR)
 - [ ] P3-STG تثبیت فاز ۳ در staging با دادهٔ واقعی
 - [ ] P4 Design و Dev
 - [ ] P5 Leader و Domain Ops

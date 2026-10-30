@@ -56,6 +56,7 @@ export type GatewayErrorCode =
   | "provider_not_found"
   | "provider_blocked"
   | "budget_exceeded"
+  | "ledger_error"
   | "timeout"
   | "invalid_output"
   | "provider_error";
@@ -73,11 +74,19 @@ export interface GatewayResponse {
   output: unknown;
   usage: GatewayUsage;
   /**
+   * برآورد هزینهٔ رزروشده: token_limit در estimateUnitPrice.
+   * برآورد، میدان درخواستی تازه نیست، چون دو منبع حقیقت می‌ساخت؛
+   * از همان token_limit درخواست به دست می‌آید.
+   * در رد اعتبارسنجی و provider ناشناخته و provider مسدود برابر صفر
+   * است، چون هنوز برآوردی ساخته نشده است.
+   */
+  estimated_cost: number;
+  /**
    * هزینهٔ واقعی. در unknown برابر null است، چون هزینه هنوز معلوم نیست
    * و هرگز به‌جای آن صفر ثبت نمی‌شود.
    * در unknown، usage هم گزارش‌نشده است و صفرهایش فقط جای خالی‌اند.
    */
-  cost: number | null;
+  actual_cost: number | null;
   replayed: boolean;
   attempt_id: string;
   idempotency_key: string;
@@ -92,5 +101,11 @@ export interface AttemptRecord {
   work_step_id: string;
   status: AttemptStatus;
   error_code?: GatewayErrorCode;
+  /**
+   * آینهٔ ستون‌های estimated_cost و actual_cost در factory_attempts.
+   * در unknown، actual برابر null است.
+   */
+  estimated_cost: number;
+  actual_cost: number | null;
   created_at: string;
 }
