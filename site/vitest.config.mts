@@ -12,7 +12,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['factory/tests/**/*.test.ts'],
+    include: ['factory/tests/**/*.test.ts', 'lib/content-versioning.test.ts'],
     testTimeout: 20_000,
     hookTimeout: 20_000,
   },
