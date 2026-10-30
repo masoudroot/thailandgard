@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ADAPTER_CONTRACT_VERSION,
+  R2A1_SCOPE_CUTOFF,
   adaptMainEnvelope,
   adaptStepForTick,
   adaptWorkItemForTick,
@@ -22,43 +23,139 @@ const VALID_MAIN_ENVELOPE = {
   updatedAt: '2026-10-30T10:00:00.000Z',
 };
 
+const AFTER_CUTOFF = '2026-10-30T16:00:00Z';
+const BEFORE_CUTOFF = '2026-10-30T12:00:00Z';
+
 describe('R2-A adapter contract', () => {
   it('names its contract version', () => {
-    expect(ADAPTER_CONTRACT_VERSION).toBe('r2a-1');
+    expect(ADAPTER_CONTRACT_VERSION).toBe('r2a1-1');
+    expect(R2A1_SCOPE_CUTOFF).toBe('2026-10-30T15:44:00Z');
   });
 
-  it('admits only tick_managed guide_content_v1 work items', () => {
+  it('admits only tick_managed guide_content_v1 work items created after the cutoff', () => {
     expect(
-      adaptWorkItemForTick({ execution_mode: 'tick_managed', workflow_version: 'guide_content_v1' }),
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_v1',
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('eligible');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_v1',
+        created_at: R2A1_SCOPE_CUTOFF,
+      }),
     ).toBe('eligible');
   });
 
   it('never claims manual or legacy work items', () => {
-    expect(adaptWorkItemForTick({ execution_mode: 'manual', workflow_version: 'guide_content_v1' })).toBe(
-      'manual_or_legacy',
-    );
-    expect(adaptWorkItemForTick({ execution_mode: null, workflow_version: null })).toBe('manual_or_legacy');
-    expect(adaptWorkItemForTick({ execution_mode: undefined, workflow_version: undefined })).toBe(
-      'manual_or_legacy',
-    );
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'manual',
+        workflow_version: 'guide_content_v1',
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('manual_or_legacy');
+    expect(
+      adaptWorkItemForTick({ execution_mode: null, workflow_version: null, created_at: AFTER_CUTOFF }),
+    ).toBe('manual_or_legacy');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: undefined,
+        workflow_version: undefined,
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('manual_or_legacy');
   });
 
   it('rejects tick_managed items with an unknown workflow as unsupported, not eligible', () => {
-    expect(adaptWorkItemForTick({ execution_mode: 'tick_managed', workflow_version: 'bogus_v9' })).toBe(
-      'unsupported_workflow',
-    );
-    expect(adaptWorkItemForTick({ execution_mode: 'tick_managed', workflow_version: null })).toBe(
-      'unsupported_workflow',
-    );
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'bogus_v9',
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('unsupported_workflow');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: null,
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('unsupported_workflow');
   });
 
   it('defers shadow work silently, never claiming or blocking it', () => {
     expect(
-      adaptWorkItemForTick({ execution_mode: 'tick_managed', workflow_version: 'source_shadow_v1' }),
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'source_shadow_v1',
+        created_at: AFTER_CUTOFF,
+      }),
     ).toBe('deferred');
-    expect(adaptWorkItemForTick({ execution_mode: 'manual', workflow_version: 'source_shadow_v1' })).toBe(
-      'deferred',
-    );
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'manual',
+        workflow_version: 'source_shadow_v1',
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('deferred');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'source_shadow_v1',
+        created_at: BEFORE_CUTOFF,
+      }),
+    ).toBe('deferred');
+  });
+
+  it('silently skips pre-cutoff work items, whatever their mode or workflow', () => {
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_v1',
+        created_at: BEFORE_CUTOFF,
+      }),
+    ).toBe('out_of_scope');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'bogus_v9',
+        created_at: BEFORE_CUTOFF,
+      }),
+    ).toBe('out_of_scope');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'manual',
+        workflow_version: 'guide_content_v1',
+        created_at: BEFORE_CUTOFF,
+      }),
+    ).toBe('out_of_scope');
+  });
+
+  it('fail-closes on a missing or invalid created_at', () => {
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_v1',
+        created_at: null,
+      }),
+    ).toBe('out_of_scope');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_v1',
+        created_at: undefined,
+      }),
+    ).toBe('out_of_scope');
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_v1',
+        created_at: 'not-a-date',
+      }),
+    ).toBe('out_of_scope');
   });
 
   it('admits only guide steps of the guide workflow', () => {

@@ -28,11 +28,12 @@ import {
 } from "@/lib/factory/tick/factory-tick";
 import {
   DEFERRED_WORKFLOW_VERSIONS,
+  R2A1_SCOPE_CUTOFF,
   adaptStepForTick,
   adaptWorkItemForTick,
 } from "@/lib/factory/tick/adapter";
 
-const RUNNER_VERSION = "r2a-tick-1";
+const RUNNER_VERSION = "r2a1-tick-1";
 
 /** خطای Crash پس از Commit انتشار: Step، claimed و Attempt، started می‌ماند تا Tick بعدی پس از انقضای Lease بازیابی کند. */
 class CrashAfterPublicationError extends Error {}
@@ -137,6 +138,13 @@ async function blockWorkItem(
  *    تراکنش انتشار؛
  * ۷) پایان Step با Fencing ثبت می‌شود و Run خاتمه می‌یابد.
  *
+ * قاعدهٔ Scope در R2A.1: فقط Work Item ساخته‌شده پس از
+ * R2A1_SCOPE_CUTOFF (شروع مأموریت R2A.1) وارد Tick می‌شود؛ کار
+ * تاریخی، در بوت‌استرپ، در اسکن نسخهٔ ناشناخته و در انتخاب کاندید،
+ * بی‌صدا رد می‌شود و وضعیتش دست نمی‌خورد. ترتیب گیت‌ها:
+ * deferred، بعد out_of_scope، بعد وضعیت پایانی، بعد manual، بعد
+ * نسخهٔ ناشناخته، بعد Step.
+ *
  * Test Hookها فقط وقتی M2_TEST_HOOKS_ENABLED=true است، آن هم فقط در
  * Staging، عمل می‌کنند: test_step_fail، test_step_timeout،
  * test_cost_amount، test_crash_after_publication.
@@ -195,9 +203,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // mvp01-m5-* از مسیر اصلی حذف شد و جایش را قرارداد عمومی گرفت؛
     // Work Itemهای manual، از جمله همهٔ کارهای قدیمی، عمداً بوت‌استرپ
     // نمی‌شوند تا Tick، کار خارج از Workflow را خودبه‌خود جلو نبرد.
+    // قاعدهٔ Scope در R2A.1: بوت‌استرپ، فقط ساخته‌شده پس از برش
+    // R2A1_SCOPE_CUTOFF را Step می‌دهد؛ کار تاریخی، هرگز زنجیره نمی‌گیرد.
     const queuedWorkItems = (await postgrestGet(
       cfg,
-      `factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&workflow_version=eq.${WORKFLOW_VERSION}&order=created_at.asc&select=id,work_key,status`,
+      `factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&workflow_version=eq.${WORKFLOW_VERSION}&created_at=gte.${encodeURIComponent(R2A1_SCOPE_CUTOFF)}&order=created_at.asc&select=id,work_key,status`,
     )) as WorkItemRow[];
     for (const wi of queuedWorkItems) {
       const existing = (await postgrestGet(
@@ -228,16 +238,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // پشتیبانی‌شده را Step می‌دهد، پس این اسکن، همان گارد دوم است.
     const unknownWorkflowWIs = (await postgrestGet(
       cfg,
-      "factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&select=id,work_key,status,workflow_version",
+      "factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&select=id,work_key,status,workflow_version,created_at",
     )) as WorkItemRow[];
     for (const wi of unknownWorkflowWIs) {
-      // گارد دوم، از Adapter واحد: deferred بی‌صدا رد می‌شود، نسخهٔ
-      // ناشناخته با وضعیت مشخص مسدود می‌شود، نسخهٔ پشتیبانی‌شده کاری ندارد.
+      // گارد دوم، از Adapter واحد: deferred و out_of_scope بی‌صدا رد
+      // می‌شوند، نسخهٔ ناشناخته با وضعیت مشخص مسدود می‌شود، نسخهٔ
+      // پشتیبانی‌شده کاری ندارد. کار تاریخی، حتی با نسخهٔ ناشناخته،
+      // به‌جای مسدود شدن، فقط رد می‌شود.
       const decision = adaptWorkItemForTick({
         execution_mode: "tick_managed",
         workflow_version: wi.workflow_version,
+        created_at: wi.created_at,
       });
       if (decision === "deferred") continue;
+      if (decision === "out_of_scope") continue;
       if (decision === "unsupported_workflow") {
         await blockWorkItem(cfg, wi, "unsupported_workflow_version");
       }
@@ -261,7 +275,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         if (!step.lease_until || new Date(step.lease_until).getTime() > Date.now()) continue;
       }
       // قرارداد M6، پیش از هر Claim: Work Item قدم، اول خوانده می‌شود.
-      // manual، بی‌صدا رد می‌شود؛ مسدود، لغوشده یا موفق هم، Step قابل
+      // manual، بی‌صدا رد می‌شود؛ خارج از Scope (پیش از برش R2A.1)
+      // هم، بی‌صدا رد می‌شود؛ مسدود، لغوشده یا موفق هم، Step قابل
       // Claim ندارد. tick_managed با نسخهٔ ناشناخته، بدون اجرا با حدس،
       // با وضعیت مشخص مسدود می‌شود؛ Step ناشناخته هم، همین‌طور.
       const stepWiRows = (await postgrestGet(
@@ -276,6 +291,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       // تصمیم، یک‌جا شده است.
       const workItemDecision = adaptWorkItemForTick(stepWi);
       if (workItemDecision === "deferred") continue;
+      if (workItemDecision === "out_of_scope") continue;
       if (stepWi.status === "blocked" || stepWi.status === "cancelled" || stepWi.status === "succeeded") continue;
       if (workItemDecision === "manual_or_legacy") continue;
       if (workItemDecision === "unsupported_workflow") {

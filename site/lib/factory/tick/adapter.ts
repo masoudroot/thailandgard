@@ -14,6 +14,13 @@
  * را fail-closed رد می‌کند. نبودن envelope، رد نیست؛ سطر آزمایشگاهی
  * به‌تنهایی می‌ایستد. موتور DAG، نه ساخته می‌شود و نه اجرا می‌شود.
  *
+ * قاعدهٔ Scope در R2A.1: هر Work Item که پیش از شروع مأموریت R2A.1
+ * ساخته شده، خارج از Scope است و Tick آن را نه Claim می‌کند و نه
+ * مسدود می‌کند؛ بی‌صدا رد می‌شود. این حکم، بعد از deferred و پیش
+ * از manual می‌نشیند تا کار تاریخی، حتی با نسخهٔ ناشناخته، به‌جای
+ * مسدود شدن، فقط رد شود. نبودن یا خراب بودن created_at هم،
+ * fail-closed، خارج از Scope است.
+ *
  * این فایل، خالص است: بدون دسترسی دیتابیس، بدون Secret، بدون حافظهٔ
  * ضروری. تصمیم‌ها، همان رفتار مسیر Tick در R2 است که این‌جا یک‌جا
  * و قابل‌تست شده؛ مسیر Tick، همان تصمیم‌ها را از این‌جا می‌خواند.
@@ -27,7 +34,13 @@ import {
 } from "./factory-tick";
 
 /** نسخهٔ قرارداد Adapter؛ در گزارش R2-A و تست‌ها به همین نام ارجاع می‌شود. */
-export const ADAPTER_CONTRACT_VERSION = "r2a-1";
+export const ADAPTER_CONTRACT_VERSION = "r2a1-1";
+
+/**
+ * نقطهٔ برش Scope در R2A.1: شروع مأموریت، ۱۹:۱۴ تهران در ۸ آبان ۱۴۰۵.
+ * Work Item با created_at پیش از این لحظه، خارج از Scope است.
+ */
+export const R2A1_SCOPE_CUTOFF = "2026-10-30T15:44:00Z";
 
 /**
  * Workflow موکول‌شده: کار Shadow در آزمایشگاه می‌ماند. Tick، چنین
@@ -36,22 +49,33 @@ export const ADAPTER_CONTRACT_VERSION = "r2a-1";
  */
 export const DEFERRED_WORKFLOW_VERSIONS = ["source_shadow_v1"];
 
-export type AdapterWorkItemDecision = "eligible" | "deferred" | "manual_or_legacy" | "unsupported_workflow";
+export type AdapterWorkItemDecision =
+  | "eligible"
+  | "deferred"
+  | "out_of_scope"
+  | "manual_or_legacy"
+  | "unsupported_workflow";
 
 export interface AdapterWorkItemInput {
   execution_mode: string | null | undefined;
   workflow_version: string | null | undefined;
+  created_at: string | null | undefined;
 }
 
 /**
  * آیا Tick مجاز است این Work Item را Claim کند؟
- * ترتیب، عمدی است: اول deferred (بی‌صدا)، بعد manual یا قدیمی
- * (بی‌صدا، هرگز Claim نمی‌شود)، بعد نسخهٔ ناشناخته (مسدود با دلیل
- * مشخص)، و فقط در آخر eligible. پیش‌فرض manual و NULL بودن نسخهٔ
- * کارهای قدیمی، یعنی کارهای قدیمی ناخواسته Tick نمی‌شوند.
+ * ترتیب، عمدی است: اول deferred (بی‌صدا)، بعد out_of_scope
+ * (بی‌صدا، کار پیش از برش R2A.1)، بعد manual یا قدیمی (بی‌صدا،
+ * هرگز Claim نمی‌شود)، بعد نسخهٔ ناشناخته (مسدود با دلیل مشخص)،
+ * و فقط در آخر eligible. پیش‌فرض manual و NULL بودن نسخهٔ کارهای
+ * قدیمی، یعنی کارهای قدیمی ناخواسته Tick نمی‌شوند.
  */
 export function adaptWorkItemForTick(item: AdapterWorkItemInput): AdapterWorkItemDecision {
   if (DEFERRED_WORKFLOW_VERSIONS.includes(item.workflow_version ?? "")) return "deferred";
+  const createdMs = item.created_at ? new Date(item.created_at).getTime() : Number.NaN;
+  if (Number.isNaN(createdMs) || createdMs < new Date(R2A1_SCOPE_CUTOFF).getTime()) {
+    return "out_of_scope";
+  }
   if (item.execution_mode !== "tick_managed") return "manual_or_legacy";
   if (!isSupportedWorkflowVersion(item.workflow_version)) return "unsupported_workflow";
   return "eligible";
