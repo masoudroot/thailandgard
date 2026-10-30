@@ -12,6 +12,13 @@ import { PillarHero } from "@/components/blocks/pillar-hero";
 import { FaqBlock } from "@/components/blocks/faq";
 import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
+import {
+  getContentReadMode,
+  isVersionedReadSlug,
+  compareGuideRenders,
+  recordShadowCompare,
+} from "@/lib/guide-versioned-read";
+import { getVersionedGuideCached } from "@/lib/guide-versioned-read-cached";
 import { pageSeo, brandTitle, displayTitle } from "@/lib/og";
 import { resolveH1 } from "@/lib/seo-h1";
 import { ogImageForSlug } from "@/lib/og-slugs";
@@ -24,6 +31,14 @@ import { updatedFaToIso } from "@/lib/jalali";
 import type { Guide, GuideSection } from "@/lib/guides";
 
 type PageProps = { params: Promise<{ slug: string }> };
+
+/**
+ * R2-B: حالت خواندن، متغیر محیطی زمان بیلد است، نه زمان درخواست: ریشهٔ
+ * layout این پروژه ensureStatic = "navigation" دارد (همهٔ مسیرها استاتیک)
+ * و هر رندر درخواستی بیلد را قرمز می‌کند، پس خواندن نسخه‌ای فقط از راه
+ * پیش‌رندر با "use cache" ممکن است و جابه‌جایی اشاره‌گر بیلد تازه
+ * می‌خواهد. در حالت legacy خروجی دقیقاً همان خروجی قبلی است.
+ */
 
 /**
  * قدم‌های ویزا (بریف ۲ artdir، ساعت ۱۴)؛ پیش‌نویس طراحی، متن نهایی با تیم محتواست.
@@ -92,6 +107,24 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  // R2-B: در حالت versioned، متادیتا از نسخهٔ منتشرشده می‌آید؛ نبودن document
+  // یا نسخه، خطای صریح می‌دهد و به legacy برنمی‌گردد. در بقیهٔ حالت‌ها،
+  // متادیتا از legacy می‌آید (در shadow_compare هم، چون صفحه legacy رندر می‌شود).
+  if (isVersionedReadSlug(slug) && getContentReadMode() === "versioned") {
+    const [result, s] = await Promise.all([getVersionedGuideCached(slug), getSiteSettings()]);
+    const meta = pageSeo({
+      title: brandTitle(result.guide.title),
+      description: result.guide.excerpt,
+      canonical: `/guide/${result.guide.slug}`,
+      type: "article",
+    });
+    const slugOg = ogImageForSlug(s.SITE_URL, slug);
+    if (slugOg) {
+      meta.openGraph = { ...meta.openGraph, images: [slugOg] };
+      meta.twitter = { ...meta.twitter, images: [slugOg.url] };
+    }
+    return meta;
+  }
   // S-001: دو خوانش مستقل موازی‌اند تا روی رندر سرد یک راندتریپ ذخیره شود
   // (هر دو 'use cache' دارند؛ روی کش گرم فرقی نمی‌کند).
   const [guide, s] = await Promise.all([getGuide(slug), getSiteSettings()]);
@@ -113,9 +146,56 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return meta;
 }
 
+/**
+ * R2-B: راهنما را بر اساس حالت جاری برگردان. در versioned، نبودن document یا
+ * نسخه خطا می‌دهد (نه fallback). در shadow_compare، legacy برمی‌گردد و مقایسه
+ * ثبت می‌شود؛ نبودن legacy هم ثبت می‌شود و بعد notFound می‌آید.
+ */
+async function resolveGuideForPage(slug: string): Promise<Guide | undefined> {
+  const mode = getContentReadMode();
+  if (!isVersionedReadSlug(slug)) return getGuide(slug);
+  if (mode === "versioned") {
+    const result = await getVersionedGuideCached(slug);
+    return result.guide;
+  }
+  if (mode === "shadow_compare") {
+    const legacy = await getGuide(slug);
+    if (!legacy) {
+      recordShadowCompare({
+        slug,
+        mode: "shadow_compare",
+        available: false,
+        error: `legacy guide not found for slug ${slug}`,
+      });
+      return undefined;
+    }
+    try {
+      const result = await getVersionedGuideCached(slug);
+      recordShadowCompare({
+        slug,
+        mode: "shadow_compare",
+        available: true,
+        comparison: compareGuideRenders(slug, legacy, result.guide),
+        versionId: result.versionId,
+        versionNo: result.versionNo,
+        contentHash: result.contentHash,
+      });
+    } catch (error) {
+      recordShadowCompare({
+        slug,
+        mode: "shadow_compare",
+        available: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return legacy;
+  }
+  return getGuide(slug);
+}
+
 export default async function GuideDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const guide = await getGuide(slug);
+  const guide = await resolveGuideForPage(slug);
   if (!guide) notFound();
 
   // کاور قاب قهرمان (اسپک mount §۲): اگر نگاشت نداشت، جای‌نگه‌دار
