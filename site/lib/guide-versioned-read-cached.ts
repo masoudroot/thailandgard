@@ -1,5 +1,6 @@
 import { cacheTag } from "next/cache";
 import {
+  VERSIONED_GUIDES_CACHE_TAG,
   fetchVersionedGuide,
   readVersionedReadConfig,
   type VersionedGuideResult,
@@ -16,6 +17,6 @@ import {
  */
 export async function getVersionedGuideCached(slug: string): Promise<VersionedGuideResult> {
   "use cache";
-  cacheTag("versioned-guides");
+  cacheTag(VERSIONED_GUIDES_CACHE_TAG);
   return fetchVersionedGuide(slug, readVersionedReadConfig());
 }

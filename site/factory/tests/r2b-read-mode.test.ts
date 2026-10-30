@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  VERSIONED_GUIDES_CACHE_TAG,
   VERSIONED_READ_SLUGS,
   VersionedReadError,
   compareGuideRenders,
@@ -7,6 +8,7 @@ import {
   isVersionedReadSlug,
   payloadToGuide,
   resolveContentReadMode,
+  revalidationTargetForSlug,
   visibleTextHash,
 } from '@/lib/guide-versioned-read';
 import type { PublishPayload } from '@/lib/content-versioning';
@@ -203,6 +205,32 @@ describe('fetchVersionedGuide با fetch ساختگی', () => {
     await expect(fetchVersionedGuide('r2b-test-doc', CFG, stubFetch([doc], [bad]))).rejects.toThrow(
       /validatePublishPayload/,
     );
+  });
+});
+
+describe('revalidationTargetForSlug (R2B.1)', () => {
+  it('تگ کش نسخه‌ای، همان ثابت واحد است', () => {
+    expect(VERSIONED_GUIDES_CACHE_TAG).toBe('versioned-guides');
+  });
+
+  it('دو slug محدوده، هدف تگ و مسیر صفحه را می‌گیرند', () => {
+    expect(revalidationTargetForSlug('best-time-to-visit-thailand')).toEqual({
+      slug: 'best-time-to-visit-thailand',
+      tag: 'versioned-guides',
+      path: '/guide/best-time-to-visit-thailand',
+    });
+    expect(revalidationTargetForSlug('r2b-test-doc')).toEqual({
+      slug: 'r2b-test-doc',
+      tag: 'versioned-guides',
+      path: '/guide/r2b-test-doc',
+    });
+  });
+
+  it('slug بیرون از Scope، fail-closed یعنی null می‌دهد', () => {
+    expect(revalidationTargetForSlug('thailand-visa-guide')).toBeNull();
+    expect(revalidationTargetForSlug('')).toBeNull();
+    expect(revalidationTargetForSlug('guide')).toBeNull();
+    expect(revalidationTargetForSlug('r2b-test-doc ')).toBeNull();
   });
 });
 

@@ -34,8 +34,32 @@ export const VERSIONED_READ_SLUGS: readonly string[] = [
   "r2b-test-doc",
 ];
 
+/**
+ * R2B.1: تگ کش خواندن نسخه‌ای؛ تنها مرجع نام تگ است. پوستهٔ کش‌دار و مسیر
+ * باطل‌سازی، هر دو همین ثابت را می‌خوانند تا نام تگ هرگز از هم نپاشد.
+ */
+export const VERSIONED_GUIDES_CACHE_TAG = "versioned-guides";
+
 export function isVersionedReadSlug(slug: string): boolean {
   return VERSIONED_READ_SLUGS.includes(slug);
+}
+
+/**
+ * R2B.1: هدف باطل‌سازی برای یک slug نسخه‌ای؛ slug بیرون از Scope یعنی null
+ * (fail-closed: مسیر باطل‌سازی هرگز مسیر دلخواه را باطل نمی‌کند). مسیر
+ * باطل‌سازی با همین هدف، تگ و مسیر صفحه را با هم باطل می‌کند.
+ */
+export interface VersionedRevalidationTarget {
+  slug: string;
+  tag: string;
+  path: string;
+}
+
+export function revalidationTargetForSlug(
+  slug: string,
+): VersionedRevalidationTarget | null {
+  if (!isVersionedReadSlug(slug)) return null;
+  return { slug, tag: VERSIONED_GUIDES_CACHE_TAG, path: `/guide/${slug}` };
 }
 
 /** مقدار خام متغیر محیطی را به حالت معتبر تبدیل کن؛ نامعتبر یعنی legacy. */

@@ -168,6 +168,7 @@
 - [x] REBUILD-R2A انتقال هستهٔ یکپارچهٔ کارخانه به شاخهٔ اصلی (شاخهٔ rebuild/factory-r2؛ کامیت 24b01b6؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل شد، بدون مرج و بدون PR)
 - [x] REBUILD-R2A.1 تثبیت و بستن شکاف‌های R2-A پیش از R2-B (شاخهٔ rebuild/factory-r2؛ کامیت کد cd6a0b7؛ آزمون‌های زندهٔ §۸، ۲۰ از ۲۰ گذشت؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل می‌شود، بدون مرج و بدون PR)
 - [x] REBUILD-R2B خواندن نسخه‌ای راهنما پشت پرچم CONTENT_READ_MODE (شاخهٔ rebuild/r2b-versioned-read؛ اثبات زنده روی Staging: راهنمای واقعی v22، سند آزمایشی با جابه‌جایی اشاره‌گر v3/v4/v3، مقایسهٔ shadow، و برابری کامل legacy با سرور R2A.1؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل می‌شود، بدون مرج و بدون PR و بدون دیپلوی Preview)
+- [x] REBUILD-R2B.1 خواندن نسخه‌ای در Runtime با Revalidation بدون Build (شاخهٔ rebuild/r2b1-runtime-read؛ مسیر API داخلی توکن‌دار revalidate-versioned-guide با revalidateTag و expire 0 و revalidatePath؛ اثبات زنده روی Staging: چرخهٔ A به B به A بدون Build، تکرار پس از Restart، اشاره‌گر تهی ۵۰۰ بدون fallback، راهنمای واقعی همچنان v22، انتشارها و outbox بدون تغییر؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل می‌شود، بدون مرج و بدون PR و بدون دیپلوی Preview)
 - [ ] P3-STG تثبیت فاز ۳ در staging با دادهٔ واقعی
 - [ ] P4 Design و Dev
 - [ ] P5 Leader و Domain Ops
