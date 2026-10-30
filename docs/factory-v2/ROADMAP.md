@@ -252,3 +252,31 @@ P0 ──► P1 ──► P2 ──► P6 ──► P7
 - **P3:** کد پیاده‌سازی شده است (رادار سئو، قرارداد تور، گیت‌های R1، pipeline outreach). **اولین اجرای واقعی انجام شد (۲۰۲۶-۱۰-۲۸):** قرارداد تور روی Supabase تولید با ۹/۹ بررسی سبز و گیت فنی R1 روی صفحهٔ تور با ۱۳/۱۳ بررسی سبز؛ جزئیات و مانع‌های باقی‌مانده در `docs/ops/p3-staging-status-2026-10-28.md`. مانده: رادار سئو (نیازمند دسترسی GSC)، DomainOps (نیازمند Postgres/Temporal)، outreach واقعی (نیازمند دامنهٔ ایمیل تأییدشده).
 - **P4 / P5:** شروع نشده است. **P6 (Shadow/Cutover)** و **P7 (Decommission)** در انتظار Gateهای قبلی‌اند.
 - **قدم بعدی:** تثبیت P3 در staging (اجرای واقعی چرخه‌ها بدون تغییر production)، سپس شروع P4/P5 و فعال‌سازی مسیر انتشار P2-05 با تأیید انسانی.
+
+## ۹.۱. فاز REBUILD-R2: یکپارچه‌سازی هستهٔ کارخانه (در حال اجرا)
+
+**به‌روزرسانی ۲۰۲۶-۱۰-۳۰:** مبنا main واقعی با کامیت `06ecbf9` (پس از مرج R1) و شاخهٔ کاری `rebuild/factory-r2`. مبنای Verify همان Node 22 است؛ نسخهٔ 24.x روی Vercel فقط گزارش می‌شود و عوض نمی‌شود. R2 فقط شاخه و Preview و گزارش می‌سازد؛ مرج آن تأیید جداگانه می‌خواهد (همان الگوی R1).
+
+**قرارداد واحد (تصمیم R2):** برای هر مسئولیت فقط یک ماشین وضعیت اجرا وجود دارد و آن مدل قدمِ اثبات‌شدهٔ MVP-01 است (قدم قابل claim با lease و fencing و attempt پایدار). اسکیمای WorkItem در main (دامنه، ریسک، بودجه، نسخهٔ policy) پاکت اعتبارسنجی است و از راه Adapter فقط‌خواندنی به نمای قدم‌ها وصل می‌شود، نه یک وضعیت موازی دوم. موتور DAG در main همچنان فقط مستند است و در R2 ساخته نمی‌شود؛ زنجیرهٔ قدم‌ها مرتب و با پیش‌نیاز است.
+
+**جدول تصمیم هر جزء (برچسب‌های مأموریت R2):**
+
+| جزء | تصمیم | شرح کوتاه |
+|---|---|---|
+| Work Item / Task / DAG | integrate_with_adapter | وضعیت اجرا با مدل MVP-01؛ اسکیمای main پاکت اعتبارسنجی با Adapter فقط‌خواندنی؛ DAG موکول به بعد |
+| Work Step | reuse_mvp01 | مدل قدم + RPCهای claim و finish + قواعد گذار، بدون بازنویسی |
+| Attempt و outcome_unknown | reuse_mvp01 | attempt پایدار؛ outcome_unknown هرگز کورکورانه retry نمی‌شود |
+| Lease و Fencing | reuse_mvp01 | claim و finish با lease_owner و fencing_token |
+| Publication و Publication Outbox | reuse_mvp01 | انتشار اتمیک با pointer و outbox و verification و rollback به‌صورت انتشار تازه؛ manifest خشک main فقط بستهٔ شواهد است، نه سازوکار انتشار |
+| Event Log و Event Outbox | integrate_with_adapter | هر دو می‌مانند با نام و مسئولیت جدا؛ relay برای outbox رویداد موکول به بعد |
+| Tick Runner | reuse_mvp01 | مسیر واحد `POST /api/factory/tick` با قدیمی‌ترین قدم آماده؛ runner درون‌فرآیندی main برای عملیات دامنه می‌ماند و در tick ادغام نمی‌شود |
+| Factory Health | integrate_with_adapter | شکل health در main حفظ می‌شود و وضعیت واقعی کارخانه از staging (تنظیمات، قدم‌ها، outbox، آخرین run) به آن اضافه می‌شود؛ fail-closed |
+| Budget و Cost Ledger | defer | اسکیما و RPCها برای سازگاری منتقل می‌شوند؛ اعمال سقف موکول به R3 است چون در R2 فراخوانی مدل وجود ندارد |
+| Kill Switch | reuse_mvp01 | جدول factory_settings با ارزیابی fail-closed |
+| Verification و Rollback | integrate_with_adapter | verification و rollback انتشار با مدل MVP-01؛ گیت‌های content و seo در main کیفیت artifact را می‌سنجند |
+
+**حکم دو outbox:** Publication Outbox برای تغییرهای سایت و Event Outbox برای رویدادهای عملیاتی از هم جدا می‌مانند، با نام و مسئولیت روشن. در staging هر دو در همان دیتابیس staging هستند؛ هیچ رویداد یا انتشار آزمایشگاهی وارد production نمی‌شود. تبدیل انتشار تکمیل‌شده به رویداد عملیاتی فقط یک رکورد اعلانِ append-only است، نه نوشتن دوگانهٔ وضعیت.
+
+**محدودهٔ R2:** فقط گردش‌کار `guide_content_v1` منتقل می‌شود؛ گردش‌کار shadow در آزمایشگاه می‌ماند و موکول به بعد است. ADR-008 دست‌نخورده می‌ماند: جای tick در staging روی دیتابیس سایت است فقط برای اثبات، و جای نهایی وضعیت tick در معماری تولید تصمیم cutover است، نه تصمیم R2. Model Gateway، Temporal و زیرساخت تازه خارج از محدوده‌اند.
+
+**تفاوت‌های باقی‌ماندهٔ دو خط (پس از R2):** جای وضعیت tick در تولید (سایت یا ops)؛ موتور DAG؛ relay برای outbox رویداد؛ اعمال بودجه؛ ورود runnerهای عملیات دامنه به tick؛ نیمهٔ merge-queue در مسیر release در main.

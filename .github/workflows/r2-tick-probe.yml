@@ -1,0 +1,43 @@
+# REBUILD-R2 scheduler comparison probe. Staging only, dispatch-only.
+# Never scheduled, never on main, never touches production.
+# Purpose: measure GitHub Actions as a tick dispatcher against the R2
+# Preview tick route: dispatch latency, concurrency serialization, HTTP
+# result, and secret handling. The tick URL is supplied at dispatch time
+# (workflow_dispatch input) because preview deployment URLs are unique
+# per deployment. The token comes from the repo secret
+# INTERNAL_PUBLISH_TOKEN (staging token, masked in logs).
+# Expected finding (recorded in the R2 report): the Preview sits behind
+# the team's Vercel SSO wall, so an Actions runner gets HTTP 302 before
+# any token check; driving a real tick from Actions needs an SSO
+# exception decision, which is out of R2 scope.
+name: R2 tick probe (staging only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tick_url:
+        description: "Full Preview tick URL, e.g. https://<deployment>.vercel.app/api/factory/tick"
+        required: true
+        type: string
+
+concurrency:
+  group: r2-tick-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST tick route and record HTTP status
+        run: |
+          start=$(date +%s)
+          code=$(curl -s -o /tmp/tick_out.json -w "%{http_code}" --max-time 60 -X POST "$TICK_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-internal-publish-token: $TICK_TOKEN" -d '{}')
+          end=$(date +%s)
+          echo "http=$code wall=$((end - start))s"
+          head -c 300 /tmp/tick_out.json
+          echo
+        env:
+          TICK_URL: ${{ inputs.tick_url }}
+          TICK_TOKEN: ${{ secrets.INTERNAL_PUBLISH_TOKEN }}
