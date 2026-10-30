@@ -23,22 +23,16 @@ import {
   TICK_STEP_KEYS,
   WORKFLOW_VERSION,
   evaluateKillSwitches,
-  isStepKeyOfWorkflow,
-  isSupportedWorkflowVersion,
-  isTickManagedWorkItem,
-  isValidWorkflowStepKey,
   stepMaxAttempts,
   type TickStepKey,
 } from "@/lib/factory/tick/factory-tick";
+import {
+  DEFERRED_WORKFLOW_VERSIONS,
+  adaptStepForTick,
+  adaptWorkItemForTick,
+} from "@/lib/factory/tick/adapter";
 
-const RUNNER_VERSION = "r2-tick-1";
-
-/**
- * Workflow موکول‌شده در R2: کار Shadow در آزمایشگاه می‌ماند. Tick در
- * R2، چنین Work Itemی را نه Claim می‌کند و نه مسدود می‌کند؛ بی‌صدا
- * رد می‌شود تا وضعیت آزمایشگاهی دست نخورده بماند.
- */
-const DEFERRED_WORKFLOW_VERSIONS = ["source_shadow_v1"];
+const RUNNER_VERSION = "r2a-tick-1";
 
 /** خطای Crash پس از Commit انتشار: Step، claimed و Attempt، started می‌ماند تا Tick بعدی پس از انقضای Lease بازیابی کند. */
 class CrashAfterPublicationError extends Error {}
@@ -237,8 +231,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       "factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&select=id,work_key,status,workflow_version",
     )) as WorkItemRow[];
     for (const wi of unknownWorkflowWIs) {
-      if (DEFERRED_WORKFLOW_VERSIONS.includes(wi.workflow_version ?? "")) continue;
-      if (!isSupportedWorkflowVersion(wi.workflow_version)) {
+      // گارد دوم، از Adapter واحد: deferred بی‌صدا رد می‌شود، نسخهٔ
+      // ناشناخته با وضعیت مشخص مسدود می‌شود، نسخهٔ پشتیبانی‌شده کاری ندارد.
+      const decision = adaptWorkItemForTick({
+        execution_mode: "tick_managed",
+        workflow_version: wi.workflow_version,
+      });
+      if (decision === "deferred") continue;
+      if (decision === "unsupported_workflow") {
         await blockWorkItem(cfg, wi, "unsupported_workflow_version");
       }
     }
@@ -270,30 +270,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       )) as WorkItemRow[];
       const stepWi = stepWiRows[0];
       if (!stepWi) continue;
-      if (DEFERRED_WORKFLOW_VERSIONS.includes(stepWi.workflow_version ?? "")) continue;
+      // گیت‌های ورود، از Adapter واحد (R2-A): deferred و manual یا
+      // قدیمی، بی‌صدا رد می‌شوند؛ tick_managed با نسخهٔ ناشناخته،
+      // با وضعیت مشخص مسدود می‌شود. رفتار، عین R2 است؛ فقط محل
+      // تصمیم، یک‌جا شده است.
+      const workItemDecision = adaptWorkItemForTick(stepWi);
+      if (workItemDecision === "deferred") continue;
       if (stepWi.status === "blocked" || stepWi.status === "cancelled" || stepWi.status === "succeeded") continue;
-      if (!isTickManagedWorkItem(stepWi.execution_mode, stepWi.workflow_version)) {
-        if (stepWi.execution_mode === "tick_managed") {
-          await blockWorkItem(cfg, stepWi, "unsupported_workflow_version");
-          if (!gateStatus) {
-            gateStatus = "unsupported_workflow";
-            gateWorkItemId = step.work_item_id;
-          }
-        }
-        continue;
-      }
-      if (!isValidWorkflowStepKey(step.step_key)) {
-        await blockWorkItem(cfg, stepWi, "unknown_step_key");
+      if (workItemDecision === "manual_or_legacy") continue;
+      if (workItemDecision === "unsupported_workflow") {
+        await blockWorkItem(cfg, stepWi, "unsupported_workflow_version");
         if (!gateStatus) {
-          gateStatus = "unknown_step_key";
+          gateStatus = "unsupported_workflow";
           gateWorkItemId = step.work_item_id;
         }
         continue;
       }
-      // Step، باید متعلق به همان Workflow باشد که Work Item دارد؛
-      // Step مسیر guide داخل کار Shadow (یا برعکس)، همان رفتار Step
-      // ناشناخته را دارد: مسدود، بدون اجرا با حدس.
-      if (!isStepKeyOfWorkflow(step.step_key, stepWi.workflow_version)) {
+      // Step، باید شناخته‌شده و متعلق به همان Workflow باشد که Work
+      // Item دارد؛ جز این، با همان رفتار Step ناشناخته برخورد
+      // می‌شود: مسدود، بدون اجرا با حدس.
+      if (adaptStepForTick(step.step_key, stepWi.workflow_version) !== "eligible") {
         await blockWorkItem(cfg, stepWi, "unknown_step_key");
         if (!gateStatus) {
           gateStatus = "unknown_step_key";
