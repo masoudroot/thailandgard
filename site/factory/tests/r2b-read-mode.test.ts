@@ -73,10 +73,10 @@ describe('resolveContentReadMode', () => {
 });
 
 describe('isVersionedReadSlug', () => {
-  it('فقط دو slug محدودهٔ Staging باز هستند', () => {
-    expect(VERSIONED_READ_SLUGS).toEqual(['best-time-to-visit-thailand', 'r2b-test-doc']);
+  it('فقط slug راهنمای واقعی در RC باز است (slug آزمایشی حذف شد)', () => {
+    expect(VERSIONED_READ_SLUGS).toEqual(['best-time-to-visit-thailand']);
     expect(isVersionedReadSlug('best-time-to-visit-thailand')).toBe(true);
-    expect(isVersionedReadSlug('r2b-test-doc')).toBe(true);
+    expect(isVersionedReadSlug('r2b-test-doc')).toBe(false);
     expect(isVersionedReadSlug('thailand-visa-guide')).toBe(false);
     expect(isVersionedReadSlug('')).toBe(false);
   });
@@ -219,11 +219,7 @@ describe('revalidationTargetForSlug (R2B.1)', () => {
       tag: 'versioned-guides',
       path: '/guide/best-time-to-visit-thailand',
     });
-    expect(revalidationTargetForSlug('r2b-test-doc')).toEqual({
-      slug: 'r2b-test-doc',
-      tag: 'versioned-guides',
-      path: '/guide/r2b-test-doc',
-    });
+    expect(revalidationTargetForSlug('r2b-test-doc')).toBeNull();
   });
 
   it('slug بیرون از Scope، fail-closed یعنی null می‌دهد', () => {
