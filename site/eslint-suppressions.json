@@ -1,79 +1,4 @@
 {
-  "app/dashboard/bridge/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/changes/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/cycles/[id]/CyclePageClient.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/cycles/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/deploy-queue/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/knowledge/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 4
-    }
-  },
-  "app/dashboard/knowledge/report/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/live/TeamTimelineModal.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/live/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/memory/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/queue/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/rates/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/reports/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "app/dashboard/teams/page.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
   "app/login/page.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -94,11 +19,6 @@
       "count": 1
     }
   },
-  "components/dashboard/knowledge/CategoryManager.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
   "components/dashboard/knowledge/CategoryPicker.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -110,11 +30,6 @@
     }
   },
   "components/dashboard/knowledge/KnowledgeForm.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "components/dashboard/knowledge/KnowledgeHistory.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
     }

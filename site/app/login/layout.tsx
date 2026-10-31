@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "../dashboard/dashboard-theme.css";
+import "../_dashboard-old/dashboard-theme.css";
 import ThemeInit from "@/components/dashboard/ThemeInit";
 
 /* دستور مسعود: ‎/login‎ هم در گوگل ایندکس نشود. */

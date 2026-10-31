@@ -32,16 +32,9 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/dashboard",
-        has: [{ type: "host", value: "thailandgard.ir" }],
-        destination: "https://admin.thailandgard.ir/dashboard",
-        permanent: false,
-      },
-      {
-        source: "/dashboard/:path*",
-        has: [{ type: "host", value: "thailandgard.ir" }],
-        destination: "https://admin.thailandgard.ir/dashboard/:path*",
-        permanent: false,
+        source: "/factory-dashboard",
+        destination: "/dashboard",
+        permanent: true,
       },
       {
         source: "/",
