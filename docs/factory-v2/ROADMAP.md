@@ -252,3 +252,76 @@ P0 ──► P1 ──► P2 ──► P6 ──► P7
 - **P3:** کد پیاده‌سازی شده است (رادار سئو، قرارداد تور، گیت‌های R1، pipeline outreach). **اولین اجرای واقعی انجام شد (۲۰۲۶-۱۰-۲۸):** قرارداد تور روی Supabase تولید با ۹/۹ بررسی سبز و گیت فنی R1 روی صفحهٔ تور با ۱۳/۱۳ بررسی سبز؛ جزئیات و مانع‌های باقی‌مانده در `docs/ops/p3-staging-status-2026-10-28.md`. مانده: رادار سئو (نیازمند دسترسی GSC)، DomainOps (نیازمند Postgres/Temporal)، outreach واقعی (نیازمند دامنهٔ ایمیل تأییدشده).
 - **P4 / P5:** شروع نشده است. **P6 (Shadow/Cutover)** و **P7 (Decommission)** در انتظار Gateهای قبلی‌اند.
 - **قدم بعدی:** تثبیت P3 در staging (اجرای واقعی چرخه‌ها بدون تغییر production)، سپس شروع P4/P5 و فعال‌سازی مسیر انتشار P2-05 با تأیید انسانی.
+
+## ۹.۱. فاز REBUILD-R2: یکپارچه‌سازی هستهٔ کارخانه (در حال اجرا)
+
+**به‌روزرسانی ۲۰۲۶-۱۰-۳۰:** مبنا main واقعی با کامیت `06ecbf9` (پس از مرج R1) و شاخهٔ کاری `rebuild/factory-r2`. مبنای Verify همان Node 22 است؛ نسخهٔ 24.x روی Vercel فقط گزارش می‌شود و عوض نمی‌شود. R2 فقط شاخه و Preview و گزارش می‌سازد؛ مرج آن تأیید جداگانه می‌خواهد (همان الگوی R1).
+
+**قرارداد واحد (تصمیم R2):** برای هر مسئولیت فقط یک ماشین وضعیت اجرا وجود دارد و آن مدل قدمِ اثبات‌شدهٔ MVP-01 است (قدم قابل claim با lease و fencing و attempt پایدار). اسکیمای WorkItem در main (دامنه، ریسک، بودجه، نسخهٔ policy) پاکت اعتبارسنجی است و از راه Adapter فقط‌خواندنی به نمای قدم‌ها وصل می‌شود، نه یک وضعیت موازی دوم. موتور DAG در main همچنان فقط مستند است و در R2 ساخته نمی‌شود؛ زنجیرهٔ قدم‌ها مرتب و با پیش‌نیاز است.
+
+**جدول تصمیم هر جزء (برچسب‌های مأموریت R2):**
+
+| جزء | تصمیم | شرح کوتاه |
+|---|---|---|
+| Work Item / Task / DAG | integrate_with_adapter | وضعیت اجرا با مدل MVP-01؛ اسکیمای main پاکت اعتبارسنجی با Adapter فقط‌خواندنی؛ DAG موکول به بعد |
+| Work Step | reuse_mvp01 | مدل قدم + RPCهای claim و finish + قواعد گذار، بدون بازنویسی |
+| Attempt و outcome_unknown | reuse_mvp01 | attempt پایدار؛ outcome_unknown هرگز کورکورانه retry نمی‌شود |
+| Lease و Fencing | reuse_mvp01 | claim و finish با lease_owner و fencing_token |
+| Publication و Publication Outbox | reuse_mvp01 | انتشار اتمیک با pointer و outbox و verification و rollback به‌صورت انتشار تازه؛ manifest خشک main فقط بستهٔ شواهد است، نه سازوکار انتشار |
+| Event Log و Event Outbox | integrate_with_adapter | هر دو می‌مانند با نام و مسئولیت جدا؛ relay برای outbox رویداد موکول به بعد |
+| Tick Runner | reuse_mvp01 | مسیر واحد `POST /api/factory/tick` با قدیمی‌ترین قدم آماده؛ runner درون‌فرآیندی main برای عملیات دامنه می‌ماند و در tick ادغام نمی‌شود |
+| Factory Health | integrate_with_adapter | شکل health در main حفظ می‌شود و وضعیت واقعی کارخانه از staging (تنظیمات، قدم‌ها، outbox، آخرین run) به آن اضافه می‌شود؛ fail-closed |
+| Budget و Cost Ledger | defer | اسکیما و RPCها برای سازگاری منتقل می‌شوند؛ اعمال سقف موکول به R3 است چون در R2 فراخوانی مدل وجود ندارد |
+| Kill Switch | reuse_mvp01 | جدول factory_settings با ارزیابی fail-closed |
+| Verification و Rollback | integrate_with_adapter | verification و rollback انتشار با مدل MVP-01؛ گیت‌های content و seo در main کیفیت artifact را می‌سنجند |
+
+**حکم دو outbox:** Publication Outbox برای تغییرهای سایت و Event Outbox برای رویدادهای عملیاتی از هم جدا می‌مانند، با نام و مسئولیت روشن. در staging هر دو در همان دیتابیس staging هستند؛ هیچ رویداد یا انتشار آزمایشگاهی وارد production نمی‌شود. تبدیل انتشار تکمیل‌شده به رویداد عملیاتی فقط یک رکورد اعلانِ append-only است، نه نوشتن دوگانهٔ وضعیت.
+
+**محدودهٔ R2:** فقط گردش‌کار `guide_content_v1` منتقل می‌شود؛ گردش‌کار shadow در آزمایشگاه می‌ماند و موکول به بعد است. ADR-008 دست‌نخورده می‌ماند: جای tick در staging روی دیتابیس سایت است فقط برای اثبات، و جای نهایی وضعیت tick در معماری تولید تصمیم cutover است، نه تصمیم R2. Model Gateway، Temporal و زیرساخت تازه خارج از محدوده‌اند.
+
+**تفاوت‌های باقی‌ماندهٔ دو خط (پس از R2):** جای وضعیت tick در تولید (سایت یا ops)؛ موتور DAG؛ relay برای outbox رویداد؛ اعمال بودجه؛ ورود runnerهای عملیات دامنه به tick؛ نیمهٔ merge-queue در مسیر release در main.
+
+### 9.2 مانیفست R2-A: Adapter واحد، Health کامل، بدون Migration تازه (۱۴۰۵/۰۸/۰۸)
+
+- مبنا: شاخهٔ `rebuild/factory-r2` روی main واقعی با کامیت پایهٔ `06ecbf9`؛ کامیت R2 برابر `56281e9` است و دلتای R2-A روی همان شاخه می‌نشیند؛ بدون مرج، بدون Deploy پروداکشن.
+- قرارداد Adapter (`site/lib/factory/tick/adapter.ts`، نسخهٔ `r2a-1`): فقط «اجازهٔ ورود» است، نه موتور. Work Item اصلی را می‌خواند؛ deferred (یعنی `source_shadow_v1`) بی‌صدا رد می‌شود؛ manual یا قدیمی (شامل NULL) هرگز Claim نمی‌شود؛ tick_managed با نسخهٔ ناشناخته، با وضعیت مشخص مسدود می‌شود؛ فقط tick_managed با `guide_content_v1` و Step شناخته‌شدهٔ همان Workflow، eligible است. envelope اصلی factory-v2، وقتی همراه Work Item باشد، با WorkItemSchema اعتبارسنجی می‌شود و envelope نامعتبر fail-closed رد می‌شود؛ نبودن envelope، رد نیست. DAG، فقط envelope و metadata می‌ماند و هیچ موتور DAG ساخته نمی‌شود.
+- مسیر Tick، همان مسیر واحد `POST /api/factory/tick` است که گیت‌هایش از R2 به Adapter منتقل شد؛ رفتار، عین R2 است و ترتیب گیت‌ها (deferred، بعد وضعیت پایانی، بعد manual، بعد نسخهٔ ناشناخته، بعد Step) حفظ شده است. نسخهٔ Runner به `r2a-tick-1` رسید.
+- Health کامل (`site/lib/factory/tick/health.ts`): فیلدهای R2 مانده‌اند و سه گروه اضافه شده است: کارهای در حال اجرا (اجتماع Stepهای claimed و Work Itemهای publishing)، خطاهای اخیر (پنج Attempt ناموفق اخیر با فقط کد خطا و وضعیت پایان، بدون متن خطا) و همهٔ Kill Switchها با مقدار خام‌شان. هیچ Secret و هیچ متن خطای دیتابیس در پاسخ نیست.
+- Migrationهای R2-A: هیچ Migration تازه‌ای لازم نبود. مانیفست Migrationها، همان دو فایل R2 است: `20261030120000_factory_tick_tables.sql` (جدول‌های factory شامل publications و outbox انتشار، work_items و artifacts و approvals، steps و attempts و runs و settings و ledger و budgets، به‌علاوهٔ ستون‌های execution_mode و workflow_version) و `20261030120100_factory_tick_functions.sql` (هفت تابع نهایی publish_content_atomic و create_approved_version و claim_outbox_event و claim_work_step_by_id و finish_work_step و reserve_budget و release_budget). هر دو، اول روی Scratch تازه و بعد فقط روی Supabase Staging اجرا شدند و شمارش‌ها پیش و پس یکسان ماندند؛ Production هرگز لمس نشد. جدول‌های Event Outbox و Event Log اصلی، در staging ساخته نشده‌اند و Relay هم ساخته نشده است؛ جدایی، با همین «نساختن» حفظ شده است.
+- دادهٔ تاریخی: هیچ Publication یا Outbox تاریخی آزمایشگاه، با R2-A به جایی منتقل نشده است؛ سطرهای staging، همان سطرهایی‌اند که خود آزمایشگاه در همان پروژهٔ staging ساخته بود و R2-A فقط کد را روی همان دیتابیس اثبات کرده است.
+
+### 9.3 مانیفست R2A.1: قاعدهٔ Scope، تعیین تکلیف، چرخش توکن (۱۴۰۵/۰۸/۰۸)
+
+- مبنا: شاخهٔ `rebuild/factory-r2` روی main واقعی؛ کامیت R2-A برابر `24b01b6` و کامیت کد R2A.1 برابر `cd6a0b7` است و دلتای R2A.1 روی همان شاخه می‌نشیند؛ بدون مرج، بدون Deploy پروداکشن، بدون فعال‌سازی خواندن نسخه‌دار در مسیر عمومی.
+- قرارداد Adapter (`site/lib/factory/tick/adapter.ts`، نسخهٔ `r2a1-1`): حکم تازهٔ `out_of_scope` با رد بی‌صدا. هر Work Item ساخته‌شده پیش از برش `2026-10-30T15:44:00Z` (شروع مأموریت R2A.1، ۱۹:۱۴ تهران) خارج از Scope است؛ نبودن یا خراب بودن `created_at` هم fail-closed خارج از Scope است. ترتیب گیت‌ها: deferred، بعد out_of_scope، بعد وضعیت پایانی، بعد manual یا قدیمی، بعد نسخهٔ ناشناخته، بعد Step. بوت‌استرپ، فقط ساخته‌شده پس از برش را Step می‌دهد؛ اسکن نسخهٔ ناشناخته، کار تاریخی را به‌جای مسدود شدن فقط رد می‌کند. نسخهٔ Runner به `r2a1-tick-1` رسید.
+- تعیین تکلیف staging (فقط staging، بدون حذف تاریخ): همهٔ ۳۱ Work Item ناتمام، با RPC فقط‌staging `quarantine_work_item` و جدول لاگ `factory_quarantine_log` به `cancelled` رفتند (cancelled، تنها وضعیت پایانی است؛ blocked به drafting برمی‌گردد)؛ ۴۱ Work Item موفق دست نخورد؛ Stepهای queued و claimed به blocked رفتند؛ رویدادهای outbox باز به failed رفتند با یک سطر Audit از نوع intervention برای هر رویداد؛ هیچ Publicationای Update یا Delete نشد. در آزمون‌های §۸، سه کار آزمایشی دیگر هم لغو شد (یکی از اجرای ناقص اسکریپت و دو کار آزمون) و شمار لغوشده‌ها به ۳۴ رسید. پس از تعیین تکلیف: Stepهای queued صفر، outbox باز صفر، و Tick، `no_work` با claimed صفر برمی‌گرداند. انتشار در انتظار آیتم سوم R2-A، در انتظار می‌ماند ولی دیگر قابل پردازش نیست.
+- چرخش توکن داخلی staging: مقدار تازه در Secret گیت‌هاب، هر دو ورودی محیط پروژهٔ Preview و فایل سرور میرزا نشست؛ دیپلوی تازهٔ Preview با همان کد ساخته شد و سلامتی‌اش ۲۰۰ با صف صفر برگرداند؛ نسخهٔ پشتیبان قدیمی خرد شد. دیپلوی قبلی Preview با API لغو نمی‌شود (READY) و نشانی یکتای آن پشت ورود ورسل با محیط قدیمی می‌ماند؛ پاک کردنش با داشبورد ورسل است.
+- خطای `fetch failed` (R2-A): با آزمون کنترل‌شده، دو فرضیه رد شد: پایین بودن تونل محلی staging روی سرور بی‌اثر است (Tick در همان حالت ۲۰۰ با `no_work` برگرداند، چون فراخوانی‌های PostgREST سرور از HTTPS می‌روند نه از تونل محلی) و میزبان Supabase خراب، خطای postgrest با ۴۰۱ می‌دهد نه `fetch failed` لخت. علت محتمل، اختلال گذرای سطح شبکه در نخستین فراخوانی دیتابیس است که شکل کد (بدون timeout، خطای undici، صفر تغییر وضعیت، runId تهی) با آن می‌خواند؛ محرک دقیق، بدون شاهد لاگ، unknown می‌ماند.
+- آزمون‌ها: `npm run verify` با کد خروج ۰ (۴۵ فایل گذشت و ۴ skip و ۲۷۳ تست گذشت و ۸ skip)؛ بیلد با کد خروج ۰ (۱۹۲ صفحهٔ استاتیک). آزمون‌های زندهٔ §۸ روی ساخت میرزا با همان دیتابیس staging، ۲۰ از ۲۰ گذشت: کار تازهٔ پس از برش تا گیت تأیید انسانی جلو رفت؛ کار manual هرگز Step نگرفت؛ دو Tick هم‌زمان، هیچ Claim تکراری نساختند؛ تأیید معتبر و ساخت نسخه موفق بود؛ گیت publishing_disabled و گیت factory_paused هر دو با claimed صفر برگشتند؛ Tick پایانی `no_work` بود؛ هیچ انتشار تازه‌ای ساخته نشد؛ صفحهٔ عمومی، هر سه سرفصل راهنما و پاراگراف‌های اولشان را دارد و هیچ نشان آزمایشی به آن نشت نکرد. نکتهٔ رفتاری: Tick بوت‌استرپ، خودش `no_work` برمی‌گرداند و Claim، از Tick بعد شروع می‌شود؛ چون ساعت دیتابیس حدود ۱٫۴ ثانیه از ساعت سرور جلوتر است و scheduled_at تازه‌مهرخورده، در همان Tick «آینده» دیده می‌شود؛ بی‌ضرر و از پیش موجود است، نه ساختهٔ R2A.1.
+- Migrationهای R2A.1: هیچ Migration محصول تازه‌ای لازم نبود و هیچ Migration محصولی کامیت نشد. RPC تعیین تکلیف، فقط روی staging اجرا شد و به‌عنوان Migration محصول در مخزن ننشست؛ خواندن نسخه‌دار، همچنان به R2-B موکول است.
+## §9.9 بستهٔ R3C: اتصال Tick واقعی به Model Gateway آزمایشی و نمایش در داشبورد (۱۴۰۵/۰۸/۰۹)
+
+- مبنا: 510dae5 از rebuild/factory-r2. شاخه: rebuild/r3c-integration. بدون مرج، بدون دیپلوی پروداکشن.
+- روش یکپارچه‌سازی (بدون مرج کورکورانه):
+  - R3B: cherry-pick محتوایی همهٔ فایل‌های تازهٔ Gateway، ماژول چرخه، تست‌ها، دو Migration و ADR-014 از wt-tg-r3b؛ سپس تطبیق دستی: هستهٔ مالی (بازکردن عملیات، بستن، فراخوان Gateway، ثبت پاسخ) به ماژول مشترک تازهٔ gateway-operation-run.ts برگشت تا مسیر Tick و چرخه، یک منطق داشته باشند؛ چرخه فقط نگاشت نتیجه (replayed/open/blocked) را نگه داشت. دلیل: منطق موازی ممنوع است و ترتیب بازکردن پیش از Claim در چرخه باید حفظ شود (آزمون S2).
+  - R2B: کپی libها در نسخهٔ R2B.1 (ثابت برچسب کش) و page در نسخهٔ R2B (R2B.1 صفحه را دست نزد) و تست در نسخهٔ R2B.1؛ دست نخورده.
+  - R2B.1: آورده شد، نه defer؛ چون مسیر revalidation مستقل از مسیر تیک و دمو است و تمیز روی libهای R2B می‌نشیند.
+  - DASH-01: کپی کامل، سپس تکمیل فقط در data.ts و dashboard-view.tsx (سه بخش تازه + جزئیات فنی خطاها)؛ مسیر API، گیت، صفحه و کلاینت دست نخورده‌اند.
+  - defer: هیچ گروه فایلی defer نشد. STATE.md طبق شرح کار به‌روز نشد (همان رویهٔ R3-A) و این‌جا به‌عنوان انحراف ثبت می‌شود.
+- Workflow تازه: guide_content_gateway_v1 با ۴ Step (prepare_context، generate_draft_mock، validate_artifact، await_human_approval)؛ guide_content_v1 دست نخورده؛ پس از awaiting_approval می‌ایستد و هیچ قدم نسخه‌سازی یا انتشار ندارد، پس انتشار ساختاری ناممکن است.
+- آداپتور: قرارداد r2a1-1 به r3c-1 رفت و فقط Workflow تازه eligible شد؛ قانون Scope مربوط به cutoff و رفتار مسیر رسمی و Workflow سایه دست نخورده‌اند.
+- مسیر Tick: RUNNER_VERSION به r3c-tick-1 رفت؛ بوت‌استرپ جدا با پیشوند r3c-gateway-step-؛ قدم generate_draft_mock با Gateway واقعی پروژه و فقط Mock قطعی کار می‌کند (خروجی ثابت، ۱۵ توکن، برآورد ۱۰۰، واقعی ۳۰، مبنا simulated، واحد mock-unit)؛ رزرو سطح مسیر برای این قدم خاموش شد تا رزرو دوباره نشود؛ Artifact با همان تابع یک‌جای createGuideEditArtifact ساخته می‌شود (نوع content_draft_demo، Hash واقعی sha256)؛ هزینه‌های attempt از پاسخ Gateway وصله می‌شوند؛ دمِ مسیر عملیات را settled می‌کند و اضافه‌هزینه را pending نگه می‌دارد؛ گیت عملیات باز، قدم را claimed نگه می‌دارد و Attempt نمی‌سوزاند؛ Crash شبیه‌سازی‌شده قدم را نمی‌بندد.
+- رفع چرخه در R3C: finishStep چرخه مالک Lease را از سطر Step می‌خواند (برای قدم‌های چرخه همان کلید چرخه است و رفتار عوض نمی‌شود) تا بازیابی قدم‌های مسیر Tick هم با fencing درست کار کند؛ در آزمون ۸ ثابت شد.
+- آیتم نمایشی: r3c-visible-gateway-demo، tick_managed، guide_content_gateway_v1، content_draft_demo؛ در پایان در awaiting_approval می‌ماند و قرنطینه نمی‌شود. سقف کار ۱۰۰۰۰ و سقف روزانهٔ ۱۰۰۰۰۰۰ (سطر روز ۲۰۲۶-۱۰-۳۱ همان سقف را داشت و دست نخورد)؛ هر دو در پایان سر جایشان ماندند تا داشبورد سقف در برابر مصرف را زنده نشان بدهد (فقط Staging، زمان‌بند خاموش).
+- داشبورد (/factory-dashboard): فقط‌خواندنی ماند؛ هیچ دکمهٔ Publish و Approve و Rollback و تغییر Kill Switch اضافه نشد؛ پنج بخش: وضعیت کلی (با دو کاشی تازهٔ کارهای آماده و قدم‌های در حال اجرا)، نیازمند اقدام، فعالیت اخیر (کارت آیتم نمایشی)، Model Gateway (Provider mock، وضعیت شبیه‌سازی‌شده، تعداد فراخوانی، برآوردی، واقعی، مبنا، سقف و مصرف)، خطاهای مهم (کدها در سطر اصلی، کلید کار فقط در details). هزینهٔ Mock همه‌جا «شبیه‌سازی‌شده» خوانده می‌شود، هرگز هزینهٔ واقعی.
+- اصلاح جانبی در همین بسته: سقف روزانه در data.ts با String خوانده می‌شود، چون PostgREST عدد برمی‌گرداند و asString آن را تهی می‌کرد (باگ DASH-01 که سقف را در داشبورد خالی نشان می‌داد).
+- وضعیت پایانی Staging در گزارش: آیتم نمایشی awaiting_approval با Artifact و Hash؛ عملیات settled با ۱ فراخوان؛ Ledger رزرو ۱۰۰ و آزاد ۷۰ و تعهد ۳۰؛ انتشارات ۵۱ و outbox ۵۱ بدون تغییر؛ اشاره‌گر v22 بدون تغییر.
+- ریسک‌ها و Unknownها: پنجرهٔ Crash میان تسویه و درج Artifact (عملیات settled_unreturned؛ بازیابی قدم را موفق می‌کند ولی Artifact نمی‌سازد و validate_artifact بعد، fail-closed خطا می‌دهد؛ بازسازی Artifact از خروجی قطعی ذخیره‌شده، کار بستهٔ بعد است)؛ رفتار invalidation روی کش مشترک چندنمونه‌ای ورسل ثابت نشده (یادگار R2B.1)؛ صفحهٔ راهنمای بیلد بدون env استیجینگ به فالبک فایل می‌افتد (آزمون ۱۲ با بازسازی با env تکرار شد).
+- در زمان ادغام، شماره‌های §9.4 (سه‌تایی) تا §9.9 یک‌بار بازشماری شوند.
+## §9.10 مرج REBUILD-R3C-RECOVERY به شاخهٔ یکپارچه و دو اصلاح محدود داشبورد (۱۴۰۵/۰۸/۰۹)
+- مرج: ba142d2 با --no-ff و والدهای 566e0b1 و a581e59؛ بدون مرج به main و بدون PR و بدون دیپلوی Production.
+- اصلاح 2f734da (۳ فایل، ‎+87/−15؛ فقط سطح فقط‌خواندنی داشبورد): summarizeOpenReconciliations با تفکیک {count, excessCount, excessTotal, unknownCount} و null برای مجموع excess ناقص؛ summarizeSettledSimulated بدون تغییر (فقط settled و simulated، fail-closed null)؛ نما سه سطر مصالحه (جمع و excess و unknown) و سطر جداگانهٔ settled؛ هیچ totalActual و هیچ ledgerTotal در نما نیست؛ هزینهٔ Mock همه‌جا simulated.
+- آزمون‌ها: ۶ مورد تازه و به‌روز برای تفکیک و یک مورد جدایی settled؛ verify صفر (۵۳ فایل و ۶ skip و ۳۷۰ تست و ۲۹ skip)؛ بیلد صفر (۱۹۵ صفحه).
+- وضعیت پایانی Staging: دمو awaiting_approval؛ انتشارات ۵۱ و outbox ۴۶ و ۵ بدون تغییر؛ زمان‌بند خاموش.
+- ریسک‌ها: settled-simulated همچنان «نامشخص» است تا ۲ سطر settled با مبلغ تهی تعیین تکلیف شوند (بازپر کردن تاریخ settled پیشنهاد نمی‌شود)؛ چیدمان پیکسلی سه سطر تازه در گیت بصری Preview راستی می‌شود.
+- در زمان ادغام، شماره‌های §9.4 (سه‌تایی) تا §9.10 یک‌بار بازشماری شوند.
