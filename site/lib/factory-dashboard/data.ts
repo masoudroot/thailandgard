@@ -81,10 +81,15 @@ export interface DashboardPointer {
 
 export interface DashboardBudget {
   ledgerRows: number;
-  ledgerTotal: number;
   dailyLimit: string | null;
   dailySpent: number | null;
   budgetDate: string | null;
+  /** باقی‌ماندهٔ روزانه، فقط وقتی قابل اتکاست؛ وگرنه null یعنی «نامشخص». */
+  remainingDaily: number | null;
+  /** شمار مصالحه‌های باز (وضعیت pending_reconciliation). */
+  openReconciliationCount: number;
+  /** مجموع اضافه‌هزینهٔ باز؛ null یعنی «نامشخص» (سطر excess با مبلغ تهی). */
+  openExcessTotal: number | null;
 }
 
 /** کار در انتظار تأیید انسانی؛ فقط شناسه‌ها و وضعیت، نه متن آزاد. */
@@ -150,6 +155,10 @@ export interface DashboardGateway {
   totalActual: number;
   costBases: string[];
   latestOperations: DashboardGatewayOperation[];
+  /** مجموع settled_amount عملیات settled با مبنای simulated؛ null یعنی «نامشخص». */
+  settledSimulated: number | null;
+  /** مجموع رزروهای هنوز باز (حالت‌های reserved و sent و unknown و response_recorded). */
+  openReservations: number;
 }
 
 /** جمع‌بندی عملیات Gateway؛ تابع خالص، برای تست. */
@@ -168,6 +177,82 @@ export function summarizeGatewayOperations(
     if (basis) bases.add(basis);
   }
   return { totalCalls, totalEstimated, totalActual, costBases: [...bases].sort() };
+}
+
+/**
+ * هزینهٔ تسویه‌شدهٔ شبیه‌سازی‌شده (R3C-RECOVERY، §4): مجموع
+ * settled_amount فقط برای عملیات settled با مبنای simulated. اگر
+ * حتی یک عملیات settled، مبنای غیرشبیه‌سازی‌شده یا تهی داشته
+ * باشد، یا settled_amount تهی باشد، نتیجه null است یعنی
+ * «نامشخص»؛ جمع کورکورانه زده نمی‌شود.
+ */
+export function summarizeSettledSimulated(rows: { [key: string]: unknown }[]): number | null {
+  let total = 0;
+  for (const r of rows) {
+    if (asString(r.state) !== "settled") continue;
+    if (asString(r.cost_basis) !== "simulated") return null;
+    if (r.settled_amount === null || r.settled_amount === undefined) return null;
+    total += asNumber(r.settled_amount);
+  }
+  return total;
+}
+
+/**
+ * رزروهای باز (R3C-RECOVERY، §4): مجموع reserved_amount برای
+ * حالت‌هایی که رزرو هنوز نگه‌داشته شده است. reserved_amount در
+ * اسکیما NOT NULL است، پس همیشه قابل محاسبه است.
+ */
+export function summarizeOpenReservations(rows: { [key: string]: unknown }[]): number {
+  const OPEN = ["reserved", "sent", "unknown", "response_recorded"];
+  let total = 0;
+  for (const r of rows) {
+    if (!OPEN.includes(asString(r.state))) continue;
+    total += asNumber(r.reserved_amount);
+  }
+  return total;
+}
+
+/**
+ * مصالحه‌های باز (R3C-RECOVERY، §4): شمار همهٔ سطرهای
+ * pending_reconciliation و مجموع اضافه‌هزینهٔ سطرهای excess. اگر
+ * سطر excess با مبلغ تهی باشد، مجموع null است یعنی «نامشخص».
+ */
+export function summarizeOpenReconciliations(rows: { [key: string]: unknown }[]): {
+  count: number;
+  excessTotal: number | null;
+} {
+  let excess = 0;
+  for (const r of rows) {
+    if (asString(r.kind) !== "excess") continue;
+    if (r.excess_amount === null || r.excess_amount === undefined) {
+      return { count: rows.length, excessTotal: null };
+    }
+    excess += asNumber(r.excess_amount);
+  }
+  return { count: rows.length, excessTotal: excess };
+}
+
+/**
+ * باقی‌ماندهٔ بودجهٔ روزانه (R3C-RECOVERY، §4): فقط وقتی قابل
+ * اتکاست که سطر روز، مربوط به امروز باشد و سقف و مصرف، هر دو
+ * حاضر باشند و مصرف از سقف بیشتر نشده باشد و هیچ مبنای هزینهٔ
+ * غیرشبیه‌سازی‌شده‌ای در کار نباشد؛ جز این، null یعنی «نامشخص».
+ */
+export function remainingDailyBudget(
+  dailyLimit: unknown,
+  dailySpent: unknown,
+  budgetDate: string | null,
+  costBases: string[],
+  todayIso: string,
+): number | null {
+  if (budgetDate !== todayIso) return null;
+  if (dailyLimit === null || dailyLimit === undefined) return null;
+  if (dailySpent === null || dailySpent === undefined) return null;
+  if (costBases.some((b) => b !== "simulated")) return null;
+  const limit = asNumber(dailyLimit);
+  const spent = asNumber(dailySpent);
+  if (spent > limit) return null;
+  return limit - spent;
 }
 
 export interface FactoryDashboardData {
@@ -346,9 +431,17 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
     )) ?? [];
     const gatewayAll = (await postgrestGetOrNull(
       cfg,
-      "factory_gateway_operations?select=provider_calls,estimated_cost,actual_cost,cost_basis",
+      "factory_gateway_operations?select=provider_calls,estimated_cost,actual_cost,cost_basis,state,reserved_amount,settled_amount",
     )) ?? [];
     const gatewaySummary = summarizeGatewayOperations(gatewayAll);
+    const gatewaySettledSimulated = summarizeSettledSimulated(gatewayAll);
+    const gatewayOpenReservations = summarizeOpenReservations(gatewayAll);
+
+    const reconciliationRows = (await postgrestGetOrNull(
+      cfg,
+      "factory_gateway_reconciliations?status=eq.pending_reconciliation&select=kind,excess_amount",
+    )) ?? [];
+    const openReconciliations = summarizeOpenReconciliations(reconciliationRows);
 
     const outboxCounts = countByStatus(outboxStatusRows.map((r) => asString(r.status)));
     const outboxOpen = outboxCounts
@@ -417,7 +510,6 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
         switches,
         budget: {
           ledgerRows: ledgerRows.length,
-          ledgerTotal: ledgerRows.reduce((sum, r) => sum + asNumber(r.amount), 0),
           // سقف روزانه، numeric برمی‌گردد نه رشته؛ asString برای عدد،
           // تهی می‌داد و سقف در داشبورد خالی دیده می‌شد (باگ DASH-01
           // که R3C اصلاح می‌کند، چون بخش Gateway سقف را نشان می‌دهد).
@@ -427,6 +519,19 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
               : null,
           dailySpent: budgetRow ? asNumber(budgetRow.daily_spent) : null,
           budgetDate: budgetRow ? asString(budgetRow.budget_date) : null,
+          // R3C-RECOVERY §4: جمع کورکورانهٔ مبلغ‌های ledger (رزرو
+          // و آزادسازی و تسویه و رد، با هم) حذف شد؛ به‌جای آن،
+          // باقی‌ماندهٔ روزانهٔ قابل اتکا و مصالحه‌های باز نشان
+          // داده می‌شوند و هر مقدار نامطمئن، «نامشخص» است.
+          remainingDaily: remainingDailyBudget(
+            budgetRow?.daily_limit,
+            budgetRow?.daily_spent,
+            budgetRow ? asString(budgetRow.budget_date) : null,
+            gatewaySummary.costBases,
+            new Date().toISOString().slice(0, 10),
+          ),
+          openReconciliationCount: openReconciliations.count,
+          openExcessTotal: openReconciliations.excessTotal,
         },
         pointers: pointerRows.map((r) => ({
           slug: asString(r.slug),
@@ -493,6 +598,8 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
           totalEstimated: gatewaySummary.totalEstimated,
           totalActual: gatewaySummary.totalActual,
           costBases: gatewaySummary.costBases,
+          settledSimulated: gatewaySettledSimulated,
+          openReservations: gatewayOpenReservations,
           latestOperations: gatewayLatest.map((r) => ({
             id: asString(r.id),
             state: asString(r.state),

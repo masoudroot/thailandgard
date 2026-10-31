@@ -12,9 +12,13 @@ import "./server-guard";
  * - send: پس از فراخوان Provider، پیش از ثبت بادوام پاسخ؛
  * - response: پس از بازگشت Provider، پیش از تسویه؛
  * - settle: پس از تسویه، پیش از بازگشت نتیجه به Work Item؛
- * - return: پس از فراخوان Gateway، پیش از finish شدن Step.
+ * - return: پس از فراخوان Gateway، پیش از finish شدن Step؛
+ * - artifact: پس از تسویه و موفقیت Gateway در مسیر Tick، پیش از
+ *   درج Artifact (پنجرهٔ R3C-RECOVERY)؛
+ * - artifact_registered: پس از درج Artifact در مسیر Tick، پیش از
+ *   finish شدن Step.
  */
-export type CrashStage = "reserve" | "send" | "response" | "settle" | "return";
+export type CrashStage = "reserve" | "send" | "response" | "settle" | "return" | "artifact" | "artifact_registered";
 
 export class SimulatedCrashError extends Error {
   readonly stage: CrashStage;

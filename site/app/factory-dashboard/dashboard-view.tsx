@@ -299,7 +299,7 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
                     <dd className="mt-1 font-semibold tabular-nums">{faNumber(data.demoActivity.lastAttempt.estimatedCost)}</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">هزینهٔ واقعی</dt>
+                    <dt className="text-muted-foreground">هزینهٔ ثبت‌شده</dt>
                     <dd className="mt-1 font-semibold tabular-nums">{faNumber(data.demoActivity.lastAttempt.actualCost)}</dd>
                   </div>
                 </dl>
@@ -320,8 +320,11 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
         </div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label="تعداد فراخوانی" value={faNumber(data.gateway.totalCalls)} />
-          <Stat label="هزینهٔ برآوردی" value={faNumber(data.gateway.totalEstimated)} />
-          <Stat label="هزینهٔ واقعی" value={faNumber(data.gateway.totalActual)} />
+          <Stat label="مجموع برآوردها" value={faNumber(data.gateway.totalEstimated)} />
+          <Stat
+            label="تسویه‌شدهٔ شبیه‌سازی‌شده"
+            value={data.gateway.settledSimulated === null ? "نامشخص" : faNumber(data.gateway.settledSimulated)}
+          />
           <Stat label="مبنای هزینه" value={data.gateway.costBases.length > 0 ? data.gateway.costBases.join("، ") : "نامشخص"} />
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm lg:grid-cols-4">
@@ -548,8 +551,22 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
             <dd className="mt-1 font-semibold tabular-nums">{faNumber(data.budget.ledgerRows)}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">جمع مبلغ‌های ثبت‌شده</dt>
-            <dd className="mt-1 font-semibold tabular-nums">{faNumber(data.budget.ledgerTotal)}</dd>
+            <dt className="text-muted-foreground">رزروهای باز</dt>
+            <dd className="mt-1 font-semibold tabular-nums">{faNumber(data.gateway.openReservations)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">باقی‌ماندهٔ روزانه</dt>
+            <dd className="mt-1 font-semibold tabular-nums">
+              {data.budget.remainingDaily === null ? "نامشخص" : faNumber(data.budget.remainingDaily)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">مصالحه‌های باز</dt>
+            <dd className="mt-1 font-semibold tabular-nums">
+              {data.budget.openReconciliationCount === 0
+                ? "هیچ"
+                : `${faNumber(data.budget.openReconciliationCount)} مورد، اضافهٔ ${data.budget.openExcessTotal === null ? "نامشخص" : faNumber(data.budget.openExcessTotal)}`}
+            </dd>
           </div>
           <div>
             <dt className="text-muted-foreground">سقف روزانه</dt>
@@ -563,7 +580,9 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
           </div>
         </dl>
         <p className="text-xs text-muted-foreground">
-          مبلغ‌ها با همان واحدی نشان داده می‌شوند که در ledger ثبت شده است؛ واحد تازه‌ای به آن‌ها نسبت داده نمی‌شود.
+          مبلغ‌ها با همان واحدی نشان داده می‌شوند که در ledger ثبت شده است؛ واحد تازه‌ای به آن‌ها نسبت داده نمی‌شود. جمع
+          مبلغ‌های ledger (رزرو و آزادسازی و تسویه و رد، با هم) هزینه نیست و این‌جا نشان داده نمی‌شود؛ فقط هزینهٔ
+          تسویه‌شدهٔ شبیه‌سازی‌شده و رزروهای باز و باقی‌ماندهٔ قابل اتکا نشان داده می‌شوند و هر مقدار نامطمئن، «نامشخص» است.
         </p>
       </SectionCard>
 

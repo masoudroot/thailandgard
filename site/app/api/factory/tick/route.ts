@@ -38,7 +38,7 @@ import {
   adaptWorkItemForTick,
 } from "@/lib/factory/tick/adapter";
 import { PostgrestBudgetLedger } from "@/lib/factory/gateway/ledger";
-import { isSimulatedCrash } from "@/lib/factory/gateway/crash-test";
+import { isSimulatedCrash, throwIfCrashAfter } from "@/lib/factory/gateway/crash-test";
 import { getLatestOperation, patchOperation } from "@/lib/factory/gateway/operations";
 import {
   GatewayOperationError,
@@ -46,6 +46,9 @@ import {
   openGatewayOperation,
   runGatewayCallForOperation,
 } from "@/lib/factory/tick/gateway-operation-run";
+import {
+  recoverGatewayArtifact,
+} from "@/lib/factory/tick/gateway-artifact-recovery";
 
 const RUNNER_VERSION = "r3c-tick-1";
 
@@ -101,12 +104,17 @@ function firstParagraph(payload: PublishPayload): string {
  * قدم را مشخص می‌کند: guide_edit برای مسیر رسمی، content_draft_demo
  * برای پیش‌نویس آزمایشی Gateway.
  */
-async function createGuideEditArtifact(
+/**
+ * ساخت بار Artifact از بار منتشرشدهٔ راهنما با جای‌گذاری یک
+ * پاراگراف و محاسبهٔ Hash واقعی آن. منطق خالصِ ساخت بار است که
+ * هم مسیر عادی و هم بازیابی R3C-RECOVERY از آن استفاده می‌کنند؛
+ * هیچ منطق موازی برای بازسازی بار وجود ندارد.
+ */
+async function buildGuideEditPayload(
   cfg: DbCfg,
   workItem: WorkItemRow,
-  artifactType: string,
   paragraph: string,
-): Promise<string> {
+): Promise<{ payload: PublishPayload; hash: string }> {
   const docs = (await postgrestGet(
     cfg,
     `content_documents?id=eq.${encodeURIComponent(workItem.content_id)}&select=*`,
@@ -122,6 +130,16 @@ async function createGuideEditArtifact(
   payload.sections[0].paragraphs[0] = paragraph;
   validatePublishPayload(payload);
   const hash = computeContentHash(payload);
+  return { payload, hash };
+}
+
+async function createGuideEditArtifact(
+  cfg: DbCfg,
+  workItem: WorkItemRow,
+  artifactType: string,
+  paragraph: string,
+): Promise<string> {
+  const { payload, hash } = await buildGuideEditPayload(cfg, workItem, paragraph);
   const inserted = (await postgrestWrite(cfg, "POST", "factory_artifacts", {
     work_item_id: workItem.id,
     artifact_type: artifactType,
@@ -137,6 +155,88 @@ async function createGuideEditArtifact(
     updated_at: new Date().toISOString(),
   });
   return artifactId;
+}
+
+/**
+ * پیوند یا درج Artifact بازسازی‌شده (R3C-RECOVERY). پیش از درج،
+ * دو بررسی می‌شود تا Artifact تکراری ساخته نشود:
+ * - اگر آیتم، از پیش Artifact پیوندیافته دارد، Hash آن باید با
+ *   Hash بازسازی‌شده از پاسخ ذخیره‌شده برابر باشد؛ ناسازگاری،
+ *   خطای gateway_artifact_hash_mismatch است و قدم مسدود می‌شود؛
+ * - اگر Artifact با همان Hash برای همین آیتم هست ولی پیوند
+ *   نخورده است (Crash میان درج Artifact و PATCH آیتم)، همان سطر
+ *   پیوند می‌خورد و سطر تازه‌ای ساخته نمی‌شود.
+ * پیوند، با فیلتر result_artifact_id تهی انجام می‌شود؛ پس از دو
+ * بازیابی هم‌زمان، فقط یکی پیوند را می‌گیرد و دیگری، برنده را
+ * دوباره می‌خواند. سطر یتیمِ جامانده از مسابقه، مثل سابقهٔ M4،
+ * به‌علت تغییرناپذیری Artifact باقی می‌ماند و پیوند نمی‌خورد.
+ */
+async function linkOrInsertGuideEditArtifact(
+  cfg: DbCfg,
+  workItem: WorkItemRow,
+  artifactType: string,
+  paragraph: string,
+): Promise<string> {
+  const { payload, hash } = await buildGuideEditPayload(cfg, workItem, paragraph);
+  if (workItem.result_artifact_id) {
+    const linked = (await postgrestGet(
+      cfg,
+      `factory_artifacts?id=eq.${encodeURIComponent(workItem.result_artifact_id)}&select=id,artifact_hash`,
+    )) as ArtifactRow[];
+    if (linked.length > 0) {
+      if (linked[0].artifact_hash !== hash) throw new Error("gateway_artifact_hash_mismatch");
+      return linked[0].id;
+    }
+  }
+  const existing = (await postgrestGet(
+    cfg,
+    `factory_artifacts?work_item_id=eq.${encodeURIComponent(workItem.id)}&artifact_hash=eq.${encodeURIComponent(hash)}&select=id&limit=1`,
+  )) as ArtifactRow[];
+  if (existing.length > 0) {
+    const patched = (await postgrestWrite(
+      cfg,
+      "PATCH",
+      `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}&result_artifact_id=is.null`,
+      {
+        result_artifact_id: existing[0].id,
+        status: "awaiting_approval",
+        updated_at: new Date().toISOString(),
+      },
+    )) as WorkItemRow[];
+    if (patched.length > 0) return existing[0].id;
+    const winner = (await postgrestGet(
+      cfg,
+      `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}&select=result_artifact_id`,
+    )) as WorkItemRow[];
+    if (winner[0]?.result_artifact_id) return winner[0].result_artifact_id;
+    throw new Error("artifact link raced and no winner found");
+  }
+  const inserted = (await postgrestWrite(cfg, "POST", "factory_artifacts", {
+    work_item_id: workItem.id,
+    artifact_type: artifactType,
+    schema_version: "publish_payload_v1",
+    payload,
+    artifact_hash: hash,
+  })) as ArtifactRow[];
+  const artifactId = inserted[0]?.id ?? null;
+  if (!artifactId) throw new Error("artifact was not created");
+  const patched = (await postgrestWrite(
+    cfg,
+    "PATCH",
+    `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}&result_artifact_id=is.null`,
+    {
+      result_artifact_id: artifactId,
+      status: "awaiting_approval",
+      updated_at: new Date().toISOString(),
+    },
+  )) as WorkItemRow[];
+  if (patched.length > 0) return artifactId;
+  const winner = (await postgrestGet(
+    cfg,
+    `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}&select=result_artifact_id`,
+  )) as WorkItemRow[];
+  if (winner[0]?.result_artifact_id) return winner[0].result_artifact_id;
+  throw new Error("artifact link raced and no winner found");
 }
 
 async function internalPost(base: string, path: string, body: unknown): Promise<{ status: number; json: unknown }> {
@@ -647,6 +747,115 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         // قدم را فقط برای همان Workflow eligible می‌داند) و فقط با
         // Mock Provider کار می‌کند؛ هیچ API مدل خارجی صدا زده نمی‌شود.
         if (!attemptId) throw new Error("factory attempt was not created");
+        // بازیابی R3C-RECOVERY، پیش از گیت canSubmitArtifact:
+        // آیتمی که Artifactش در تلاشِ قطع‌شده ثبت شده، وضعیتش
+        // awaiting_approval است؛ بازیابی، تسلیم تازه نیست (Artifactِ
+        // پیوندشده بازاستفاده یا بازسازی و پیوند می‌شود) و نباید
+        // پشت گیتِ تسلیم تازه بماند، وگرنه هر تیکِ بازیابی با
+        // «cannot submit artifact» می‌افتد و قدم پس از ۵ تلاش
+        // blocked می‌شود (دیده‌شده در S6). مسیر تازهٔ پایین،
+        // همچنان همان گیت را دارد.
+        {
+          const recoveryLogicalId = gatewayLogicalOperationId(workItem.id, claimed.step_key, "generate_draft_mock");
+          const recoveryLatest = await getLatestOperation(cfg, recoveryLogicalId);
+          const recoverableStates = ["pending", "reserved", "sent", "unknown", "response_recorded", "settled_unreturned", "settled"];
+          if (recoveryLatest && recoverableStates.includes(recoveryLatest.state)) {
+            const outcome = await recoverGatewayArtifact(cfg, new PostgrestBudgetLedger(cfg), {
+              workItemId: workItem.id,
+              stepKey: claimed.step_key,
+              operationName: "generate_draft_mock",
+              outputSchema: DEMO_DRAFT_SCHEMA,
+            });
+            if (outcome.kind === "gate_open") {
+              await finishRun(cfg, runId, 1, 0, 0);
+              return NextResponse.json({
+                run_id: runId,
+                status: outcome.reason,
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            if (outcome.kind === "lost_race") {
+              await finishRun(cfg, runId, 1, 0, 0);
+              return NextResponse.json({
+                run_id: runId,
+                status: "gateway_recovery_race",
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            if (outcome.kind === "blocked") {
+              await finishStep("blocked", "failed", "not_required", outcome.reason, null, null);
+              await blockWorkItem(cfg, workItem, outcome.reason);
+              await finishRun(cfg, runId, 1, 0, 1);
+              return NextResponse.json({
+                run_id: runId,
+                status: "gateway_recovery_blocked",
+                reason: outcome.reason,
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            if (outcome.kind === "recovered") {
+              // قدم، فقط پس از ثبت Artifact معتبر موفق می‌شود.
+              try {
+                await postgrestWrite(cfg, "PATCH", `factory_attempts?id=eq.${encodeURIComponent(attemptId)}`, {
+                  estimated_cost: outcome.operation.estimated_cost,
+                  actual_cost: outcome.operation.actual_cost,
+                });
+                outputArtifactId = await linkOrInsertGuideEditArtifact(cfg, workItem, "content_draft_demo", outcome.paragraph);
+              } catch (error) {
+                if (error instanceof Error && error.message === "gateway_artifact_hash_mismatch") {
+                  await finishStep("blocked", "failed", "not_required", "gateway_artifact_hash_mismatch", null, null);
+                  await blockWorkItem(cfg, workItem, "gateway_artifact_hash_mismatch");
+                  await finishRun(cfg, runId, 1, 0, 1);
+                  return NextResponse.json({
+                    run_id: runId,
+                    status: "gateway_recovery_blocked",
+                    reason: "gateway_artifact_hash_mismatch",
+                    work_item_id: workItem.id,
+                    step_key: claimed.step_key,
+                    attempt_no: claimed.attempt_count,
+                  });
+                }
+                throw error;
+              }
+              gatewayOperationId = outcome.operation.id;
+              gatewayHasExcess = outcome.excessAmount !== null;
+              const finished = await finishStep(
+                "succeeded",
+                "succeeded",
+                gatewayHasExcess ? "pending" : "not_required",
+                null,
+                outputArtifactId,
+                null,
+              );
+              if (!finished) {
+                await finishRun(cfg, runId, 1, 0, 1);
+                return NextResponse.json({
+                  run_id: runId,
+                  status: "stale_fencing",
+                  work_item_id: workItem.id,
+                  step_key: claimed.step_key,
+                  attempt_no: claimed.attempt_count,
+                });
+              }
+              await finishRun(cfg, runId, 1, 1, 0);
+              return NextResponse.json({
+                run_id: runId,
+                status: "step_succeeded",
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            // proceed_fresh و no_operation: منطق موجود پایین، فراخوان تازه را ادامه می‌دهد.
+          }
+        }
+        // گیت تسلیم تازه، فقط برای مسیر تازهٔ پایین (بازیابی، بالا انجام شد).
         if (!canSubmitArtifact(workItem.status as never)) {
           throw new Error(`work item cannot submit artifact in status ${workItem.status}`);
         }
@@ -820,7 +1029,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               estimated_cost: run.response.estimated_cost,
               actual_cost: run.response.actual_cost,
             });
+            // قلاب آزمایشی R3C-RECOVERY: Crash پس از تسویه و پیش از
+            // درج Artifact (پنجرهٔ اصلی). پیش‌فرض خاموش است.
+            throwIfCrashAfter("artifact");
             outputArtifactId = await createGuideEditArtifact(cfg, workItem, "content_draft_demo", draft.draft_paragraph);
+            // قلاب آزمایشی R3C-RECOVERY: Crash پس از درج Artifact و
+            // پیش از finish شدن Step.
+            throwIfCrashAfter("artifact_registered");
           }
         }
       } else if (claimed.step_key === "await_human_approval") {
@@ -1003,6 +1218,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             step_key: claimed.step_key,
             attempt_no: claimed.attempt_count,
             fencing_token: claimed.fencing_token,
+          },
+          { status: 500 },
+        );
+      }
+      if (isSimulatedCrash(err)) {
+        // Crash شبیه‌سازی‌شدهٔ R3C-RECOVERY (artifact یا
+        // artifact_registered): عمداً Step بسته نمی‌شود تا Tick
+        // بعدی پس از انقضای Lease، از دیتابیس بازیابی کند.
+        await postgrestWrite(cfg, "PATCH", `factory_runs?id=eq.${encodeURIComponent(runId)}`, {
+          finished_at: new Date().toISOString(),
+          run_status: "failed",
+          items_claimed: 1,
+          items_completed: 0,
+          items_failed: 1,
+        });
+        return NextResponse.json(
+          {
+            run_id: runId,
+            status: `crash_after_${err.stage}`,
+            work_item_id: workItem.id,
+            step_key: claimed.step_key,
+            attempt_no: claimed.attempt_count,
           },
           { status: 500 },
         );
