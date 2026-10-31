@@ -318,3 +318,10 @@ P0 ──► P1 ──► P2 ──► P6 ──► P7
 - وضعیت پایانی Staging در گزارش: آیتم نمایشی awaiting_approval با Artifact و Hash؛ عملیات settled با ۱ فراخوان؛ Ledger رزرو ۱۰۰ و آزاد ۷۰ و تعهد ۳۰؛ انتشارات ۵۱ و outbox ۵۱ بدون تغییر؛ اشاره‌گر v22 بدون تغییر.
 - ریسک‌ها و Unknownها: پنجرهٔ Crash میان تسویه و درج Artifact (عملیات settled_unreturned؛ بازیابی قدم را موفق می‌کند ولی Artifact نمی‌سازد و validate_artifact بعد، fail-closed خطا می‌دهد؛ بازسازی Artifact از خروجی قطعی ذخیره‌شده، کار بستهٔ بعد است)؛ رفتار invalidation روی کش مشترک چندنمونه‌ای ورسل ثابت نشده (یادگار R2B.1)؛ صفحهٔ راهنمای بیلد بدون env استیجینگ به فالبک فایل می‌افتد (آزمون ۱۲ با بازسازی با env تکرار شد).
 - در زمان ادغام، شماره‌های §9.4 (سه‌تایی) تا §9.9 یک‌بار بازشماری شوند.
+## §9.10 مرج REBUILD-R3C-RECOVERY به شاخهٔ یکپارچه و دو اصلاح محدود داشبورد (۱۴۰۵/۰۸/۰۹)
+- مرج: ba142d2 با --no-ff و والدهای 566e0b1 و a581e59؛ بدون مرج به main و بدون PR و بدون دیپلوی Production.
+- اصلاح 2f734da (۳ فایل، ‎+87/−15؛ فقط سطح فقط‌خواندنی داشبورد): summarizeOpenReconciliations با تفکیک {count, excessCount, excessTotal, unknownCount} و null برای مجموع excess ناقص؛ summarizeSettledSimulated بدون تغییر (فقط settled و simulated، fail-closed null)؛ نما سه سطر مصالحه (جمع و excess و unknown) و سطر جداگانهٔ settled؛ هیچ totalActual و هیچ ledgerTotal در نما نیست؛ هزینهٔ Mock همه‌جا simulated.
+- آزمون‌ها: ۶ مورد تازه و به‌روز برای تفکیک و یک مورد جدایی settled؛ verify صفر (۵۳ فایل و ۶ skip و ۳۷۰ تست و ۲۹ skip)؛ بیلد صفر (۱۹۵ صفحه).
+- وضعیت پایانی Staging: دمو awaiting_approval؛ انتشارات ۵۱ و outbox ۴۶ و ۵ بدون تغییر؛ زمان‌بند خاموش.
+- ریسک‌ها: settled-simulated همچنان «نامشخص» است تا ۲ سطر settled با مبلغ تهی تعیین تکلیف شوند (بازپر کردن تاریخ settled پیشنهاد نمی‌شود)؛ چیدمان پیکسلی سه سطر تازه در گیت بصری Preview راستی می‌شود.
+- در زمان ادغام، شماره‌های §9.4 (سه‌تایی) تا §9.10 یک‌بار بازشماری شوند.
