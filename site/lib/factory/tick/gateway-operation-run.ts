@@ -12,8 +12,6 @@ import {
   bindAttempt,
   computeLogicalOperationId,
   findOpenExcessForWorkItem,
-  getOperationById,
-  incrementProviderCalls,
   openOperation,
   OperationBlockedError,
   OperationConflictError,
