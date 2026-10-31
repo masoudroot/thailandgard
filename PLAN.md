@@ -170,6 +170,7 @@
 - [x] REBUILD-R3-A قرارداد Model Gateway با Mock Provider، بدون فراخوان واقعی (شاخهٔ rebuild/r3-model-gateway؛ تست قرارداد r3-gateway-contract با ۸ تست، بدون مرج و بدون PR)
 - [x] REBUILD-R3A دلتا: بودجهٔ enforceشده در کد و دیتابیس با تفکیک estimated_cost و actual_cost (شاخهٔ rebuild/r3-model-gateway؛ تست قرارداد r3-gateway-contract با ۱۲ تست؛ اثبات Staging با آداپتور PostgREST؛ بدون مرج و بدون PR)
 - [x] REBUILD-R3A-SAFE: اصلاح کنترل بودجه و نتیجهٔ نامعلوم پیش از اتصال Gateway به Tick (شاخهٔ rebuild/r3a-safe؛ قرارداد r3-gateway-3؛ تست قرارداد r3-gateway-contract با ۳۳ تست؛ اثبات Staging با آداپتور PostgREST؛ بدون مرج و بدون PR)
+- [x] REBUILD-R3B: اتصال ایمن Gateway به Tick با Attempt واقعی و بازیابی پایدار (شاخهٔ rebuild/r3b-tick-connection؛ قرارداد r3-gateway-4؛ چرخهٔ attempt در سطح Tick بدون دست‌کاری مسیر Tick؛ بازیابی فقط از دیتابیس با ۴ حالت پایدار؛ ۱۴ سناریوی Staging + رگرسیون S4b؛ بدون مرج و بدون PR)
 - [ ] P3-STG تثبیت فاز ۳ در staging با دادهٔ واقعی
 - [ ] P4 Design و Dev
 - [ ] P5 Leader و Domain Ops

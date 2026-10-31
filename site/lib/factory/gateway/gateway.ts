@@ -1,4 +1,8 @@
 import "./server-guard";
+import {
+  throwIfCrashAfter,
+  isSimulatedCrash,
+} from "./crash-test";
 import type { BudgetLedger } from "./ledger";
 import { LedgerError } from "./ledger";
 import type { ProviderRegistry } from "./provider";
@@ -17,11 +21,21 @@ import {
 } from "./types";
 
 /**
- * قرارداد Gateway مدل (R3A-SAFE، نسخهٔ r3-gateway-3).
+ * قرارداد Gateway مدل (R3B، نسخهٔ r3-gateway-4).
  *
- * این Gateway هیچ فراخواننده‌ای ندارد و به Tick وصل نمی‌شود؛
- * وصل کردن آن بستهٔ بعدی است. هیچ فراخوان پولی واقعی این‌جا
- * انجام نمی‌شود و هیچ محتوایی تولید یا منتشر نمی‌کند.
+ * اتصال به Tick در سطح چرخهٔ attempt انجام شده است
+ * (site/lib/factory/tick/gateway-attempt-cycle.ts): همان Claim و
+ * درج attempt و finish مسیر Tick، با factory_attempt_id واقعی.
+ * خود مسیر /api/factory/tick دست نخورده است. هیچ فراخوان پولی
+ * واقعی این‌جا انجام نمی‌شود و هیچ محتوایی تولید یا منتشر
+ * نمی‌کند.
+ *
+ * تغییر نسخهٔ ۴ نسبت به نسخهٔ ۳: قلاب‌های تزریق Crash فقط
+ * آزمایشی (crash-test.ts، پیش‌فرض خاموش و فقط با
+ * R3B_TEST_MODE=1) برای اثبات حالت‌های بازیابی، و عبور
+ * SimulatedCrashError از catch فراخوان Provider بدون تسویه، تا
+ * Crash شبیه‌سازی‌شده، رزرو را نگه دارد نه این‌که آن را با
+ * خطای provider_error تسویه کند.
  *
  * ترتیب فراخوان:
  * ۱) اعتبارسنجی درخواست،
@@ -56,7 +70,7 @@ import {
  *   ممکن است؛ بدون آن، رزروی که پیش از Crash نشسته باشد، برای
  *   نمونهٔ تازه قابل انتساب نیست و این محدودیت صریح در سند می‌ماند.
  */
-export const GATEWAY_CONTRACT_VERSION = "r3-gateway-3";
+export const GATEWAY_CONTRACT_VERSION = "r3-gateway-4";
 
 export interface GatewayConfig {
   registry: ProviderRegistry;
@@ -653,6 +667,11 @@ export class ModelGateway {
       throw error;
     }
 
+    // قلاب آزمایشی R3B: Crash پس از رزرو و پیش از فراخوان
+    // Provider. پیش‌فرض خاموش است؛ فقط با R3B_TEST_MODE=1 فعال
+    // می‌شود و رزرو را نگه‌داشته باقی می‌گذارد.
+    throwIfCrashAfter("reserve");
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), request.timeout);
     try {
@@ -661,6 +680,10 @@ export class ModelGateway {
         signal: controller.signal,
       });
       clearTimeout(timer);
+      // قلاب آزمایشی R3B: Crash پس از بازگشت Provider و پیش از
+      // تسویه. پاسخ بادوامِ لایهٔ عملیات (response_recorded) پیش
+      // از این نقطه نشسته است و بازیابی از روی آن تسویه می‌کند.
+      throwIfCrashAfter("response");
       const checked = request.output_schema.safeParse(result.output);
       const actual = result.cost;
       const costBasis: CostBasis = result.cost_basis ?? "estimated";
@@ -686,6 +709,12 @@ export class ModelGateway {
       return this.finishJournal(request, journalEntry);
     } catch (error) {
       clearTimeout(timer);
+      // Crash شبیه‌سازی‌شده هرگز با خطای provider_error تسویه
+      // نمی‌شود؛ همان‌طور که هست بالا می‌آید تا رزرو نگه داشته
+      // شود و بازیابیِ فرایند تازه از روی دیتابیس تصمیم بگیرد.
+      if (isSimulatedCrash(error)) {
+        throw error;
+      }
       if (error instanceof LedgerError) {
         return this.failedResponse(
           request,
@@ -963,6 +992,10 @@ export class ModelGateway {
       }
       throw error;
     }
+    // قلاب آزمایشی R3B: Crash پس از تسویه و پیش از بازگشت نتیجه
+    // به Work Item. سطر تسویه نشسته است و بازیابی، Step را از روی
+    // همان سطر finish می‌کند.
+    throwIfCrashAfter("settle");
     this.journal.delete(request.idempotency_key);
     const response: GatewayResponse = {
       outcome: "succeeded",

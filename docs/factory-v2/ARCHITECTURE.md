@@ -646,6 +646,7 @@ Projectionها از Event Log بازسازی‌پذیرند.
 | ADR-011 | GitHub Actions به‌عنوان runtime اجرا؛ runner درون‌فرآیندی جای Temporal | تأییدشده (۲۰۲۶-۱۰-۲۴) |
 | ADR-012 | عملیات branch/PR با GITHUB_TOKEN کوتاه‌عمر و مجوز حداقلی (به‌جای GitHub App در وضعیت فعلی)؛ ورسل بدون توکن ذخیره‌شده و از مسیر ادغام بومی Git + GitHub Deployments API | تأییدشده (۲۰۲۶-۱۰-۲۵) |
 | ADR-013 | گیت کارایی و دسترس‌پذیری با `@lhci/cli` به‌عنوان تنها وابستگی توسعهٔ تازه؛ Lighthouse (که axe را درون خود اجرا می‌کند) مرجع سنجش است و آستانه‌ها از `docs/ops/perf-budget.md` می‌آید | تأییدشده (۲۰۲۶-۱۰-۲۷، تأیید مسعود) |
+| ADR-014 | نگهبان زمان اجرای server-only برای Gateway بدون وابستگی تازه؛ import صریح `server-only` موکول به بستهٔ بعدی با تأیید صریح (سند جدا: `docs/factory-v2/ADR-014-server-only-guard.md`) | تأییدشده (۱۴۰۵/۰۸/۰۹، در محدودهٔ R3B) |
 
 ---
 

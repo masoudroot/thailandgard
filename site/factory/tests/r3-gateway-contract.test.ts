@@ -444,8 +444,8 @@ function makeCrashGateway(mock: MockProvider) {
 }
 
 describe("r3a-safe fail-closed caps and reconciliation", () => {
-  it("contract version is r3-gateway-3", () => {
-    expect(GATEWAY_CONTRACT_VERSION).toBe("r3-gateway-3");
+  it("contract version is r3-gateway-4", () => {
+    expect(GATEWAY_CONTRACT_VERSION).toBe("r3-gateway-4");
   });
 
   it("missing work cap is fail-closed, not unlimited", async () => {

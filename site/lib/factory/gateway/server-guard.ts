@@ -15,3 +15,7 @@ if (typeof window !== "undefined") {
     "model gateway modules are server-only and must never run in the browser",
   );
 }
+
+// فقط برای این‌که این فایل، ماژول باشد و import پویا در تست
+// نگهبان، نوع‌سنجی شود؛ هیچ رفتاری اضافه نمی‌کند.
+export const SERVER_GUARD_MODULE = true;
