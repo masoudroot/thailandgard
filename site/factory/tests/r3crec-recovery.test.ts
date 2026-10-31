@@ -82,6 +82,17 @@ describe("summarizeSettledSimulated", () => {
       summarizeSettledSimulated([{ state: "settled", settled_amount: null, cost_basis: "simulated" }]),
     ).toBeNull();
   });
+
+  it("ignores reservation, release, and unsettled rows entirely", () => {
+    expect(
+      summarizeSettledSimulated([
+        { state: "settled", settled_amount: 30, cost_basis: "simulated" },
+        { state: "reserved", settled_amount: 1000, cost_basis: "simulated" },
+        { state: "released", settled_amount: 1000, cost_basis: "simulated" },
+        { state: "sent", settled_amount: 1000, cost_basis: "simulated" },
+      ]),
+    ).toBe(30);
+  });
 });
 
 describe("summarizeOpenReservations", () => {
@@ -101,20 +112,51 @@ describe("summarizeOpenReservations", () => {
 });
 
 describe("summarizeOpenReconciliations", () => {
-  it("counts pending rows and sums excess amounts", () => {
+  it("splits excess and unknown counts and sums excess amounts only", () => {
     expect(
       summarizeOpenReconciliations([
         { kind: "excess", excess_amount: 20 },
         { kind: "excess", excess_amount: 5 },
         { kind: "unknown", excess_amount: null },
+        { kind: "unknown", excess_amount: null },
       ]),
-    ).toEqual({ count: 3, excessTotal: 25 });
+    ).toEqual({ count: 4, excessCount: 2, excessTotal: 25, unknownCount: 2 });
   });
 
-  it("returns a null total when an excess row has no amount", () => {
+  it("returns a null total when an excess row has no amount, but keeps exact counts", () => {
     expect(
-      summarizeOpenReconciliations([{ kind: "excess", excess_amount: null }]),
-    ).toEqual({ count: 1, excessTotal: null });
+      summarizeOpenReconciliations([
+        { kind: "excess", excess_amount: null },
+        { kind: "unknown", excess_amount: null },
+      ]),
+    ).toEqual({ count: 2, excessCount: 1, excessTotal: null, unknownCount: 1 });
+  });
+
+  it("counts unknown-only rows with a zero excess total", () => {
+    expect(summarizeOpenReconciliations([{ kind: "unknown", excess_amount: null }])).toEqual({
+      count: 1,
+      excessCount: 0,
+      excessTotal: 0,
+      unknownCount: 1,
+    });
+  });
+
+  it("counts an unrecognized kind only in the total, never in a split", () => {
+    expect(
+      summarizeOpenReconciliations([
+        { kind: "excess", excess_amount: 10 },
+        { kind: "other", excess_amount: 99 },
+      ]),
+    ).toEqual({ count: 2, excessCount: 1, excessTotal: 10, unknownCount: 0 });
+  });
+
+  it("counts no rows as zeros", () => {
+    expect(summarizeOpenReconciliations([])).toEqual({
+      count: 0,
+      excessCount: 0,
+      excessTotal: 0,
+      unknownCount: 0,
+    });
   });
 });
 

@@ -88,8 +88,12 @@ export interface DashboardBudget {
   remainingDaily: number | null;
   /** شمار مصالحه‌های باز (وضعیت pending_reconciliation). */
   openReconciliationCount: number;
+  /** شمار مصالحه‌های باز از نوع اضافه‌هزینه. */
+  openExcessCount: number;
   /** مجموع اضافه‌هزینهٔ باز؛ null یعنی «نامشخص» (سطر excess با مبلغ تهی). */
   openExcessTotal: number | null;
+  /** شمار مصالحه‌های باز از نوع نامشخص (بدون مبلغ). */
+  openUnknownCount: number;
 }
 
 /** کار در انتظار تأیید انسانی؛ فقط شناسه‌ها و وضعیت، نه متن آزاد. */
@@ -213,23 +217,35 @@ export function summarizeOpenReservations(rows: { [key: string]: unknown }[]): n
 }
 
 /**
- * مصالحه‌های باز (R3C-RECOVERY، §4): شمار همهٔ سطرهای
- * pending_reconciliation و مجموع اضافه‌هزینهٔ سطرهای excess. اگر
- * سطر excess با مبلغ تهی باشد، مجموع null است یعنی «نامشخص».
+ * مصالحه‌های باز (R3C-RECOVERY، §4؛ تفکیک در مرج R3C):
+ * excess و unknown جدا حساب می‌شوند. مجموع اضافه‌هزینه فقط
+ * از سطرهای excess می‌آید؛ اگر سطر excess با مبلغ تهی باشد،
+ * مجموع null است یعنی «نامشخص»، ولی شمارها همچنان دقیق‌اند.
  */
 export function summarizeOpenReconciliations(rows: { [key: string]: unknown }[]): {
   count: number;
+  excessCount: number;
   excessTotal: number | null;
+  unknownCount: number;
 } {
+  let excessCount = 0;
+  let unknownCount = 0;
   let excess = 0;
+  let excessNull = false;
   for (const r of rows) {
-    if (asString(r.kind) !== "excess") continue;
-    if (r.excess_amount === null || r.excess_amount === undefined) {
-      return { count: rows.length, excessTotal: null };
+    const kind = asString(r.kind);
+    if (kind === "excess") {
+      excessCount++;
+      if (r.excess_amount === null || r.excess_amount === undefined) {
+        excessNull = true;
+      } else {
+        excess += asNumber(r.excess_amount);
+      }
+    } else if (kind === "unknown") {
+      unknownCount++;
     }
-    excess += asNumber(r.excess_amount);
   }
-  return { count: rows.length, excessTotal: excess };
+  return { count: rows.length, excessCount, excessTotal: excessNull ? null : excess, unknownCount };
 }
 
 /**
@@ -531,7 +547,9 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
             new Date().toISOString().slice(0, 10),
           ),
           openReconciliationCount: openReconciliations.count,
+          openExcessCount: openReconciliations.excessCount,
           openExcessTotal: openReconciliations.excessTotal,
+          openUnknownCount: openReconciliations.unknownCount,
         },
         pointers: pointerRows.map((r) => ({
           slug: asString(r.slug),

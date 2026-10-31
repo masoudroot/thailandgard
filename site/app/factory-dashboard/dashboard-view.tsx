@@ -563,9 +563,21 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
           <div>
             <dt className="text-muted-foreground">مصالحه‌های باز</dt>
             <dd className="mt-1 font-semibold tabular-nums">
-              {data.budget.openReconciliationCount === 0
+              {data.budget.openReconciliationCount === 0 ? "هیچ" : `${faNumber(data.budget.openReconciliationCount)} مورد`}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">مصالحهٔ اضافه‌هزینه</dt>
+            <dd className="mt-1 font-semibold tabular-nums">
+              {data.budget.openExcessCount === 0
                 ? "هیچ"
-                : `${faNumber(data.budget.openReconciliationCount)} مورد، اضافهٔ ${data.budget.openExcessTotal === null ? "نامشخص" : faNumber(data.budget.openExcessTotal)}`}
+                : `${faNumber(data.budget.openExcessCount)} مورد، مجموع ${data.budget.openExcessTotal === null ? "نامشخص" : faNumber(data.budget.openExcessTotal)}`}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">مصالحهٔ نامشخص</dt>
+            <dd className="mt-1 font-semibold tabular-nums">
+              {data.budget.openUnknownCount === 0 ? "هیچ" : `${faNumber(data.budget.openUnknownCount)} مورد`}
             </dd>
           </div>
           <div>
