@@ -56,6 +56,18 @@ const nextConfig: NextConfig = {
   // چه داشبورد بعداً داخل همین ریپو بیاید چه از اپ جدا rewrite شود.
   async headers() {
     return [
+      // تکمیل noindex بستهٔ R3C (§6): فقط روی بیلد Preview ورسل، همهٔ مسیرها
+      // هدر noindex, nofollow می‌گیرند. گیت، متغیر زمان بیلد VERCEL_ENV است؛
+      // روی Production (VERCEL_ENV=production) و اجرای محلی (بدون VERCEL_ENV)
+      // این قانون اصلاً ساخته نمی‌شود و رفتار قبلی بدون تغییر می‌ماند.
+      ...(process.env.VERCEL_ENV === "preview"
+        ? [
+            {
+              source: "/:path*",
+              headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+            },
+          ]
+        : []),
       {
         // Q3-05: قلم‌های سایت از URL پایدار و بدون هش سرو می‌شوند؛ بدون کش
         // بلندمدت، هر بازدید یک درخواست شرطی می‌سازد و در نسخهٔ بعدی همان
