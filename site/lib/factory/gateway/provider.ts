@@ -1,5 +1,9 @@
 import "./server-guard";
-import type { GatewayRequest, GatewayUsage } from "./types";
+import type {
+  CostBasis,
+  GatewayRequest,
+  GatewayUsage,
+} from "./types";
 
 /**
  * واسط Provider مدل. منطق دامنه هرگز مستقیم با یک مدل حرف نمی‌زند؛
@@ -20,6 +24,16 @@ export interface ProviderCallResult {
   output: unknown;
   usage: GatewayUsage;
   cost: number;
+  /**
+   * مبنای هزینهٔ گزارش‌شده. وقتی Provider چیزی اعلام نکند، Gateway
+   * آن را `estimated` می‌گیرد، نه هزینهٔ قطعی.
+   */
+  cost_basis?: CostBasis;
+  /**
+   * واحد هزینه؛ وقتی اعلام نشود، رشتهٔ تهی است و هیچ واحد پولی
+   * به آن نسبت داده نمی‌شود.
+   */
+  cost_unit?: string;
 }
 
 export interface ModelProvider {

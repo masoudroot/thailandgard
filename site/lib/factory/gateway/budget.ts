@@ -1,23 +1,27 @@
 import "./server-guard";
 
 /**
- * دفتر رزرو محلی Gateway.
+ * دفتر رزرو محلی Gateway (R3A-SAFE، نسخهٔ r3-gateway-3).
  *
  * میدان‌ها آینهٔ جدول‌های R2 است: factory_cost_ledger با
  * id و work_item_id و attempt_id و entry_kind و amount و created_at،
  * و factory_daily_budgets با budget_date و daily_limit و daily_spent.
- * رفتار هم رفتار همان RPCهاست: رد شدن سقف، سطر rejected می‌نویسد و
- * false برمی‌گرداند؛ رزرو، سطر reservation می‌نویسد و خرج را بالا می‌برد؛
- * release، سطر release می‌نویسد و خرج را با کف صفر کم می‌کند.
  *
- * دو تفاوت آگاهانه با R2 که با آداپتور PostgREST سر جایش می‌ماند:
- * ۱) سقف کار اگر تنظیم نشده باشد، یعنی «بدون سقف» (در R2، limit تهی
- *    یعنی رد). Gateway جدول کار ندارد، پس سقف نامشخص را رد نمی‌کند.
- * ۲) تاریخ روز با ساعت UTC گرفته می‌شود.
+ * سیاست سقف Fail-closed، یکسان با رفتار RPCهای reserve_budget و
+ * release_budget:
+ * - سقف کار null (ورودی نداشتن در نقشهٔ سقف): درخواست رد می‌شود، با
+ *   دلیل `not_configured`، پیش از هر فراخوان Provider و بدون سطر
+ *   rejected. حتی برآورد صفر هم با سقف کار null رد می‌شود، چون RPC
+ *   برای سقف کار null بی‌قیدوشرط false برمی‌گرداند و Gateway نباید
+ *   با RPC تناقض داشته باشد؛ تغییر RPC خارج از دامنه است، چون Tick
+ *   هم از همان RPC استفاده می‌کند.
+ * - سقف روز null مثل ۰ رفتار می‌کند (برابری با coalesce در RPC):
+ *   برآورد مثبت با سطر rejected و دلیل `exceeded` رد می‌شود و برآورد
+ *   صفر مجاز است.
+ * - سقف کار ۰: برآورد مثبت رد (با سطر rejected) و برآورد صفر مجاز.
+ * - هر دو سقف (کار و روز) همیشه اعمال می‌شوند.
  *
- * اتصال به RPCهای واقعی reserve_budget و release_budget با PostgREST
- * سمت سرور، در `ledger.ts` (PostgrestBudgetLedger) آمده است و
- * Gateway از راه واسط BudgetLedger با هر دو حالت کار می‌کند.
+ * تفاوت آگاهانهٔ مانده با RPC: تاریخ روز با ساعت UTC گرفته می‌شود.
  */
 export type LedgerEntryKind =
   | "reservation"
@@ -34,15 +38,21 @@ export interface LedgerEntry {
   created_at: string;
 }
 
+export type ReserveReason = "exceeded" | "not_configured";
+
+export type ReserveResult =
+  | { ok: true }
+  | { ok: false; reason: ReserveReason };
+
 export interface BudgetLedgerConfig {
-  dailyLimit: number;
-  workItemLimits?: ReadonlyMap<string, number>;
+  dailyLimit: number | null;
+  workItemLimits?: ReadonlyMap<string, number | null>;
 }
 
 export class InMemoryBudgetLedger {
-  private readonly dailyLimit: number;
+  private readonly dailyLimit: number | null;
 
-  private readonly workItemLimits: ReadonlyMap<string, number>;
+  private readonly workItemLimits: ReadonlyMap<string, number | null>;
 
   private readonly daily = new Map<
     string,
@@ -68,7 +78,10 @@ export class InMemoryBudgetLedger {
     if (existing) {
       return existing;
     }
-    const row = { daily_limit: this.dailyLimit, daily_spent: 0 };
+    const row = {
+      daily_limit: this.dailyLimit ?? 0,
+      daily_spent: 0,
+    };
     this.daily.set(key, row);
     return row;
   }
@@ -90,28 +103,33 @@ export class InMemoryBudgetLedger {
   }
 
   /**
-   * رزرو بودجه پیش از فراخوان. false یعنی سقف رد شد و Provider
-   * اصلاً صدا زده نمی‌شود.
+   * رزرو بودجه پیش از فراخوان. `ok: false` یعنی سقف رد شد و Provider
+   * اصلاً صدا زده نمی‌شود. دلیل `not_configured` یعنی سقف کار معتبر
+   * نیست و هیچ سطر rejected نوشته نمی‌شود؛ دلیل `exceeded` یعنی از
+   * سقف گذشته و سطر rejected نوشته می‌شود.
    */
   reserve(
     work_item_id: string,
     attempt_id: string,
     amount: number,
-  ): boolean {
-    const itemLimit = this.workItemLimits.get(work_item_id);
+  ): ReserveResult {
+    const itemLimit = this.workItemLimits.get(work_item_id) ?? null;
+    if (itemLimit === null) {
+      return { ok: false, reason: "not_configured" };
+    }
     const itemSpent = this.workItemSpent.get(work_item_id) ?? 0;
     const day = this.dayRow();
     if (
-      (itemLimit !== undefined && itemSpent + amount > itemLimit) ||
+      itemSpent + amount > itemLimit ||
       day.daily_spent + amount > day.daily_limit
     ) {
       this.append("rejected", work_item_id, attempt_id, amount);
-      return false;
+      return { ok: false, reason: "exceeded" };
     }
     this.append("reservation", work_item_id, attempt_id, amount);
     this.workItemSpent.set(work_item_id, itemSpent + amount);
     day.daily_spent += amount;
-    return true;
+    return { ok: true };
   }
 
   release(

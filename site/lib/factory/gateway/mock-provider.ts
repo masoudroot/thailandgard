@@ -12,6 +12,10 @@ import type {
  * اسکیمای فراخواننده ردش می‌کند، hang تا زمان abort صبر می‌کند.
  * شمارندهٔ فراخوان، همان شاهد تست‌هاست که Provider دوباره صدا
  * زده نشده است.
+ *
+ * هزینهٔ Mock، شبیه‌سازی‌شده با واحد `mock-unit` است، نه هزینهٔ
+ * واقعی ارائه‌دهنده؛ هر پاسخی این مبنا را با `cost_basis` صریح
+ * می‌کند تا هیچ داشبوردی آن را هزینهٔ واقعی نشان ندهد.
  */
 export type MockMode = "ok" | "invalid" | "hang";
 
@@ -78,12 +82,16 @@ export class MockProvider implements ModelProvider {
         output: this.config.invalidOutput ?? { wrong: true },
         usage,
         cost,
+        cost_basis: "simulated",
+        cost_unit: "mock-unit",
       };
     }
     return {
       output: this.config.output ?? { answer: "mock-ok" },
       usage,
       cost,
+      cost_basis: "simulated",
+      cost_unit: "mock-unit",
     };
   }
 }
