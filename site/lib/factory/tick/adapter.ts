@@ -24,6 +24,10 @@
  * این فایل، خالص است: بدون دسترسی دیتابیس، بدون Secret، بدون حافظهٔ
  * ضروری. تصمیم‌ها، همان رفتار مسیر Tick در R2 است که این‌جا یک‌جا
  * و قابل‌تست شده؛ مسیر Tick، همان تصمیم‌ها را از این‌جا می‌خواند.
+ *
+ * تغییر R3C: Workflow آزمایشی Gateway هم، از مسیر همین توابع
+ * پشتیبانی‌شدهٔ factory-tick، eligible شد؛ قانون Scope مربوط به
+ * cutoff و رفتار مسیر رسمی و Workflow سایه، دست نخورده‌اند.
  */
 import { WorkItemSchema } from "../contracts";
 import {
@@ -33,8 +37,8 @@ import {
   isValidWorkflowStepKey,
 } from "./factory-tick";
 
-/** نسخهٔ قرارداد Adapter؛ در گزارش R2-A و تست‌ها به همین نام ارجاع می‌شود. */
-export const ADAPTER_CONTRACT_VERSION = "r2a1-1";
+/** نسخهٔ قرارداد Adapter؛ در گزارش R2-A و تست‌ها به همین نام ارجاع می‌شود. R3C آن را به r3c-1 برد. */
+export const ADAPTER_CONTRACT_VERSION = "r3c-1";
 
 /**
  * نقطهٔ برش Scope در R2A.1: شروع مأموریت، ۱۹:۱۴ تهران در ۸ آبان ۱۴۰۵.

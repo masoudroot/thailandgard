@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
   checkAuth,
   dbConfig,
@@ -7,6 +8,7 @@ import {
   postgrestWrite,
   type ApprovalRow,
   type ArtifactRow,
+  type DbCfg,
   type DocumentRow,
   type PublicationRow,
   type VersionRow,
@@ -20,10 +22,13 @@ import {
   workItemPublishIdempotencyKey,
 } from "@/lib/factory/tick/work-items";
 import {
+  GATEWAY_TICK_STEP_KEYS,
+  GATEWAY_WORKFLOW_VERSION,
   TICK_STEP_KEYS,
   WORKFLOW_VERSION,
   evaluateKillSwitches,
   stepMaxAttempts,
+  type AnyTickStepKey,
   type TickStepKey,
 } from "@/lib/factory/tick/factory-tick";
 import {
@@ -32,8 +37,26 @@ import {
   adaptStepForTick,
   adaptWorkItemForTick,
 } from "@/lib/factory/tick/adapter";
+import { PostgrestBudgetLedger } from "@/lib/factory/gateway/ledger";
+import { isSimulatedCrash } from "@/lib/factory/gateway/crash-test";
+import { getLatestOperation, patchOperation } from "@/lib/factory/gateway/operations";
+import {
+  GatewayOperationError,
+  gatewayLogicalOperationId,
+  openGatewayOperation,
+  runGatewayCallForOperation,
+} from "@/lib/factory/tick/gateway-operation-run";
 
-const RUNNER_VERSION = "r2a1-tick-1";
+const RUNNER_VERSION = "r3c-tick-1";
+
+/**
+ * ثابت‌های قدم آزمایشی اتصال Gateway در R3C. پاراگراف پیش‌نویس،
+ * قطعی و بی‌ضرر است و فقط برای نمایش اتصال ساخته می‌شود؛ محتوای
+ * راهنما را تغییر نمی‌دهد و هیچ‌وقت منتشر نمی‌شود.
+ */
+const DEMO_DRAFT_PARAGRAPH =
+  "این پاراگراف فقط برای نمایش آزمایشی اتصال تیک و موتور مدل ساخته شده و محتوای راهنما را تغییر نمی‌دهد.";
+const DEMO_DRAFT_SCHEMA = z.object({ draft_paragraph: z.string().min(1) });
 
 /** خطای Crash پس از Commit انتشار: Step، claimed و Attempt، started می‌ماند تا Tick بعدی پس از انقضای Lease بازیابی کند. */
 class CrashAfterPublicationError extends Error {}
@@ -41,7 +64,7 @@ class CrashAfterPublicationError extends Error {}
 interface WorkStepRow {
   id: string;
   work_item_id: string;
-  step_key: TickStepKey;
+  step_key: AnyTickStepKey;
   sequence_no: number;
   status: string;
   attempt_count: number;
@@ -68,6 +91,52 @@ interface RunRow {
 
 function firstParagraph(payload: PublishPayload): string {
   return payload.sections[0]?.paragraphs[0] ?? "";
+}
+
+/**
+ * ساخت Artifact از بار منتشرشدهٔ راهنما با جای‌گذاری یک پاراگراف.
+ * همان منطق قدم create_artifact است که R3C آن را یک‌جا کرد تا قدم
+ * generate_draft_mock هم، با همان اعتبارسنجی و همان Hash واقعی،
+ * Artifact بسازد؛ نه منطق موازی و نه Artifact ساختگی. نوع Artifact،
+ * قدم را مشخص می‌کند: guide_edit برای مسیر رسمی، content_draft_demo
+ * برای پیش‌نویس آزمایشی Gateway.
+ */
+async function createGuideEditArtifact(
+  cfg: DbCfg,
+  workItem: WorkItemRow,
+  artifactType: string,
+  paragraph: string,
+): Promise<string> {
+  const docs = (await postgrestGet(
+    cfg,
+    `content_documents?id=eq.${encodeURIComponent(workItem.content_id)}&select=*`,
+  )) as DocumentRow[];
+  const publishedId = docs[0]?.published_version_id;
+  const versions = (await postgrestGet(
+    cfg,
+    `content_versions?id=eq.${encodeURIComponent(publishedId ?? "")}&select=*`,
+  )) as VersionRow[];
+  if (versions.length === 0) throw new Error("published version not found");
+  validatePublishPayload(versions[0].payload);
+  const payload = JSON.parse(JSON.stringify(versions[0].payload)) as PublishPayload;
+  payload.sections[0].paragraphs[0] = paragraph;
+  validatePublishPayload(payload);
+  const hash = computeContentHash(payload);
+  const inserted = (await postgrestWrite(cfg, "POST", "factory_artifacts", {
+    work_item_id: workItem.id,
+    artifact_type: artifactType,
+    schema_version: "publish_payload_v1",
+    payload,
+    artifact_hash: hash,
+  })) as ArtifactRow[];
+  const artifactId = inserted[0]?.id ?? null;
+  if (!artifactId) throw new Error("artifact was not created");
+  await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
+    result_artifact_id: artifactId,
+    status: "awaiting_approval",
+    updated_at: new Date().toISOString(),
+  });
+  return artifactId;
 }
 
 async function internalPost(base: string, path: string, body: unknown): Promise<{ status: number; json: unknown }> {
@@ -226,6 +295,38 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             status: "queued",
             max_attempts: stepMaxAttempts(stepKey),
             idempotency_key: `mvp01-m6-step-${wi.work_key}-${stepKey}`,
+          })),
+        );
+        break;
+      }
+    }
+
+    // بوت‌استرپ R3C: همان الگو، فقط برای Workflow آزمایشی Gateway.
+    // زنجیرهٔ ۴ Step این Workflow، هیچ قدم نسخه‌سازی یا انتشار
+    // ندارد؛ پس از await_human_approval، چرخه می‌ایستد و نسخه یا
+    // Publication ساخته نمی‌شود. قانون Scope مربوط به cutoff، این‌جا
+    // هم عین مسیر رسمی اعمال می‌شود.
+    const queuedGatewayWIs = (await postgrestGet(
+      cfg,
+      `factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&workflow_version=eq.${GATEWAY_WORKFLOW_VERSION}&created_at=gte.${encodeURIComponent(R2A1_SCOPE_CUTOFF)}&order=created_at.asc&select=id,work_key,status`,
+    )) as WorkItemRow[];
+    for (const wi of queuedGatewayWIs) {
+      const existing = (await postgrestGet(
+        cfg,
+        `factory_work_steps?work_item_id=eq.${encodeURIComponent(wi.id)}&select=id&limit=1`,
+      )) as unknown[];
+      if (existing.length === 0) {
+        await postgrestWrite(
+          cfg,
+          "POST",
+          "factory_work_steps",
+          GATEWAY_TICK_STEP_KEYS.map((stepKey, index) => ({
+            work_item_id: wi.id,
+            step_key: stepKey,
+            sequence_no: index + 1,
+            status: "queued",
+            max_attempts: stepMaxAttempts(stepKey),
+            idempotency_key: `r3c-gateway-step-${wi.work_key}-${stepKey}`,
           })),
         );
         break;
@@ -458,7 +559,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // رزرو بودجه فقط برای Step هزینه‌دار آزمایشی؛ Stepهای قطعی، صفرند و رزرو نمی‌خواهند.
-    if (testCostAmount > 0 && attemptId) {
+    // قدم generate_draft_mock، از این رزرو سطح مسیر معاف است، چون
+    // Gateway خودش رزرو می‌کند؛ رزرو دوباره، همان هزینه را دو بار می‌شمرد.
+    if (testCostAmount > 0 && attemptId && claimed.step_key !== "generate_draft_mock") {
       const reserved = (await postgrestRpc(cfg, "reserve_budget", {
         p_work_item_id: workItem.id,
         p_attempt_id: attemptId,
@@ -505,6 +608,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     let outputArtifactId: string | null = null;
+    // ردیاب R3C برای قدم Gateway: شناسهٔ عملیات Gateway که این Tick
+    // ثبت کرده و آیا تسویه، اضافه‌هزینهٔ باز دارد؛ دمِ مسیر، عملیات
+    // را settled می‌کند و تسویه را با وضعیت درست ثبت می‌کند.
+    let gatewayOperationId: string | null = null;
+    let gatewayHasExcess = false;
     try {
       if (claimed.step_key === "prepare_context") {
         const docs = (await postgrestGet(
@@ -520,35 +628,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
         const marker = (workItem.description ?? "").trim();
         if (!marker) throw new Error("work item has no marker text for artifact");
-        const docs = (await postgrestGet(
-          cfg,
-          `content_documents?id=eq.${encodeURIComponent(workItem.content_id)}&select=*`,
-        )) as DocumentRow[];
-        const publishedId = docs[0]?.published_version_id;
-        const versions = (await postgrestGet(
-          cfg,
-          `content_versions?id=eq.${encodeURIComponent(publishedId ?? "")}&select=*`,
-        )) as VersionRow[];
-        if (versions.length === 0) throw new Error("published version not found");
-        validatePublishPayload(versions[0].payload);
-        const payload = JSON.parse(JSON.stringify(versions[0].payload)) as PublishPayload;
-        payload.sections[0].paragraphs[0] = marker;
-        validatePublishPayload(payload);
-        const hash = computeContentHash(payload);
-        const inserted = (await postgrestWrite(cfg, "POST", "factory_artifacts", {
-          work_item_id: workItem.id,
-          artifact_type: "guide_edit",
-          schema_version: "publish_payload_v1",
-          payload,
-          artifact_hash: hash,
-        })) as ArtifactRow[];
-        outputArtifactId = inserted[0]?.id ?? null;
-        if (!outputArtifactId) throw new Error("artifact was not created");
-        await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
-          result_artifact_id: outputArtifactId,
-          status: "awaiting_approval",
-          updated_at: new Date().toISOString(),
-        });
+        outputArtifactId = await createGuideEditArtifact(cfg, workItem, "guide_edit", marker);
       } else if (claimed.step_key === "validate_artifact") {
         if (!workItem.result_artifact_id) throw new Error("work item has no artifact");
         const artifacts = (await postgrestGet(
@@ -561,6 +641,188 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           throw new Error("artifact content_hash mismatch");
         }
         outputArtifactId = artifacts[0].id;
+      } else if (claimed.step_key === "generate_draft_mock") {
+        // قدم آزمایشی اتصال Tick به Gateway در R3C. فقط برای Workflow
+        // تازهٔ guide_content_gateway_v1 به این‌جا می‌رسد (آداپتور،
+        // قدم را فقط برای همان Workflow eligible می‌داند) و فقط با
+        // Mock Provider کار می‌کند؛ هیچ API مدل خارجی صدا زده نمی‌شود.
+        if (!attemptId) throw new Error("factory attempt was not created");
+        if (!canSubmitArtifact(workItem.status as never)) {
+          throw new Error(`work item cannot submit artifact in status ${workItem.status}`);
+        }
+        if (workItem.result_artifact_id) {
+          // Artifact، از تلاش پیشین هست؛ دوباره ساخته نمی‌شود.
+          outputArtifactId = workItem.result_artifact_id;
+        } else {
+          const logicalId = gatewayLogicalOperationId(workItem.id, claimed.step_key, "generate_draft_mock");
+          const latestOp = await getLatestOperation(cfg, logicalId);
+          const priorId =
+            latestOp &&
+            ["settled", "released", "referred", "failed", "abandoned"].includes(latestOp.state)
+              ? latestOp.id
+              : null;
+          const idempotencyKey = `r3c-${workItem.work_key}-generate_draft_mock-${claimed.attempt_count}`;
+          let opened;
+          try {
+            opened = await openGatewayOperation(
+              cfg,
+              {
+                work_item_id: workItem.id,
+                work_step_id: claimed.id,
+                operation_name: "generate_draft_mock",
+                idempotency_key: idempotencyKey,
+                capability: "draft_generation",
+                provider: "mock",
+                model_id: "mock-deterministic-v1",
+                prompt_version: "r3c-demo-v1",
+                token_limit: 100,
+                timeout: 30000,
+                input: { guide_slug: "best-time-to-visit-thailand", demo_key: workItem.work_key },
+                prior_operation_id: priorId,
+                retry_reason: priorId ? `tick retry after terminal operation ${latestOp?.state}` : null,
+              },
+              claimed.step_key,
+            );
+          } catch (error) {
+            if (error instanceof GatewayOperationError) {
+              throw new Error(`gateway operation open failed: ${error.code}`);
+            }
+            throw error;
+          }
+          if (opened.kind === "blocked" || opened.kind === "open") {
+            // گیت: قدم، claimed می‌ماند و Attempt نمی‌سوزد؛ اپراتور
+            // باید عملیات باز را تعیین تکلیف کند. بدون finishStep.
+            await finishRun(cfg, runId, 1, 0, 0);
+            return NextResponse.json({
+              run_id: runId,
+              status: opened.kind === "blocked" && opened.reason === "debt_open" ? "gateway_debt_open" : "gateway_operation_open",
+              work_item_id: workItem.id,
+              step_key: claimed.step_key,
+              attempt_no: claimed.attempt_count,
+            });
+          }
+          if (opened.kind === "replayed") {
+            // عملیات پایانی با همان کلید: بدون فراخوان تازه. اگر
+            // خروجی ذخیره‌شده، پاراگراف دارد، Artifact از همان
+            // خروجی قطعی بازسازی می‌شود؛ وگرنه قدم، مسدود می‌شود.
+            const stored = opened.operation.response_json as { output?: { draft_paragraph?: string } } | null;
+            const paragraph = stored?.output?.draft_paragraph;
+            if (!paragraph) {
+              await finishStep("blocked", "failed", "not_required", "gateway_operation_terminal", null, null);
+              await blockWorkItem(cfg, workItem, "gateway_operation_terminal");
+              await finishRun(cfg, runId, 1, 0, 1);
+              return NextResponse.json({
+                run_id: runId,
+                status: "gateway_operation_terminal",
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            gatewayOperationId = opened.operation.id;
+            await postgrestWrite(cfg, "PATCH", `factory_attempts?id=eq.${encodeURIComponent(attemptId)}`, {
+              estimated_cost: opened.operation.estimated_cost,
+              actual_cost: opened.operation.actual_cost,
+            });
+            outputArtifactId = await createGuideEditArtifact(cfg, workItem, "content_draft_demo", paragraph);
+          } else {
+            let run;
+            try {
+              run = await runGatewayCallForOperation(
+                cfg,
+                {
+                  ledger: new PostgrestBudgetLedger(cfg),
+                  estimateUnitPrice: 1,
+                  mockConfig: {
+                    mode: "ok",
+                    output: { draft_paragraph: DEMO_DRAFT_PARAGRAPH },
+                    promptTokens: 10,
+                    completionTokens: 5,
+                    costPerToken: 2,
+                  },
+                },
+                {
+                  operation: opened.operation,
+                  work_item_id: workItem.id,
+                  work_step_id: claimed.id,
+                  capability: "draft_generation",
+                  provider: "mock",
+                  model_id: "mock-deterministic-v1",
+                  prompt_version: "r3c-demo-v1",
+                  token_limit: 100,
+                  timeout: 30000,
+                  input: { guide_slug: "best-time-to-visit-thailand", demo_key: workItem.work_key },
+                  output_schema: DEMO_DRAFT_SCHEMA,
+                  factory_attempt_id: attemptId,
+                },
+              );
+            } catch (error) {
+              if (isSimulatedCrash(error)) {
+                // Crash شبیه‌سازی‌شده: قدم بسته نمی‌شود تا بازیابی
+                // از دیتابیس ممکن بماند (مثل test_crash_after_claim).
+                await postgrestWrite(cfg, "PATCH", `factory_runs?id=eq.${encodeURIComponent(runId)}`, {
+                  finished_at: new Date().toISOString(),
+                  run_status: "failed",
+                  items_claimed: 1,
+                  items_completed: 0,
+                  items_failed: 1,
+                });
+                return NextResponse.json(
+                  {
+                    run_id: runId,
+                    status: "crash_after_gateway_reservation",
+                    work_item_id: workItem.id,
+                    step_key: claimed.step_key,
+                    attempt_no: claimed.attempt_count,
+                  },
+                  { status: 500 },
+                );
+              }
+              throw error;
+            }
+            if (run.kind === "unknown") {
+              gatewayOperationId = run.operation.id;
+              await finishStep("blocked", "outcome_unknown", "pending", "timeout", null, null);
+              await finishRun(cfg, runId, 1, 0, 1);
+              return NextResponse.json({
+                run_id: runId,
+                status: "gateway_outcome_unknown",
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            if (run.kind === "failed") {
+              const code = run.response.error?.code ?? "provider_error";
+              gatewayOperationId = run.operation.id;
+              if (code === "budget_not_configured" || code === "budget_exceeded") {
+                await finishStep("blocked", "failed", "not_required", "budget_exhausted", null, null);
+                await blockWorkItem(cfg, workItem, "budget_exhausted");
+                await finishRun(cfg, runId, 1, 0, 1);
+                return NextResponse.json({
+                  run_id: runId,
+                  status: "budget_exhausted",
+                  work_item_id: workItem.id,
+                  step_key: claimed.step_key,
+                  attempt_no: claimed.attempt_count,
+                });
+              }
+              throw new Error(`gateway call failed: ${code}`);
+            }
+            const draft = run.response.output as { draft_paragraph?: string } | undefined;
+            if (!draft?.draft_paragraph) throw new Error("gateway draft output missing");
+            gatewayOperationId = run.operation.id;
+            gatewayHasExcess = run.response.reconciliation?.excess_amount != null;
+            // هزینه‌های attempt، از پاسخ واقعی Gateway ثبت می‌شود،
+            // نه صفر پیش‌فرض؛ finish_work_step به این ستون‌ها دست
+            // نمی‌زند، پس این‌جا بازنویسی نمی‌شوند.
+            await postgrestWrite(cfg, "PATCH", `factory_attempts?id=eq.${encodeURIComponent(attemptId)}`, {
+              estimated_cost: run.response.estimated_cost,
+              actual_cost: run.response.actual_cost,
+            });
+            outputArtifactId = await createGuideEditArtifact(cfg, workItem, "content_draft_demo", draft.draft_paragraph);
+          }
+        }
       } else if (claimed.step_key === "await_human_approval") {
         // گیت پیش از Claim، Approval را بررسی کرده است؛ این‌جا دوباره بررسی می‌شود.
         if (!workItem.result_artifact_id) throw new Error("work item has no artifact");
@@ -760,7 +1022,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    const finished = await finishStep("succeeded", "succeeded", "not_required", null, outputArtifactId, null);
+    // قدم Gateway با اضافه‌هزینهٔ باز، تسویه‌اش را pending نگه
+    // می‌دارد تا اپراتور، همان بدهی را تعیین تکلیف کند؛ قدم‌های
+    // دیگر، مثل قبل not_required می‌مانند.
+    const tailReconciliation =
+      claimed.step_key === "generate_draft_mock" && gatewayHasExcess ? "pending" : "not_required";
+    const finished = await finishStep("succeeded", "succeeded", tailReconciliation, null, outputArtifactId, null);
     if (!finished) {
       await finishRun(cfg, runId, 1, 0, 1);
       return NextResponse.json({
@@ -770,6 +1037,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         step_key: claimed.step_key,
         attempt_no: claimed.attempt_count,
       });
+    }
+    // دمِ R3C: عملیات Gateway که این Tick ثبت کرده، پس از این‌که
+    // نتیجه‌اش به Work Item برگشت، settled می‌شود. اگر این وصله
+    // بخورد، عملیات در settled_unreturned می‌ماند و بازیابی، همان
+    // را از دیتابیس به settled می‌رساند (قدم، از پیش succeeded است).
+    if (claimed.step_key === "generate_draft_mock" && gatewayOperationId) {
+      await patchOperation(cfg, gatewayOperationId, { state: "settled" });
     }
     await finishRun(cfg, runId, 1, 1, 0);
     return NextResponse.json({

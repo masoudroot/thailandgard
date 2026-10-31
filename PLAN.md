@@ -167,6 +167,7 @@
 - [x] REBUILD-R2 یکپارچه‌سازی هستهٔ کارخانه، Work Item و Outbox روی مبنای اصلی (شاخهٔ rebuild/factory-r2؛ کامیت 56281e9؛ گزارش نهایی در R2-A ادغام شد، بدون مرج)
 - [x] REBUILD-R2A انتقال هستهٔ یکپارچهٔ کارخانه به شاخهٔ اصلی (شاخهٔ rebuild/factory-r2؛ کامیت 24b01b6؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل شد، بدون مرج و بدون PR)
 - [x] REBUILD-R2A.1 تثبیت و بستن شکاف‌های R2-A پیش از R2-B (شاخهٔ rebuild/factory-r2؛ کامیت کد cd6a0b7؛ آزمون‌های زندهٔ §۸، ۲۰ از ۲۰ گذشت؛ گزارش نهایی ۱۴۰۵/۰۸/۰۸ تحویل می‌شود، بدون مرج و بدون PR)
+- [x] REBUILD-R3C اتصال Tick واقعی به Model Gateway آزمایشی و نمایش در داشبورد (شاخهٔ rebuild/r3c-integration؛ مبنا 510dae5؛ Workflow تازهٔ guide_content_gateway_v1؛ آیتم نمایشی r3c-visible-gateway-demo در awaiting_approval؛ هر ۱۲ آزمون شرح کار گذشت؛ گزارش نهایی ۱۴۰۵/۰۸/۰۹ تحویل می‌شود، بدون مرج و بدون PR)
 - [ ] P3-STG تثبیت فاز ۳ در staging با دادهٔ واقعی
 - [ ] P4 Design و Dev
 - [ ] P5 Leader و Domain Ops

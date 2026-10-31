@@ -22,6 +22,24 @@ export const TICK_STEP_KEYS = [
 export type TickStepKey = (typeof TICK_STEP_KEYS)[number];
 
 /**
+ * ترتیب ثابت Stepهای Workflow آزمایشی اتصال Gateway در R3C. فقط
+ * همین ۴ Step و همین ترتیب؛ هیچ قدم نسخه‌سازی یا انتشار در این
+ * Workflow نیست، پس انتشار از این مسیر، ساختاری ناممکن است. قدم
+ * generate_draft_mock، تنها قدم تازه است و فقط در همین Workflow
+ * اجرا می‌شود؛ قدم‌های دیگر، همان قدم‌های مسیر رسمی‌اند.
+ */
+export const GATEWAY_TICK_STEP_KEYS = [
+  "prepare_context",
+  "generate_draft_mock",
+  "validate_artifact",
+  "await_human_approval",
+] as const;
+
+export type GatewayTickStepKey = (typeof GATEWAY_TICK_STEP_KEYS)[number];
+
+export type AnyTickStepKey = TickStepKey | GatewayTickStepKey;
+
+/**
  * نسخهٔ Workflow مسیر رسمی. فقط همین نسخه، با همین ۸ Step و همین
  * ترتیب، برای Tick مجاز است. نسخه‌بندی، یعنی Tick هرگز Workflow را در
  * میانهٔ اجرا بی‌صدا عوض نمی‌کند و Step ناشناخته را اجرا نمی‌کند.
@@ -29,25 +47,36 @@ export type TickStepKey = (typeof TICK_STEP_KEYS)[number];
 export const WORKFLOW_VERSION = "guide_content_v1";
 export const WORKFLOW_STEPS = TICK_STEP_KEYS;
 
+/** نسخهٔ Workflow آزمایشی اتصال Gateway در R3C. */
+export const GATEWAY_WORKFLOW_VERSION = "guide_content_gateway_v1";
+export const GATEWAY_WORKFLOW_STEPS = GATEWAY_TICK_STEP_KEYS;
+
 export function isSupportedWorkflowVersion(version: string | null | undefined): boolean {
-  return version === WORKFLOW_VERSION;
+  return version === WORKFLOW_VERSION || version === GATEWAY_WORKFLOW_VERSION;
 }
 
-export function isValidWorkflowStepKey(stepKey: string): stepKey is TickStepKey {
-  return (TICK_STEP_KEYS as readonly string[]).includes(stepKey);
+export function isValidWorkflowStepKey(stepKey: string): stepKey is AnyTickStepKey {
+  return (
+    (TICK_STEP_KEYS as readonly string[]).includes(stepKey) ||
+    (GATEWAY_TICK_STEP_KEYS as readonly string[]).includes(stepKey)
+  );
 }
 
 /** Step، متعلق به همان Workflow است که Work Item دارد؛ جز این، Tick آن را اجرا نمی‌کند. */
 export function isStepKeyOfWorkflow(stepKey: string, workflowVersion: string | null | undefined): boolean {
   if (workflowVersion === WORKFLOW_VERSION) return (TICK_STEP_KEYS as readonly string[]).includes(stepKey);
+  if (workflowVersion === GATEWAY_WORKFLOW_VERSION) {
+    return (GATEWAY_TICK_STEP_KEYS as readonly string[]).includes(stepKey);
+  }
   return false;
 }
 
 /**
  * آیا Tick مجاز است این Work Item را Claim کند؟ فقط tick_managed با
- * نسخهٔ پشتیبانی‌شده. manual، هرگز. workflow_version ناشناخته یا خالی،
- * هرگز. پیش‌فرض manual و NULL بودن نسخهٔ کارهای قدیمی، یعنی کارهای
- * قدیمی ناخواسته Tick نمی‌شوند.
+ * نسخهٔ پشتیبانی‌شده (مسیر رسمی یا Workflow آزمایشی Gateway).
+ * manual، هرگز. workflow_version ناشناخته یا خالی، هرگز. پیش‌فرض
+ * manual و NULL بودن نسخهٔ کارهای قدیمی، یعنی کارهای قدیمی ناخواسته
+ * Tick نمی‌شوند.
  */
 export function isTickManagedWorkItem(
   executionMode: string | null | undefined,
@@ -57,7 +86,7 @@ export function isTickManagedWorkItem(
 }
 
 /** سقف Attempt هر Step. پردازش Publication، به‌خاطر بچ‌های کهنه، بیشتر است. */
-export function stepMaxAttempts(stepKey: TickStepKey): number {
+export function stepMaxAttempts(stepKey: AnyTickStepKey): number {
   return stepKey === "process_publication" ? 10 : 5;
 }
 
@@ -121,12 +150,12 @@ export function canReserveBudget(limit: number, spent: number, amount: number): 
 }
 
 /** هزینهٔ Stepهای قطعی، صفر است؛ هیچ هزینهٔ ساختگی برای مدل ثبت نمی‌شود. */
-export function deterministicStepCost(stepKey: TickStepKey): number {
+export function deterministicStepCost(stepKey: AnyTickStepKey): number {
   void stepKey;
   return 0;
 }
 
 /** آیا Step، به اجازهٔ انتشار نیاز دارد؟ فقط publish_version. */
-export function stepNeedsPublishing(stepKey: TickStepKey): boolean {
+export function stepNeedsPublishing(stepKey: AnyTickStepKey): boolean {
   return stepKey === "publish_version";
 }

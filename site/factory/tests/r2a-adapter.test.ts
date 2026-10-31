@@ -28,8 +28,26 @@ const BEFORE_CUTOFF = '2026-10-30T12:00:00Z';
 
 describe('R2-A adapter contract', () => {
   it('names its contract version', () => {
-    expect(ADAPTER_CONTRACT_VERSION).toBe('r2a1-1');
+    expect(ADAPTER_CONTRACT_VERSION).toBe('r3c-1');
     expect(R2A1_SCOPE_CUTOFF).toBe('2026-10-30T15:44:00Z');
+  });
+
+  it('admits the R3C gateway workflow and only its own steps', () => {
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_gateway_v1',
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('eligible');
+    expect(adaptStepForTick('prepare_context', 'guide_content_gateway_v1')).toBe('eligible');
+    expect(adaptStepForTick('generate_draft_mock', 'guide_content_gateway_v1')).toBe('eligible');
+    expect(adaptStepForTick('validate_artifact', 'guide_content_gateway_v1')).toBe('eligible');
+    expect(adaptStepForTick('await_human_approval', 'guide_content_gateway_v1')).toBe('eligible');
+    // قدم‌های مسیر رسمی، در Workflow آزمایشی اجرا نمی‌شوند و برعکس.
+    expect(adaptStepForTick('create_artifact', 'guide_content_gateway_v1')).toBe('step_not_in_workflow');
+    expect(adaptStepForTick('publish_version', 'guide_content_gateway_v1')).toBe('step_not_in_workflow');
+    expect(adaptStepForTick('generate_draft_mock', 'guide_content_v1')).toBe('step_not_in_workflow');
   });
 
   it('admits only tick_managed guide_content_v1 work items created after the cutoff', () => {
