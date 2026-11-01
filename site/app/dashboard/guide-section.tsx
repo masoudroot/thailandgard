@@ -847,6 +847,37 @@ function GuideDetailPanel({
           <p className="text-xs text-muted-foreground">
             دسته: {detail.draftPayload.category} · {faNumber(detail.draftPayload.reading_minutes)} دقیقه خواندن
           </p>
+          {!diff.isFirstPublish && (
+            <div className="rounded-xl border border-border p-3">
+              <h4 className="text-sm font-semibold">فیلدهای تغییرکرده نسبت به نسخهٔ منتشرشده</h4>
+              {diff.changedFields.length === 0 ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  هیچ فیلدی فرق نکرده است؛ این پیش‌نویس دقیقاً همان محتوای منتشرشده است.
+                </p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {diff.changedFields.map((field) => (
+                    <Badge key={field} variant="warning">
+                      {field === "title"
+                        ? "عنوان"
+                        : field === "excerpt"
+                          ? "خلاصه"
+                          : field === "category"
+                            ? "دسته"
+                            : field === "sections"
+                              ? "بخش‌ها"
+                              : field === "faqs"
+                                ? "سؤال‌های متداول"
+                                : "سئو"}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <p className="mt-2 text-xs text-muted-foreground">
+                مقایسهٔ پاراگراف‌ها بر اساس ترتیب است؛ درج پاراگراف در میان بخش، پاراگراف‌های بعد را تغییرکرده نشان می‌دهد.
+              </p>
+            </div>
+          )}
           {diff.sections.map((section, si) => (
             <div key={si} className="rounded-xl border border-border p-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -886,19 +917,49 @@ function GuideDetailPanel({
               <ul className="mt-2 space-y-2">
                 {detail.draftPayload.faqs.map((faq, i) => (
                   <li key={i}>
-                    <p className="text-sm font-semibold">{faq.question}</p>
+                    <p className="text-sm font-semibold">
+                      {faq.question}{" "}
+                      {!diff.isFirstPublish && diff.faqs[i]?.state === "added" && (
+                        <Badge variant="brand">تازه</Badge>
+                      )}
+                      {!diff.isFirstPublish && diff.faqs[i]?.state === "changed" && (
+                        <Badge variant="warning">تغییرکرده</Badge>
+                      )}
+                    </p>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                    {!diff.isFirstPublish && diff.faqs[i]?.answerChanged && (
+                      <p className="text-xs text-muted-foreground">پاسخ این سؤال عوض شده است.</p>
+                    )}
                   </li>
                 ))}
+                {!diff.isFirstPublish &&
+                  diff.faqs.slice(detail.draftPayload.faqs.length).map((faq, i) => (
+                    <li key={`removed-${i}`}>
+                      <p className="text-sm font-semibold">
+                        {faq.question} <Badge variant="destructive">حذف‌شده</Badge>
+                      </p>
+                    </li>
+                  ))}
               </ul>
             </div>
           )}
           <div className="rounded-xl border border-border p-3">
             <h4 className="text-sm font-semibold">سئو</h4>
-            <p className="mt-1 text-sm">{detail.draftPayload.seo.title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{detail.draftPayload.seo.description}</p>
+            <p className="mt-1 text-sm">
+              {detail.draftPayload.seo.title}{" "}
+              {!diff.isFirstPublish && diff.seoChanged.title && <Badge variant="warning">تغییرکرده</Badge>}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {detail.draftPayload.seo.description}{" "}
+              {!diff.isFirstPublish && diff.seoChanged.description && (
+                <Badge variant="warning">تغییرکرده</Badge>
+              )}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground" dir="ltr">
-              {detail.draftPayload.seo.canonical_path}
+              {detail.draftPayload.seo.canonical_path}{" "}
+              {!diff.isFirstPublish && diff.seoChanged.canonicalPath && (
+                <Badge variant="warning">تغییرکرده</Badge>
+              )}
             </p>
           </div>
         </div>

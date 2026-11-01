@@ -352,6 +352,48 @@ describe("diffGuidePayload", () => {
     const removedSection = diffRemoved.sections.find((s) => s.heading === "بخش حذف‌شونده");
     expect(removedSection?.state).toBe("removed");
   });
+
+  it("فیلدهای تغییرکرده همهٔ فیلدها را پوشش می‌دهند، نه فقط بخش‌ها", () => {
+    const published = payload();
+    const draft = payload({
+      title: "عنوان تازه",
+      excerpt: "خلاصهٔ تازه",
+      category: "دستهٔ تازه",
+      faqs: [{ position: 1, question: "سؤال؟", answer: "پاسخ تازه." }],
+      seo: { title: "عنوان سئو", description: "توضیح تازه", canonical_path: "/guide/test-guide" },
+    });
+    const diff = diffGuidePayload(draft, published);
+    expect(diff.changedFields).toEqual(["title", "excerpt", "category", "faqs", "seo"]);
+    expect(diff.faqs[0].state).toBe("changed");
+    expect(diff.faqs[0].answerChanged).toBe(true);
+    expect(diff.seoChanged).toEqual({ title: false, description: true, canonicalPath: false });
+  });
+
+  it("پیش‌نویس دقیقاً همان محتوای منتشرشده، هیچ فیلد تغییرکرده‌ای ندارد", () => {
+    const published = payload();
+    const diff = diffGuidePayload(payload(), published);
+    expect(diff.isFirstPublish).toBe(false);
+    expect(diff.changedFields).toEqual([]);
+    expect(diff.sections[0].state).toBe("same");
+    expect(diff.faqs[0].state).toBe("same");
+    expect(diff.seoChanged).toEqual({ title: false, description: false, canonicalPath: false });
+  });
+
+  it("سؤال حذف‌شده removed می‌خورد و در انتشار اول changedFields تهی است", () => {
+    const published = payload({
+      faqs: [
+        { position: 1, question: "سؤال؟", answer: "پاسخ." },
+        { position: 2, question: "سؤال حذف‌شونده؟", answer: "پاسخ قدیمی." },
+      ],
+    });
+    const diff = diffGuidePayload(payload(), published);
+    expect(diff.changedFields).toEqual(["faqs"]);
+    const removedFaq = diff.faqs.find((f) => f.question === "سؤال حذف‌شونده؟");
+    expect(removedFaq?.state).toBe("removed");
+    const first = diffGuidePayload(payload(), null);
+    expect(first.changedFields).toEqual([]);
+    expect(first.faqs[0].state).toBe("added");
+  });
 });
 
 describe("server layer does not leak to the client", () => {

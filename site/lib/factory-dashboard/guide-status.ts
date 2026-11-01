@@ -254,12 +254,22 @@ export interface SectionDiff {
 export interface GuidePayloadDiff {
   isFirstPublish: boolean;
   sections: SectionDiff[];
+  /** فیلدهایی که نسبت به نسخهٔ منتشرشده فرق کرده‌اند؛ در انتشار اول تهی است. */
+  changedFields: Array<"title" | "excerpt" | "category" | "sections" | "faqs" | "seo">;
+  faqs: Array<{
+    question: string;
+    state: ParagraphDiffState;
+    answerChanged: boolean;
+  }>;
+  seoChanged: { title: boolean; description: boolean; canonicalPath: boolean };
 }
 
 /**
- * مقایسهٔ بخش‌به‌بخش پیش‌نویس با نسخهٔ منتشرشده، بر اساس position بخش
- * و ترتیب پاراگراف‌ها. اگر نسخهٔ منتشرشده نباشد، همه‌چیز «انتشار اول»
- * است و هیچ مقایسه‌ای انجام نمی‌شود.
+ * مقایسهٔ پیش‌نویس با نسخهٔ منتشرشده، بر اساس position بخش و سؤال و
+ * ترتیب پاراگراف‌ها. اگر نسخهٔ منتشرشده نباشد، همه‌چیز «انتشار اول»
+ * است و هیچ مقایسه‌ای انجام نمی‌شود. مقایسهٔ پاراگراف‌ها ترتیبی است:
+ * درج پاراگراف در میان بخش، پاراگراف‌های بعد را «تغییرکرده» نشان
+ * می‌دهد؛ این محدودیت در رابط هم گفته می‌شود.
  */
 export function diffGuidePayload(
   draft: PublishPayload,
@@ -273,6 +283,9 @@ export function diffGuidePayload(
         state: "added" as const,
         paragraphs: section.paragraphs.map((text) => ({ text, state: "added" as const })),
       })),
+      changedFields: [],
+      faqs: draft.faqs.map((faq) => ({ question: faq.question, state: "added" as const, answerChanged: false })),
+      seoChanged: { title: false, description: false, canonicalPath: false },
     };
   }
   const publishedByPosition = new Map(published.sections.map((s) => [s.position, s]));
@@ -311,5 +324,39 @@ export function diffGuidePayload(
       });
     }
   }
-  return { isFirstPublish: false, sections };
+  const sectionsChanged = sections.some((s) => s.state !== "same");
+
+  const publishedFaqsByPosition = new Map(published.faqs.map((f) => [f.position, f]));
+  const draftFaqPositions = new Set(draft.faqs.map((f) => f.position));
+  const faqs: GuidePayloadDiff["faqs"] = draft.faqs.map((faq) => {
+    const old = publishedFaqsByPosition.get(faq.position);
+    if (!old) return { question: faq.question, state: "added" as const, answerChanged: false };
+    const answerChanged = old.answer !== faq.answer;
+    const state: ParagraphDiffState =
+      old.question === faq.question && !answerChanged ? "same" : "changed";
+    return { question: faq.question, state, answerChanged };
+  });
+  for (const old of published.faqs) {
+    if (!draftFaqPositions.has(old.position)) {
+      faqs.push({ question: old.question, state: "removed" as const, answerChanged: false });
+    }
+  }
+  const faqsChanged = faqs.some((f) => f.state !== "same");
+
+  const seoChanged = {
+    title: draft.seo.title !== published.seo.title,
+    description: draft.seo.description !== published.seo.description,
+    canonicalPath: draft.seo.canonical_path !== published.seo.canonical_path,
+  };
+  const seoAnyChanged = seoChanged.title || seoChanged.description || seoChanged.canonicalPath;
+
+  const changedFields: GuidePayloadDiff["changedFields"] = [];
+  if (draft.title !== published.title || draft.h1 !== published.h1) changedFields.push("title");
+  if (draft.excerpt !== published.excerpt) changedFields.push("excerpt");
+  if (draft.category !== published.category) changedFields.push("category");
+  if (sectionsChanged) changedFields.push("sections");
+  if (faqsChanged) changedFields.push("faqs");
+  if (seoAnyChanged) changedFields.push("seo");
+
+  return { isFirstPublish: false, sections, changedFields, faqs, seoChanged };
 }
