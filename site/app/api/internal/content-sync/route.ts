@@ -40,6 +40,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
+import {
+  classifyContentSyncOwnership,
+  guideSlugOfOp,
+  type OwnershipDecision,
+} from "@/lib/guide-source-resolver";
 import { shortLeadId, nextTouch } from "@/lib/lead-alert";
 import { getTour } from "@/lib/tours";
 import { logger } from "@/lib/logger";
@@ -712,6 +717,78 @@ async function applyOp(cfg: DbCfg, op: SyncOp): Promise<{ matched: number; note:
 }
 
 /**
+ * گارد مالکیت نوشتن (THG-UNIFY-01، SINGLE-SOURCE): دو نویسندهٔ زنده روی
+ * محتوای منتشرشده هست (legacy از همین روت، versioned از publish-v2) و
+ * مالک نسخه‌ای می‌برد. اگر slugای سند محتوایی نسخه‌ایِ غیرفیکسچر
+ * داشته باشد، هر op راهنمای همین روت روی آن slug مسدود می‌شود با خطای
+ * صریح؛ نه تبدیل به پیش‌نویس، نه قطع مسیر قدیمی برای کل سایت، نه
+ * تغییر opهای تور/تنظیمات/لید. فیکسچر مالکیت نمی‌سازد. خرابیِ خودِ
+ * بررسی هم fail-closed است: opهای راهنما مسدود می‌شوند تا مالکیت روشن
+ * شود، ولی opهای غیرراهنما ادامه می‌دهند. dry-run هم همین تصمیم را
+ * گزارش می‌کند (بدون نوشتن).
+ */
+async function fetchVersionedGuideDocs(
+  cfg: DbCfg,
+  slugs: string[],
+): Promise<Array<{ slug: string; isTestFixture?: boolean }>> {
+  const enc = slugs.map((s) => encodeURIComponent(s)).join(",");
+  const res = await fetch(
+    `${cfg.url}/rest/v1/content_documents?content_type=eq.guide&slug=in.(${enc})&select=slug,is_test_fixture`,
+    {
+      headers: {
+        apikey: cfg.serviceKey,
+        Authorization: `Bearer ${cfg.serviceKey}`,
+      },
+    },
+  );
+  if (!res.ok) throw new Error(`postgrest ${res.status} روی content_documents`);
+  const data: unknown = await res.json().catch(() => null);
+  if (!Array.isArray(data)) throw new Error("پاسخ content_documents آرایه نیست.");
+  return data.filter(
+    (d): d is { slug: string; isTestFixture?: boolean } =>
+      typeof d === "object" && d !== null && typeof (d as { slug?: unknown }).slug === "string",
+  );
+}
+
+/** تصمیم مالکیت برای بچ جاری؛ نبودن cfg یعنی بررسی‌نشده (فقط dry-run). */
+async function ownershipDecisions(
+  cfg: DbCfg | null,
+  ops: SyncOp[],
+): Promise<{ decisions: OwnershipDecision[]; checked: boolean }> {
+  const guideSlugs = ops
+    .map((op) => guideSlugOfOp(op))
+    .filter((s): s is string => s !== null);
+  if (guideSlugs.length === 0) {
+    return {
+      decisions: ops.map((op) => ({
+        op: String(op.op),
+        slug: null,
+        blocked: false,
+        error: null,
+      })),
+      checked: true,
+    };
+  }
+  if (!cfg) {
+    return {
+      decisions: ops.map((op) => ({
+        op: String(op.op),
+        slug: guideSlugOfOp(op),
+        blocked: false,
+        error: null,
+      })),
+      checked: false,
+    };
+  }
+  try {
+    const docs = await fetchVersionedGuideDocs(cfg, [...new Set(guideSlugs)]);
+    return { decisions: classifyContentSyncOwnership(ops, docs, false), checked: true };
+  } catch {
+    return { decisions: classifyContentSyncOwnership(ops, [], true), checked: true };
+  }
+}
+
+/**
  * ابطال کش پس از opهای محتوایی (یافتهٔ F-092 بازرس، ۲۰ مهر ۱۴۰۵).
  *
  * ریشه: این روت هیچ revalidateای نداشت و `'use cache'` روی getGuides/getTours
@@ -816,28 +893,49 @@ export async function POST(req: NextRequest) {
   }
   const dryRun = body.dry_run === true;
 
-  // ۳) dry-run: فقط گزارش برنامه، بدون دست‌زدن به کلید سرور
+  // ۳) گارد مالکیت (THG-UNIFY-01): پیش از هر نوشتن، حتی پیش از dry-runِ
+  // گزارشی. dry-run بدون cfg، بررسی‌نشده گزارش می‌شود (ownership_checked
+  // false)؛ اجرای واقعی بدون cfg پایین‌تر ۵۰۰ می‌دهد، پس هرگز با مالکیت
+  // بررسی‌نشده نمی‌نویسد.
+  const cfgForOwnership = dbConfig();
+  const ownership = await ownershipDecisions(cfgForOwnership, validated);
+
+  // ۴) dry-run: فقط گزارش برنامه، بدون نوشتن؛ تصمیم مالکیت هم گزارش می‌شود.
   if (dryRun) {
     return NextResponse.json({
       ok: true,
       dry_run: true,
-      planned: validated.map((o) => ({
+      ownership_checked: ownership.checked,
+      planned: validated.map((o, i) => ({
         op: o.op,
         slug: o.slug ?? o.guide_slug ?? o.tour_slug,
         position: o.position ?? null,
+        ownership_blocked: ownership.decisions[i]?.blocked ?? false,
       })),
     });
   }
 
-  // ۴) اجرا
-  const cfg = dbConfig();
+  // ۵) اجرا
+  const cfg = cfgForOwnership;
   if (!cfg) {
     logger.error("content-sync: supabase env vars are not configured", { route: "content-sync" });
     return NextResponse.json({ ok: false, error: "خطای پیکربندی سرور." }, { status: 500 });
   }
 
   const results: Array<{ op: unknown; ok: boolean; note?: string; error?: string }> = [];
-  for (const op of validated) {
+  for (let i = 0; i < validated.length; i++) {
+    const op = validated[i];
+    const decision = ownership.decisions[i];
+    if (decision?.blocked) {
+      // مسدودِ مالکیت: هرگز applyOp صدا زده نمی‌شود؛ خطا صریح است و
+      // op در ابطال کش هم نمی‌آید (results او ok:false است).
+      logger.error("content-sync: op blocked by versioned ownership", {
+        op: op.op,
+        reason: decision.error,
+      });
+      results.push({ op: op.op, ok: false, error: decision.error ?? "مسدودِ مالکیت نسخه‌ای." });
+      continue;
+    }
     try {
       const r = await applyOp(cfg, op);
       logger.info("content-sync: op applied", { op: op.op, slug: op.guide_slug ?? op.tour_slug, matched: r.matched });

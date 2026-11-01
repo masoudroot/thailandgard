@@ -15,7 +15,9 @@
  *   ۵۰۰)؛ سند با نسخهٔ منتشرشده باشد versioned؛ خطاهای دیگر خواندن
  *   نسخه، fail-closed بالا می‌آیند، نه fallback بی‌صدا به محتوای
  *   اشتباه. سند فیکسچر هم legacy می‌شود، چون فیکسچر محتوای واقعی
- *   نیست و انتشار آن را خود Function انتشار رد می‌کند.
+ *   نیست و انتشار آن را خود Function انتشار رد می‌کند. سند با وضعیت
+ *   صریح غیرمنتشرشده (THG-UNIFY-01، کد NOT_PUBLISHED) هم legacy
+ *   می‌شود؛ قانون کامل و یکتا در lib/guide-source-resolver.ts است.
  * - shadow_compare: صفحه با legacy رندر می‌شود و مقایسهٔ هر دو رندر، سمت
  *   سرور ثبت می‌شود؛ مقایسه هرگز چیزی را منتشر نمی‌کند.
  *
@@ -82,6 +84,7 @@ export type VersionedReadErrorCode =
   | "DOCUMENT_NOT_FOUND"
   | "VERSION_NOT_FOUND"
   | "NO_PUBLISHED_VERSION"
+  | "NOT_PUBLISHED"
   | "TEST_FIXTURE"
   | "VERSION_MISMATCH"
   | "UPSTREAM_ERROR"
@@ -103,6 +106,8 @@ interface DocumentRow {
   canonical_path: string;
   published_version_id: string | null;
   is_test_fixture?: boolean;
+  /** وضعیت سند؛ ستونش همان فیلتری است که نقشهٔ سایت می‌زند. */
+  status?: string | null;
 }
 
 interface VersionRow {
@@ -200,7 +205,7 @@ export async function fetchVersionedGuide(
   const docs = (await postgrestGet(
     cfg,
     "content_documents",
-    `content_type=eq.guide&slug=eq.${encodeURIComponent(slug)}&select=id,slug,canonical_path,published_version_id,is_test_fixture`,
+    `content_type=eq.guide&slug=eq.${encodeURIComponent(slug)}&select=id,slug,canonical_path,published_version_id,is_test_fixture,status`,
     fetchFn,
   )) as DocumentRow[];
   const doc = docs[0];
@@ -214,6 +219,21 @@ export async function fetchVersionedGuide(
     throw new VersionedReadError(
       "TEST_FIXTURE",
       `versioned read: document ${slug} is a test fixture`,
+    );
+  }
+  // SINGLE-SOURCE (THG-UNIFY-01): خوانش صفحه، همان فیلتر وضعیت نقشهٔ
+  // سایت را می‌زند، وقتی وضعیت واقعاً آمده باشد. سند با وضعیت صریح
+  // غیرpublished (draft، archived) حتی اگر اشاره‌گر داشته باشد، محتوای
+  // نسخه‌ای سرو نمی‌کند؛ رزولوشن زیر، این کد را به legacy برمی‌گرداند
+  // تا صفحه و نقشه یک جواب بدهند. وضعیتِ غایب (undefined/null، مثل
+  // دادهٔ قدیمیِ بدون ستون وضعیت) عمداً به رفتار قدیمیِ «فقط اشاره‌گر»
+  // برمی‌گردد تا تست‌ها و دادهٔ قدیمی نشکنند؛ شکاف باقیمانده: سندی با
+  // وضعیت تهی از نقشه می‌افتد ولی صفحه ممکن است نسخه‌اش را سرو کند.
+  // بستنش با backfill وضعیت همهٔ سندها است، نه با سخت‌گیری این‌جا.
+  if (doc.status !== undefined && doc.status !== null && doc.status !== "published") {
+    throw new VersionedReadError(
+      "NOT_PUBLISHED",
+      `versioned read: document ${slug} is not published (status ${doc.status})`,
     );
   }
   if (!doc.published_version_id) {
@@ -286,7 +306,9 @@ export interface GuideSourceDeps {
  * رزولوشن صفحه بر اساس حالت خواندن (قرارداد CONTENT-FIRST):
  * - legacy و shadow_compare همیشه legacy می‌دهند؛ در shadow_compare،
  *   ثبت مقایسه با صفحه است، نه با این helper.
- * - versioned: سند نباشد legacy؛ سند فیکسچر باشد legacy؛ سند بدون
+ * - versioned: سند نباشد legacy؛ سند فیکسچر باشد legacy؛ سند با وضعیت
+ *   صریح غیرمنتشرشده (NOT_PUBLISHED) باشد legacy (همان قانون رزولور
+ *   یکتا: پیش‌نویس/آرشیو هرگز slug را تصاحب نمی‌کند)؛ سند بدون
  *   نسخهٔ منتشرشده draft؛ سند با نسخهٔ منتشرشده versioned؛ هر خطای
  *   دیگر خواندن نسخه (پیکربندی، بالادست، نسخهٔ پیدا‌نشده، ناهمخوانی
  *   نسخه، payload نامعتبر) fail-closed بالا می‌آید.
@@ -315,7 +337,7 @@ export async function resolveGuideSource(
     // از دست داده باشد و فقط message و code داشته باشد. codeهای ناشناخته
     // همچنان fail-closed بالا می‌آیند.
     const code = (err as { code?: unknown } | null)?.code;
-    if (code === "DOCUMENT_NOT_FOUND" || code === "TEST_FIXTURE") {
+    if (code === "DOCUMENT_NOT_FOUND" || code === "TEST_FIXTURE" || code === "NOT_PUBLISHED") {
       return { kind: "legacy" };
     }
     if (code === "NO_PUBLISHED_VERSION") return { kind: "draft" };

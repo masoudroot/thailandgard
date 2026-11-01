@@ -30,7 +30,10 @@ export async function getVersionedGuideCached(
     return await fetchVersionedGuide(slug, readVersionedReadConfig());
   } catch (err) {
     const code = (err as { code?: unknown } | null)?.code;
-    if (code === "DOCUMENT_NOT_FOUND" || code === "TEST_FIXTURE") {
+    // NOT_PUBLISHED هم مثل فیکسچر، به legacy برمی‌گردد؛ اگر این‌جا خطا
+    // بالا بیاید، فاز گرم‌کردن کش پیش‌رندر می‌شکند («Unexpected cache
+    // miss»). قانونش همان رزولور یکتاست: غیرمنتشرشده، slug را نمی‌گیرد.
+    if (code === "DOCUMENT_NOT_FOUND" || code === "TEST_FIXTURE" || code === "NOT_PUBLISHED") {
       return null;
     }
     if (code === "NO_PUBLISHED_VERSION") return { kind: "draft" };
