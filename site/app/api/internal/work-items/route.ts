@@ -91,7 +91,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ work_item: rows[0] });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes("duplicate key") || message.includes("already exists")) {
+    if (
+      message.includes("duplicate key") ||
+      message.includes("already exists") ||
+      message.includes("23505")
+    ) {
       return NextResponse.json({ error: "work_key already exists" }, { status: 409 });
     }
     return NextResponse.json({ error: message }, { status: 500 });

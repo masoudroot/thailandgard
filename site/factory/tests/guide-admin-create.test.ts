@@ -16,7 +16,7 @@ vi.mock("@/lib/factory/tick/internal-api", () => ({
   postgrestGet: getMock,
 }));
 
-import { createGuideDraft } from "@/lib/factory-dashboard/guide-admin";
+import { createGuideDraft, createGuideUpdateDraft } from "@/lib/factory-dashboard/guide-admin";
 import type { PublishPayload } from "@/lib/content-versioning";
 
 process.env.INTERNAL_PUBLISH_TOKEN = "test-token";
@@ -59,20 +59,30 @@ interface FetchCall {
 describe("createGuideDraft", () => {
   const fetchMock = vi.fn();
   let docRow: Record<string, unknown> | null;
+  let docById: Record<string, unknown> | null;
   let wiRows: Record<string, unknown>[];
+  let wiSequence: Record<string, unknown>[][] | null;
   let contentDocStatus: number;
+  let workItemsStatus: number;
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
     fetchMock.mockReset();
     getMock.mockReset();
     docRow = null;
+    docById = null;
     wiRows = [];
+    wiSequence = null;
     contentDocStatus = 200;
+    workItemsStatus = 200;
 
     getMock.mockImplementation(async (_cfg: unknown, path: string) => {
       if (path.startsWith("content_documents?slug=")) return docRow ? [docRow] : [];
-      if (path.startsWith("factory_work_items?content_id=")) return wiRows;
+      if (path.startsWith("content_documents?id=")) return docById ? [docById] : [];
+      if (path.startsWith("factory_work_items?content_id=")) {
+        if (wiSequence) return wiSequence.shift() ?? [];
+        return wiRows;
+      }
       return [];
     });
 
@@ -89,9 +99,13 @@ describe("createGuideDraft", () => {
         });
       }
       if (url.endsWith("/api/internal/work-items")) {
+        if (workItemsStatus === 409) return ok({ error: "work_key already exists" }, 409);
         return ok({ work_item: { id: "wi-new" } });
       }
       if (url.includes("/first-artifact")) {
+        return ok({ artifact_id: "art-new", artifact_hash: HASH, existing: false });
+      }
+      if (url.includes("/update-artifact")) {
         return ok({ artifact_id: "art-new", artifact_hash: HASH, existing: false });
       }
       return ok({}, 404);
@@ -192,5 +206,88 @@ describe("createGuideDraft", () => {
       createGuideDraft(ORIGIN, { slug: "test-guide", payload: payload() }),
     ).rejects.toMatchObject({ status: 409 });
     expect(fetchCalls().some((c) => c.url.endsWith("/api/internal/work-items"))).toBe(false);
+  });
+
+  it("سند موجود بدون کار، کار تازه با کلید پایه می‌سازد (بازیابی پس از خرابی قدم کار)", async () => {
+    contentDocStatus = 409;
+    docRow = baseDoc();
+    wiRows = [];
+    const result = await createGuideDraft(ORIGIN, { slug: "test-guide", payload: payload() });
+    expect(result.workItem.id).toBe("wi-new");
+    const wiCall = fetchCalls().find((c) => c.url.endsWith("/api/internal/work-items"));
+    expect((wiCall?.body as Record<string, unknown>).work_key).toBe("guide-first-test-guide");
+  });
+
+  it("مسابقهٔ ساخت کار (۴۰۹ کلید تکراری) کار ناتمام برنده را بازاستفاده می‌کند، نه کار تازه", async () => {
+    wiSequence = [
+      [],
+      [baseWi({ id: "wi-pending", status: "queued", result_artifact_id: null })],
+    ];
+    workItemsStatus = 409;
+    const result = await createGuideDraft(ORIGIN, { slug: "test-guide", payload: payload() });
+    expect(result.document.id).toBe("doc-new");
+    expect(result.workItem.id).toBe("wi-pending");
+    expect(result.workItem.workKey).toBe("guide-first-test-guide");
+    const artifactCall = fetchCalls().find((c) => c.url.includes("/first-artifact"));
+    expect(artifactCall?.url).toContain("wi-pending");
+  });
+
+  describe("createGuideUpdateDraft", () => {
+    function publishedDoc(): Record<string, unknown> {
+      return baseDoc({ published_version_id: "version-1", status: "published" });
+    }
+
+    it("سند منتشرنشده، پیش‌نویس به‌روزرسانی نمی‌گیرد", async () => {
+      docById = baseDoc();
+      wiRows = [];
+      await expect(
+        createGuideUpdateDraft(ORIGIN, "doc-1", payload()),
+      ).rejects.toMatchObject({ status: 409 });
+      expect(fetchCalls().some((c) => c.url.endsWith("/api/internal/work-items"))).toBe(false);
+      expect(fetchCalls().some((c) => c.url.includes("/update-artifact"))).toBe(false);
+    });
+
+    it("سند منتشرشده با کار ناتمام بدون Artifact، همان کار را ادامه می‌دهد", async () => {
+      docById = publishedDoc();
+      wiRows = [baseWi({ id: "wi-pending", work_key: "guide-update-test-guide", status: "queued", result_artifact_id: null })];
+      const result = await createGuideUpdateDraft(ORIGIN, "doc-1", payload());
+      expect(result.workItem.id).toBe("wi-pending");
+      expect(fetchCalls().some((c) => c.url.endsWith("/api/internal/work-items"))).toBe(false);
+      const artifactCall = fetchCalls().find((c) => c.url.includes("/update-artifact"));
+      expect(artifactCall?.url).toContain("wi-pending");
+    });
+
+    it("خرابی پس از Artifact به‌روزرسانی: کار در جریان، ساخت تازه را رد می‌کند و چیزی تازه نمی‌سازد", async () => {
+      docById = publishedDoc();
+      wiRows = [baseWi({ id: "wi-active", work_key: "guide-update-test-guide", status: "awaiting_approval", result_artifact_id: "art-old" })];
+      await expect(
+        createGuideUpdateDraft(ORIGIN, "doc-1", payload()),
+      ).rejects.toMatchObject({ status: 409 });
+      expect(fetchCalls().some((c) => c.url.endsWith("/api/internal/work-items"))).toBe(false);
+      expect(fetchCalls().some((c) => c.url.includes("/update-artifact"))).toBe(false);
+    });
+
+    it("پس از رد پیش‌نویس به‌روزرسانی پیشین، کار تازه با کلید پسونددار ساخته می‌شود", async () => {
+      docById = publishedDoc();
+      wiRows = [baseWi({ id: "wi-old", work_key: "guide-update-test-guide", status: "blocked", result_artifact_id: "art-old" })];
+      const result = await createGuideUpdateDraft(ORIGIN, "doc-1", payload());
+      expect(result.workItem.id).toBe("wi-new");
+      const wiCall = fetchCalls().find((c) => c.url.endsWith("/api/internal/work-items"));
+      expect((wiCall?.body as Record<string, unknown>).work_key).toBe("guide-update-test-guide-2");
+    });
+
+    it("مسابقهٔ ساخت کار (۴۰۹ کلید تکراری) کار ناتمام برنده را بازاستفاده می‌کند، نه کار تازه", async () => {
+      docById = publishedDoc();
+      wiSequence = [
+        [],
+        [baseWi({ id: "wi-pending", work_key: "guide-update-test-guide", status: "queued", result_artifact_id: null })],
+      ];
+      workItemsStatus = 409;
+      const result = await createGuideUpdateDraft(ORIGIN, "doc-1", payload());
+      expect(result.workItem.id).toBe("wi-pending");
+      expect(result.workItem.workKey).toBe("guide-update-test-guide");
+      const artifactCall = fetchCalls().find((c) => c.url.includes("/update-artifact"));
+      expect(artifactCall?.url).toContain("wi-pending");
+    });
   });
 });

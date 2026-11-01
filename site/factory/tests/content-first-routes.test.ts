@@ -141,6 +141,11 @@ async function callFirstArtifact(req: NextRequest) {
   return POST(req, { params: Promise.resolve({ id: WI_ID }) });
 }
 
+async function callUpdateArtifact(req: NextRequest) {
+  const { POST } = await import("@/app/api/internal/work-items/[id]/update-artifact/route");
+  return POST(req, { params: Promise.resolve({ id: WI_ID }) });
+}
+
 async function callPublish(req: NextRequest) {
   const { POST } = await import("@/app/api/internal/work-items/[id]/publish/route");
   return POST(req, { params: Promise.resolve({ id: WI_ID }) });
@@ -273,6 +278,15 @@ describe("POST /api/internal/work-items با گیت تعمیم‌یافته", ()
     delete process.env.INTERNAL_PUBLISH_TOKEN;
     const unconfigured = await callWorkItems(postReq("http://localhost/api/internal/work-items", body));
     expect(unconfigured.status).toBe(503);
+  });
+
+  it("work_key تکراری با کد 23505 هم ۴۰۹ می‌دهد، نه ۵۰۰", async () => {
+    installDoc(DOC);
+    mockedWrite.mockRejectedValue(
+      new Error('postgrest POST factory_work_items failed with 409: {"code":"23505","message":"violates unique constraint"}'),
+    );
+    const res = await callWorkItems(postReq("http://localhost/api/internal/work-items", body));
+    expect(res.status).toBe(409);
   });
 });
 
@@ -669,5 +683,60 @@ describe("POST /api/internal/process-outbox و تگ versioned-guides", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ processed: 1, status: "verified" });
     expect(mockedTag).toHaveBeenCalledWith("versioned-guides", { expire: 0 });
+  });
+});
+
+describe("POST /api/internal/work-items/[id]/update-artifact (بازیابی خرابی پس از درج)", () => {
+  const ART = {
+    id: ART_ID,
+    work_item_id: WI_ID,
+    artifact_type: "guide_edit",
+    schema_version: "publish_payload_v1",
+    payload: PAYLOAD,
+    artifact_hash: HASH,
+  };
+  const PUBLISHED_DOC = { ...DOC, published_version_id: VER_ID };
+
+  function installReads(options: {
+    workItem: Record<string, unknown>;
+    linked?: unknown[];
+    sameHash?: unknown[];
+    doc?: unknown;
+  }) {
+    mockedGet.mockImplementation(async (_cfg, path) => {
+      if (path.startsWith("factory_work_items")) return [options.workItem];
+      if (path.startsWith("factory_artifacts?id=eq.")) return options.linked ?? [];
+      if (path.startsWith("factory_artifacts?work_item_id=")) return options.sameHash ?? [];
+      if (path.startsWith("content_documents")) return options.doc === undefined ? [PUBLISHED_DOC] : [options.doc];
+      throw new Error(`unexpected read ${path}`);
+    });
+  }
+
+  it("Artifact هم‌Hashِ پیوندنخورده (خرابی میان درج و پیوند)، به‌جای درج تکراری پیوند می‌خورد", async () => {
+    installReads({ workItem: baseWorkItem(), sameHash: [{ id: ART_ID }] });
+    mockedWrite.mockResolvedValue([baseWorkItem()]);
+    const res = await callUpdateArtifact(
+      postReq("http://localhost/api/internal/work-items/x/update-artifact", { payload: PAYLOAD }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ artifact_id: ART_ID, artifact_hash: HASH, existing: true });
+    expect(mockedWrite).not.toHaveBeenCalledWith(
+      expect.anything(),
+      "POST",
+      "factory_artifacts",
+      expect.anything(),
+    );
+  });
+
+  it("Artifact پیوندیافته با Hash متفاوت ۴۰۹ می‌گیرد و Artifact تازه درج نمی‌شود", async () => {
+    installReads({
+      workItem: baseWorkItem({ status: "awaiting_approval", result_artifact_id: ART_ID }),
+      linked: [{ ...ART, artifact_hash: "c".repeat(64) }],
+    });
+    const res = await callUpdateArtifact(
+      postReq("http://localhost/api/internal/work-items/x/update-artifact", { payload: PAYLOAD }),
+    );
+    expect(res.status).toBe(409);
+    expect(mockedWrite).not.toHaveBeenCalled();
   });
 });

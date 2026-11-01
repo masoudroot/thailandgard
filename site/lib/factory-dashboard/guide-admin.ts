@@ -32,11 +32,13 @@
  * سوم ناموفق شد، سطرهای قدم‌های پیشین می‌مانند و خطا دقیقاً همان قدم
  * را می‌گوید تا مدیر، وضعیت ناتمام را در فهرست ببیند و دوباره تلاش
  * کند. تلاش دوبارهٔ ساخت با همان slug، سند موجود را بازاستفاده می‌کند؛
- * اگر کاری بدون Artifact مانده باشد، همان کار ادامه پیدا می‌کند؛ وگرنه
- * (مثلاً پس از رد پیش‌نویس پیشین) کار تازه با کلید یکتای پسونددار
- * ساخته می‌شود. کاری که در جریان است (منتظر تأیید، تأییدشده یا در حال
- * انتشار)، ساخت پیش‌نویس تازه را رد می‌کند تا دو پیش‌نویس زنده برای
- * یک سند ساخته نشود.
+ * اگر کاری بدون Artifact مانده باشد، همان کار ادامه پیدا می‌کند (هم در
+ * انتشار اول و هم در به‌روزرسانی)؛ وگرنه (مثلاً پس از رد پیش‌نویس پیشین)
+ * کار تازه با کلید یکتای پسونددار ساخته می‌شود. اگر ساخت کار با ۴۰۹
+ * کلید تکراری رد شد (مسابقهٔ دو ساخت هم‌زمان)، کارها دوباره خوانده
+ * می‌شوند و کار ناتمام برنده بازاستفاده می‌شود. کاری که در جریان است
+ * (منتظر تأیید، تأییدشده یا در حال انتشار)، ساخت پیش‌نویس تازه را رد
+ * می‌کند تا دو پیش‌نویس زنده برای یک سند ساخته نشود.
  */
 
 import { dbConfig, postgrestGet, type DbCfg } from "@/lib/factory/tick/internal-api";
@@ -512,6 +514,89 @@ async function readWorkItemsForDoc(cfg: DbCfg, docId: string): Promise<WiRow[]> 
   )) as WiRow[];
 }
 
+/** کاری در جریان: منتظر تأیید، تأییدشده یا در حال انتشار. */
+function findActiveWorkItem(wis: WiRow[]): WiRow | undefined {
+  return wis.find(
+    (wi) =>
+      wi.status === "awaiting_approval" ||
+      wi.status === "approved" ||
+      wi.status === "publishing",
+  );
+}
+
+/** کار ناتمام: هنوز Artifact ندارد، پس قدم Artifact آن مانده است. */
+function findPendingWorkItem(wis: WiRow[]): WiRow | undefined {
+  return wis.find((wi) => wi.result_artifact_id === null);
+}
+
+/**
+ * ساخت کار با کلید یکتای پسونددار. اگر مسیر داخلی، کلید را تکراری
+ * برگرداند (مسابقهٔ دو ساخت هم‌زمان با همان کلید پایه)، کارها دوباره
+ * خوانده می‌شوند و کار ناتمام برنده بازاستفاده می‌شود، نه این‌که
+ * خطای تکراری به مدیر برگردد و کار تازهٔ دیگری ساخته شود. اگر برنده
+ * تا آن لحظه Artifact گرفته و در جریان باشد، همان ردِ «کار در جریان»
+ * برمی‌گردد؛ وگرنه خطای اصلی بالا می‌آید.
+ */
+async function createWorkItemWithPendingReuse(
+  origin: string,
+  cfg: DbCfg,
+  docId: string,
+  baseKey: string,
+  takenKeys: Set<string>,
+  title: string,
+  description: string,
+  slug: string,
+): Promise<{ id: string; workKey: string }> {
+  let workKey = baseKey;
+  let attempt = 2;
+  while (takenKeys.has(workKey) && attempt <= 100) {
+    workKey = `${baseKey}-${attempt}`;
+    attempt += 1;
+  }
+  if (takenKeys.has(workKey)) {
+    throw new GuideAdminError(
+      409,
+      "برای این سند، کارهای بسیاری ساخته شده است؛ کلید کار تازه پیدا نشد.",
+      "work-items",
+    );
+  }
+  try {
+    const created = await callInternal(origin, "/api/internal/work-items", {
+      work_key: workKey,
+      work_type: "update_content",
+      title,
+      description,
+      slug,
+      execution_mode: "manual",
+    });
+    const record = asRecord(created.json);
+    const rawWi = record ? (record.work_item ?? null) : null;
+    const wiRecord = asRecord(rawWi);
+    const wiId = wiRecord ? asString(wiRecord.id) : null;
+    if (!wiId) {
+      throw new GuideAdminError(502, "مسیر ساخت کار، شناسهٔ کار را برنگرداند.", "work-items");
+    }
+    return { id: wiId, workKey };
+  } catch (err) {
+    if (!(err instanceof GuideAdminError) || err.status !== 409) {
+      throw err;
+    }
+    const refreshed = await readWorkItemsForDoc(cfg, docId);
+    const pending = findPendingWorkItem(refreshed);
+    if (pending) {
+      return { id: pending.id, workKey: pending.work_key };
+    }
+    if (findActiveWorkItem(refreshed)) {
+      throw new GuideAdminError(
+        409,
+        "برای این سند، کاری در جریان است؛ نخست آن را به پایان برسانید.",
+        "work-items",
+      );
+    }
+    throw err;
+  }
+}
+
 /**
  * ساخت پیش‌نویس تازه: سند، بعد کار، بعد Artifact اول. اگر سند از پیش
  * باشد، بازاستفاده می‌شود؛ اگر کاری بدون Artifact مانده باشد، همان
@@ -584,12 +669,7 @@ export async function createGuideDraft(
   const existingWis = await readWorkItemsForDoc(cfg, doc.id);
   let workItemId: string | null = null;
   let workKey: string | null = null;
-  const activeWi = existingWis.find(
-    (wi) =>
-      wi.status === "awaiting_approval" ||
-      wi.status === "approved" ||
-      wi.status === "publishing",
-  );
+  const activeWi = findActiveWorkItem(existingWis);
   if (activeWi) {
     throw new GuideAdminError(
       409,
@@ -597,7 +677,7 @@ export async function createGuideDraft(
       "work-items",
     );
   }
-  const pendingWi = existingWis.find((wi) => wi.result_artifact_id === null);
+  const pendingWi = findPendingWorkItem(existingWis);
   if (pendingWi) {
     workItemId = pendingWi.id;
     workKey = pendingWi.work_key;
@@ -605,36 +685,18 @@ export async function createGuideDraft(
 
   if (!workItemId) {
     const takenKeys = new Set(existingWis.map((wi) => wi.work_key));
-    const baseKey = `guide-first-${input.slug}`;
-    workKey = baseKey;
-    let attempt = 2;
-    while (takenKeys.has(workKey) && attempt <= 100) {
-      workKey = `${baseKey}-${attempt}`;
-      attempt += 1;
-    }
-    if (takenKeys.has(workKey)) {
-      throw new GuideAdminError(
-        409,
-        "برای این سند، کارهای بسیاری ساخته شده است؛ کلید کار تازه پیدا نشد.",
-        "work-items",
-      );
-    }
-    const created = await callInternal(origin, "/api/internal/work-items", {
-      work_key: workKey,
-      work_type: "update_content",
-      title: payload.title,
-      description: `پیش‌نویس راهنما از داشبورد: ${input.slug}`,
-      slug: input.slug,
-      execution_mode: "manual",
-    });
-    const record = asRecord(created.json);
-    const rawWi = record ? (record.work_item ?? null) : null;
-    const wiRecord = asRecord(rawWi);
-    const wiId = wiRecord ? asString(wiRecord.id) : null;
-    if (!wiId) {
-      throw new GuideAdminError(502, "مسیر ساخت کار، شناسهٔ کار را برنگرداند.", "work-items");
-    }
-    workItemId = wiId;
+    const createdWi = await createWorkItemWithPendingReuse(
+      origin,
+      cfg,
+      doc.id,
+      `guide-first-${input.slug}`,
+      takenKeys,
+      payload.title,
+      `پیش‌نویس راهنما از داشبورد: ${input.slug}`,
+      input.slug,
+    );
+    workItemId = createdWi.id;
+    workKey = createdWi.workKey;
   }
 
   const artifactCall = await callInternal(
@@ -665,7 +727,9 @@ export async function createGuideDraft(
  * ساخت پیش‌نویس به‌روزرسانی برای سند منتشرشده: همان سه قدم سروری
  * ساخت پیش‌نویس اول، با دو تفاوت: سند باید از پیش منتشر شده باشد و
  * قدم سوم، مسیر update-artifact است نه first-artifact. سند منتشرنشده
- * ۴۰۹ می‌گیرد و باید از فرم انتشار اول ساخته شود.
+ * ۴۰۹ می‌گیرد و باید از فرم انتشار اول ساخته شود. کار ناتمام بدون
+ * Artifact (خرابی پس از قدم کار) هم این‌جا، مثل انتشار اول، ادامه پیدا
+ * می‌کند؛ کار در جریان، ساخت تازه را رد می‌کند.
  */
 export async function createGuideUpdateDraft(
   origin: string,
@@ -700,12 +764,7 @@ export async function createGuideUpdateDraft(
   }
 
   const existingWis = await readWorkItemsForDoc(cfg, doc.id);
-  const activeWi = existingWis.find(
-    (wi) =>
-      wi.status === "awaiting_approval" ||
-      wi.status === "approved" ||
-      wi.status === "publishing",
-  );
+  const activeWi = findActiveWorkItem(existingWis);
   if (activeWi) {
     throw new GuideAdminError(
       409,
@@ -714,35 +773,26 @@ export async function createGuideUpdateDraft(
     );
   }
 
-  const takenKeys = new Set(existingWis.map((wi) => wi.work_key));
-  const baseKey = `guide-update-${doc.slug}`;
-  let workKey = baseKey;
-  let attempt = 2;
-  while (takenKeys.has(workKey) && attempt <= 100) {
-    workKey = `${baseKey}-${attempt}`;
-    attempt += 1;
-  }
-  if (takenKeys.has(workKey)) {
-    throw new GuideAdminError(
-      409,
-      "برای این سند، کارهای بسیاری ساخته شده است؛ کلید کار تازه پیدا نشد.",
-      "work-items",
+  let workItemId: string;
+  let workKey: string;
+  const pendingWi = findPendingWorkItem(existingWis);
+  if (pendingWi) {
+    workItemId = pendingWi.id;
+    workKey = pendingWi.work_key;
+  } else {
+    const takenKeys = new Set(existingWis.map((wi) => wi.work_key));
+    const createdWi = await createWorkItemWithPendingReuse(
+      origin,
+      cfg,
+      doc.id,
+      `guide-update-${doc.slug}`,
+      takenKeys,
+      payload.title,
+      `پیش‌نویس به‌روزرسانی راهنما از داشبورد: ${doc.slug}`,
+      doc.slug,
     );
-  }
-  const created = await callInternal(origin, "/api/internal/work-items", {
-    work_key: workKey,
-    work_type: "update_content",
-    title: payload.title,
-    description: `پیش‌نویس به‌روزرسانی راهنما از داشبورد: ${doc.slug}`,
-    slug: doc.slug,
-    execution_mode: "manual",
-  });
-  const record = asRecord(created.json);
-  const rawWi = record ? (record.work_item ?? null) : null;
-  const wiRecord = asRecord(rawWi);
-  const workItemId = wiRecord ? asString(wiRecord.id) : null;
-  if (!workItemId) {
-    throw new GuideAdminError(502, "مسیر ساخت کار، شناسهٔ کار را برنگرداند.", "work-items");
+    workItemId = createdWi.id;
+    workKey = createdWi.workKey;
   }
 
   const artifactCall = await callInternal(
