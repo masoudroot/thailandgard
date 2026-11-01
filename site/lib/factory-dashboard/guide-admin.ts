@@ -120,6 +120,15 @@ interface InternalCallResult {
  * فراخوان مسیر داخلی با توکن سروری. توکن فقط در هدر می‌رود و هرگز
  * در بدنه یا پاسخ برنمی‌گردد. خطای مسیر داخلی، فقط فیلد error آن
  * (بریده‌شده) به مدیر نشان داده می‌شود، نه متن خام دیتابیس.
+ *
+ * دو نکتهٔ مخصوص Preview با محافظت Vercel:
+ * - فراخوان سروربه‌سرور به همان مبدا، بدون کوکی مرورگر، با سد محافظت
+ *   (۴۰۱ با error شیئی) بسته می‌شود؛ پس کوکی درخواست ورودی هم به
+ *   فراخوان داخلی می‌رسد تا سد لبه، آن را همان نشست مرورگر ببیند.
+ *   مجوز مسیر داخلی همچنان با توکن سروری است و کوکی، جای آن را
+ *   نمی‌گیرد؛ مسیر داشبورد هم پیش از آن، نشست ادمین را بررسی کرده است.
+ * - اگر لبه، error را شیئی برگرداند، پیام خوانای آن (یا خود JSON)
+ *   نشان داده می‌شود تا مدیر به‌جای «[object Object]»، علت واقعی را ببیند.
  */
 export async function callInternal(
   origin: string,
@@ -130,6 +139,7 @@ export async function callInternal(
   if (!token) {
     throw new GuideAdminError(503, "توکن انتشار داخلی پیکربندی نشده است.", "internal");
   }
+  const cookie = await incomingCookieHeader();
   let res: Response;
   try {
     res = await fetch(`${origin}${path}`, {
@@ -137,6 +147,7 @@ export async function callInternal(
       headers: {
         "Content-Type": "application/json",
         "x-internal-publish-token": token,
+        ...(cookie ? { cookie } : {}),
       },
       body: JSON.stringify(body),
     });
@@ -150,10 +161,7 @@ export async function callInternal(
     json = null;
   }
   if (!res.ok) {
-    const message =
-      json !== null && typeof json === "object" && !Array.isArray(json)
-        ? String((json as Record<string, unknown>).error ?? "")
-        : "";
+    const message = internalErrorMessage(json);
     throw new GuideAdminError(
       res.status,
       message ? message.slice(0, 300) : `مسیر داخلی با وضعیت ${res.status} رد شد.`,
@@ -161,6 +169,32 @@ export async function callInternal(
     );
   }
   return { status: res.status, json };
+}
+
+/** کوکی درخواست ورودی، اگر در بافت درخواست باشیم؛ بیرون آن، تهی. */
+async function incomingCookieHeader(): Promise<string | null> {
+  try {
+    const mod = await import("next/headers");
+    const h = await mod.headers();
+    return h.get("cookie");
+  } catch {
+    return null;
+  }
+}
+
+/** پیام خوانا از فیلد error پاسخ؛ شیئی به «[object Object]» تبدیل نمی‌شود. */
+function internalErrorMessage(json: unknown): string {
+  if (json === null || typeof json !== "object" || Array.isArray(json)) return "";
+  const raw = (json as Record<string, unknown>).error;
+  if (typeof raw === "string") return raw;
+  if (raw !== null && typeof raw === "object" && !Array.isArray(raw)) {
+    const record = raw as Record<string, unknown>;
+    if (typeof record.message === "string" && record.message.length > 0) {
+      return record.message;
+    }
+    return JSON.stringify(raw);
+  }
+  return "";
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {

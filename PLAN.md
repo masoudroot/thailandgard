@@ -256,3 +256,18 @@
   «Compiled successfully» در ۳۵٫۱ ثانیه (حالت پیش‌فرض legacy).
 - پس از Build، درخت تمیز است و هیچ فایل تازه‌ای برای کامیت نمانده
   جز همین یادداشت.
+
+## THG-UNIFY-03 — رفع باگ چرخهٔ Staging (۱۴۰۵/۰۸/۱۰، شاخهٔ feat/thg-unify-01)
+- علت اثبات‌شده: فراخوان سروربه‌سرور guide-admin به مبدا عمومی Preview،
+  با سد محافظت Vercel (۴۰۱ با error شیئی) بسته می‌شد؛ پیام «[object Object]
+  (قدم: internal)» همان‌جا ساخته می‌شد. خواندن‌های کارخانه هم با URL
+  زمان Build از بیلد کش‌شدهٔ قبلی به Production می‌رفتند (۲۳ راهنمای
+  فقط‌فایلی با الگوی Production می‌خواند، نه Staging با ۱ ردیف).
+- رفع: callInternal کوکی درخواست ورودی را به فراخوان داخلی همان مبدا
+  می‌رساند (مجوز همچنان با نشست ادمین و توکن داخلی است) و خطای شیئی را
+  با پیام خوانا نشان می‌دهد. بیلد تازهٔ Preview، URL زمان Build را هم
+  از ردیف‌های شاخه‌ای Staging می‌گیرد.
+- فایل‌ها: site/lib/factory-dashboard/guide-admin.ts و
+  site/factory/tests/guide-admin-internal.test.ts (۴ تست تازه).
+- محدودیت‌ها: بدون مرج و بدون PR و بدون تغییر Production؛ چرخهٔ تازه
+  فقط تا awaiting_human_approval می‌رود.
