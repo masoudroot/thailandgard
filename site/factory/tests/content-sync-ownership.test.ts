@@ -28,9 +28,9 @@ describe("guideSlugOfOp", () => {
   });
 
   it("opهای تور، تنظیمات و لید هرگز slug راهنما نمی‌دهند", () => {
-    expect(guideSlugOfOp({ op: "tour.set_title", tour_slug: "x" })).toBeNull();
-    expect(guideSlugOfOp({ op: "setting.set", key: "SITE_URL" })).toBeNull();
-    expect(guideSlugOfOp({ op: "lead_alert.backfill", hours: 24 })).toBeNull();
+    expect(guideSlugOfOp({ op: "tour.set_title" })).toBeNull();
+    expect(guideSlugOfOp({ op: "setting.set" })).toBeNull();
+    expect(guideSlugOfOp({ op: "lead_alert.backfill" })).toBeNull();
     expect(guideSlugOfOp({ op: "guide.set_title" })).toBeNull();
   });
 });
@@ -80,7 +80,7 @@ describe("مالکیت نسخه‌ای در برابر مسیر legacy", () => {
     const decisions = classifyContentSyncOwnership(
       [
         { op: "guide.set_title", guide_slug: "thailand-visa-guide" },
-        { op: "tour.set_title", tour_slug: "phuket-7-days" },
+        { op: "tour.set_title" },
       ],
       [],
       true,
