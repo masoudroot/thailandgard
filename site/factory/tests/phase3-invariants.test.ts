@@ -24,14 +24,13 @@ import { getWorkflow, WORKFLOWS } from '@/lib/factory/teams/workflows';
 // data. Nothing here is faked to look green: every assertion reads the
 // delivered registry, policy, and workflow modules.
 //
-// Naming note: the frozen brief named the registry export TEAMS, but the
-// delivered registry exports TEAM_CONTRACT_MAP (and TEAM_CONTRACTS).
-// This file uses the delivered exports. The dashboard display module
-// (site/lib/factory-dashboard/teams.ts) still imports the non-existent
-// TEAMS name, which is a real integration break for the coordinator to
-// resolve; this file deliberately does not import that module, and pins
-// the frozen display mapping rule (configured + last_run null means
-// configured_not_active) over the real registry data instead.
+// Naming note (THG-UNIFY-01, corrected): the frozen brief named the
+// registry export TEAMS, and the delivered registry does export TEAMS
+// (alongside TEAM_CONTRACT_MAP and TEAM_CONTRACTS). The dashboard
+// display module (site/lib/factory-dashboard/teams.ts) imports that
+// real TEAMS export, so there is no integration break here. This file
+// pins the frozen display mapping rule (configured + last_run null
+// means configured_not_active) over the real registry data.
 
 const EXPECTED_KEYS: readonly TeamKey[] = [
   'product_leader',

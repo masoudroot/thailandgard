@@ -1,5 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getSitemapRows } from "@/lib/db-content";
+import { GUIDES as GUIDES_FALLBACK } from "@/lib/guides";
+import { getContentReadMode } from "@/lib/guide-versioned-read";
+import {
+  resolveSitemapGuideRows,
+  type VersionedInput,
+} from "@/lib/guide-source-resolver";
 import { CATEGORY_SLUGS } from "@/lib/tour-categories";
 
 /**
@@ -105,12 +111,14 @@ export interface PublishedVersionedGuideRow {
 }
 
 /**
- * اجتماع راهنماهای legacy و نسخه‌ای برای نقشهٔ سایت (CONTENT-FIRST):
- * برخورد slug، legacy می‌برد، چون صفحهٔ زنده در حالت legacy همان محتوای
- * legacy را نشان می‌دهد و lastmod باید با محتوای سرو‌شده بخواند.
- * راهنمای فقط‌نسخه‌ای (بدون سطر legacy) با lastmod نسخهٔ منتشرشده‌اش
- * اضافه می‌شود. این تابع خالص است و فیلتر وضعیت را انجام نمی‌دهد؛
- * فیلتر (published و اشاره‌گر ناته و غیرفیکسچر) در خوانش زیر است.
+ * اجتماع راهنماهای legacy و نسخه‌ای برای نقشهٔ سایت (CONTENT-FIRST).
+ *
+ * منسوخ‌شده در برابر رزولور یکتا (THG-UNIFY-01): قانون قدیمیِ «برخورد
+ * slug، legacy می‌برد» با قرارداد تک‌منبع نمی‌خواند (نسخهٔ منتشرشده
+ * باید ببرد تا صفحه و نقشه یک محتوا نشان بدهند) و این تابع راهنمای
+ * فقط‌فایلی را هم نمی‌دید. مسیر زندهٔ getSitemapSections دیگر از
+ * resolveSitemapGuideRows استفاده می‌کند. این تابع فقط برای سازگاری
+ * تست‌های قدیمی نگه داشته شده و مسیر تازه نباید آن را صدا بزند.
  */
 export function mergeSitemapGuides(
   legacy: PublishedVersionedGuideRow[],
@@ -178,9 +186,15 @@ export async function fetchPublishedVersionedGuides(
         typeof d.published_version_id === "string",
     );
     if (docs.length === 0) return [];
-    const ids = docs.map((d) => d.id).join(",");
+    // رفع باگ THG-UNIFY-01: نسخه‌ها باید با published_version_id سندها
+    // خوانده شوند، نه با id خود سندها. پرس‌وجوی قبلی (id=in.(doc ids))
+    // در دادهٔ واقعی تقریباً هیچ نسخه‌ای برنمی‌گرداند و lookup بعدی با
+    // published_version_id هم خالی می‌ماند؛ پس ردیف‌های نسخه‌ای در عمل
+    // از نقشه می‌افتادند. تست قدیمی این را نمی‌گرفت چون fetch ساختگی‌اش
+    // به URL نگاه نمی‌کرد.
+    const versionIds = docs.map((d) => d.published_version_id).join(",");
     const versionsRes = await fetchFn(
-      `${url}/rest/v1/content_versions?id=in.(${ids})&select=id,payload`,
+      `${url}/rest/v1/content_versions?id=in.(${versionIds})&select=id,payload`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     );
     if (!versionsRes.ok) return [];
@@ -208,8 +222,49 @@ export async function getSitemapSections(): Promise<SitemapSections> {
     getSitemapRows(),
     fetchPublishedVersionedGuides(),
   ]);
-  // اجتماع legacy و نسخه‌ای؛ برخورد، legacy می‌برد (نگاه به mergeSitemapGuides).
-  const allGuides = mergeSitemapGuides(guides, versionedGuides);
+  // SINGLE-SOURCE (THG-UNIFY-01): همان رزولوری که صفحه باید بخواند،
+  // این‌جا هم می‌خواند، با همان گیت حالت صفحه. در حالت legacy
+  // (پیش‌فرض Production) صفحه هرگز نسخه‌ای نمی‌دهد، پس نقشهٔ سایت هم
+  // نسخه‌ای نمی‌دهد تا صفحه و نقشه یک محتوا نشان بدهند؛ فقط در حالت
+  // versioned یا shadow_compare است که نسخهٔ منتشرشده می‌برد. ردیف
+  // فقط‌فایلی در هر حالتی می‌آید، چون صفحه‌اش ۲۰۰ برمی‌گرداند.
+  // fetchPublishedVersionedGuides از پیش فقط published + اشاره‌گر ناته
+  // + غیرفیکسچر + نسخهٔ قابل‌خواندن را برگردانده، پس ورودی نسخه‌ای‌اش
+  // حالت published است. ترتیب: ردیف‌های جدول، بعد فقط‌فایلی‌ها با
+  // ترتیب فایل، بعد فقط‌نسخه‌ای‌ها.
+  const mode = getContentReadMode();
+  const versionedBySlug = new Map(versionedGuides.map((g) => [g.slug, g]));
+  const legacyBySlug = new Map(guides.map((g) => [g.slug, g]));
+  const fileBySlug = new Map(
+    GUIDES_FALLBACK.map((g) => [g.slug, { slug: g.slug, updatedFa: g.updatedFa }]),
+  );
+  const orderedSlugs: string[] = [];
+  const seenSlugs = new Set<string>();
+  for (const slug of [
+    ...guides.map((g) => g.slug),
+    ...GUIDES_FALLBACK.map((g) => g.slug),
+    ...versionedGuides.map((g) => g.slug),
+  ]) {
+    if (!seenSlugs.has(slug)) {
+      seenSlugs.add(slug);
+      orderedSlugs.push(slug);
+    }
+  }
+  const allGuides = resolveSitemapGuideRows(
+    orderedSlugs.map((slug) => {
+      const versionedRow = versionedBySlug.get(slug);
+      const versioned: VersionedInput | null =
+        versionedRow && mode !== "legacy"
+          ? { state: "published", updatedFa: versionedRow.updatedFa }
+          : null;
+      return {
+        slug,
+        versioned,
+        legacyTable: legacyBySlug.get(slug) ?? null,
+        fileGuide: fileBySlug.get(slug) ?? null,
+      };
+    }),
+  );
 
   // سیگنال‌های واقعی تازگی (S-104/S-112): تاریخ نامعتبر نادیده گرفته می‌شود.
   const tourPriceDates = tours

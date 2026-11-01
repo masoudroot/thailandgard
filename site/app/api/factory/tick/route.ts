@@ -28,6 +28,7 @@ import {
   TICK_STEP_KEYS,
   WORKFLOW_VERSION,
   evaluateKillSwitches,
+  gatewayStepBlockReason,
   stepMaxAttempts,
   type AnyTickStepKey,
   type TickStepKey,
@@ -516,6 +517,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         .filter((s) => s.sequence_no < step.sequence_no)
         .every((s) => s.status === "succeeded");
       if (!predecessorsDone) continue;
+      // THG-UNIFY-01: gateway steps are judged by the generation gate
+      // here, next to the publish_version data-publishing gate. A blocked
+      // gateway step never gets claimed, so it can never reach a provider
+      // call. The gate returns a status instead of blocking the work item,
+      // exactly like the other candidate gates in this loop.
+      const gatewayBlock = gatewayStepBlockReason(
+        switches,
+        stepWi.workflow_version,
+        step.step_key,
+      );
+      if (gatewayBlock) {
+        if (!gateStatus) {
+          gateStatus = gatewayBlock;
+          gateWorkItemId = step.work_item_id;
+        }
+        continue;
+      }
       if (step.step_key === "await_human_approval") {
         const wis = (await postgrestGet(
           cfg,

@@ -111,15 +111,20 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   // CONTENT-FIRST: در حالت versioned، متادیتا از رزولوشن یکپارچه می‌آید؛
-  // سند نباشد legacy، پیش‌نویس باشد «پیدا نشد» (بدون نشت محتوای پیش‌نویس)،
-  // نسخه‌دار باشد متادیتای نسخهٔ منتشرشده. در بقیهٔ حالت‌ها، متادیتا از
-  // legacy می‌آید (در shadow_compare هم، چون صفحه legacy رندر می‌شود).
+  // سند نباشد legacy، پیش‌نویس باشد legacy (پیش‌نویس slug را تصاحب
+  // نمی‌کند؛ THG-UNIFY-01)، نسخه‌دار باشد متادیتای نسخهٔ منتشرشده.
+  // در بقیهٔ حالت‌ها، متادیتا از legacy می‌آید (در shadow_compare هم،
+  // چون صفحه legacy رندر می‌شود).
   if (getContentReadMode() === "versioned") {
     const source = await resolveGuideSource(slug, {
       mode: "versioned",
       fetchVersioned: (s) => getVersionedGuideCached(s),
     });
-    if (source.kind === "versioned") {
+    if (source.kind === "draft") {
+      // THG-UNIFY-01: پیش‌نویس، slug را تصاحب نمی‌کند. متادیتا از
+      // legacy می‌آید (کد پایین)؛ اگر legacy هم نباشد، همان‌جا عنوان
+      // «پیدا نشد» برمی‌گردد.
+    } else if (source.kind === "versioned") {
       const result = source.result;
       const s = await getSiteSettings();
       const meta = pageSeo({
@@ -135,7 +140,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       }
       return meta;
     }
-    if (source.kind === "draft") return { title: "راهنما پیدا نشد" };
   }
   // S-001: دو خوانش مستقل موازی‌اند تا روی رندر سرد یک راندتریپ ذخیره شود
   // (هر دو 'use cache' دارند؛ روی کش گرم فرقی نمی‌کند).
@@ -160,10 +164,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 /**
  * CONTENT-FIRST: راهنما را بر اساس حالت جاری برگردان. در versioned،
- * رزولوشن یکپارچه است: سند نباشد legacy، پیش‌نویس باشد undefined (بعد
- * notFound می‌آید)، نسخه‌دار باشد راهنمای نسخهٔ منتشرشده. در
- * shadow_compare، legacy برمی‌گردد و مقایسه ثبت می‌شود؛ نبودن legacy هم
- * ثبت می‌شود و بعد notFound می‌آید.
+ * رزولوشن یکپارچه است: سند نباشد legacy، پیش‌نویس باشد legacy
+ * (THG-UNIFY-01: پیش‌نویس slug را تصاحب نمی‌کند؛ اگر legacy هم نباشد
+ * undefined برمی‌گردد و بعد notFound می‌آید)، نسخه‌دار باشد راهنمای
+ * نسخهٔ منتشرشده. در shadow_compare، legacy برمی‌گردد و مقایسه ثبت
+ * می‌شود؛ نبودن legacy هم ثبت می‌شود و بعد notFound می‌آید.
  */
 async function resolveGuideForPage(slug: string): Promise<Guide | undefined> {
   const mode = getContentReadMode();
@@ -172,7 +177,7 @@ async function resolveGuideForPage(slug: string): Promise<Guide | undefined> {
     fetchVersioned: (s) => getVersionedGuideCached(s),
   });
   if (source.kind === "versioned") return source.result.guide;
-  if (source.kind === "draft") return undefined;
+  if (source.kind === "draft") return getGuide(slug);
   if (mode === "shadow_compare") {
     const legacy = await getGuide(slug);
     if (!legacy) {
