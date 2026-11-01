@@ -86,6 +86,10 @@ function rpcOk(replayed: boolean): Response {
 describe("publishUpdateContent", () => {
   it("publishes in order, with a timeout signal, and no DELETE", async () => {
     const calls = installFetch((call) => {
+      if (call.url.includes("factory_settings")) return jsonResponse([
+        { key: "factory_paused", value: "false" },
+        { key: "data_publishing_enabled", value: "true" },
+      ]);
       if (call.url.includes("idempotency_key=eq.")) return jsonResponse([]);
       if (call.url.includes("publication_kind=eq.publish")) return jsonResponse([]);
       if (call.url.includes("/rpc/publish_v2_content_atomic")) return rpcOk(false);
@@ -108,17 +112,29 @@ describe("publishUpdateContent", () => {
     const order = calls.map((c) =>
       c.url.includes("idempotency_key=eq.")
         ? "replay-check"
-        : c.url.includes("publication_kind=eq.publish")
+        : c.url.includes("factory_settings")
+          ? "factory-settings"
+          : c.url.includes("publication_kind=eq.publish")
           ? "daily-count"
           : c.url.includes("/rpc/")
             ? "rpc"
             : "verify",
     );
-    expect(order).toEqual(["replay-check", "daily-count", "rpc", "verify"]);
+    expect(order).toEqual([
+      "replay-check",
+      "factory-settings",
+      "daily-count",
+      "rpc",
+      "verify",
+    ]);
   });
 
   it("rejects at the daily limit without calling the RPC", async () => {
     const calls = installFetch((call) => {
+      if (call.url.includes("factory_settings")) return jsonResponse([
+        { key: "factory_paused", value: "false" },
+        { key: "data_publishing_enabled", value: "true" },
+      ]);
       if (call.url.includes("idempotency_key=eq.")) return jsonResponse([]);
       if (call.url.includes("publication_kind=eq.publish")) {
         return jsonResponse(Array.from({ length: 70 }, (_, i) => ({ id: `pub-${i}` })));
@@ -133,6 +149,10 @@ describe("publishUpdateContent", () => {
 
   it("skips the daily gate for a replayed publication", async () => {
     const calls = installFetch((call) => {
+      if (call.url.includes("factory_settings")) return jsonResponse([
+        { key: "factory_paused", value: "false" },
+        { key: "data_publishing_enabled", value: "true" },
+      ]);
       if (call.url.includes("idempotency_key=eq.")) return jsonResponse([{ id: "pub-0" }]);
       if (call.url.includes("/rpc/publish_v2_content_atomic")) return rpcOk(true);
       if (call.url.includes("content_versions?id=eq.v-old")) return jsonResponse([{ id: "v-old" }]);
@@ -146,6 +166,10 @@ describe("publishUpdateContent", () => {
   it("replays once after an RPC error and uses the replayed result", async () => {
     let rpcCalls = 0;
     installFetch((call) => {
+      if (call.url.includes("factory_settings")) return jsonResponse([
+        { key: "factory_paused", value: "false" },
+        { key: "data_publishing_enabled", value: "true" },
+      ]);
       if (call.url.includes("idempotency_key=eq.")) return jsonResponse([]);
       if (call.url.includes("publication_kind=eq.publish")) return jsonResponse([]);
       if (call.url.includes("/rpc/publish_v2_content_atomic")) {
@@ -163,6 +187,10 @@ describe("publishUpdateContent", () => {
 
   it("reports outcome_unknown when the replay also fails", async () => {
     installFetch((call) => {
+      if (call.url.includes("factory_settings")) return jsonResponse([
+        { key: "factory_paused", value: "false" },
+        { key: "data_publishing_enabled", value: "true" },
+      ]);
       if (call.url.includes("idempotency_key=eq.")) return jsonResponse([]);
       if (call.url.includes("publication_kind=eq.publish")) return jsonResponse([]);
       if (call.url.includes("/rpc/publish_v2_content_atomic")) throw new Error("network down");
