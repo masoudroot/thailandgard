@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAuth, dbConfig, postgrestGet, postgrestWrite, type ApprovalRow, type ArtifactRow, type WorkItemRow } from "@/lib/factory/tick/internal-api";
-import { isValidApprovalDecision, isValidWorkItemTransition, statusAfterApproval, type WorkItemStatus } from "@/lib/factory/tick/work-items";
+import { isReviewLimitReached, isValidApprovalDecision, isValidWorkItemTransition, statusAfterApproval, type WorkItemStatus } from "@/lib/factory/tick/work-items";
 
 /**
  * POST /api/internal/work-items/[id]/approvals
@@ -54,6 +54,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const workItem = workItems[0];
     if (workItem.status !== "awaiting_approval") {
       return NextResponse.json({ error: `work item is not awaiting_approval (status ${workItem.status})` }, { status: 409 });
+    }
+    // M5: حداکثر ۳ دور بازبینی برای یک Work Item؛ دور چهارم ثبت نمی‌شود
+    // تا چرخهٔ تأیید/رد بی‌نهایت نشود. شمارش، همهٔ تصمیم‌های ثبت‌شده
+    // (تأیید و رد) را می‌شمرد.
+    const priorApprovals = (await postgrestGet(
+      cfg,
+      `factory_approvals?work_item_id=eq.${encodeURIComponent(workItem.id)}&select=id`,
+    )) as ApprovalRow[];
+    if (isReviewLimitReached(priorApprovals.length)) {
+      return NextResponse.json({ error: "review limit reached (3 reviews per work item)" }, { status: 409 });
     }
     const artifacts = (await postgrestGet(
       cfg,

@@ -67,6 +67,14 @@ export function statusAfterArtifactSubmitted(): WorkItemStatus {
   return "awaiting_approval";
 }
 
+/** حداکثر دور بازبینی انسانی برای یک Work Item؛ دور چهارم ثبت نمی‌شود. */
+export const MAX_REVIEWS_PER_WORK_ITEM = 3;
+
+/** آیا شمار تصمیم‌های ثبت‌شده، به سقف بازبینی رسیده است؟ */
+export function isReviewLimitReached(priorApprovalCount: number): boolean {
+  return priorApprovalCount >= MAX_REVIEWS_PER_WORK_ITEM;
+}
+
 /** تصمیم Approval، فقط approved یا rejected است. */
 export function isValidApprovalDecision(value: unknown): value is ApprovalDecision {
   return value === "approved" || value === "rejected";

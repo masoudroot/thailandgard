@@ -11,6 +11,9 @@ on:
 
 permissions:
   contents: read
+  # تست زندهٔ گارد پیش‌نمایش (M5) فهرست Deployments را از GitHub API
+  # می‌خواند؛ بدون این دسترسی، آن تست Unknown برمی‌گرداند و رد می‌شود.
+  deployments: read
 
 jobs:
   test:

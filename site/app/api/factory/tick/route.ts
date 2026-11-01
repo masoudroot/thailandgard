@@ -21,6 +21,7 @@ import {
   isValidWorkItemTransition,
   workItemPublishIdempotencyKey,
 } from "@/lib/factory/tick/work-items";
+import { publishUpdateContent } from "@/lib/factory/publish-v2";
 import {
   GATEWAY_TICK_STEP_KEYS,
   GATEWAY_WORKFLOW_VERSION,
@@ -1065,7 +1066,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           `factory_artifacts?id=eq.${encodeURIComponent(workItem.result_artifact_id)}&select=*`,
         )) as ArtifactRow[];
         if (artifacts.length === 0) throw new Error("artifact not found");
-        const created = (await postgrestRpc(cfg, "create_approved_version", {
+        // M5: قدم ساخت نسخه برای UpdateContent از Function نسخهٔ دوم
+        // استفاده می‌کند (بدون محدودیت تک‌slug)؛ بقیهٔ Work Itemها همان
+        // Function نسخهٔ اول را می‌گیرند.
+        const versionFn =
+          workItem.work_type === "update_content"
+            ? "create_approved_version_v2"
+            : "create_approved_version";
+        const created = (await postgrestRpc(cfg, versionFn, {
           p_content_id: workItem.content_id,
           p_payload: artifacts[0].payload,
           p_content_hash: artifacts[0].artifact_hash,
@@ -1111,26 +1119,65 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               previousUniqueText = prevFirst !== expectedMarker ? prevFirst : null;
             }
           }
-          const result = (await postgrestRpc(cfg, "publish_content_atomic", {
-            p_content_id: docs[0].id,
-            p_version_id: workItem.result_version_id,
-            p_idempotency_key: workItemPublishIdempotencyKey(workItem.work_key),
-            p_expected_marker: firstParagraph(payload),
-            p_previous_unique_text: previousUniqueText,
-            p_publication_kind: "publish",
-            p_rollback_of_publication_id: null,
-            p_reason: `approved tick publish for work item ${workItem.work_key}`,
-            p_work_item_id: workItem.id,
-            p_approval_id: approvals[0].id,
-          })) as Record<string, unknown>;
-          if (testCrashAfterPublication) {
-            throw new CrashAfterPublicationError("test hook: crash after publication commit");
+          if (workItem.work_type === "update_content") {
+            // M5 publish-v2: اعتبارسنجی، سقف روزانه و Timeout در سرویس؛
+            // زنجیرهٔ superseded_by و Outbox در Function اتمیک. بازیابی
+            // پس از Crash با همان کلید Idempotency در خود سرویس انجام
+            // می‌شود (Replay)، پس این‌جا فقط نتیجه ثبت می‌شود.
+            const versionRows = (await postgrestGet(
+              cfg,
+              `content_versions?id=eq.${encodeURIComponent(workItem.result_version_id)}&select=*`,
+            )) as VersionRow[];
+            const v2result = await publishUpdateContent(cfg, {
+              workItemId: workItem.id,
+              workKey: workItem.work_key,
+              contentId: docs[0].id,
+              versionId: workItem.result_version_id,
+              approvalId: approvals[0].id,
+              expectedMarker: firstParagraph(payload),
+              previousUniqueText,
+              previousVersionId: docs[0].published_version_id,
+              validation: {
+                workItemStatus: workItem.status,
+                workItemArtifactId: workItem.result_artifact_id,
+                approvalArtifactId: approvals[0].artifact_id,
+                approvalArtifactHash: approvals[0].artifact_hash,
+                artifactHash: artifacts[0].artifact_hash,
+                approvalDecision: "approved",
+                contentType: docs[0].content_type,
+                schemaVersion: versionRows[0]?.schema_version ?? "unknown",
+              },
+            });
+            if (testCrashAfterPublication) {
+              throw new CrashAfterPublicationError("test hook: crash after publication commit");
+            }
+            await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
+              publication_id: v2result.publicationId,
+              status: "publishing",
+              updated_at: new Date().toISOString(),
+            });
+          } else {
+            const result = (await postgrestRpc(cfg, "publish_content_atomic", {
+              p_content_id: docs[0].id,
+              p_version_id: workItem.result_version_id,
+              p_idempotency_key: workItemPublishIdempotencyKey(workItem.work_key),
+              p_expected_marker: firstParagraph(payload),
+              p_previous_unique_text: previousUniqueText,
+              p_publication_kind: "publish",
+              p_rollback_of_publication_id: null,
+              p_reason: `approved tick publish for work item ${workItem.work_key}`,
+              p_work_item_id: workItem.id,
+              p_approval_id: approvals[0].id,
+            })) as Record<string, unknown>;
+            if (testCrashAfterPublication) {
+              throw new CrashAfterPublicationError("test hook: crash after publication commit");
+            }
+            await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
+              publication_id: result.publication_id,
+              status: "publishing",
+              updated_at: new Date().toISOString(),
+            });
           }
-          await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
-            publication_id: result.publication_id,
-            status: "publishing",
-            updated_at: new Date().toISOString(),
-          });
         }
       } else if (claimed.step_key === "process_publication") {
         if (!workItem.publication_id) throw new Error("work item has no publication");

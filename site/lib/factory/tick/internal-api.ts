@@ -66,7 +66,12 @@ export async function postgrestWrite(
   return text ? (JSON.parse(text) as unknown[]) : [];
 }
 
-export async function postgrestRpc(cfg: DbCfg, fn: string, body: Record<string, unknown>): Promise<unknown> {
+export async function postgrestRpc(
+  cfg: DbCfg,
+  fn: string,
+  body: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<unknown> {
   const res = await fetch(`${cfg.url}/rest/v1/rpc/${fn}`, {
     method: "POST",
     headers: {
@@ -75,6 +80,7 @@ export async function postgrestRpc(cfg: DbCfg, fn: string, body: Record<string, 
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    ...(signal ? { signal } : {}),
   });
   const text = await res.text();
   if (!res.ok) throw new Error(`rpc ${fn} failed with ${res.status}: ${text.slice(0, 300)}`);

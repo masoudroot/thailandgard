@@ -120,3 +120,8 @@
 - هر merge روی `main` یک بیلد تولید روی Vercel راه می اندازد؛ تغییرات مستندات را دسته بندی کن.
 - قاعده های React Compiler هم `setState` داخل افکت را رد می کنند و هم تابع ناخالص مثل `Date.now()` داخل رندر را؛ راه درست `useSyncExternalStore` با snapshot سرور است.
 - در ابزار مرورگر، قبل از آزمون رفتار IntersectionObserver یا اسکرول، `Emulation.setFocusEmulationEnabled` بزن؛ در تب hidden کال بک ها نمی رسند و نتیجه منفی کاذب می شود.
+
+## وضعیت M5-PUBLISH-V2 (۱۴۰۵/۰۸/۱۰، شاخهٔ feat/m5-publish-v2)
+- پیاده‌سازی کامل شد (سرویس publish-v2، دو Function نسخهٔ دوم، دو شاخهٔ Tick، سقف ۳ بازبینی، گارد R2) و تست‌های تازه سبزند؛ PR باز می‌شود و چک `test` باید سبز شود.
+- Migration روی هیچ دیتابیسی اعمال نشده است (نه Staging، نه Production)؛ رفتار آن فقط با تراکنش برگشت‌پذیر روی Staging راستی شده و هیچ ردیفی نمانده است.
+- مرج به main، اعمال Migration و هر Deploy، نیازمند تأیید صریح مسعود است. مسیر v1 و دادهٔ Production دست نخورده‌اند.
