@@ -95,14 +95,127 @@ export interface SitemapSections {
   guides: MetadataRoute.Sitemap;
 }
 
+/**
+ * ردیف راهنمای نسخه‌ای منتشرشده برای نقشهٔ سایت: فقط slug و تاریخ
+ * شمسی به‌روزرسانی از payload نسخهٔ منتشرشده.
+ */
+export interface PublishedVersionedGuideRow {
+  slug: string;
+  updatedFa: string;
+}
+
+/**
+ * اجتماع راهنماهای legacy و نسخه‌ای برای نقشهٔ سایت (CONTENT-FIRST):
+ * برخورد slug، legacy می‌برد، چون صفحهٔ زنده در حالت legacy همان محتوای
+ * legacy را نشان می‌دهد و lastmod باید با محتوای سرو‌شده بخواند.
+ * راهنمای فقط‌نسخه‌ای (بدون سطر legacy) با lastmod نسخهٔ منتشرشده‌اش
+ * اضافه می‌شود. این تابع خالص است و فیلتر وضعیت را انجام نمی‌دهد؛
+ * فیلتر (published و اشاره‌گر ناته و غیرفیکسچر) در خوانش زیر است.
+ */
+export function mergeSitemapGuides(
+  legacy: PublishedVersionedGuideRow[],
+  versioned: PublishedVersionedGuideRow[],
+): PublishedVersionedGuideRow[] {
+  const seen = new Set(legacy.map((g) => g.slug));
+  const merged = [...legacy];
+  for (const guide of versioned) {
+    if (!seen.has(guide.slug)) {
+      seen.add(guide.slug);
+      merged.push(guide);
+    }
+  }
+  return merged;
+}
+
+type SitemapFetchFn = (url: string, init?: RequestInit) => Promise<Response>;
+
+interface VersionedDocRow {
+  id: string;
+  slug: string;
+  published_version_id: string;
+}
+
+interface VersionedVersionRow {
+  id: string;
+  payload: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * راهنماهای نسخه‌ای منتشرشده را با کلید anon می‌خواند (همان الگوی
+ * getSitemapRows): فقط content_documents با status برابر published و
+ * اشاره‌گر ناته و غیرفیکسچر؛ بعد payload نسخهٔ منتشرشدهٔ همان‌ها.
+ * RLS نسخه‌ها برای anon فقط نسخهٔ منتشرشده را نشان می‌دهد، پس سطر
+ * نسخهٔ پیش‌نویس هرگز این‌جا دیده نمی‌شود. سندی که نسخهٔ اشاره‌شده‌اش
+ * پیدا نشد (اشاره‌گر آویزان) از نقشه می‌افتد، چون صفحه‌اش هم در حالت
+ * versioned خطا می‌دهد و نباید تبلیغ شود. هر خرابی خوانش یا نبودن
+ * env، فهرست تهی می‌دهد تا نقشهٔ سایت با همان legacy به کارش ادامه
+ * دهد؛ پیش‌نویس، آرشیوشده یا منتشرنشده هرگز وارد نمی‌شود.
+ */
+export async function fetchPublishedVersionedGuides(
+  fetchFn: SitemapFetchFn = fetch,
+): Promise<PublishedVersionedGuideRow[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
+  try {
+    const docsRes = await fetchFn(
+      `${url}/rest/v1/content_documents?content_type=eq.guide&status=eq.published&published_version_id=not.is.null&is_test_fixture=is.false&select=id,slug,published_version_id`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!docsRes.ok) return [];
+    const docsRaw: unknown = await docsRes.json().catch(() => null);
+    if (!Array.isArray(docsRaw)) return [];
+    const docs = docsRaw.filter(
+      (d): d is VersionedDocRow =>
+        isRecord(d) &&
+        typeof d.id === "string" &&
+        typeof d.slug === "string" &&
+        d.slug.length > 0 &&
+        typeof d.published_version_id === "string",
+    );
+    if (docs.length === 0) return [];
+    const ids = docs.map((d) => d.id).join(",");
+    const versionsRes = await fetchFn(
+      `${url}/rest/v1/content_versions?id=in.(${ids})&select=id,payload`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!versionsRes.ok) return [];
+    const versionsRaw: unknown = await versionsRes.json().catch(() => null);
+    if (!Array.isArray(versionsRaw)) return [];
+    const payloadById = new Map<string, unknown>();
+    for (const v of versionsRaw) {
+      if (isRecord(v) && typeof v.id === "string") payloadById.set(v.id, v.payload);
+    }
+    const rows: PublishedVersionedGuideRow[] = [];
+    for (const doc of docs) {
+      const payload = payloadById.get(doc.published_version_id);
+      if (!isRecord(payload)) continue;
+      const updatedFa = typeof payload.updated_fa === "string" ? payload.updated_fa : "";
+      rows.push({ slug: doc.slug, updatedFa });
+    }
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
 export async function getSitemapSections(): Promise<SitemapSections> {
-  const { base, guides, tours } = await getSitemapRows();
+  const [{ base, guides, tours }, versionedGuides] = await Promise.all([
+    getSitemapRows(),
+    fetchPublishedVersionedGuides(),
+  ]);
+  // اجتماع legacy و نسخه‌ای؛ برخورد، legacy می‌برد (نگاه به mergeSitemapGuides).
+  const allGuides = mergeSitemapGuides(guides, versionedGuides);
 
   // سیگنال‌های واقعی تازگی (S-104/S-112): تاریخ نامعتبر نادیده گرفته می‌شود.
   const tourPriceDates = tours
     .map((t) => (t.priceUpdatedAt ? new Date(t.priceUpdatedAt) : null))
     .filter((d): d is Date => d !== null && !Number.isNaN(d.getTime()));
-  const guideDates = guides.map((g) => guideLastMod(g.updatedFa));
+  const guideDates = allGuides.map((g) => guideLastMod(g.updatedFa));
   const newest = (baseline: Date, dates: Date[]) =>
     dates.reduce((m, d) => (d > m ? d : m), baseline);
 
@@ -134,7 +247,7 @@ export async function getSitemapSections(): Promise<SitemapSections> {
     changeFrequency: "weekly" as const,
     priority: 0.9,
   }));
-  const guideEntries: MetadataRoute.Sitemap = guides.map((g) => ({
+  const guideEntries: MetadataRoute.Sitemap = allGuides.map((g) => ({
     url: `${base}/guide/${g.slug}`,
     lastModified: guideLastMod(g.updatedFa),
     changeFrequency: "monthly" as const,

@@ -92,6 +92,7 @@ export interface DocumentRow {
   slug: string;
   content_type: string;
   canonical_path: string;
+  status?: string;
   published_version_id: string | null;
   is_test_fixture?: boolean;
 }

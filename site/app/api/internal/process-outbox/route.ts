@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { randomUUID } from "node:crypto";
+import { VERSIONED_GUIDES_CACHE_TAG } from "@/lib/guide-versioned-read";
 import {
   backoffSeconds,
   isRedispatchCapReached,
@@ -272,6 +273,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
         revalidateTag("guides", { expire: 0 });
         revalidateTag("guide-versions", { expire: 0 });
+        // CONTENT-FIRST: هم‌ترازی تگ خواندن نسخه‌ای؛ بدون این تگ، صفحهٔ
+        // نسخه‌ای پس از انتشار، محتوای کهنه را از کش می‌خواند.
+        revalidateTag(VERSIONED_GUIDES_CACHE_TAG, { expire: 0 });
         revalidatePath(payload.canonical_path);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -352,8 +356,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         // Route Handler داخلی که updateTag در دسترسش نیست، همین قرارداد
         // توصیه شده است. درخواست Verification پس از Dispatch، همان
         // درخواست مسدودکننده است. revalidatePath مرتبط هم حفظ شده است.
+        // CONTENT-FIRST: تگ خواندن نسخه‌ای هم باطل می‌شود تا صفحهٔ
+        // نسخه‌ای، نسخهٔ تازه را بدون بیلد تازه بگیرد.
         revalidateTag("guides", { expire: 0 });
         revalidateTag("guide-versions", { expire: 0 });
+        revalidateTag(VERSIONED_GUIDES_CACHE_TAG, { expire: 0 });
         revalidatePath(payload.canonical_path);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
