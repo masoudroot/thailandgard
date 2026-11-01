@@ -238,3 +238,15 @@
   پروژه؛ مرج و دیپلوی؛ اعمال Migrationها؛ Backfill؛ سوئیچ حالت؛
   فعال‌سازی محدود تیم محتوا. هیچ‌کدام بدون تأیید صریح همان عملیات
   انجام نمی‌شود.
+
+## THG-UNIFY-01 — verify کامل سبز شد (۱۴۰۵/۰۸/۱۰)
+- دستور: npm run verify در site با Node 22.23.4 و
+  NODE_OPTIONS=--max-old-space-size=4096. کد خروج صفر.
+- نتیجه: typecheck و lint و lint:factory سبز (فقط هشدارهای قبلی، صفر
+  خطا)؛ تست‌ها: ۷۴ فایل passed و ۴ فایل skipped (وابسته به دیتابیس
+  آزمون)؛ ۶۹۴ تست passed و صفر failed و ۹ skipped از ۷۰۳ تست.
+- دو اصلاح هماهنگ‌کننده در مسیر verify: تایپ تست مالکیت content-sync
+  و stubهای factory_settings در تست سرویس publish-v2.
+- خشک‌چرخ Migrationها روی Staging در تراکنش با rollback سبز بود و
+  Staging بی‌تغییر ماند. Build در حال اجراست و نتیجه‌اش جداگانه
+  گزارش می‌شود.
