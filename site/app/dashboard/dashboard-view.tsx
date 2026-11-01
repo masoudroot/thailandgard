@@ -17,6 +17,7 @@ import {
   ListChecks,
   Power,
   Send,
+  Users,
   Wallet,
 } from "lucide-react";
 import {
@@ -33,6 +34,11 @@ import type {
   FactoryDashboardData,
   StatusCount,
 } from "@/lib/factory-dashboard/data";
+import { TeamSection } from "@/components/dashboard/TeamSection";
+import {
+  getTeamDisplays,
+  type TeamDisplay,
+} from "@/lib/factory-dashboard/teams";
 
 const STATUS_LABELS: Record<string, string> = {
   queued: "در صف",
@@ -135,7 +141,13 @@ function SectionCard({
   );
 }
 
-export function DashboardView({ data }: { data: FactoryDashboardData }) {
+export function DashboardView({
+  data,
+  teams = getTeamDisplays(),
+}: {
+  data: FactoryDashboardData;
+  teams?: TeamDisplay[];
+}) {
   const paused =
     data.switches.find((s) => s.key === "factory_paused")?.value === "true";
   const queuedSteps = countOf(data.steps, "queued");
@@ -225,6 +237,14 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
             ))}
           </ul>
         )}
+      </SectionCard>
+
+      <SectionCard
+        icon={<Users aria-hidden className="size-5" />}
+        title="تیم‌های فاز ۳"
+        description="شش تیم پیکربندی‌شدهٔ فاز ۳؛ هنوز خودمختار نیستند و انتشار از این‌جا انجام نمی‌شود."
+      >
+        <TeamSection teams={teams} awaitingApprovalCount={data.awaitingItems.length} />
       </SectionCard>
 
       <SectionCard

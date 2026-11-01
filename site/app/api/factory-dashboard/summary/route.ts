@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFactoryDashboard } from "@/lib/factory-dashboard/data";
+import { getTeamDisplays } from "@/lib/factory-dashboard/teams";
 import { getDashboardGate } from "@/lib/factory-dashboard/gate";
 import { SESSION_COOKIE } from "@/lib/dashboard/auth";
 
@@ -23,5 +24,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, reason: "unauthorized" }, { status: 401 });
   }
   const result = await getFactoryDashboard();
-  return NextResponse.json(result);
+  if (!result.ok) {
+    return NextResponse.json(result);
+  }
+  return NextResponse.json({ ...result, teams: getTeamDisplays() });
 }
