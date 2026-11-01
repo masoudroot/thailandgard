@@ -57,6 +57,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run factory:migrate
       - run: npm test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npm run factory:walking-skeleton
       - run: npm run build
       # Q2-08: security report only. `npm audit` exit codes must never block a
