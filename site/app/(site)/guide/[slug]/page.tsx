@@ -185,16 +185,27 @@ async function resolveGuideForPage(slug: string): Promise<Guide | undefined> {
       return undefined;
     }
     try {
-      const result = await getVersionedGuideCached(slug);
-      recordShadowCompare({
-        slug,
-        mode: "shadow_compare",
-        available: true,
-        comparison: compareGuideRenders(slug, legacy, result.guide),
-        versionId: result.versionId,
-        versionNo: result.versionNo,
-        contentHash: result.contentHash,
-      });
+      const outcome = await getVersionedGuideCached(slug);
+      if (!outcome || "kind" in outcome) {
+        recordShadowCompare({
+          slug,
+          mode: "shadow_compare",
+          available: false,
+          error: outcome
+            ? "سند پیش‌نویس است و نسخهٔ منتشرشده ندارد"
+            : "راهنمای نسخه‌ای برای این slug نیست",
+        });
+      } else {
+        recordShadowCompare({
+          slug,
+          mode: "shadow_compare",
+          available: true,
+          comparison: compareGuideRenders(slug, legacy, outcome.guide),
+          versionId: outcome.versionId,
+          versionNo: outcome.versionNo,
+          contentHash: outcome.contentHash,
+        });
+      }
     } catch (error) {
       recordShadowCompare({
         slug,

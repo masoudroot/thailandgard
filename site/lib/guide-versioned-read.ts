@@ -163,6 +163,21 @@ export interface VersionedGuideResult {
 }
 
 /**
+ * نتیجهٔ خواندن نسخه‌ای در مرز کش: سند نباشد یا فیکسچر باشد null؛ سند
+ * بدون نسخهٔ منتشرشده، نشان draft؛ وگرنه نتیجهٔ کامل. دلیل این شکل:
+ * تابعی با "use cache" در فاز گرم‌کردن کش پیش‌رندر نباید برای حالت‌های
+ * موردانتظار خطا بدهد؛ خطا مقدار کش‌پذیر نمی‌سازد و فاز نهایی پیش‌رندر
+ * با «Unexpected cache miss» می‌شکند. پس حالت‌های موردانتظار، مقدار
+ * برمی‌گردانند و فقط خرابی واقعی (پیکربندی، بالادست، نسخهٔ پیدا‌نشده)
+ * خطا می‌دهد.
+ */
+export type VersionedDraftMarker = { kind: "draft" };
+export type VersionedFetchOutcome =
+  | VersionedGuideResult
+  | VersionedDraftMarker
+  | null;
+
+/**
  * نسخهٔ منتشرشدهٔ یک slug را بخوان: document، بعد published_version_id، بعد
  * همان نسخه. هر گام خراب، خطای صریح با کد مشخص می‌دهد؛ fallback بی‌صدا نیست.
  * کدها: سند نباشد DOCUMENT_NOT_FOUND؛ سند فیکسچر باشد TEST_FIXTURE؛ سند
@@ -264,7 +279,7 @@ export interface GuideSourceDeps {
     slug: string,
     cfg: VersionedReadConfig | null,
     fetchFn: FetchFn,
-  ) => Promise<VersionedGuideResult>;
+  ) => Promise<VersionedFetchOutcome>;
 }
 
 /**
@@ -287,15 +302,23 @@ export async function resolveGuideSource(
   const fetchFn = deps.fetchFn ?? fetch;
   const fetchVersioned = deps.fetchVersioned ?? fetchVersionedGuide;
   try {
-    const result = await fetchVersioned(slug, cfg, fetchFn);
-    return { kind: "versioned", result };
-  } catch (err) {
-    if (err instanceof VersionedReadError) {
-      if (err.code === "DOCUMENT_NOT_FOUND" || err.code === "TEST_FIXTURE") {
-        return { kind: "legacy" };
-      }
-      if (err.code === "NO_PUBLISHED_VERSION") return { kind: "draft" };
+    const outcome = await fetchVersioned(slug, cfg, fetchFn);
+    if (outcome === null) return { kind: "legacy" };
+    if (typeof outcome === "object" && "kind" in outcome) {
+      return { kind: "draft" };
     }
+    return { kind: "versioned", result: outcome };
+  } catch (err) {
+    // برای خواننده‌های خام که هنوز خطا می‌دهند (مثل fetchVersionedGuide
+    // در تست): تصمیم روی فیلد code است، نه روی instanceof. خطا ممکن است
+    // با عبور از مرز کش یا سریال‌سازی React در پیش‌رندر، هویت کلاسش را
+    // از دست داده باشد و فقط message و code داشته باشد. codeهای ناشناخته
+    // همچنان fail-closed بالا می‌آیند.
+    const code = (err as { code?: unknown } | null)?.code;
+    if (code === "DOCUMENT_NOT_FOUND" || code === "TEST_FIXTURE") {
+      return { kind: "legacy" };
+    }
+    if (code === "NO_PUBLISHED_VERSION") return { kind: "draft" };
     throw err;
   }
 }
