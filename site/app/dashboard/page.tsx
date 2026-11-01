@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import DashboardClient from "./DashboardClient";
+import TeamsSection from "./teams-section";
 
 export const metadata: Metadata = {
   title: "داشبورد کارخانه",
@@ -24,6 +25,7 @@ export default function FactoryDashboardPage() {
         </p>
       </div>
       <DashboardClient />
+      <TeamsSection />
     </main>
   );
 }
