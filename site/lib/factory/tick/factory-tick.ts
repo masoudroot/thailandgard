@@ -159,3 +159,46 @@ export function deterministicStepCost(stepKey: AnyTickStepKey): number {
 export function stepNeedsPublishing(stepKey: AnyTickStepKey): boolean {
   return stepKey === "publish_version";
 }
+
+/**
+ * گیت قدم‌های Workflow آزمایشی Gateway (THG-UNIFY-01، GATEWAY).
+ *
+ * این گیت خالص است و هیچ گیت دیگری را عوض نمی‌کند: قدم‌های
+ * Workflow رسمی (guide_content_v1) با این گیت قضاوت نمی‌شوند و
+ * گیت انتشار (فقط publish_version) هم سر جایش می‌ماند. قدم
+ * Gateway فقط وقتی اجازهٔ اجرا دارد که کارخانه paused نباشد و
+ * generation_enabled دقیقاً true باشد؛ چون evaluateKillSwitches
+ * فقط مقدار رشته‌ای دقیق 'true' را true می‌کند، هر مقدار دیگر
+ * (نبودن، 'false'، 'True'، '1') یعنی Fail-closed و مسدود.
+ *
+ * توجه سیم‌کشی: این تابع، قاعده را تعریف و آزمون می‌کند؛ نقطهٔ
+ * فراخوان آن در حلقهٔ Tick (مسیر /api/factory/tick، کنار گیت
+ * dataPublishing برای publish_version) خارج از فایل‌های این
+ * جریان است و هماهنگ‌کننده باید آن‌جا وصلش کند تا گیت از حالت
+ * قاعده به اجرا برسد.
+ */
+export type GatewayStepBlockReason =
+  | "factory_paused"
+  | "generation_disabled";
+
+export function gatewayStepBlockReason(
+  switches: KillSwitches,
+  workflowVersion: string | null | undefined,
+  stepKey: AnyTickStepKey,
+): GatewayStepBlockReason | null {
+  if (workflowVersion !== GATEWAY_WORKFLOW_VERSION) return null;
+  if (!isStepKeyOfWorkflow(stepKey, workflowVersion)) return null;
+  if (switches.factoryPaused) return "factory_paused";
+  if (switches.generationEnabled !== true) return "generation_disabled";
+  return null;
+}
+
+export function gatewayStepBlocked(
+  switches: KillSwitches,
+  workflowVersion: string | null | undefined,
+  stepKey: AnyTickStepKey,
+): boolean {
+  return (
+    gatewayStepBlockReason(switches, workflowVersion, stepKey) !== null
+  );
+}
