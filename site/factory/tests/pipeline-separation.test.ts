@@ -54,6 +54,14 @@ const PROCESS_OUTBOX_ROUTE = path.join(
   "process-outbox",
   "route.ts",
 );
+// CUTOVER-FT-02: منطق Dispatch در سرویس مشترک است؛ مسیر فقط پوسته است.
+const PROCESS_OUTBOX_SERVICE = path.join(
+  SITE_ROOT,
+  "lib",
+  "factory",
+  "tick",
+  "process-outbox-batch.ts",
+);
 const FACTORY_CI = path.join(REPO_ROOT, ".github", "workflows", "factory-ci.yml");
 
 describe("publish-v2 rollback idempotency key", () => {
@@ -239,9 +247,15 @@ describe("code path has no data writes (static)", () => {
 
 describe("outbox dispatch wiring (static)", () => {
   it("process-outbox invalidates both guide tags and the canonical path", () => {
-    const source = readFileSync(PROCESS_OUTBOX_ROUTE, "utf8");
+    const source = readFileSync(PROCESS_OUTBOX_SERVICE, "utf8");
     expect(source.includes('revalidateTag("guides"')).toBe(true);
     expect(source.includes('revalidateTag("guide-versions"')).toBe(true);
     expect(source.includes("revalidatePath(payload.canonical_path)")).toBe(true);
+  });
+
+  it("process-outbox route delegates to the shared service (no second path)", () => {
+    const route = readFileSync(PROCESS_OUTBOX_ROUTE, "utf8");
+    expect(route.includes("processOutboxBatch")).toBe(true);
+    expect(route.includes('revalidateTag("guides"')).toBe(false);
   });
 });

@@ -131,6 +131,13 @@ export interface GuideCompleteResult {
   replayed: boolean;
 }
 
+/** نتیجهٔ پمپ Outbox از مسیر داشبورد: شناسهٔ Publication و وضعیت پس از پمپ. */
+export interface GuidePumpResult {
+  publicationId: string | null;
+  status: string | null;
+  processed: number;
+}
+
 export interface GuideRollbackResult {
   publicationId: string;
   outboxId: string | null;

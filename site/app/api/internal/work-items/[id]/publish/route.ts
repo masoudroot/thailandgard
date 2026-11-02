@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import {
   firstParagraphOfPayload,
   PublishV2Error,
   publishUpdateContent,
 } from "@/lib/factory/publish-v2";
+import { processOutboxBatch } from "@/lib/factory/tick/process-outbox-batch";
 import {
   checkAuth,
   dbConfig,
@@ -181,6 +182,25 @@ export async function POST(
       status: "publishing",
       updated_at: new Date().toISOString(),
     });
+    // CUTOVER-FT-02 ماشهٔ (پ): شلیک fire-and-forget پمپ پس از ثبت
+    // Publication. after() در درخواست واقعی، پس از ارسال پاسخ اجرا
+    // می‌شود. اگر after() در دسترس نباشد (بیرون از درخواست، مثل تست)،
+    // هیچ کاری نمی‌شود: پمپ از Job زمان‌بندی یا دکمهٔ داشبورد ادامه
+    // می‌دهد و پاسخ انتشار هم به پمپ گره نمی‌خورد.
+    const forwardedProto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+    const host = req.headers.get("host");
+    const pumpOrigin = host ? `${forwardedProto ?? "http"}://${host}` : `http://127.0.0.1:${process.env.PORT ?? "3100"}`;
+    try {
+      after(async () => {
+        try {
+          await processOutboxBatch(cfg, pumpOrigin, {});
+        } catch {
+          // خرابی پمپ در ردیف Outbox ثبت می‌شود و Job زمان‌بندی دوباره می‌زند.
+        }
+      });
+    } catch {
+      // after() بیرون از درخواست در دسترس نیست؛ پمپ از ماشه‌های دیگر می‌آید.
+    }
     return NextResponse.json({
       version_id: result.versionId,
       publication_id: result.publicationId,

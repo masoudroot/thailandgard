@@ -743,6 +743,16 @@ export default function GuideSection() {
                           detailState.detail.documentId,
                         );
                       }}
+                      onPump={() => {
+                        const wi = detailState.detail.workItem;
+                        if (!wi) return;
+                        void postAction(
+                          `/api/factory-dashboard/guides/${encodeURIComponent(wi.id)}/pump`,
+                          {},
+                          `pump-${wi.id}`,
+                          detailState.detail.documentId,
+                        );
+                      }}
                       onRollback={(publicationId, reason) => {
                         void postAction(
                           `/api/factory-dashboard/guides/${encodeURIComponent(detailState.detail.documentId)}/rollback`,
@@ -775,6 +785,7 @@ function GuideDetailPanel({
   onApprove,
   onPublish,
   onComplete,
+  onPump,
   onRollback,
   onStartUpdate,
 }: {
@@ -788,6 +799,7 @@ function GuideDetailPanel({
   onApprove: (decision: "approved" | "rejected") => void;
   onPublish: () => void;
   onComplete: () => void;
+  onPump: () => void;
   onRollback: (publicationId: string, reason: string) => void;
   onStartUpdate: () => void;
 }) {
@@ -1032,6 +1044,18 @@ function GuideDetailPanel({
               onClick={onComplete}
             >
               {busyKey === `complete-${detail.workItem.id}` ? "در حال بررسی…" : "بررسی وضعیت و تکمیل"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={
+                busyKey !== null ||
+                detail.workItem.status !== "publishing" ||
+                !detail.publication ||
+                !["pending", "dispatched", "verifying", "retry_scheduled"].includes(detail.publication.status)
+              }
+              onClick={onPump}
+            >
+              {busyKey === `pump-${detail.workItem.id}` ? "در حال پردازش…" : "پردازش انتشار"}
             </Button>
           </div>
           {!detail.canPublish && detail.publishDisabledReason && (
