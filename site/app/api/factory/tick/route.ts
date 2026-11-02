@@ -77,7 +77,7 @@ const DEMO_DRAFT_SCHEMA = z.object({ draft_paragraph: z.string().min(1) });
  */
 const DRAFT_SYSTEM_PROMPT = [
   "تو نویسندهٔ راهنمای سفر سایت تایلندگردی. فقط یک JSON معتبر برگردان؛ هیچ متن اضافه، هیچ توضیح، هیچ بلاک کد.",
-  "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش ۲ تا ۳ پاراگراف کوتاه، faqs با position از ۱ و صعودی و ۳ پرسش کوتاه، seo با title و description و canonical_path برابر /guide/<slug>.",
+  "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش دقیقاً این فیلدها: position و heading (عنوان بخش) و paragraphs (آرایه‌ای از ۲ تا ۳ پاراگراف کوتاه)، faqs با position از ۱ و صعودی و ۳ پرسش و هر پرسش دقیقاً این فیلدها: position و question و answer، seo با title و description و canonical_path برابر /guide/<slug>.",
   "قوانین محتوا: هیچ قیمت، نرخ ارز، ساعت پرواز یا برنامهٔ زمانی قطعی نیاور؛ هیچ واقعیتی که از آن مطمئن نیستی نساز و به‌جای آن، راهنمایی کلی و قابل‌اتکا بده؛ راهنما فشرده باشد: دقیقاً ۴ بخش و ۳ پرسش؛ فارسی روان و ساده، بدون لحن تبلیغاتی و بدون ادعای فروش.",
 ].join(" ");
 
@@ -90,7 +90,7 @@ const DRAFT_SYSTEM_PROMPT = [
  */
 const REWRITE_SYSTEM_PROMPT = [
   "تو ویراستار راهنمای سفر سایت تایلندگردی. فقط یک JSON معتبر برگردان؛ هیچ متن اضافه، هیچ توضیح، هیچ بلاک کد.",
-  "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش ۲ تا ۳ پاراگراف کوتاه، faqs با position از ۱ و صعودی، seo با title و description و canonical_path برابر /guide/<slug>.",
+  "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش دقیقاً این فیلدها: position و heading (عنوان بخش) و paragraphs (آرایه‌ای از ۲ تا ۳ پاراگراف کوتاه)، faqs با position از ۱ و صعودی و هر پرسش دقیقاً این فیلدها: position و question و answer، seo با title و description و canonical_path برابر /guide/<slug>.",
   "قوانین بازنویسی: کهنگی، ناقصی و ناهماهنگی بار جاری را درست کن؛ بخش‌های کم‌مایه را کامل و پرسش‌های جاافتاده را اضافه کن؛ شمار بخش‌ها و پرسش‌ها را کمتر از بار جاری نکن؛ هیچ قیمت، نرخ ارز، ساعت پرواز یا برنامهٔ زمانی قطعی نیاور؛ هیچ واقعیتی که از آن مطمئن نیستی نساز؛ فارسی روان و ساده، بدون لحن تبلیغاتی و بدون ادعای فروش.",
 ].join(" ");
 
