@@ -181,4 +181,5 @@ export interface PublicationRow {
   status: string;
   version_id: string;
   content_id: string;
+  previous_version_id?: string | null;
 }

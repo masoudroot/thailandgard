@@ -1,14 +1,19 @@
 name: factory-outbox-pump
 
-# CUTOVER-FT-02 ماشهٔ (ب): پمپ زمان‌بندی Outbox. هر ۵ دقیقه یک دور
-# پردازش Outbox روی Production می‌زند تا هر Publication ساخته‌شده
-# (دستی یا تیمی) بدون دکمهٔ انسانی تکمیل شود. الگوی زمان‌بندی، همان
-# cycle-worker است؛ ولی این Job به Checkout و Node نیاز ندارد، چون
-# فقط مسیر داخلی Production را با توکن سروری موجود صدا می‌زند.
-# سکرت INTERNAL_PUBLISH_TOKEN از پیش در مخزن هست و مقدارش همان
-# متغیر Production در Vercel است؛ مقدار تازه‌ای این‌جا نوشته نمی‌شود.
-# مسیر، وقتی کاری برای پردازش نیست {processed: 0} با کد ۲۰۰ برمی‌گرداند؛
-# پس فقط ۴۰۱/۵۰۳ (توکن یا پیکربندی) Job را قرمز می‌کند.
+# CUTOVER-FT-02 ماشهٔ (ب) + THG-AUTO-01: Job پنج‌دقیقه‌ای Production.
+# دو قدم در یک Job، به همین ترتیب: اول تیک (تا کارهای
+# queued/tick_managed، از جمله Work Itemهای خودمختار، بدون دخالت
+# انسان جلو بروند)، بعد پمپ Outbox (تا Publicationهای ساخته‌شده
+# تکمیل شوند). قدم تیک با if: always روی پمپ همراه است تا خرابی
+# تیک، پمپ را نبندد؛ ولی خرابی تیک، Job را قرمز می‌کند تا دیده
+# شود. الگوی زمان‌بندی، همان cycle-worker است؛ این Job به Checkout
+# و Node نیاز ندارد، چون فقط مسیرهای داخلی Production را با توکن
+# سروری موجود صدا می‌زند.
+# سکرت INTERNAL_PUBLISH_TOKEN در مخزن است و مقدارش همان متغیر
+# Production در Vercel است؛ مقدار تازه‌ای این‌جا نوشته نمی‌شود.
+# مسیر تیک، وقتی کاری نیست {status: "no_work"} با کد ۲۰۰
+# برمی‌گرداند؛ مسیر پمپ، وقتی کاری نیست {processed: 0} با کد ۲۰۰؛
+# پس فقط ۴۰۱/۵۰۳ (توکن یا پیکربندی) یا خطای قدم، Job را قرمز می‌کند.
 
 on:
   schedule:
@@ -16,11 +21,23 @@ on:
   workflow_dispatch:
 
 jobs:
-  pump:
+  tick_and_pump:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: tick production factory
+        run: |
+          code=$(curl -s --max-time 240 -o /tmp/tick.json -w '%{http_code}' -X POST "$TICK_URL" \
+            -H "x-internal-publish-token: $INTERNAL_PUBLISH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{}')
+          cat /tmp/tick.json; echo
+          test "$code" = "200"
+        env:
+          TICK_URL: https://thailandgard.ir/api/factory/tick
+          INTERNAL_PUBLISH_TOKEN: ${{ secrets.INTERNAL_PUBLISH_TOKEN }}
       - name: pump production outbox
+        if: always()
         run: |
           code=$(curl -s --max-time 240 -o /tmp/pump.json -w '%{http_code}' -X POST "$PUMP_URL" \
             -H "x-internal-publish-token: $INTERNAL_PUBLISH_TOKEN" \
