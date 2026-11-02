@@ -50,6 +50,24 @@ describe('R2-A adapter contract', () => {
     expect(adaptStepForTick('generate_draft_mock', 'guide_content_v1')).toBe('step_not_in_workflow');
   });
 
+  it('admits the THG-RB-01 gateway workflow v2 and only its own steps', () => {
+    expect(
+      adaptWorkItemForTick({
+        execution_mode: 'tick_managed',
+        workflow_version: 'guide_content_gateway_v2',
+        created_at: AFTER_CUTOFF,
+      }),
+    ).toBe('eligible');
+    expect(adaptStepForTick('generate_draft', 'guide_content_gateway_v2')).toBe('eligible');
+    expect(adaptStepForTick('validate_artifact', 'guide_content_gateway_v2')).toBe('eligible');
+    expect(adaptStepForTick('await_human_approval', 'guide_content_gateway_v2')).toBe('eligible');
+    // قدم‌های نسخهٔ ۱ و مسیر رسمی، در نسخهٔ ۲ اجرا نمی‌شوند و برعکس.
+    expect(adaptStepForTick('prepare_context', 'guide_content_gateway_v2')).toBe('step_not_in_workflow');
+    expect(adaptStepForTick('generate_draft_mock', 'guide_content_gateway_v2')).toBe('step_not_in_workflow');
+    expect(adaptStepForTick('generate_draft', 'guide_content_gateway_v1')).toBe('step_not_in_workflow');
+    expect(adaptStepForTick('publish_version', 'guide_content_gateway_v2')).toBe('step_not_in_workflow');
+  });
+
   it('admits only tick_managed guide_content_v1 work items created after the cutoff', () => {
     expect(
       adaptWorkItemForTick({

@@ -167,8 +167,8 @@ interface JournalEntry {
   estimate: number;
   output: unknown;
   usage: { promptTokens: number; completionTokens: number; totalTokens: number };
-  actual: number;
-  costBasis: CostBasis;
+  actual: number | null;
+  costBasis: CostBasis | null;
   costUnit: string;
   costCalculationBasis: string;
   errorMessage?: string;
@@ -743,14 +743,22 @@ export class ModelGateway {
       const strippedOutput = stripReasoningContent(result.output);
       const checked = request.output_schema.safeParse(strippedOutput);
       const actual = result.cost;
-      const costBasis: CostBasis = result.cost_basis ?? "estimated";
-      const costUnit = result.cost_unit ?? "";
+      // هزینهٔ null یعنی Provider قیمت اعلام نکرده است: مبنا هم
+      // null می‌شود تا هیچ عددی (حتی صفر) به‌جای هزینهٔ نامعلوم
+      // ثبت نشود. سطر تسویه به‌خاطر NOT NULL بودن ستون cost_basis
+      // در settlements، مبنای estimated می‌گیرد، ولی پاسخ و سطر
+      // عملیات، null را نگه می‌دارند و ledger سطر commit نمی‌گیرد.
+      const costBasis: CostBasis | null =
+        actual === null ? null : (result.cost_basis ?? "estimated");
+      const costUnit = actual === null ? "" : (result.cost_unit ?? "");
       const costCalculationBasis =
-        costBasis === "simulated"
-          ? "totalTokens × costPerToken (simulated mock cost in mock-unit; not a provider charge)"
-          : costBasis === "provider_actual"
-            ? "provider-reported definitive cost"
-            : "provider-reported cost without a definitive basis (estimated)";
+        actual === null
+          ? "provider reported usage without a price; cost unknown"
+          : costBasis === "simulated"
+            ? "totalTokens × costPerToken (simulated mock cost in mock-unit; not a provider charge)"
+            : costBasis === "provider_actual"
+              ? "provider-reported definitive cost"
+              : "provider-reported cost without a definitive basis (estimated)";
       const journalEntry: JournalEntry = {
         kind: checked.success ? "success" : "invalid_output",
         fingerprint,
@@ -884,7 +892,7 @@ export class ModelGateway {
           idempotency_key: request.idempotency_key,
           release_amount: entry.estimate,
           commit_amount: entry.actual,
-          cost_basis: entry.costBasis,
+          cost_basis: entry.costBasis ?? "estimated",
         });
       } catch (error) {
         if (error instanceof LedgerError) {
@@ -943,7 +951,7 @@ export class ModelGateway {
     }
     const { estimate, actual, costBasis, costUnit, costCalculationBasis } =
       entry;
-    if (actual > estimate) {
+    if (actual !== null && actual > estimate) {
       try {
         await this.settleOrRecover({
           work_item_id: request.work_item_id,
@@ -952,7 +960,7 @@ export class ModelGateway {
           idempotency_key: request.idempotency_key,
           release_amount: 0,
           commit_amount: estimate,
-          cost_basis: costBasis,
+          cost_basis: costBasis ?? "estimated",
         });
       } catch (error) {
         if (error instanceof LedgerError) {
@@ -1033,9 +1041,9 @@ export class ModelGateway {
         attempt_id: request.attempt_id,
         factory_attempt_id: factoryAttemptId,
         idempotency_key: request.idempotency_key,
-        release_amount: estimate - actual,
+        release_amount: actual === null ? estimate : estimate - actual,
         commit_amount: actual,
-        cost_basis: costBasis,
+        cost_basis: costBasis ?? "estimated",
       });
     } catch (error) {
       if (error instanceof LedgerError) {

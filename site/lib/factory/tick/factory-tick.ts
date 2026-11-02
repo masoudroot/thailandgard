@@ -37,7 +37,7 @@ export const GATEWAY_TICK_STEP_KEYS = [
 
 export type GatewayTickStepKey = (typeof GATEWAY_TICK_STEP_KEYS)[number];
 
-export type AnyTickStepKey = TickStepKey | GatewayTickStepKey;
+export type AnyTickStepKey = TickStepKey | GatewayTickStepKey | GatewayV2TickStepKey;
 
 /**
  * نسخهٔ Workflow مسیر رسمی. فقط همین نسخه، با همین ۸ Step و همین
@@ -51,14 +51,36 @@ export const WORKFLOW_STEPS = TICK_STEP_KEYS;
 export const GATEWAY_WORKFLOW_VERSION = "guide_content_gateway_v1";
 export const GATEWAY_WORKFLOW_STEPS = GATEWAY_TICK_STEP_KEYS;
 
+/**
+ * نسخهٔ Workflow واقعی تولید Draft با Provider واقعی (THG-RB-01).
+ * prepare_context ندارد، چون راهنمای تازه نسخهٔ منتشرشده ندارد که
+ * آماده شود؛ زنجیره، فقط Draft و اعتبارسنجی و تأیید انسانی است و
+ * هیچ قدم نسخه‌سازی یا انتشار ندارد، پس از await_human_approval
+ * می‌ایستد.
+ */
+export const GATEWAY_V2_WORKFLOW_VERSION = "guide_content_gateway_v2";
+export const GATEWAY_V2_TICK_STEP_KEYS = [
+  "generate_draft",
+  "validate_artifact",
+  "await_human_approval",
+] as const;
+
+export type GatewayV2TickStepKey =
+  (typeof GATEWAY_V2_TICK_STEP_KEYS)[number];
+
 export function isSupportedWorkflowVersion(version: string | null | undefined): boolean {
-  return version === WORKFLOW_VERSION || version === GATEWAY_WORKFLOW_VERSION;
+  return (
+    version === WORKFLOW_VERSION ||
+    version === GATEWAY_WORKFLOW_VERSION ||
+    version === GATEWAY_V2_WORKFLOW_VERSION
+  );
 }
 
 export function isValidWorkflowStepKey(stepKey: string): stepKey is AnyTickStepKey {
   return (
     (TICK_STEP_KEYS as readonly string[]).includes(stepKey) ||
-    (GATEWAY_TICK_STEP_KEYS as readonly string[]).includes(stepKey)
+    (GATEWAY_TICK_STEP_KEYS as readonly string[]).includes(stepKey) ||
+    (GATEWAY_V2_TICK_STEP_KEYS as readonly string[]).includes(stepKey)
   );
 }
 
@@ -67,6 +89,9 @@ export function isStepKeyOfWorkflow(stepKey: string, workflowVersion: string | n
   if (workflowVersion === WORKFLOW_VERSION) return (TICK_STEP_KEYS as readonly string[]).includes(stepKey);
   if (workflowVersion === GATEWAY_WORKFLOW_VERSION) {
     return (GATEWAY_TICK_STEP_KEYS as readonly string[]).includes(stepKey);
+  }
+  if (workflowVersion === GATEWAY_V2_WORKFLOW_VERSION) {
+    return (GATEWAY_V2_TICK_STEP_KEYS as readonly string[]).includes(stepKey);
   }
   return false;
 }
@@ -186,7 +211,12 @@ export function gatewayStepBlockReason(
   workflowVersion: string | null | undefined,
   stepKey: AnyTickStepKey,
 ): GatewayStepBlockReason | null {
-  if (workflowVersion !== GATEWAY_WORKFLOW_VERSION) return null;
+  if (
+    workflowVersion !== GATEWAY_WORKFLOW_VERSION &&
+    workflowVersion !== GATEWAY_V2_WORKFLOW_VERSION
+  ) {
+    return null;
+  }
   if (!isStepKeyOfWorkflow(stepKey, workflowVersion)) return null;
   if (switches.factoryPaused) return "factory_paused";
   if (switches.generationEnabled !== true) return "generation_disabled";

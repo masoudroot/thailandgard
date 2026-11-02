@@ -25,6 +25,8 @@ import { publishUpdateContent } from "@/lib/factory/publish-v2";
 import { processOutboxBatch } from "@/lib/factory/tick/process-outbox-batch";
 import {
   GATEWAY_TICK_STEP_KEYS,
+  GATEWAY_V2_TICK_STEP_KEYS,
+  GATEWAY_V2_WORKFLOW_VERSION,
   GATEWAY_WORKFLOW_VERSION,
   TICK_STEP_KEYS,
   WORKFLOW_VERSION,
@@ -41,6 +43,7 @@ import {
   adaptWorkItemForTick,
 } from "@/lib/factory/tick/adapter";
 import { PostgrestBudgetLedger } from "@/lib/factory/gateway/ledger";
+import { CURRENT_BUDGET_POLICY, modelsForCapability } from "@/lib/factory/gateway/registry";
 import { isSimulatedCrash, throwIfCrashAfter } from "@/lib/factory/gateway/crash-test";
 import { getLatestOperation, patchOperation } from "@/lib/factory/gateway/operations";
 import {
@@ -56,6 +59,35 @@ import {
 const RUNNER_VERSION = "r3c-tick-1";
 
 const DEMO_DRAFT_SCHEMA = z.object({ draft_paragraph: z.string().min(1) });
+
+/**
+ * دستور سیستمی قدم draft واقعی (THG-RB-01): مدل، فقط JSON معتبر
+ * برمی‌گرداند و هیچ قیمت یا زمان قطعی نمی‌سازد؛ چون Draft، پیش
+ * از هر انتشار، تأیید انسانی می‌گیرد، کیفیت محتوا همان‌جا قضاوت
+ * می‌شود نه با اعتبارسنجی ماشینی.
+ */
+const DRAFT_SYSTEM_PROMPT = [
+  "تو نویسندهٔ راهنمای سفر سایت تایلندگردی. فقط یک JSON معتبر برگردان؛ هیچ متن اضافه، هیچ توضیح، هیچ بلاک کد.",
+  "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش ۲ تا ۳ پاراگراف کوتاه، faqs با position از ۱ و صعودی و ۳ پرسش کوتاه، seo با title و description و canonical_path برابر /guide/<slug>.",
+  "قوانین محتوا: هیچ قیمت، نرخ ارز، ساعت پرواز یا برنامهٔ زمانی قطعی نیاور؛ هیچ واقعیتی که از آن مطمئن نیستی نساز و به‌جای آن، راهنمایی کلی و قابل‌اتکا بده؛ راهنما فشرده باشد: دقیقاً ۴ بخش و ۳ پرسش؛ فارسی روان و ساده، بدون لحن تبلیغاتی و بدون ادعای فروش.",
+].join(" ");
+
+/**
+ * اسکیمای خروجی قدم draft واقعی: همان اعتبارسنجی publish_payload_v1
+ * که validate_artifact هم استفاده می‌کند؛ اسکیمای موازی ساخته
+ * نمی‌شود تا یک منبع حقیقت بماند. خروجی مدل، پیش از ساخت
+ * Artifact، همین‌جا اعتبارسنجی می‌شود.
+ */
+const PUBLISH_PAYLOAD_SCHEMA = {
+  safeParse: (data: unknown) => {
+    try {
+      validatePublishPayload(data);
+      return { success: true as const, data };
+    } catch (error) {
+      return { success: false as const, error };
+    }
+  },
+};
 
 /** خطای Crash پس از Commit انتشار: Step، claimed و Attempt، started می‌ماند تا Tick بعدی پس از انقضای Lease بازیابی کند. */
 class CrashAfterPublicationError extends Error {}
@@ -151,6 +183,54 @@ async function createGuideEditArtifact(
     updated_at: new Date().toISOString(),
   });
   return artifactId;
+}
+
+/**
+ * ساخت Artifact پیش‌نویس راهنمای تازه (THG-RB-01): برخلاف
+ * createGuideEditArtifact، هیچ نسخهٔ منتشرشده‌ای پایه نیست؛ بار،
+ * همان خروجی کامل مدل است که پیش از این‌جا اعتبارسنجی شده و
+ * Hash واقعی‌اش حساب می‌شود. آیتم، پس از این قدم، awaiting_approval
+ * می‌شود و قدم بعدی (validate_artifact) بار را دوباره می‌سنجد.
+ */
+async function createGuideDraftArtifact(
+  cfg: DbCfg,
+  workItem: WorkItemRow,
+  payload: PublishPayload,
+): Promise<string> {
+  validatePublishPayload(payload);
+  const hash = computeContentHash(payload);
+  const inserted = (await postgrestWrite(cfg, "POST", "factory_artifacts", {
+    work_item_id: workItem.id,
+    artifact_type: "content_draft",
+    schema_version: "publish_payload_v1",
+    payload,
+    artifact_hash: hash,
+  })) as ArtifactRow[];
+  const artifactId = inserted[0]?.id ?? null;
+  if (!artifactId) throw new Error("artifact was not created");
+  await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
+    result_artifact_id: artifactId,
+    status: "awaiting_approval",
+    updated_at: new Date().toISOString(),
+  });
+  return artifactId;
+}
+
+/**
+ * ثبت هزینه‌های attempt از پاسخ Gateway: estimated همیشه،
+ * actual فقط وقتی غیرتهی است؛ ستون actual_cost در factory_attempts
+ * تهی نمی‌پذیرد و null هرگز نباید به صفر تبدیل شود.
+ */
+async function patchAttemptCosts(
+  cfg: DbCfg,
+  attemptId: string,
+  estimatedCost: number,
+  actualCost: number | null,
+): Promise<void> {
+  await postgrestWrite(cfg, "PATCH", `factory_attempts?id=eq.${encodeURIComponent(attemptId)}`, {
+    estimated_cost: estimatedCost,
+    ...(actualCost === null ? {} : { actual_cost: actualCost }),
+  });
 }
 
 /**
@@ -429,10 +509,39 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // قرارداد M6: Work Item tick_managed با نسخهٔ ناشناخته، حتی اگر
-    // Step هم نداشته باشد، با وضعیت مشخص مسدود می‌شود، نه این‌که
-    // بی‌صدا در صف بماند یا با حدس اجرا شود. بوت‌استرپ، فقط نسخهٔ
-    // پشتیبانی‌شده را Step می‌دهد، پس این اسکن، همان گارد دوم است.
+    // بوت‌استرپ THG-RB-01: همان الگو، برای Workflow واقعی Gateway
+    // نسخهٔ ۲. زنجیرهٔ ۳ Step این Workflow، هیچ قدم نسخه‌سازی یا
+    // انتشار ندارد؛ پس از await_human_approval، چرخه می‌ایستد.
+    const queuedGatewayV2WIs = (await postgrestGet(
+      cfg,
+      `factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&workflow_version=eq.${GATEWAY_V2_WORKFLOW_VERSION}&created_at=gte.${encodeURIComponent(R2A1_SCOPE_CUTOFF)}&order=created_at.asc&select=id,work_key,status`,
+    )) as WorkItemRow[];
+    for (const wi of queuedGatewayV2WIs) {
+      const existing = (await postgrestGet(
+        cfg,
+        `factory_work_steps?work_item_id=eq.${encodeURIComponent(wi.id)}&select=id&limit=1`,
+      )) as unknown[];
+      if (existing.length === 0) {
+        await postgrestWrite(
+          cfg,
+          "POST",
+          "factory_work_steps",
+          GATEWAY_V2_TICK_STEP_KEYS.map((stepKey, index) => ({
+            work_item_id: wi.id,
+            step_key: stepKey,
+            sequence_no: index + 1,
+            status: "queued",
+            max_attempts: stepMaxAttempts(stepKey),
+            idempotency_key: `r3g-gateway-step-${wi.work_key}-${stepKey}`,
+          })),
+        );
+        break;
+      }
+    }
+    // گارد دوم: Work Item tick_managed با نسخهٔ ناشناخته، با وضعیت
+    // مشخص مسدود می‌شود، نه این‌که بی‌صدا در صف بماند یا با حدس
+    // اجرا شود. بوت‌استرپ، فقط نسخهٔ پشتیبانی‌شده را Step می‌دهد،
+    // پس این اسکن، همان گارد دوم است.
     const unknownWorkflowWIs = (await postgrestGet(
       cfg,
       "factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&select=id,work_key,status,workflow_version,created_at",
@@ -672,9 +781,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // رزرو بودجه فقط برای Step هزینه‌دار آزمایشی؛ Stepهای قطعی، صفرند و رزرو نمی‌خواهند.
-    // قدم generate_draft_mock، از این رزرو سطح مسیر معاف است، چون
+    // قدم‌های Gateway، از این رزرو سطح مسیر معاف‌اند، چون
     // Gateway خودش رزرو می‌کند؛ رزرو دوباره، همان هزینه را دو بار می‌شمرد.
-    if (testCostAmount > 0 && attemptId && claimed.step_key !== "generate_draft_mock") {
+    if (testCostAmount > 0 && attemptId && claimed.step_key !== "generate_draft_mock" && claimed.step_key !== "generate_draft") {
       const reserved = (await postgrestRpc(cfg, "reserve_budget", {
         p_work_item_id: workItem.id,
         p_attempt_id: attemptId,
@@ -955,6 +1064,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 {
                   ledger: new PostgrestBudgetLedger(cfg),
                   estimateUnitPrice: 1,
+                  budgetPolicy: CURRENT_BUDGET_POLICY,
                 },
                 {
                   operation: opened.operation,
@@ -1041,6 +1151,196 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             outputArtifactId = await createGuideEditArtifact(cfg, workItem, "content_draft_demo", draft.draft_paragraph);
             // قلاب آزمایشی R3C-RECOVERY: Crash پس از درج Artifact و
             // پیش از finish شدن Step.
+            throwIfCrashAfter("artifact_registered");
+          }
+        }
+      } else if (claimed.step_key === "generate_draft") {
+        // قدم واقعی تولید Draft با Provider واقعی (THG-RB-01). فقط
+        // برای Workflow نسخهٔ ۲ به این‌جا می‌رسد. برخلاف قدم آزمایشی،
+        // پایهٔ ویرایش ندارد: مدل، بار کامل publish_payload_v1 را
+        // می‌سازد و Artifact از همان بار کامل ساخته می‌شود. بازیابی
+        // خودکار R3C-RECOVERY برای این قدم هنوز وصل نشده است؛ اگر
+        // فراخوان، میان راه قطع شود، عملیات باز می‌ماند و قدم،
+        // Attempt نمی‌سوزاند تا اپراتور تعیین تکلیفش کند.
+        if (!attemptId) throw new Error("factory attempt was not created");
+        if (!canSubmitArtifact(workItem.status as never)) {
+          throw new Error(`work item cannot submit artifact in status ${workItem.status}`);
+        }
+        if (workItem.result_artifact_id) {
+          // Artifact، از تلاش پیشین هست؛ دوباره ساخته نمی‌شود.
+          outputArtifactId = workItem.result_artifact_id;
+        } else {
+          const docs = (await postgrestGet(
+            cfg,
+            `content_documents?id=eq.${encodeURIComponent(workItem.content_id)}&select=*`,
+          )) as DocumentRow[];
+          const doc = docs[0];
+          if (!doc?.slug) throw new Error("work item has no guide document");
+          const modelId = modelsForCapability("generation")[0];
+          if (!modelId) throw new Error("no generation model registered");
+          const draftInput = {
+            guide_slug: doc.slug,
+            messages: [
+              { role: "system", content: DRAFT_SYSTEM_PROMPT },
+              {
+                role: "user",
+                content: `راهنمای تازه با slug «${doc.slug}» و عنوان «${workItem.title ?? doc.slug}» بنویس.`,
+              },
+            ],
+          };
+          const logicalId = gatewayLogicalOperationId(workItem.id, claimed.step_key, "generate_draft");
+          const latestOp = await getLatestOperation(cfg, logicalId);
+          const priorId =
+            latestOp &&
+            ["settled", "released", "referred", "failed", "abandoned"].includes(latestOp.state)
+              ? latestOp.id
+              : null;
+          const idempotencyKey = `r3g-${workItem.work_key}-generate_draft-${claimed.attempt_count}`;
+          let opened;
+          try {
+            opened = await openGatewayOperation(
+              cfg,
+              {
+                work_item_id: workItem.id,
+                work_step_id: claimed.id,
+                operation_name: "generate_draft",
+                idempotency_key: idempotencyKey,
+                capability: "draft_generation",
+                provider: "reformboss",
+                model_id: modelId,
+                prompt_version: "r3g-draft-v1",
+                token_limit: 3000,
+                timeout: 30000,
+                input: draftInput,
+                prior_operation_id: priorId,
+                retry_reason: priorId ? `tick retry after terminal operation ${latestOp?.state}` : null,
+              },
+              claimed.step_key,
+            );
+          } catch (error) {
+            if (error instanceof GatewayOperationError) {
+              throw new Error(`gateway operation open failed: ${error.code}`);
+            }
+            throw error;
+          }
+          if (opened.kind === "blocked" || opened.kind === "open") {
+            // گیت: قدم، claimed می‌ماند و Attempt نمی‌سوزد؛ اپراتور
+            // باید عملیات باز را تعیین تکلیف کند. بدون finishStep.
+            await finishRun(cfg, runId, 1, 0, 0);
+            return NextResponse.json({
+              run_id: runId,
+              status: opened.kind === "blocked" && opened.reason === "debt_open" ? "gateway_debt_open" : "gateway_operation_open",
+              work_item_id: workItem.id,
+              step_key: claimed.step_key,
+              attempt_no: claimed.attempt_count,
+            });
+          }
+          if (opened.kind === "replayed") {
+            // عملیات پایانی با همان کلید: بدون فراخوان تازه. اگر
+            // خروجی ذخیره‌شده، بار معتبر دارد، Artifact از همان
+            // خروجی قطعی ساخته می‌شود؛ وگرنه قدم، مسدود می‌شود.
+            const stored = opened.operation.response_json as { output?: unknown } | null;
+            const payload = stored?.output;
+            try {
+              validatePublishPayload(payload);
+            } catch {
+              await finishStep("blocked", "failed", "not_required", "gateway_operation_terminal", null, null);
+              await blockWorkItem(cfg, workItem, "gateway_operation_terminal");
+              await finishRun(cfg, runId, 1, 0, 1);
+              return NextResponse.json({
+                run_id: runId,
+                status: "gateway_operation_terminal",
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            gatewayOperationId = opened.operation.id;
+            await patchAttemptCosts(cfg, attemptId, opened.operation.estimated_cost, opened.operation.actual_cost);
+            outputArtifactId = await createGuideDraftArtifact(cfg, workItem, payload as PublishPayload);
+          } else {
+            let run;
+            try {
+              run = await runGatewayCallForOperation(
+                cfg,
+                {
+                  ledger: new PostgrestBudgetLedger(cfg),
+                  estimateUnitPrice: 1,
+                  budgetPolicy: CURRENT_BUDGET_POLICY,
+                },
+                {
+                  operation: opened.operation,
+                  work_item_id: workItem.id,
+                  work_step_id: claimed.id,
+                  capability: "draft_generation",
+                  provider: "reformboss",
+                  model_id: modelId,
+                  prompt_version: "r3g-draft-v1",
+                  token_limit: 3000,
+                  timeout: 30000,
+                  input: draftInput,
+                  output_schema: PUBLISH_PAYLOAD_SCHEMA,
+                  factory_attempt_id: attemptId,
+                },
+              );
+            } catch (error) {
+              if (isSimulatedCrash(error)) {
+                await postgrestWrite(cfg, "PATCH", `factory_runs?id=eq.${encodeURIComponent(runId)}`, {
+                  finished_at: new Date().toISOString(),
+                  run_status: "failed",
+                  items_claimed: 1,
+                  items_completed: 0,
+                  items_failed: 1,
+                });
+                return NextResponse.json(
+                  {
+                    run_id: runId,
+                    status: "crash_after_gateway_reservation",
+                    work_item_id: workItem.id,
+                    step_key: claimed.step_key,
+                    attempt_no: claimed.attempt_count,
+                  },
+                  { status: 500 },
+                );
+              }
+              throw error;
+            }
+            if (run.kind === "unknown") {
+              gatewayOperationId = run.operation.id;
+              await finishStep("blocked", "outcome_unknown", "pending", "timeout", null, null);
+              await finishRun(cfg, runId, 1, 0, 1);
+              return NextResponse.json({
+                run_id: runId,
+                status: "gateway_outcome_unknown",
+                work_item_id: workItem.id,
+                step_key: claimed.step_key,
+                attempt_no: claimed.attempt_count,
+              });
+            }
+            if (run.kind === "failed") {
+              const code = run.response.error?.code ?? "provider_error";
+              gatewayOperationId = run.operation.id;
+              if (code === "budget_not_configured" || code === "budget_exceeded") {
+                await finishStep("blocked", "failed", "not_required", "budget_exhausted", null, null);
+                await blockWorkItem(cfg, workItem, "budget_exhausted");
+                await finishRun(cfg, runId, 1, 0, 1);
+                return NextResponse.json({
+                  run_id: runId,
+                  status: "budget_exhausted",
+                  work_item_id: workItem.id,
+                  step_key: claimed.step_key,
+                  attempt_no: claimed.attempt_count,
+                });
+              }
+              throw new Error(`gateway call failed: ${code}`);
+            }
+            const payload = run.response.output as PublishPayload;
+            validatePublishPayload(payload);
+            gatewayOperationId = run.operation.id;
+            gatewayHasExcess = run.response.reconciliation?.excess_amount != null;
+            await patchAttemptCosts(cfg, attemptId, run.response.estimated_cost, run.response.actual_cost);
+            throwIfCrashAfter("artifact");
+            outputArtifactId = await createGuideDraftArtifact(cfg, workItem, payload);
             throwIfCrashAfter("artifact_registered");
           }
         }
@@ -1317,7 +1617,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // می‌دارد تا اپراتور، همان بدهی را تعیین تکلیف کند؛ قدم‌های
     // دیگر، مثل قبل not_required می‌مانند.
     const tailReconciliation =
-      claimed.step_key === "generate_draft_mock" && gatewayHasExcess ? "pending" : "not_required";
+      (claimed.step_key === "generate_draft_mock" || claimed.step_key === "generate_draft") && gatewayHasExcess ? "pending" : "not_required";
     const finished = await finishStep("succeeded", "succeeded", tailReconciliation, null, outputArtifactId, null);
     if (!finished) {
       await finishRun(cfg, runId, 1, 0, 1);
@@ -1333,7 +1633,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // نتیجه‌اش به Work Item برگشت، settled می‌شود. اگر این وصله
     // بخورد، عملیات در settled_unreturned می‌ماند و بازیابی، همان
     // را از دیتابیس به settled می‌رساند (قدم، از پیش succeeded است).
-    if (claimed.step_key === "generate_draft_mock" && gatewayOperationId) {
+    if ((claimed.step_key === "generate_draft_mock" || claimed.step_key === "generate_draft") && gatewayOperationId) {
       await patchOperation(cfg, gatewayOperationId, { state: "settled" });
     }
     await finishRun(cfg, runId, 1, 1, 0);
