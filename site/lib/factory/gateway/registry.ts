@@ -95,14 +95,17 @@ export interface GatewayModelEntry {
 }
 
 /**
- * مدل‌های ثبت‌شده بر پایهٔ شواهد واقعی T1 تا T4. این فهرست، سیاست
- * انتخاب است نه فراخوان؛ نامزد هر capability جداگانه آمده تا هیچ
- * مدل پیش‌فرض واحدی برای همهٔ capabilityها فرض نشود.
+ * مدل‌های ثبت‌شده. این فهرست، سیاست انتخاب است نه فراخوان؛ نامزد
+ * هر capability جداگانه آمده تا هیچ مدل پیش‌فرض واحدی برای همهٔ
+ * capabilityها فرض نشود. نسل (generation) از ۱۴۰۵/۰۸/۱۱ برابر
+ * qwen-flash است: انتخاب مدیر پروژه از فهرست ۱۲تایی مجاز، با
+ * بنچمارک همان روز (پیش‌نویس کامل معتبر در ۱۷٫۳ ثانیه، در سقف
+ * ۳۰ ثانیه). استخراج (extraction) بی‌تغییر مانده است.
  */
 export const GATEWAY_MODELS: GatewayModelEntry[] = [
-  { model: "qwen3.8-flash", capabilities: ["extraction", "generation"] },
+  { model: "qwen3.8-flash", capabilities: ["extraction"] },
   { model: "deepseek-v4.1-flash", capabilities: ["extraction"] },
-  { model: "qwen3.8-max", capabilities: ["generation"] },
+  { model: "qwen-flash", capabilities: ["generation"] },
 ];
 
 export function modelsForCapability(
