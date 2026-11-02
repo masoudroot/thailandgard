@@ -112,8 +112,9 @@ describe("capability-based model selection", () => {
 
   it("returns capability-specific generation candidates", () => {
     const models = modelsForCapability("generation");
-    expect(models).toContain("qwen3.8-max");
-    expect(models).toContain("qwen3.8-flash");
+    expect(models).toContain("qwen-flash");
+    expect(models).not.toContain("qwen3.8-max");
+    expect(models).not.toContain("qwen3.8-flash");
     expect(models).not.toContain("deepseek-v4.1-flash");
   });
 
