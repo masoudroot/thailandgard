@@ -3,13 +3,15 @@ import { checkAuth, dbConfig, postgrestGet, postgrestWrite, type DocumentRow, ty
 import { isValidWorkKey } from "@/lib/factory/tick/work-items";
 import { WORKFLOW_VERSION } from "@/lib/factory/tick/factory-tick";
 
-const SLICE_SLUG = "best-time-to-visit-thailand";
-
 /**
  * POST /api/internal/work-items
  * ساخت Work Item در وضعیت queued. فقط با توکن
  * INTERNAL_PUBLISH_TOKEN. هیچ نسخه، Publication یا Outboxی در این مرحله
  * ساخته نمی‌شود و Pointer تغییر نمی‌کند.
+ *
+ * قرارداد CONTENT-FIRST: گیت تک‌slug برش M2 برداشته شده است؛ هر سند
+ * راهنمای واقعی (content_type برابر guide و غیرفیکسچر) پذیرفته می‌شود.
+ * سند ناموجود ۴۰۴، غیرراهنما یا فیکسچر ۴۰۳ می‌گیرد.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!process.env.INTERNAL_PUBLISH_TOKEN) {
@@ -68,8 +70,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (slug && document.slug !== slug) {
       return NextResponse.json({ error: "slug does not match content_id" }, { status: 400 });
     }
-    if (document.slug !== SLICE_SLUG || document.content_type !== "guide") {
-      return NextResponse.json({ error: "content document is outside the M2 slice" }, { status: 403 });
+    if (document.content_type !== "guide") {
+      return NextResponse.json({ error: "content document is not a guide" }, { status: 403 });
     }
     if (document.is_test_fixture) {
       return NextResponse.json({ error: "test fixture cannot be published" }, { status: 403 });
@@ -89,7 +91,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ work_item: rows[0] });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes("duplicate key") || message.includes("already exists")) {
+    if (
+      message.includes("duplicate key") ||
+      message.includes("already exists") ||
+      message.includes("23505")
+    ) {
       return NextResponse.json({ error: "work_key already exists" }, { status: 409 });
     }
     return NextResponse.json({ error: message }, { status: 500 });

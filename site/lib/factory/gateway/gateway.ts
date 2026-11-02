@@ -7,6 +7,13 @@ import type { BudgetLedger } from "./ledger";
 import { LedgerError } from "./ledger";
 import type { ProviderRegistry } from "./provider";
 import {
+  CURRENT_BUDGET_POLICY,
+  isCallAllowed,
+  MODEL_TIMEOUT_MS,
+  stripReasoningContent,
+  type GatewayBudgetPolicy,
+} from "./registry";
+import {
   GatewayRequestSchema,
   type AttemptRecord,
   type AttemptStatus,
@@ -63,7 +70,22 @@ import {
  * - هزینهٔ واقعی بیشتر از رزرو، بی‌صدا جذب نمی‌شود: تا سقف رزرو
  *   تسویه می‌شود و اضافه‌اش به مصالحه می‌رود.
  *
- * مرز اتمیک بودن:
+ * سیم‌کشی THG-UNIFY-01 (GATEWAY) روی همین مسیر، بدون تغییر سیاست
+ * رجیستری (نسخهٔ ۱ دست نخورده است):
+ * - پیش از هر فراخوان Provider و پیش از هر رزرو، isCallAllowed از
+ *   رجیستری سیاست چک می‌شود؛ با سقف صفر یا بودجهٔ تأییدنشده،
+ *   فراخوان با budget_exceeded رد می‌شود. سیاست پیش‌فرض، همان
+ *   CURRENT_BUDGET_POLICY است (سقف صفر) و فقط برای آزمون، با
+ *   budgetPolicy صریح در پیکربندی قابل رونویسی است.
+ * - خروجی Provider فقط از یک نقطهٔ خفگی می‌گذرد: بلافاصله پس از
+ *   بازگشت Provider، stripReasoningContent روی خروجی خام اعمال
+ *   می‌شود، پیش از اعتبارسنجی، ژورنال، تسویه و بازگشت؛ پس
+ *   reasoning_content هرگز به آرتیفکت ذخیره‌شده نمی‌رسد.
+ * - Timeout هر تلاش به ۳۰ ثانیه (MODEL_TIMEOUT_MS) بریده می‌شود:
+ *   Timeout بزرگ‌تر، پایین کشیده می‌شود، نه تمدید؛ رفتار
+ *   AbortController همان قبلی است و Timeout یعنی outcome_unknown
+ *   با actual_cost برابر null، نه صفر.
+ *
  * - تک‌فراخوان RPC اتمیک است؛ زنجیرهٔ چندفراخوانی اتمیک نیست و
  *   جبرانش، تسویهٔ idempotent با کلید یکتا و ژورنال درون‌فرایندی
  *   است. پس از راه‌اندازی تازه، کشف رزرو فقط با factory_attempt_id
@@ -76,6 +98,12 @@ export interface GatewayConfig {
   registry: ProviderRegistry;
   ledger: BudgetLedger;
   estimateUnitPrice?: number;
+  /**
+   * سیاست بودجهٔ حاکم بر گیت پیش‌فراخوان. پیش‌فرض، همان
+   * CURRENT_BUDGET_POLICY رجیستری (سقف صفر) است؛ رونویسی فقط
+   * برای آزمون مجاز است، نه برای باز کردن مصرف در تولید.
+   */
+  budgetPolicy?: GatewayBudgetPolicy;
 }
 
 const UUID_PATTERN =
@@ -158,6 +186,8 @@ export class ModelGateway {
 
   private readonly estimateUnitPrice: number;
 
+  private readonly budgetPolicy: GatewayBudgetPolicy;
+
   private readonly attempts = new Map<string, AttemptRecord>();
 
   private readonly idempotent = new Map<string, StoredResponse>();
@@ -170,6 +200,7 @@ export class ModelGateway {
     this.registry = config.registry;
     this.ledger = config.ledger;
     this.estimateUnitPrice = config.estimateUnitPrice ?? 1;
+    this.budgetPolicy = config.budgetPolicy ?? CURRENT_BUDGET_POLICY;
   }
 
   getAttempt(attempt_id: string): AttemptRecord | undefined {
@@ -577,6 +608,24 @@ export class ModelGateway {
       );
     }
 
+    const estimate = request.token_limit * this.estimateUnitPrice;
+
+    // گیت پیش‌فراخوان سقف مصرف (THG-UNIFY-01): قاعده از رجیستری
+    // سیاست نسخهٔ ۱ می‌آید و این‌جا فقط سیم‌کشی شده است. با سقف
+    // صفر یا بودجهٔ تأییدنشده، فراخوان پیش از هر تماس Provider و
+    // پیش از هر رزرو رد می‌شود. بازپخش‌ها و ادامهٔ ژورنال بالاتر
+    // از این نقطه‌اند و این گیت آن‌ها را نمی‌بندد، چون نه فراخوان
+    // تازه‌اند و نه رزرو تازه.
+    if (!isCallAllowed(this.budgetPolicy)) {
+      return this.failedResponse(
+        request,
+        "budget_exceeded",
+        "provider call blocked by gateway budget policy: consumption cap is zero or no budget is approved",
+        estimate,
+        0,
+      );
+    }
+
     const provider = this.registry.get(request.provider);
     if (!provider) {
       return this.failedResponse(
@@ -593,7 +642,6 @@ export class ModelGateway {
       );
     }
 
-    const estimate = request.token_limit * this.estimateUnitPrice;
     const factoryAttemptId = request.factory_attempt_id ?? null;
     try {
       if (factoryAttemptId) {
@@ -673,7 +721,11 @@ export class ModelGateway {
     throwIfCrashAfter("reserve");
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), request.timeout);
+    // سقف Timeout هر تلاش (THG-UNIFY-01): Timeout بزرگ‌تر از
+    // ۳۰ ثانیهٔ رجیستری، به همان ۳۰ ثانیه بریده می‌شود؛ هرگز
+    // تمدید نمی‌شود. رفتار AbortController همان قبلی است.
+    const effectiveTimeout = Math.min(request.timeout, MODEL_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), effectiveTimeout);
     try {
       const result = await provider.call({
         request,
@@ -684,7 +736,12 @@ export class ModelGateway {
       // تسویه. پاسخ بادوامِ لایهٔ عملیات (response_recorded) پیش
       // از این نقطه نشسته است و بازیابی از روی آن تسویه می‌کند.
       throwIfCrashAfter("response");
-      const checked = request.output_schema.safeParse(result.output);
+      // تنها نقطهٔ خفگی خروجی (THG-UNIFY-01): reasoning_content
+      // بلافاصله پس از بازگشت Provider و پیش از اعتبارسنجی،
+      // ژورنال، تسویه و بازگشت حذف می‌شود؛ پس خروجی ذخیره‌شده
+      // یا برگشتی، هرگز reasoning_content ندارد.
+      const strippedOutput = stripReasoningContent(result.output);
+      const checked = request.output_schema.safeParse(strippedOutput);
       const actual = result.cost;
       const costBasis: CostBasis = result.cost_basis ?? "estimated";
       const costUnit = result.cost_unit ?? "";
@@ -736,7 +793,7 @@ export class ModelGateway {
             estimated_cost: estimate,
             excess_amount: null,
             reason: "provider_timeout_outcome_unknown",
-            evidence: `provider call timed out after ${request.timeout}ms; no usage receipt`,
+            evidence: `provider call timed out after ${effectiveTimeout}ms; no usage receipt`,
           });
         } catch (recordError) {
           if (recordError instanceof LedgerError) {

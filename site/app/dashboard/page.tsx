@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import DashboardClient from "./DashboardClient";
+import TeamsSection from "./teams-section";
 
 export const metadata: Metadata = {
   title: "داشبورد کارخانه",
-  description: "نمای فقط‌خواندنی وضعیت کارخانه: کارها، قدم‌ها، انتشارها، خطاها و بودجه.",
+  description: "وضعیت کارخانه و مدیریت راهنما: ایجاد پیش‌نویس، تأیید، انتشار و Rollback با نشست ادمین.",
 };
 
 /* پوستهٔ استاتیک صفحه. دادهٔ کارخانه این‌جا نیست و در بیلد پیش‌رندر
@@ -19,11 +20,12 @@ export default function FactoryDashboardPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">داشبورد کارخانه</h1>
         <p className="text-sm text-muted-foreground">
-          نمای فقط‌خواندنی وضعیت کارخانه. این صفحه چیزی را تغییر
-          نمی‌دهد.
+          وضعیت کارخانه و مدیریت راهنما. بخش‌های کارخانه فقط می‌خوانند؛
+          اقدام‌های مدیریت راهنما با نشست ادمین انجام می‌شوند.
         </p>
       </div>
       <DashboardClient />
+      <TeamsSection />
     </main>
   );
 }

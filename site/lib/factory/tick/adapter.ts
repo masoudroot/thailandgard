@@ -36,6 +36,11 @@ import {
   isSupportedWorkflowVersion,
   isValidWorkflowStepKey,
 } from "./factory-tick";
+import {
+  checkToolAccess,
+  type PolicyDecision,
+} from "../teams/policy";
+import type { TeamKey } from "../teams/registry";
 
 /** نسخهٔ قرارداد Adapter؛ در گزارش R2-A و تست‌ها به همین نام ارجاع می‌شود. R3C آن را به r3c-1 برد. */
 export const ADAPTER_CONTRACT_VERSION = "r3c-1";
@@ -113,3 +118,17 @@ export function adaptMainEnvelope(envelope: unknown): { valid: boolean } {
 
 /** نسخهٔ Workflow مسیر رسمی که Adapter می‌پذیرد؛ همان guide_content_v1. */
 export { WORKFLOW_VERSION };
+
+/**
+ * گیت فراخوان ابزار در نقطهٔ ورود Tick. این تابع، همان سیاست
+ * مشترک تیم‌ها (site/lib/factory/teams/policy) را صدا می‌زند و
+ * چیزی از خودش تعریف نمی‌کند: اول فهرست ممنوع همگانی، بعد فهرست
+ * مجاز همان تیم. ابزار ممنوع برای هر شش تیم رد می‌شود، حتی اگر
+ * جایی در فهرست مجاز آمده باشد. مسیر Tick پیش از هر فراخوان
+ * ابزار باید همین تابع را بپرسد؛ این فایل خودش ابزاری اجرا
+ * نمی‌کند و مسیر Tick و factory-tick دست نخورده‌اند، پس اتصال
+ * فراخوان واقعی در مسیر Tick، کار باقی‌ماندهٔ هماهنگ‌کننده است.
+ */
+export function adaptToolCallForTick(teamKey: TeamKey, tool: string): PolicyDecision {
+  return checkToolAccess(teamKey, tool);
+}

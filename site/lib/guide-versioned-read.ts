@@ -1,16 +1,23 @@
 /**
  * خواندن نسخه‌ای راهنما پشت پرچم CONTENT_READ_MODE (R2-B).
  *
- * فقط سمت سرور است. مسیر legacy در db-content دست نخورده می‌ماند و این فایل
- * فقط برای دو slug در محدودهٔ Staging وارد مسیر صفحه می‌شود:
- * راهنمای واقعی best-time-to-visit-thailand و سند آزمایشی جدا.
- * بقیهٔ slugها همیشه از legacy خوانده می‌شوند.
+ * فقط سمت سرور است. مسیر legacy در db-content دست نخورده می‌ماند.
  *
- * حالت‌ها (مقدار پیش‌فرض legacy است؛ نبودن یا نامعتبر بودن متغیر هم legacy
- * می‌شود تا Production با این تغییر هرگز از مسیر legacy خارج نشود):
- * - legacy: فقط خواندن قدیمی از جدول‌های guides و guide_sections و guide_faqs.
- * - versioned: فقط خواندن نسخه‌ای؛ نبودن document یا نسخهٔ منتشرشده، خطای
- *   صریح می‌دهد و هرگز بی‌صدا به legacy برنمی‌گردد.
+ * قرارداد CONTENT-FIRST: فهرست VERSIONED_READ_SLUGS دیگر مسیر رزولوشن
+ * صفحه را گیت نمی‌کند؛ فقط مسیر باطل‌سازی دستی (revalidate-versioned-
+ * guide) هنوز از آن استفاده می‌کند. رزولوشن صفحه با resolveGuideSource
+ * انجام می‌شود:
+ * - legacy (حالت پیش‌فرض؛ نبودن یا نامعتبر بودن متغیر هم legacy
+ *   می‌شود تا Production با این تغییر هرگز از مسیر legacy خارج نشود):
+ *   همیشه legacy.
+ * - versioned: سند نباشد legacy؛ سند باشد ولی نسخهٔ منتشرشده نداشته
+ *   باشد draft (صفحه notFound می‌دهد، نه محتوای پیش‌نویس و نه خطای
+ *   ۵۰۰)؛ سند با نسخهٔ منتشرشده باشد versioned؛ خطاهای دیگر خواندن
+ *   نسخه، fail-closed بالا می‌آیند، نه fallback بی‌صدا به محتوای
+ *   اشتباه. سند فیکسچر هم legacy می‌شود، چون فیکسچر محتوای واقعی
+ *   نیست و انتشار آن را خود Function انتشار رد می‌کند. سند با وضعیت
+ *   صریح غیرمنتشرشده (THG-UNIFY-01، کد NOT_PUBLISHED) هم legacy
+ *   می‌شود؛ قانون کامل و یکتا در lib/guide-source-resolver.ts است.
  * - shadow_compare: صفحه با legacy رندر می‌شود و مقایسهٔ هر دو رندر، سمت
  *   سرور ثبت می‌شود؛ مقایسه هرگز چیزی را منتشر نمی‌کند.
  *
@@ -28,7 +35,7 @@ import { logger } from "./logger";
 
 export type ContentReadMode = "legacy" | "versioned" | "shadow_compare";
 
-/** slugهایی که خواندن نسخه‌ای برایشان باز است؛ بقیه همیشه legacy می‌مانند. */
+/** slugهایی که باطل‌سازی دستی برایشان باز است؛ مسیر صفحه دیگر از این فهرست استفاده نمی‌کند. */
 export const VERSIONED_READ_SLUGS: readonly string[] = [
   "best-time-to-visit-thailand",
 ];
@@ -76,6 +83,9 @@ export function getContentReadMode(): ContentReadMode {
 export type VersionedReadErrorCode =
   | "DOCUMENT_NOT_FOUND"
   | "VERSION_NOT_FOUND"
+  | "NO_PUBLISHED_VERSION"
+  | "NOT_PUBLISHED"
+  | "TEST_FIXTURE"
   | "VERSION_MISMATCH"
   | "UPSTREAM_ERROR"
   | "NOT_CONFIGURED";
@@ -95,6 +105,9 @@ interface DocumentRow {
   slug: string;
   canonical_path: string;
   published_version_id: string | null;
+  is_test_fixture?: boolean;
+  /** وضعیت سند؛ ستونش همان فیلتری است که نقشهٔ سایت می‌زند. */
+  status?: string | null;
 }
 
 interface VersionRow {
@@ -155,8 +168,27 @@ export interface VersionedGuideResult {
 }
 
 /**
+ * نتیجهٔ خواندن نسخه‌ای در مرز کش: سند نباشد یا فیکسچر باشد null؛ سند
+ * بدون نسخهٔ منتشرشده، نشان draft؛ وگرنه نتیجهٔ کامل. دلیل این شکل:
+ * تابعی با "use cache" در فاز گرم‌کردن کش پیش‌رندر نباید برای حالت‌های
+ * موردانتظار خطا بدهد؛ خطا مقدار کش‌پذیر نمی‌سازد و فاز نهایی پیش‌رندر
+ * با «Unexpected cache miss» می‌شکند. پس حالت‌های موردانتظار، مقدار
+ * برمی‌گردانند و فقط خرابی واقعی (پیکربندی، بالادست، نسخهٔ پیدا‌نشده)
+ * خطا می‌دهد.
+ */
+export type VersionedDraftMarker = { kind: "draft" };
+export type VersionedFetchOutcome =
+  | VersionedGuideResult
+  | VersionedDraftMarker
+  | null;
+
+/**
  * نسخهٔ منتشرشدهٔ یک slug را بخوان: document، بعد published_version_id، بعد
  * همان نسخه. هر گام خراب، خطای صریح با کد مشخص می‌دهد؛ fallback بی‌صدا نیست.
+ * کدها: سند نباشد DOCUMENT_NOT_FOUND؛ سند فیکسچر باشد TEST_FIXTURE؛ سند
+ * باشد ولی اشاره‌گر تهی باشد NO_PUBLISHED_VERSION (پیش‌نویس، نه خرابی
+ * داده)؛ اشاره‌گر به نسخهٔ پیدا‌نشده برسد VERSION_NOT_FOUND (خرابی داده
+ * است و fail-closed بالا می‌آید).
  * پارامتر fetchFn فقط برای تست است؛ در مسیر واقعی fetch سراسری می‌آید.
  */
 export async function fetchVersionedGuide(
@@ -173,7 +205,7 @@ export async function fetchVersionedGuide(
   const docs = (await postgrestGet(
     cfg,
     "content_documents",
-    `content_type=eq.guide&slug=eq.${encodeURIComponent(slug)}&select=id,slug,canonical_path,published_version_id`,
+    `content_type=eq.guide&slug=eq.${encodeURIComponent(slug)}&select=id,slug,canonical_path,published_version_id,is_test_fixture,status`,
     fetchFn,
   )) as DocumentRow[];
   const doc = docs[0];
@@ -183,9 +215,30 @@ export async function fetchVersionedGuide(
       `versioned read: no content document for slug ${slug}`,
     );
   }
+  if (doc.is_test_fixture) {
+    throw new VersionedReadError(
+      "TEST_FIXTURE",
+      `versioned read: document ${slug} is a test fixture`,
+    );
+  }
+  // SINGLE-SOURCE (THG-UNIFY-01): خوانش صفحه، همان فیلتر وضعیت نقشهٔ
+  // سایت را می‌زند، وقتی وضعیت واقعاً آمده باشد. سند با وضعیت صریح
+  // غیرpublished (draft، archived) حتی اگر اشاره‌گر داشته باشد، محتوای
+  // نسخه‌ای سرو نمی‌کند؛ رزولوشن زیر، این کد را به legacy برمی‌گرداند
+  // تا صفحه و نقشه یک جواب بدهند. وضعیتِ غایب (undefined/null، مثل
+  // دادهٔ قدیمیِ بدون ستون وضعیت) عمداً به رفتار قدیمیِ «فقط اشاره‌گر»
+  // برمی‌گردد تا تست‌ها و دادهٔ قدیمی نشکنند؛ شکاف باقیمانده: سندی با
+  // وضعیت تهی از نقشه می‌افتد ولی صفحه ممکن است نسخه‌اش را سرو کند.
+  // بستنش با backfill وضعیت همهٔ سندها است، نه با سخت‌گیری این‌جا.
+  if (doc.status !== undefined && doc.status !== null && doc.status !== "published") {
+    throw new VersionedReadError(
+      "NOT_PUBLISHED",
+      `versioned read: document ${slug} is not published (status ${doc.status})`,
+    );
+  }
   if (!doc.published_version_id) {
     throw new VersionedReadError(
-      "VERSION_NOT_FOUND",
+      "NO_PUBLISHED_VERSION",
       `versioned read: document ${slug} has no published version`,
     );
   }
@@ -224,6 +277,72 @@ export async function fetchVersionedGuide(
     contentHash: version.content_hash,
     canonicalPath: doc.canonical_path,
   };
+}
+
+/**
+ * نتیجهٔ رزولوشن صفحه برای یک slug:
+ * - legacy: صفحه از مسیر قدیمی خوانده می‌شود.
+ * - draft: سند هست ولی نسخهٔ منتشرشده ندارد؛ صفحه باید notFound بدهد،
+ *   نه محتوای پیش‌نویس و نه خطای ۵۰۰.
+ * - versioned: راهنمای نسخهٔ منتشرشده، با شناسه‌ها.
+ */
+export type GuideSource =
+  | { kind: "legacy" }
+  | { kind: "draft" }
+  | { kind: "versioned"; result: VersionedGuideResult };
+
+export interface GuideSourceDeps {
+  mode: ContentReadMode;
+  config?: VersionedReadConfig | null;
+  fetchFn?: FetchFn;
+  fetchVersioned?: (
+    slug: string,
+    cfg: VersionedReadConfig | null,
+    fetchFn: FetchFn,
+  ) => Promise<VersionedFetchOutcome>;
+}
+
+/**
+ * رزولوشن صفحه بر اساس حالت خواندن (قرارداد CONTENT-FIRST):
+ * - legacy و shadow_compare همیشه legacy می‌دهند؛ در shadow_compare،
+ *   ثبت مقایسه با صفحه است، نه با این helper.
+ * - versioned: سند نباشد legacy؛ سند فیکسچر باشد legacy؛ سند با وضعیت
+ *   صریح غیرمنتشرشده (NOT_PUBLISHED) باشد legacy (همان قانون رزولور
+ *   یکتا: پیش‌نویس/آرشیو هرگز slug را تصاحب نمی‌کند)؛ سند بدون
+ *   نسخهٔ منتشرشده draft؛ سند با نسخهٔ منتشرشده versioned؛ هر خطای
+ *   دیگر خواندن نسخه (پیکربندی، بالادست، نسخهٔ پیدا‌نشده، ناهمخوانی
+ *   نسخه، payload نامعتبر) fail-closed بالا می‌آید.
+ * پارامترهای fetchFn و fetchVersioned فقط برای تست و برای پوستهٔ
+ * کش‌دار صفحه‌اند؛ در مسیر واقعی، خواندن نسخه‌ای پیش‌فرض می‌آید.
+ */
+export async function resolveGuideSource(
+  slug: string,
+  deps: GuideSourceDeps,
+): Promise<GuideSource> {
+  if (deps.mode !== "versioned") return { kind: "legacy" };
+  const cfg = deps.config ?? readVersionedReadConfig();
+  const fetchFn = deps.fetchFn ?? fetch;
+  const fetchVersioned = deps.fetchVersioned ?? fetchVersionedGuide;
+  try {
+    const outcome = await fetchVersioned(slug, cfg, fetchFn);
+    if (outcome === null) return { kind: "legacy" };
+    if (typeof outcome === "object" && "kind" in outcome) {
+      return { kind: "draft" };
+    }
+    return { kind: "versioned", result: outcome };
+  } catch (err) {
+    // برای خواننده‌های خام که هنوز خطا می‌دهند (مثل fetchVersionedGuide
+    // در تست): تصمیم روی فیلد code است، نه روی instanceof. خطا ممکن است
+    // با عبور از مرز کش یا سریال‌سازی React در پیش‌رندر، هویت کلاسش را
+    // از دست داده باشد و فقط message و code داشته باشد. codeهای ناشناخته
+    // همچنان fail-closed بالا می‌آیند.
+    const code = (err as { code?: unknown } | null)?.code;
+    if (code === "DOCUMENT_NOT_FOUND" || code === "TEST_FIXTURE" || code === "NOT_PUBLISHED") {
+      return { kind: "legacy" };
+    }
+    if (code === "NO_PUBLISHED_VERSION") return { kind: "draft" };
+    throw err;
+  }
 }
 
 /** نگاشت خالص payload نسخه به مدل Guide صفحه (همان فیلدهای legacy). */

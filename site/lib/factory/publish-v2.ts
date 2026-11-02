@@ -27,12 +27,24 @@
  * - سقف روزانه: حداکثر ۷۰ انتشار (kind=publish) در روز (UTC). Replay
  *   یک انتشار موجود، چیزی تازه منتشر نمی‌کند و از سقف معاف است.
  *   Rollback هم از سقف معاف است (بازیابی است، نه انتشار تازه).
+ *   از Migration سقف داخل RPC هم همان سقف، داخل خود Function اتمیک
+ *   اعمال می‌شود؛ پس فراخوان مستقیم RPC هم نمی‌تواند سقف را دور بزند.
+ *   سقف این‌جا، به‌عنوان دفاع در عمق می‌ماند و دست نمی‌خورد.
+ * - Kill Switch (SECURITY-CAP): انتشار تازه، فقط وقتی انجام می‌شود که
+ *   factory_paused دقیقاً 'false' و data_publishing_enabled دقیقاً
+ *   'true' باشد (Fail-closed، همان معنای evaluateKillSwitches در
+ *   مسیر Tick). این گیت، شکاف مسیر انتشار دستی داخلی را می‌بندد: آن
+ *   مسیر، تنظیمات کارخانه را نمی‌خواند و پیش از این گیت، با وجود
+ *   بسته بودن اضطراری هم منتشر می‌کرد. Replay از گیت معاف است (چیز
+ *   تازه‌ای منتشر نمی‌کند) و Rollback هم گیت ندارد (بازیابی است، نه
+ *   انتشار تازه؛ بستن اضطراری نباید راه برگشت را ببندد).
  * - Timeout انتشار: ۶۰ ثانیه.
  *
  * این فایل هیچ consoleای ندارد و هیچ Secretای نمی‌خواند؛ cfg (شامل
  * کلید سرویس) فقط از فراخوانندهٔ سروری می‌آید.
  */
 
+import { evaluateKillSwitches } from "./tick/factory-tick";
 import { postgrestGet, postgrestRpc, type DbCfg } from "./tick/internal-api";
 
 export const DAILY_PUBLISH_LIMIT = 70;
@@ -186,8 +198,9 @@ export interface PublishUpdateContentResult {
 
 /**
  * انتشار v2 یک محتوای UpdateContent. ترتیب: اعتبارسنجی خالص → بررسی
- * Replay موجود → سقف روزانه → فراخوان اتمیک (با Timeout ۶۰ ثانیه) →
- * Replay در صورت خطا → بررسی حفظ نسخهٔ پیشین.
+ * Replay موجود → گیت Kill Switch (فقط انتشار تازه) → سقف روزانه →
+ * فراخوان اتمیک (با Timeout ۶۰ ثانیه) → Replay در صورت خطا → بررسی
+ * حفظ نسخهٔ پیشین.
  */
 export async function publishUpdateContent(
   cfg: DbCfg,
@@ -205,6 +218,20 @@ export async function publishUpdateContent(
 
   let dailyCount = 0;
   if (!isReplay) {
+    // گیت Kill Switch، فقط برای انتشار تازه (نه Replay): مسیر انتشار
+    // دستی داخلی، تنظیمات کارخانه را نمی‌خواند؛ این گیت، همان‌جا جلوی
+    // انتشار در حالت بستهٔ اضطراری را می‌گیرد. Fail-closed: نبودن سطر
+    // یا مقدار نامعتبر، یعنی بسته.
+    const settingsRows = (await postgrestGet(
+      cfg,
+      "factory_settings?select=key,value",
+    )) as { key: string; value: string }[];
+    const settings: Record<string, string> = {};
+    for (const row of settingsRows) settings[row.key] = row.value;
+    const switches = evaluateKillSwitches(settings);
+    if (switches.factoryPaused || !switches.dataPublishingEnabled) {
+      throw new PublishV2Error("publishing_disabled", "publishing is disabled by kill switch");
+    }
     const today = (await postgrestGet(
       cfg,
       `factory_publications?publication_kind=eq.publish&requested_at=gte.${encodeURIComponent(utcMidnightIso())}&select=id&limit=200`,

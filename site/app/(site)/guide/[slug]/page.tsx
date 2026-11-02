@@ -14,7 +14,7 @@ import { StepsBlock, type Step } from "@/components/blocks/steps-block";
 import { getGuide, getGuides, getTour, getRelatedLinks, getSiteSettings } from "@/lib/db-content";
 import {
   getContentReadMode,
-  isVersionedReadSlug,
+  resolveGuideSource,
   compareGuideRenders,
   recordShadowCompare,
 } from "@/lib/guide-versioned-read";
@@ -35,9 +35,12 @@ type PageProps = { params: Promise<{ slug: string }> };
 /**
  * R2-B: حالت خواندن، متغیر محیطی زمان بیلد است، نه زمان درخواست: ریشهٔ
  * layout این پروژه ensureStatic = "navigation" دارد (همهٔ مسیرها استاتیک)
- * و هر رندر درخواستی بیلد را قرمز می‌کند، پس خواندن نسخه‌ای فقط از راه
- * پیش‌رندر با "use cache" ممکن است و جابه‌جایی اشاره‌گر بیلد تازه
- * می‌خواهد. در حالت legacy خروجی دقیقاً همان خروجی قبلی است.
+ * و دادهٔ بی‌کش در صفحه یا متادیتا بیلد را قرمز می‌کند، پس خواندن نسخه‌ای
+ * فقط از راه پیش‌رندر با "use cache" ممکن است. جابه‌جایی اشاره‌گر با
+ * باطل‌سازی تگ versioned-guides در Dispatch انتشار (process-outbox)
+ * دیده می‌شود و بیلد تازه نمی‌خواهد؛ slug تازه هم در اولین درخواست،
+ * نتیجهٔ استاتیک خودش را می‌گیرد. در حالت legacy خروجی دقیقاً همان
+ * خروجی قبلی است.
  */
 
 /**
@@ -107,23 +110,36 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  // R2-B: در حالت versioned، متادیتا از نسخهٔ منتشرشده می‌آید؛ نبودن document
-  // یا نسخه، خطای صریح می‌دهد و به legacy برنمی‌گردد. در بقیهٔ حالت‌ها،
-  // متادیتا از legacy می‌آید (در shadow_compare هم، چون صفحه legacy رندر می‌شود).
-  if (isVersionedReadSlug(slug) && getContentReadMode() === "versioned") {
-    const [result, s] = await Promise.all([getVersionedGuideCached(slug), getSiteSettings()]);
-    const meta = pageSeo({
-      title: brandTitle(result.guide.title),
-      description: result.guide.excerpt,
-      canonical: `/guide/${result.guide.slug}`,
-      type: "article",
+  // CONTENT-FIRST: در حالت versioned، متادیتا از رزولوشن یکپارچه می‌آید؛
+  // سند نباشد legacy، پیش‌نویس باشد legacy (پیش‌نویس slug را تصاحب
+  // نمی‌کند؛ THG-UNIFY-01)، نسخه‌دار باشد متادیتای نسخهٔ منتشرشده.
+  // در بقیهٔ حالت‌ها، متادیتا از legacy می‌آید (در shadow_compare هم،
+  // چون صفحه legacy رندر می‌شود).
+  if (getContentReadMode() === "versioned") {
+    const source = await resolveGuideSource(slug, {
+      mode: "versioned",
+      fetchVersioned: (s) => getVersionedGuideCached(s),
     });
-    const slugOg = ogImageForSlug(s.SITE_URL, slug);
-    if (slugOg) {
-      meta.openGraph = { ...meta.openGraph, images: [slugOg] };
-      meta.twitter = { ...meta.twitter, images: [slugOg.url] };
+    if (source.kind === "draft") {
+      // THG-UNIFY-01: پیش‌نویس، slug را تصاحب نمی‌کند. متادیتا از
+      // legacy می‌آید (کد پایین)؛ اگر legacy هم نباشد، همان‌جا عنوان
+      // «پیدا نشد» برمی‌گردد.
+    } else if (source.kind === "versioned") {
+      const result = source.result;
+      const s = await getSiteSettings();
+      const meta = pageSeo({
+        title: brandTitle(result.guide.title),
+        description: result.guide.excerpt,
+        canonical: `/guide/${result.guide.slug}`,
+        type: "article",
+      });
+      const slugOg = ogImageForSlug(s.SITE_URL, slug);
+      if (slugOg) {
+        meta.openGraph = { ...meta.openGraph, images: [slugOg] };
+        meta.twitter = { ...meta.twitter, images: [slugOg.url] };
+      }
+      return meta;
     }
-    return meta;
   }
   // S-001: دو خوانش مستقل موازی‌اند تا روی رندر سرد یک راندتریپ ذخیره شود
   // (هر دو 'use cache' دارند؛ روی کش گرم فرقی نمی‌کند).
@@ -147,17 +163,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 /**
- * R2-B: راهنما را بر اساس حالت جاری برگردان. در versioned، نبودن document یا
- * نسخه خطا می‌دهد (نه fallback). در shadow_compare، legacy برمی‌گردد و مقایسه
- * ثبت می‌شود؛ نبودن legacy هم ثبت می‌شود و بعد notFound می‌آید.
+ * CONTENT-FIRST: راهنما را بر اساس حالت جاری برگردان. در versioned،
+ * رزولوشن یکپارچه است: سند نباشد legacy، پیش‌نویس باشد legacy
+ * (THG-UNIFY-01: پیش‌نویس slug را تصاحب نمی‌کند؛ اگر legacy هم نباشد
+ * undefined برمی‌گردد و بعد notFound می‌آید)، نسخه‌دار باشد راهنمای
+ * نسخهٔ منتشرشده. در shadow_compare، legacy برمی‌گردد و مقایسه ثبت
+ * می‌شود؛ نبودن legacy هم ثبت می‌شود و بعد notFound می‌آید.
  */
 async function resolveGuideForPage(slug: string): Promise<Guide | undefined> {
   const mode = getContentReadMode();
-  if (!isVersionedReadSlug(slug)) return getGuide(slug);
-  if (mode === "versioned") {
-    const result = await getVersionedGuideCached(slug);
-    return result.guide;
-  }
+  const source = await resolveGuideSource(slug, {
+    mode,
+    fetchVersioned: (s) => getVersionedGuideCached(s),
+  });
+  if (source.kind === "versioned") return source.result.guide;
+  if (source.kind === "draft") return getGuide(slug);
   if (mode === "shadow_compare") {
     const legacy = await getGuide(slug);
     if (!legacy) {
@@ -170,16 +190,27 @@ async function resolveGuideForPage(slug: string): Promise<Guide | undefined> {
       return undefined;
     }
     try {
-      const result = await getVersionedGuideCached(slug);
-      recordShadowCompare({
-        slug,
-        mode: "shadow_compare",
-        available: true,
-        comparison: compareGuideRenders(slug, legacy, result.guide),
-        versionId: result.versionId,
-        versionNo: result.versionNo,
-        contentHash: result.contentHash,
-      });
+      const outcome = await getVersionedGuideCached(slug);
+      if (!outcome || "kind" in outcome) {
+        recordShadowCompare({
+          slug,
+          mode: "shadow_compare",
+          available: false,
+          error: outcome
+            ? "سند پیش‌نویس است و نسخهٔ منتشرشده ندارد"
+            : "راهنمای نسخه‌ای برای این slug نیست",
+        });
+      } else {
+        recordShadowCompare({
+          slug,
+          mode: "shadow_compare",
+          available: true,
+          comparison: compareGuideRenders(slug, legacy, outcome.guide),
+          versionId: outcome.versionId,
+          versionNo: outcome.versionNo,
+          contentHash: outcome.contentHash,
+        });
+      }
     } catch (error) {
       recordShadowCompare({
         slug,

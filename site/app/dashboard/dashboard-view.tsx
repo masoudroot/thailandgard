@@ -9,6 +9,7 @@ import {
   Activity,
   AlertTriangle,
   Bot,
+  BookOpen,
   ClipboardList,
   Clock,
   Eye,
@@ -33,6 +34,7 @@ import type {
   FactoryDashboardData,
   StatusCount,
 } from "@/lib/factory-dashboard/data";
+import GuideSection from "./guide-section";
 
 const STATUS_LABELS: Record<string, string> = {
   queued: "در صف",
@@ -152,6 +154,14 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
           فقط‌خواندنی
         </Pill>
       </div>
+
+      <SectionCard
+        icon={<BookOpen aria-hidden className="size-5" />}
+        title="مدیریت راهنما"
+        description="ایجاد پیش‌نویس، تأیید، انتشار و Rollback راهنما. همهٔ اقدام‌ها با نشست ادمین و از مسیر سروری انجام می‌شوند؛ این بخش، دادهٔ ساختگی ندارد."
+      >
+        <GuideSection />
+      </SectionCard>
 
       <SectionCard
         icon={<Activity aria-hidden className="size-5" />}
@@ -548,7 +558,7 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
 
       <p className="flex items-center gap-2 text-xs text-muted-foreground">
         <Layers aria-hidden className="size-3.5 shrink-0" />
-        این صفحه فقط می‌خواند. تأیید، انتشار، rollback و به‌روزرسانی از این‌جا انجام نمی‌شود.
+        بخش‌های کارخانه در این صفحه فقط می‌خوانند؛ اقدام‌های مدیریت راهنما در بخش بالا، با نشست ادمین و از مسیر سروری انجام می‌شوند.
       </p>
     </div>
   );

@@ -11,7 +11,20 @@ import { isReviewLimitReached, isValidApprovalDecision, isValidWorkItemTransitio
  * Work Item را approved و رد، آن را blocked می‌کند و دلیل رد در
  * Approval و last_error ثبت می‌شود. تصمیم، محتوای Artifact را تغییر
  * نمی‌دهد و به Artifact یا Hash دیگر منتقل نمی‌شود.
+ *
+ * هویت بازبین، فقط سروری است (SECURITY-CAP): از env سروری
+ * ADMIN_USERNAME می‌آید، هرگز از بدنهٔ درخواست. این مسیر، نشست
+ * مرورگری ندارد (داشبورد آن را سروربه‌سرور و فقط با توکن داخلی صدا
+ * می‌زند)، پس نشست ادمینیِ قابل‌اثبات این‌جا در دسترس نیست و منبع
+ * هویت، همان envای است که مسیر داشبورد از پیش با
+ * reviewerIdentity() استفاده می‌کرد. reviewer_id فرستاده‌شده در بدنه،
+ * نادیده گرفته می‌شود.
  */
+function serverReviewerIdentity(): string {
+  const username = process.env.ADMIN_USERNAME?.trim();
+  return username ? username : "admin";
+}
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   if (!process.env.INTERNAL_PUBLISH_TOKEN) {
     return NextResponse.json({ error: "work items not configured" }, { status: 503 });
@@ -37,10 +50,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const artifactId = typeof input.artifact_id === "string" ? input.artifact_id : "";
   const artifactHash = typeof input.artifact_hash === "string" ? input.artifact_hash : "";
   const decision = input.decision;
-  const reviewerId = typeof input.reviewer_id === "string" ? input.reviewer_id : "";
+  // هویت بازبین، فقط سروری است؛ reviewer_id بدنه نادیده گرفته می‌شود.
+  const reviewerId = serverReviewerIdentity();
   const reason = typeof input.decision_reason === "string" ? input.decision_reason : null;
-  if (artifactId.length === 0 || artifactHash.length === 0 || reviewerId.length === 0) {
-    return NextResponse.json({ error: "artifact_id, artifact_hash and reviewer_id are required" }, { status: 400 });
+  if (artifactId.length === 0 || artifactHash.length === 0) {
+    return NextResponse.json({ error: "artifact_id and artifact_hash are required" }, { status: 400 });
   }
   if (!isValidApprovalDecision(decision)) {
     return NextResponse.json({ error: "decision must be approved or rejected" }, { status: 400 });

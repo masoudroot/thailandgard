@@ -214,3 +214,75 @@
 - تغییر پرریسک روی تولید بود: توقف تا تایید کتبی.
 - سنجهٔ یک فاز سبز نشد: فاز بعدی شروع نمی‌شود.
 - [x] مرج REBUILD-R3C-RECOVERY به شاخهٔ یکپارچهٔ R3C و دو اصلاح محدود داشبورد (شاخهٔ rebuild/r3c-integration؛ مرج ba142d2 با والدهای 566e0b1 و a581e59؛ اصلاح 2f734da؛ تفکیک مصالحه‌های باز به excess و unknown و جدا نگه داشتن هزینهٔ simulated settled؛ فقط Staging و Mock؛ گزارش نهایی ۱۴۰۵/۰۸/۰۹ تحویل می‌شود، بدون مرج به main و بدون PR)
+
+## THG-UNIFY-01 — یکپارچه‌سازی تایلندگرد (شروع ۱۴۰۵/۰۸/۱۰)
+- شاخهٔ یکپارچه: feat/thg-unify-01 در worktree ‏~/workspace/wt-tg-unify، مبنا feat/content-first-publication در 7cb10fd.
+- مبنای راستی‌شده: main در 608491d، دیتابیس اصلی با دو Migration کارخانه (20261030120100 و 20261101000000) و کارخانهٔ Production خاموش.
+- گام اول یکپارچه‌سازی (فقط افزودنی، بدون تعارض): قراردادها و Workflowهای شش تیم، رجیستری سیاستی Gateway، بخش تیم‌ها در داشبورد و تست‌های فاز ۳ از شاخهٔ feat/phase2-complete-phase3-foundation (در 20d38df) آمدند.
+- محدودیت‌ها: هیچ Migration یا Backfill یا مرج یا دیپلوی Production، هیچ حذف موتور قدیمی، هیچ فراخوان پولی تازه (سقف صفر) و هیچ Push یا PR تازه بدون تأیید صریح مدیر پروژه برای همان عملیات.
+
+## THG-UNIFY-01 — پیشرفت (۱۴۰۵/۰۸/۱۰، شاخهٔ feat/thg-unify-01)
+- کامیت‌ها: 75d8f08 (افزودنی‌های فاز ۳)، f7d1597 (بازیابی CONTENT)،
+  190faaa (رزولور یکتا و مالکیت)، 93b5ff5 (هویت بازبین و سقف v2 و
+  گیت انتشار)، f414f86 (سیم‌کشی Gateway)، 4aa2881 (تیم‌ها و
+  داشبورد)، dd59633 (سیم‌کشی هماهنگ‌کننده، سقف v1 و ستون‌های عملیات).
+- سیم‌کشی‌های هماهنگ‌کننده: گیت generation در حلقهٔ tick؛ صفحه در
+  حالت versioned روی پیش‌نویس به legacy برمی‌گردد (نه ۴۰۴)؛ نقشهٔ
+  سایت در حالت legacy نسخه‌ای نمی‌دهد تا با صفحه یکی باشد.
+- Migrationهای تازه (نوشته‌شده، روی هیچ دیتابیسی اعمال نشده):
+  سقف v2، سقف v1، ستون‌های عملیات Gateway. خشک‌چرخ هر سه روی Staging
+  در تراکنش با rollback سبز شد و Staging بی‌تغییر ماند.
+- Hash محمولهٔ آزمون test-guide-e2e با تابع واقعی دوباره حساب شد و
+  برابر مقدار مرجع است.
+- مانده برای گیت انسانی: اجرای چرخهٔ Staging با مرورگر و تأیید مدیر
+  پروژه؛ مرج و دیپلوی؛ اعمال Migrationها؛ Backfill؛ سوئیچ حالت؛
+  فعال‌سازی محدود تیم محتوا. هیچ‌کدام بدون تأیید صریح همان عملیات
+  انجام نمی‌شود.
+
+## THG-UNIFY-01 — verify کامل سبز شد (۱۴۰۵/۰۸/۱۰)
+- دستور: npm run verify در site با Node 22.23.4 و
+  NODE_OPTIONS=--max-old-space-size=4096. کد خروج صفر.
+- نتیجه: typecheck و lint و lint:factory سبز (فقط هشدارهای قبلی، صفر
+  خطا)؛ تست‌ها: ۷۴ فایل passed و ۴ فایل skipped (وابسته به دیتابیس
+  آزمون)؛ ۶۹۴ تست passed و صفر failed و ۹ skipped از ۷۰۳ تست.
+- دو اصلاح هماهنگ‌کننده در مسیر verify: تایپ تست مالکیت content-sync
+  و stubهای factory_settings در تست سرویس publish-v2.
+- خشک‌چرخ Migrationها روی Staging در تراکنش با rollback سبز بود و
+  Staging بی‌تغییر ماند. Build در حال اجراست و نتیجه‌اش جداگانه
+  گزارش می‌شود.
+
+## THG-UNIFY-01 — Build محلی سبز شد (۱۴۰۵/۰۸/۱۰)
+- دستور: npm run build در site با Node 22.23.4. کد خروج صفر و
+  «Compiled successfully» در ۳۵٫۱ ثانیه (حالت پیش‌فرض legacy).
+- پس از Build، درخت تمیز است و هیچ فایل تازه‌ای برای کامیت نمانده
+  جز همین یادداشت.
+
+## THG-UNIFY-03 — رفع باگ چرخهٔ Staging (۱۴۰۵/۰۸/۱۰، شاخهٔ feat/thg-unify-01)
+- علت اثبات‌شده: فراخوان سروربه‌سرور guide-admin به مبدا عمومی Preview،
+  با سد محافظت Vercel (۴۰۱ با error شیئی) بسته می‌شد؛ پیام «[object Object]
+  (قدم: internal)» همان‌جا ساخته می‌شد. خواندن‌های کارخانه هم با URL
+  زمان Build از بیلد کش‌شدهٔ قبلی به Production می‌رفتند (۲۳ راهنمای
+  فقط‌فایلی با الگوی Production می‌خواند، نه Staging با ۱ ردیف).
+- رفع: callInternal کوکی درخواست ورودی را به فراخوان داخلی همان مبدا
+  می‌رساند (مجوز همچنان با نشست ادمین و توکن داخلی است) و خطای شیئی را
+  با پیام خوانا نشان می‌دهد. بیلد تازهٔ Preview، URL زمان Build را هم
+  از ردیف‌های شاخه‌ای Staging می‌گیرد.
+- فایل‌ها: site/lib/factory-dashboard/guide-admin.ts و
+  site/factory/tests/guide-admin-internal.test.ts (۴ تست تازه).
+- محدودیت‌ها: بدون مرج و بدون PR و بدون تغییر Production؛ چرخهٔ تازه
+  فقط تا awaiting_human_approval می‌رود.
+
+## CUTOVER-FT-01 — گارد محیط Fast-Track MVP (۱۴۰۵/۰۸/۱۱، شاخهٔ feat/thg-unify-01)
+- هدف: تکرار حادثهٔ اتصال Preview به Production ناممکن شود؛ ناهماهنگی
+  project ref در زمان اجرا، نوشتن را با پیام خوانا متوقف می‌کند.
+- پیاده‌سازی: site/lib/factory/tick/internal-api.ts — تابع‌های
+  projectRefFromUrl و assertDatabaseEnvironment؛ صدا زده شدن گارد در
+  ابتدای postgrestWrite و postgrestRpc (چوک‌پوینت همهٔ نوشتن‌های API
+  داخلی). خواندن با گارد بسته نمی‌شود. اگر متغیر سروری
+  EXPECTED_SUPABASE_PROJECT_REF ست نشده باشد، گارد باز است.
+- تست: site/factory/tests/env-guard.test.ts (۶ تست: پارس ref، باز بودن
+  بدون متغیر، قبول تطابق، خطای خوانا در ناهماهنگی، عدم فراخوان fetch
+  در ناهماهنگی).
+- محدودیت‌ها: تریگر immutability دست نخورده است. مقدار موردانتظار روی
+  Production باید lilmfiyzeeinmifhxdhj و روی ردیف‌های شاخه‌ای
+  vpybkilbqeshcoqnbjba باشد (ست شدن متغیر با مرج و دیپلوی همراه است).

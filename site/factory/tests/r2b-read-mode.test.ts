@@ -168,11 +168,18 @@ describe('fetchVersionedGuide با fetch ساختگی', () => {
     });
   });
 
-  it('اشاره‌گر تهی، خطای صریح VERSION_NOT_FOUND می‌دهد', async () => {
+  it('اشاره‌گر تهی، خطای صریح NO_PUBLISHED_VERSION می‌دهد (پیش‌نویس، نه خرابی داده)', async () => {
     const noPointer = { ...doc, published_version_id: null };
     await expect(
       fetchVersionedGuide('r2b-test-doc', CFG, stubFetch([noPointer], [])),
-    ).rejects.toMatchObject({ code: 'VERSION_NOT_FOUND' });
+    ).rejects.toMatchObject({ code: 'NO_PUBLISHED_VERSION' });
+  });
+
+  it('سند فیکسچر، خطای صریح TEST_FIXTURE می‌دهد', async () => {
+    const fixture = { ...doc, is_test_fixture: true };
+    await expect(
+      fetchVersionedGuide('r2b-test-doc', CFG, stubFetch([fixture], [version])),
+    ).rejects.toMatchObject({ code: 'TEST_FIXTURE' });
   });
 
   it('نسخهٔ پیدا‌نشده، خطای صریح VERSION_NOT_FOUND می‌دهد', async () => {
