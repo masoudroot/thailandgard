@@ -27,6 +27,30 @@ export interface DbCfg {
   serviceKey: string;
 }
 
+/**
+ * گارد محیط (Fast-Track MVP، الزامی): پیش از هر نوشتن از راه API داخلی،
+ * project ref دیتابیسی که واقعا استفاده می شود با مقدار موردانتظار
+ * (متغیر سروری EXPECTED_SUPABASE_PROJECT_REF) مقایسه می شود. ناهماهنگی
+ * یعنی توقف نوشتن با پیام خوانا؛ هیچ نوشتن دیگری تا رفع آن انجام نمی شود.
+ * اگر متغیر ست نشده باشد، گارد باز است (محیط محلی و تست)؛ خواندن هرگز
+ * با این گارد بسته نمی شود.
+ */
+export function projectRefFromUrl(url: string): string | null {
+  const m = url.match(/^https?:\/\/([a-z0-9-]+)\.supabase\.co/i);
+  return m ? m[1] : null;
+}
+
+export function assertDatabaseEnvironment(cfg: DbCfg): void {
+  const expected = process.env.EXPECTED_SUPABASE_PROJECT_REF?.trim();
+  if (!expected) return;
+  const actual = projectRefFromUrl(cfg.url);
+  if (actual !== expected) {
+    throw new Error(
+      `project ref دیتابیس با مقدار مورد انتظار فرق دارد؛ نوشتن متوقف شد. مورد انتظار: ${expected}، فعلی: ${actual ?? "نامشخص"}.`,
+    );
+  }
+}
+
 export function dbConfig(): DbCfg | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -51,6 +75,7 @@ export async function postgrestWrite(
   path: string,
   body: unknown,
 ): Promise<unknown[]> {
+  assertDatabaseEnvironment(cfg);
   const res = await fetch(`${cfg.url}/rest/v1/${path}`, {
     method,
     headers: {
@@ -72,6 +97,7 @@ export async function postgrestRpc(
   body: Record<string, unknown>,
   signal?: AbortSignal,
 ): Promise<unknown> {
+  assertDatabaseEnvironment(cfg);
   const res = await fetch(`${cfg.url}/rest/v1/rpc/${fn}`, {
     method: "POST",
     headers: {

@@ -271,3 +271,18 @@
   site/factory/tests/guide-admin-internal.test.ts (۴ تست تازه).
 - محدودیت‌ها: بدون مرج و بدون PR و بدون تغییر Production؛ چرخهٔ تازه
   فقط تا awaiting_human_approval می‌رود.
+
+## CUTOVER-FT-01 — گارد محیط Fast-Track MVP (۱۴۰۵/۰۸/۱۱، شاخهٔ feat/thg-unify-01)
+- هدف: تکرار حادثهٔ اتصال Preview به Production ناممکن شود؛ ناهماهنگی
+  project ref در زمان اجرا، نوشتن را با پیام خوانا متوقف می‌کند.
+- پیاده‌سازی: site/lib/factory/tick/internal-api.ts — تابع‌های
+  projectRefFromUrl و assertDatabaseEnvironment؛ صدا زده شدن گارد در
+  ابتدای postgrestWrite و postgrestRpc (چوک‌پوینت همهٔ نوشتن‌های API
+  داخلی). خواندن با گارد بسته نمی‌شود. اگر متغیر سروری
+  EXPECTED_SUPABASE_PROJECT_REF ست نشده باشد، گارد باز است.
+- تست: site/factory/tests/env-guard.test.ts (۶ تست: پارس ref، باز بودن
+  بدون متغیر، قبول تطابق، خطای خوانا در ناهماهنگی، عدم فراخوان fetch
+  در ناهماهنگی).
+- محدودیت‌ها: تریگر immutability دست نخورده است. مقدار موردانتظار روی
+  Production باید lilmfiyzeeinmifhxdhj و روی ردیف‌های شاخه‌ای
+  vpybkilbqeshcoqnbjba باشد (ست شدن متغیر با مرج و دیپلوی همراه است).

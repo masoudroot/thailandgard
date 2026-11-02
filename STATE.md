@@ -144,3 +144,9 @@
   داشبورد + بیلد کش‌شده با URL زمان Build قدیمی.
 - رفع در guide-admin.ts (کوکی ورودی + پیام خوانای خطای شیئی) با ۴ تست
   تازه؛ چرخهٔ دوباره فقط تا گیت تأیید انسانی، بدون انتشار.
+
+## CUTOVER-FT-01 — گارد محیط Fast-Track MVP (۱۴۰۵/۰۸/۱۱)
+- شاخهٔ feat/thg-unify-01؛ گارد project ref در postgrestWrite و
+  postgrestRpc با ۶ تست تازه؛ تریگر immutability دست نخورده است.
+- متغیر EXPECTED_SUPABASE_PROJECT_REF روی Production باید
+  lilmfiyzeeinmifhxdhj باشد و روی ردیف‌های شاخه‌ای vpybkilbqeshcoqnbjba.
