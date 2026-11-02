@@ -1,5 +1,5 @@
 /**
- * رجیستری سیاست Model Gateway برای تیم‌های فاز ۳ (نسخهٔ ۱).
+ * رجیستری سیاست Model Gateway برای تیم‌های فاز ۳ (نسخهٔ ۲).
  *
  * این ماژول فقط یک سند سیاست نسخه‌بندی‌شده است، نه فراخوانندهٔ Provider:
  * هیچ شبکه، هیچ دیتابیس، هیچ خواندن محیط و هیچ کلیدی در آن نیست و
@@ -8,9 +8,10 @@
  * همان ProviderRegistry و آداپتور Gateway موجود است و این رجیستری
  * فقط قاعده‌های حاکم بر آن مسیر را ثبت می‌کند.
  *
- * قاعده‌های قطعی این نسخه:
- * - Provider واقعی ReformBoss متصل است، ولی مصرف آن با سقف صفر قفل است؛
- *   تا وقتی بودجهٔ تازه صریحاً تأیید نشده، هیچ فراخوان تازه‌ای مجاز نیست.
+ * قاعده‌های قطعی این نسخه (THG-RB-01، با تأیید صریح مدیر پروژه
+ * در ۱۴۰۵/۰۸/۱۱):
+ * - Provider واقعی ReformBoss متصل است و مصرف آن نامحدود است؛
+ *   سقف مصرف اعمال نمی‌شود و ثبت هزینه فقط برای نمایش است.
  * - هیچ Fallback میان حساب‌ها نیست؛ حساب صندوق امن منسوخ است و هرگز
  *   در هیچ مسیری استفاده نمی‌شود.
  * - انتخاب مدل capability-based است؛ مدل extraction با مدل تولید متن
@@ -21,13 +22,13 @@
  * - reasoning_content همیشه پیش از ذخیره حذف می‌شود.
  * - هزینهٔ unknown هرگز صفر فرض نمی‌شود و با null نشان داده می‌شود.
  *
- * تغییر هر قاعده (به‌ویژه باز کردن سقف مصرف) نسخهٔ تازهٔ رجیستری و
- * تأیید صریح مدیر پروژه می‌خواهد؛ ویرایش بی‌صدای همین نسخه ممنوع است.
+ * نسخهٔ ۱ با سقف صفر، دست‌نخورده برای سابقه نگه داشته شده است؛
+ * تغییر قاعده، نسخهٔ تازه می‌خواهد و ویرایش بی‌صدای نسخهٔ جاری ممنوع است.
  */
 
-export const GATEWAY_REGISTRY_VERSION = 1;
+export const GATEWAY_REGISTRY_VERSION = 2;
 
-export const GATEWAY_REGISTRY_ID = "gateway-registry-v1";
+export const GATEWAY_REGISTRY_ID = "gateway-registry-v2";
 
 /**
  * شناسهٔ Provider واقعی تیم‌ها. رشتهٔ apiRoot فقط ریشهٔ عمومی API است،
@@ -54,22 +55,36 @@ export const TEAM_GATEWAY_PROVIDERS: TeamGatewayProvider[] = [
 ];
 
 /**
- * سیاست بودجهٔ جاری. سقف صفر یعنی قفل کامل مصرف، حتی اگر بودجه
- * جداگانه تأیید شده باشد؛ باز شدن مصرف هم سقف مثبت و هم تأیید
- * صریح بودجه را با هم می‌خواهد.
+ * سیاست بودجهٔ جاری. سقف تهی یعنی نامحدود: هیچ سقفی اعمال
+ * نمی‌شود و ثبت هزینه فقط برای نمایش است. سقف صفر یعنی قفل کامل
+ * مصرف، حتی اگر بودجه جداگانه تأیید شده باشد؛ باز شدن مصرف هم
+ * سقف (مثبت یا نامحدود) و هم تأیید صریح بودجه را با هم می‌خواهد.
  */
 export interface GatewayBudgetPolicy {
-  consumptionCap: number;
+  consumptionCap: number | null;
   budgetApproved: boolean;
 }
 
-export const CURRENT_BUDGET_POLICY: GatewayBudgetPolicy = {
+/** سیاست نسخهٔ ۱ (سقف صفر، قفل کامل)؛ برای سابقه نگه داشته شده است. */
+export const GATEWAY_V1_BUDGET_POLICY: GatewayBudgetPolicy = {
   consumptionCap: 0,
   budgetApproved: false,
 };
 
+/** سیاست نسخهٔ ۲ (نامحدود، مصوب مدیر پروژه در THG-RB-01). */
+export const GATEWAY_V2_BUDGET_POLICY: GatewayBudgetPolicy = {
+  consumptionCap: null,
+  budgetApproved: true,
+};
+
+export const CURRENT_BUDGET_POLICY: GatewayBudgetPolicy =
+  GATEWAY_V2_BUDGET_POLICY;
+
 export function isCallAllowed(policy: GatewayBudgetPolicy): boolean {
-  return policy.consumptionCap > 0 && policy.budgetApproved;
+  return (
+    (policy.consumptionCap === null || policy.consumptionCap > 0) &&
+    policy.budgetApproved
+  );
 }
 
 export type GatewayCapability = "extraction" | "generation";
@@ -281,7 +296,6 @@ export const REFERENCE_ACCOUNT_EVIDENCE: ReferenceEvidence[] = [
  * ریسک‌اند، نه Secret؛ هیچ مقداری از Credential در آن‌ها نیست.
  */
 export const GATEWAY_PENDING_DECISIONS: string[] = [
-  "key rotation before Production is still owed: the reference credential was exposed in chat on 2026-10-31 and must be rotated before any Production use",
-  "a fresh consumption budget must be explicitly approved before any new provider call; the current cap is zero",
+  "production key must come from the Panachat secure card, never from chat; confirm the card holds a rotated key before the first real call (the reference credential was exposed in chat on 2026-10-31)",
   "the vault account stays deprecated with no fallback to it under any condition",
 ];

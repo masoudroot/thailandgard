@@ -4,6 +4,11 @@ import { throwIfCrashAfter } from "../gateway/crash-test";
 import { ModelGateway } from "../gateway/gateway";
 import type { BudgetLedger } from "../gateway/ledger";
 import { createDefaultRegistry } from "../gateway/provider";
+import {
+  CURRENT_BUDGET_POLICY,
+  type GatewayBudgetPolicy,
+} from "../gateway/registry";
+import { ReformBossProvider } from "../gateway/reformboss";
 import type {
   GatewayResponse,
   OutputSchema,
@@ -96,6 +101,12 @@ export interface GatewayCallInput {
 export interface GatewayCallDeps {
   ledger: BudgetLedger;
   estimateUnitPrice?: number;
+  /**
+   * سیاست بودجهٔ حاکم بر گیت پیش‌فراخوان. پیش‌فرض، سیاست جاری
+   * رجیستری (نسخهٔ ۲، نامحدود مصوب) است؛ فراخواننده می‌تواند
+   * سیاست صریح بدهد تا انتخاب سیاست در محل فراخوان دیده شود.
+   */
+  budgetPolicy?: GatewayBudgetPolicy;
 }
 
 export type GatewayCallOutcome =
@@ -174,15 +185,17 @@ export async function runGatewayCallForOperation(
     );
   }
 
-  // RC (PRODUCTION-FINALIZE-01): no mock provider in the release. The
-  // gateway is built from the default registry only (blocked muse-spark),
-  // so any gateway call fails closed with provider_not_found /
-  // provider_blocked and no provider is ever invoked.
+  // THG-RB-01: رجیستری انتشار، رجیستری پیش‌فرض (muse-spark مسدود)
+  // به‌علاوهٔ ReformBoss است. Mock هرگز در انتشار ثبت نمی‌شود.
+  // وقتی متغیرهای محیطی ReformBoss نباشند، Provider خودش blocked
+  // گزارش می‌دهد و فراخوان Fail-closed رد می‌شود.
   const registry = createDefaultRegistry();
+  registry.register(new ReformBossProvider());
   const gateway = new ModelGateway({
     registry,
     ledger: deps.ledger,
     estimateUnitPrice: deps.estimateUnitPrice ?? 1,
+    budgetPolicy: deps.budgetPolicy ?? CURRENT_BUDGET_POLICY,
   });
 
   const response = await gateway.call({

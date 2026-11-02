@@ -288,6 +288,24 @@ describe("POST /api/internal/work-items با گیت تعمیم‌یافته", ()
     const res = await callWorkItems(postReq("http://localhost/api/internal/work-items", body));
     expect(res.status).toBe(409);
   });
+
+  it("budget_limit معتبر، در درج می‌نشیند و مقدار نامعتبر ۴۰۰ می‌گیرد", async () => {
+    installDoc(DOC);
+    const res = await callWorkItems(
+      postReq("http://localhost/api/internal/work-items", { ...body, budget_limit: 1000000 }),
+    );
+    expect(res.status).toBe(200);
+    expect(mockedWrite).toHaveBeenCalledWith(
+      expect.anything(),
+      "POST",
+      "factory_work_items",
+      expect.objectContaining({ budget_limit: 1000000 }),
+    );
+    const bad = await callWorkItems(
+      postReq("http://localhost/api/internal/work-items", { ...body, budget_limit: -5 }),
+    );
+    expect(bad.status).toBe(400);
+  });
 });
 
 describe("POST /api/internal/work-items/[id]/first-artifact", () => {

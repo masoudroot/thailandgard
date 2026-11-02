@@ -213,7 +213,7 @@ function makeRequest(overrides: Record<string, unknown> = {}): Record<string, un
   };
 }
 
-function makeGateway(provider: ModelProvider, ledger: FakeLedger, budgetPolicy?: { consumptionCap: number; budgetApproved: boolean }): ModelGateway {
+function makeGateway(provider: ModelProvider, ledger: FakeLedger, budgetPolicy?: { consumptionCap: number | null; budgetApproved: boolean }): ModelGateway {
   const registry = new ProviderRegistry();
   registry.register(provider);
   return new ModelGateway({
@@ -224,13 +224,26 @@ function makeGateway(provider: ModelProvider, ledger: FakeLedger, budgetPolicy?:
   });
 }
 
-describe("cap gate (pre-call, from registry policy v1)", () => {
-  it("blocks with the default policy (cap zero) before any provider call or reservation", async () => {
-    expect(CURRENT_BUDGET_POLICY.consumptionCap).toBe(0);
-    expect(CURRENT_BUDGET_POLICY.budgetApproved).toBe(false);
+describe("cap gate (pre-call, from registry policy v2)", () => {
+  it("lets calls through with the default policy (unlimited, approved)", async () => {
+    expect(CURRENT_BUDGET_POLICY.consumptionCap).toBeNull();
+    expect(CURRENT_BUDGET_POLICY.budgetApproved).toBe(true);
     const provider = new FakeProvider({ text: "draft" });
     const ledger = new FakeLedger();
     const gateway = makeGateway(provider, ledger);
+    const response = await gateway.call(makeRequest());
+    expect(response.outcome).toBe("succeeded");
+    expect(provider.calls).toBe(1);
+    expect(ledger.reserveCalls).toBe(1);
+  });
+
+  it("blocks with the retained v1 policy (cap zero) before any provider call or reservation", async () => {
+    const provider = new FakeProvider({ text: "draft" });
+    const ledger = new FakeLedger();
+    const gateway = makeGateway(provider, ledger, {
+      consumptionCap: 0,
+      budgetApproved: false,
+    });
     const response = await gateway.call(makeRequest());
     expect(response.outcome).toBe("failed");
     expect(response.error?.code).toBe("budget_exceeded");

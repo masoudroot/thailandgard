@@ -1,9 +1,10 @@
 /**
- * تست‌های خالص رجیستری سیاست Model Gateway (نسخهٔ ۱).
+ * تست‌های خالص رجیستری سیاست Model Gateway (نسخهٔ ۲).
  *
  * این تست‌ها بدون دیتابیس و بدون هیچ فراخوان شبکه‌ای اجرا می‌شوند؛
  * شواهد T1 تا T4 فقط به‌عنوان رکورد تاریخی خوانده می‌شوند و هرگز
- * دوباره اجرا نمی‌شوند. قاعده‌های اثبات‌شده: قفل سقف صفر، Timeout
+ * دوباره اجرا نمی‌شوند. قاعده‌های اثبات‌شده: سقف نامحدود مصوب در
+ * نسخهٔ ۲، سقف صفر نسخهٔ ۱ که برای سابقه مانده، Timeout
  * ۳۰ ثانیه‌ای، نبود retry کور برای outcome_unknown، صفر فرض نشدن
  * هزینهٔ unknown، و حذف reasoning_content از خروجی ذخیره‌شده.
  */
@@ -17,6 +18,8 @@ import {
   GATEWAY_PENDING_DECISIONS,
   GATEWAY_REGISTRY_ID,
   GATEWAY_REGISTRY_VERSION,
+  GATEWAY_V1_BUDGET_POLICY,
+  GATEWAY_V2_BUDGET_POLICY,
   isCallAllowed,
   isCostKnown,
   MODEL_TIMEOUT_MS,
@@ -30,9 +33,9 @@ import {
 } from "@/lib/factory/gateway/registry";
 
 describe("registry version", () => {
-  it("is version 1 with a stable id", () => {
-    expect(GATEWAY_REGISTRY_VERSION).toBe(1);
-    expect(GATEWAY_REGISTRY_ID).toBe("gateway-registry-v1");
+  it("is version 2 with a stable id", () => {
+    expect(GATEWAY_REGISTRY_VERSION).toBe(2);
+    expect(GATEWAY_REGISTRY_ID).toBe("gateway-registry-v2");
   });
 });
 
@@ -57,15 +60,29 @@ describe("provider record", () => {
   });
 });
 
-describe("zero consumption cap", () => {
-  it("forbids calls under the current locked policy", () => {
-    expect(CURRENT_BUDGET_POLICY.consumptionCap).toBe(0);
-    expect(isCallAllowed(CURRENT_BUDGET_POLICY)).toBe(false);
+describe("consumption cap (v1 retained, v2 current)", () => {
+  it("keeps the v1 zero cap locked for history", () => {
+    expect(GATEWAY_V1_BUDGET_POLICY.consumptionCap).toBe(0);
+    expect(GATEWAY_V1_BUDGET_POLICY.budgetApproved).toBe(false);
+    expect(isCallAllowed(GATEWAY_V1_BUDGET_POLICY)).toBe(false);
+  });
+
+  it("sets the current policy to unlimited with explicit approval (v2)", () => {
+    expect(CURRENT_BUDGET_POLICY).toBe(GATEWAY_V2_BUDGET_POLICY);
+    expect(CURRENT_BUDGET_POLICY.consumptionCap).toBeNull();
+    expect(CURRENT_BUDGET_POLICY.budgetApproved).toBe(true);
+    expect(isCallAllowed(CURRENT_BUDGET_POLICY)).toBe(true);
   });
 
   it("stays forbidden with cap zero even if a budget were approved", () => {
     expect(
       isCallAllowed({ consumptionCap: 0, budgetApproved: true }),
+    ).toBe(false);
+  });
+
+  it("stays forbidden with an unlimited cap but no explicit approval", () => {
+    expect(
+      isCallAllowed({ consumptionCap: null, budgetApproved: false }),
     ).toBe(false);
   });
 
@@ -75,9 +92,12 @@ describe("zero consumption cap", () => {
     ).toBe(false);
   });
 
-  it("allows calls only with a positive cap and explicit approval together", () => {
+  it("allows calls only with a cap (positive or unlimited) and explicit approval together", () => {
     expect(
       isCallAllowed({ consumptionCap: 1000, budgetApproved: true }),
+    ).toBe(true);
+    expect(
+      isCallAllowed({ consumptionCap: null, budgetApproved: true }),
     ).toBe(true);
   });
 });
@@ -243,8 +263,10 @@ describe("pending decisions", () => {
   it("keeps the pre-Production key rotation item open", () => {
     expect(GATEWAY_PENDING_DECISIONS.length).toBeGreaterThan(0);
     expect(
-      GATEWAY_PENDING_DECISIONS.some((item) =>
-        item.includes("key rotation before Production"),
+      GATEWAY_PENDING_DECISIONS.some(
+        (item) =>
+          item.includes("Panachat secure card") &&
+          item.includes("rotated key"),
       ),
     ).toBe(true);
   });

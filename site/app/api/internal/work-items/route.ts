@@ -57,6 +57,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "workflow_version must be 1 to 128 characters" }, { status: 400 });
   }
   const workflowVersion = workflowVersionRaw ?? (executionModeRaw === "tick_managed" ? WORKFLOW_VERSION : null);
+  // THG-RB-01: budget_limit اختیاری؛ نبودنش یعنی پیش‌فرض ستون (۰).
+  // مقدار، فقط برای رزرو Gateway خوانده می‌شود و سقف تجاری نیست؛
+  // برای اجرای نامحدود، عدد بزرگ گذاشته می‌شود و در گزارش افشا می‌شود.
+  const budgetLimitRaw = input.budget_limit;
+  let budgetLimit: number | null = null;
+  if (budgetLimitRaw !== undefined && budgetLimitRaw !== null) {
+    if (typeof budgetLimitRaw !== "number" || !Number.isFinite(budgetLimitRaw) || budgetLimitRaw < 0) {
+      return NextResponse.json({ error: "budget_limit must be a finite number >= 0" }, { status: 400 });
+    }
+    budgetLimit = budgetLimitRaw;
+  }
   if (!contentId && !slug) {
     return NextResponse.json({ error: "content_id or slug is required" }, { status: 400 });
   }
@@ -86,6 +97,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       acceptance_criteria: criteria,
       execution_mode: executionModeRaw,
       workflow_version: workflowVersion,
+      ...(budgetLimit === null ? {} : { budget_limit: budgetLimit }),
     })) as WorkItemRow[];
     if (rows.length === 0) return NextResponse.json({ error: "work item was not created" }, { status: 500 });
     return NextResponse.json({ work_item: rows[0] });

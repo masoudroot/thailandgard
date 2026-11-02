@@ -24,6 +24,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   GATEWAY_TICK_STEP_KEYS,
+  GATEWAY_V2_TICK_STEP_KEYS,
+  GATEWAY_V2_WORKFLOW_VERSION,
   GATEWAY_WORKFLOW_VERSION,
   TICK_STEP_KEYS,
   isStepKeyOfWorkflow,
@@ -157,6 +159,18 @@ describe("tick step allowlists", () => {
     expect(GATEWAY_WORKFLOW_VERSION).toBe("guide_content_gateway_v1");
     for (const step of ["create_version", "publish_version", "process_publication", "complete_work"]) {
       expect(isStepKeyOfWorkflow(step, GATEWAY_WORKFLOW_VERSION)).toBe(false);
+    }
+  });
+
+  it("keeps the gateway workflow v2 without any version or publish step", () => {
+    expect([...GATEWAY_V2_TICK_STEP_KEYS]).toEqual([
+      "generate_draft",
+      "validate_artifact",
+      "await_human_approval",
+    ]);
+    expect(GATEWAY_V2_WORKFLOW_VERSION).toBe("guide_content_gateway_v2");
+    for (const step of ["create_version", "publish_version", "process_publication", "complete_work", "prepare_context", "generate_draft_mock"]) {
+      expect(isStepKeyOfWorkflow(step, GATEWAY_V2_WORKFLOW_VERSION)).toBe(false);
     }
   });
 

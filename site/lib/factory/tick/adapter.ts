@@ -42,7 +42,7 @@ import {
 } from "../teams/policy";
 import type { TeamKey } from "../teams/registry";
 
-/** نسخهٔ قرارداد Adapter؛ در گزارش R2-A و تست‌ها به همین نام ارجاع می‌شود. R3C آن را به r3c-1 برد. */
+/** نسخهٔ قرارداد Adapter؛ در گزارش R2-A و تست‌ها به همین نام ارجاع می‌شود. R3C آن را به r3c-1 برد و THG-RB-01 بدون تغییر مقدار، Workflow نسخهٔ ۲ را با همان منطق عمومی پوشش می‌دهد. */
 export const ADAPTER_CONTRACT_VERSION = "r3c-1";
 
 /**

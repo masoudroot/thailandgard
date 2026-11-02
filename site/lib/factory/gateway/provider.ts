@@ -23,7 +23,13 @@ export interface ProviderCallInput {
 export interface ProviderCallResult {
   output: unknown;
   usage: GatewayUsage;
-  cost: number;
+  /**
+   * هزینهٔ گزارش‌شدهٔ Provider. null یعنی Provider قیمت اعلام
+   * نکرده است (فقط usage داده) و هزینه نامعلوم است؛ هرگز نباید
+   * به صفرِ گمراه‌کننده تبدیل شود. Gateway در این حالت، مبنا را
+   * هم null می‌کند و تسویه فقط آزادسازی برآورد است، بدون سطر commit.
+   */
+  cost: number | null;
   /**
    * مبنای هزینهٔ گزارش‌شده. وقتی Provider چیزی اعلام نکند، Gateway
    * آن را `estimated` می‌گیرد، نه هزینهٔ قطعی.
