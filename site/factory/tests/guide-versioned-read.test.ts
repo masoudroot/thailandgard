@@ -11,10 +11,126 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import {
+  fetchVersionedGuide,
   resolveGuideSource,
   VersionedReadError,
   type VersionedGuideResult,
 } from "../../lib/guide-versioned-read";
+
+const VALID_PAYLOAD = {
+  schema_version: "publish_payload_v1",
+  slug: "thailand-transport-guide",
+  title: "حمل‌ونقل در تایلند",
+  h1: "حمل‌ونقل در تایلند",
+  published_at: null,
+  excerpt: "خلاصهٔ آزمون",
+  category: "برنامه‌ریزی سفر",
+  reading_minutes: 2,
+  updated_fa: "۱۱ آبان ۱۴۰۵",
+  sections: [{ position: 1, heading: "بخش یک", paragraphs: ["پاراگراف اول نسخهٔ تازه."] }],
+  faqs: [{ position: 1, question: "سؤال؟", answer: "پاسخ." }],
+  seo: {
+    title: "حمل‌ونقل در تایلند",
+    description: "توضیح سئو",
+    canonical_path: "/guide/thailand-transport-guide",
+  },
+};
+
+const CFG = { supabaseUrl: "https://test.supabase.co", serviceRoleKey: "test-key" };
+
+/** fetchFn قالبی: ردیف سند و ردیف نسخه را بر اساس جدول URL برمی‌گرداند. */
+function stubFetch(doc: Record<string, unknown>, version: Record<string, unknown> | null) {
+  return (async (url: string) => {
+    const rows = url.includes("content_documents")
+      ? [doc]
+      : url.includes("content_versions")
+        ? version
+          ? [version]
+          : []
+        : [];
+    return { ok: true, json: async () => rows } as unknown as Response;
+  }) as (url: string, init?: RequestInit) => Promise<Response>;
+}
+
+function docRow(overrides: Record<string, unknown>) {
+  return {
+    id: "doc-1",
+    slug: "thailand-transport-guide",
+    canonical_path: "/guide/thailand-transport-guide",
+    published_version_id: "ver-1",
+    is_test_fixture: false,
+    status: "draft",
+    ...overrides,
+  };
+}
+
+function versionRow() {
+  return {
+    id: "ver-1",
+    content_id: "doc-1",
+    version_no: 1,
+    payload: VALID_PAYLOAD,
+    content_hash: "b".repeat(64),
+  };
+}
+
+describe("fetchVersionedGuide (CUTOVER-FT-02 قدم ۳)", () => {
+  it("سند draft با اشاره‌گر تنظیم‌شده، از content_versions رندر می‌شود", async () => {
+    const result = await fetchVersionedGuide(
+      "thailand-transport-guide",
+      CFG,
+      stubFetch(docRow({}), versionRow()),
+    );
+    expect(result.versionId).toBe("ver-1");
+    expect(result.versionNo).toBe(1);
+    expect(result.guide.slug).toBe("thailand-transport-guide");
+  });
+
+  it("سند published با اشاره‌گر، مثل قبل versioned می‌دهد", async () => {
+    const result = await fetchVersionedGuide(
+      "thailand-transport-guide",
+      CFG,
+      stubFetch(docRow({ status: "published" }), versionRow()),
+    );
+    expect(result.versionId).toBe("ver-1");
+  });
+
+  it("سند archived با اشاره‌گر، NOT_PUBLISHED می‌دهد تا صفحه و نقشه یکی بمانند", async () => {
+    await expect(
+      fetchVersionedGuide(
+        "thailand-transport-guide",
+        CFG,
+        stubFetch(docRow({ status: "archived" }), versionRow()),
+      ),
+    ).rejects.toMatchObject({ code: "NOT_PUBLISHED" });
+    const source = await resolveGuideSource("thailand-transport-guide", {
+      mode: "versioned",
+      config: CFG,
+      fetchFn: stubFetch(docRow({ status: "archived" }), versionRow()),
+    });
+    expect(source).toEqual({ kind: "legacy" });
+  });
+
+  it("سند draft بدون اشاره‌گر، NO_PUBLISHED_VERSION می‌دهد", async () => {
+    await expect(
+      fetchVersionedGuide(
+        "thailand-transport-guide",
+        CFG,
+        stubFetch(docRow({ published_version_id: null }), versionRow()),
+      ),
+    ).rejects.toMatchObject({ code: "NO_PUBLISHED_VERSION" });
+  });
+
+  it("اشاره‌گر به نسخهٔ پیدا‌نشده، fail-closed با VERSION_NOT_FOUND بالا می‌آید", async () => {
+    await expect(
+      fetchVersionedGuide(
+        "thailand-transport-guide",
+        CFG,
+        stubFetch(docRow({}), null),
+      ),
+    ).rejects.toMatchObject({ code: "VERSION_NOT_FOUND" });
+  });
+});
 
 const stubResult: VersionedGuideResult = {
   guide: {

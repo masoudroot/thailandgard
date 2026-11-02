@@ -150,3 +150,16 @@
   postgrestRpc با ۶ تست تازه؛ تریگر immutability دست نخورده است.
 - متغیر EXPECTED_SUPABASE_PROJECT_REF روی Production باید
   lilmfiyzeeinmifhxdhj باشد و روی ردیف‌های شاخه‌ای vpybkilbqeshcoqnbjba.
+
+## CUTOVER-FT-02 — پمپ Outbox، اصلاحیهٔ ۱ Fast-Track (۱۴۰۵/۰۸/۱۱، شاخهٔ feat/thg-outbox-pump-01)
+- پیاده‌سازی: سرویس مشترک processOutboxBatch (منطق عین مسیر پیشین)؛ مسیر
+  process-outbox نازک؛ گام process_publication تیک مستقیم از سرویس؛ سه ماشه
+  (دکمهٔ «پردازش انتشار» داشبورد، Job پنج‌دقیقه‌ای factory-outbox-pump.yml با
+  سکرت موجود INTERNAL_PUBLISH_TOKEN، شلیک after() پس از ثبت Publication)؛
+  مسیر complete برای Publication pending اول پمپ می‌زند؛ رفع fallback خواندن
+  عمومی (draft با اشاره‌گر → versioned، archived همچنان legacy)؛ موفقیت
+  Verification وضعیت سند را published می‌کند تا slug وارد نقشهٔ سایت شود.
+- مانده: سبز شدن verify و build، PR و چک test، squash merge و Deploy؛ سپس
+  تکمیل همان Smoke گیرکرده (thailand-transport-guide) با پمپ و Verify صفحه
+  و نقشهٔ سایت؛ سپس پرچم‌ها factory_paused=false و data_publishing_enabled=true.
+- تریگر immutability دست نخورده است. دادهٔ Smoke تازه ساخته نمی‌شود.

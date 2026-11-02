@@ -1,0 +1,33 @@
+name: factory-outbox-pump
+
+# CUTOVER-FT-02 ماشهٔ (ب): پمپ زمان‌بندی Outbox. هر ۵ دقیقه یک دور
+# پردازش Outbox روی Production می‌زند تا هر Publication ساخته‌شده
+# (دستی یا تیمی) بدون دکمهٔ انسانی تکمیل شود. الگوی زمان‌بندی، همان
+# cycle-worker است؛ ولی این Job به Checkout و Node نیاز ندارد، چون
+# فقط مسیر داخلی Production را با توکن سروری موجود صدا می‌زند.
+# سکرت INTERNAL_PUBLISH_TOKEN از پیش در مخزن هست و مقدارش همان
+# متغیر Production در Vercel است؛ مقدار تازه‌ای این‌جا نوشته نمی‌شود.
+# مسیر، وقتی کاری برای پردازش نیست {processed: 0} با کد ۲۰۰ برمی‌گرداند؛
+# پس فقط ۴۰۱/۵۰۳ (توکن یا پیکربندی) Job را قرمز می‌کند.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  pump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: pump production outbox
+        run: |
+          code=$(curl -s --max-time 240 -o /tmp/pump.json -w '%{http_code}' -X POST "$PUMP_URL" \
+            -H "x-internal-publish-token: $INTERNAL_PUBLISH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{}')
+          cat /tmp/pump.json; echo
+          test "$code" = "200"
+        env:
+          PUMP_URL: https://thailandgard.ir/api/internal/process-outbox
+          INTERNAL_PUBLISH_TOKEN: ${{ secrets.INTERNAL_PUBLISH_TOKEN }}

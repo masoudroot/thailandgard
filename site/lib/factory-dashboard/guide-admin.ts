@@ -63,6 +63,7 @@ import type {
   GuideListWorkItem,
   GuidePublicationItem,
   GuidePublishResult,
+  GuidePumpResult,
   GuideRollbackResult,
   GuideVersionItem,
 } from "./guide-types";
@@ -947,6 +948,27 @@ export async function completeGuideDraft(
     workItemStatus: updatedWi ? (asString(updatedWi.status) ?? "") : "",
     publicationStatus: pub ? asString(pub.status) : null,
     replayed: record?.replayed === true,
+  };
+}
+
+/**
+ * پمپ Outbox از داشبورد (CUTOVER-FT-02 ماشهٔ الف): یک دور پردازش
+ * Outbox با همان مسیر داخلی و توکن سروری موجود؛ برای کار در حال
+ * انتشار که Publication آن هنوز verified نشده است. شناسهٔ کار فقط
+ * برای نشانی اقدام در داشبورد است؛ سرویس، رویداد قابل Claim را
+ * (قدیمی‌ترین) پردازش می‌کند، نه لزوماً همین کار را.
+ */
+export async function pumpGuideDraft(
+  origin: string,
+  _workItemId: string,
+): Promise<GuidePumpResult> {
+  const result = await callInternal(origin, "/api/internal/process-outbox", {});
+  const record = asRecord(result.json);
+  const processed = record ? (record.processed as number | undefined) : undefined;
+  return {
+    publicationId: record ? asString(record.publication_id) : null,
+    status: record ? asString(record.status) : null,
+    processed: typeof processed === "number" ? processed : 0,
   };
 }
 

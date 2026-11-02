@@ -22,6 +22,7 @@ import {
   workItemPublishIdempotencyKey,
 } from "@/lib/factory/tick/work-items";
 import { publishUpdateContent } from "@/lib/factory/publish-v2";
+import { processOutboxBatch } from "@/lib/factory/tick/process-outbox-batch";
 import {
   GATEWAY_TICK_STEP_KEYS,
   GATEWAY_WORKFLOW_VERSION,
@@ -1206,8 +1207,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         if (pubs.length > 0 && pubs[0].status === "verified") {
           // از قبل verified است؛ Step موفق می‌شود.
         } else {
-          const processed = await internalPost(requestOrigin, "/api/internal/process-outbox", {});
-          const result = processed.json as Record<string, unknown> | null;
+          // گام process_publication، مستقیم از سرویس مشترک پمپ صدا می‌زند؛
+          // همان منطقی که مسیر process-outbox هم از آن استفاده می‌کند.
+          const processed = await processOutboxBatch(cfg, requestOrigin, {});
+          const result = processed.body as Record<string, unknown> | null;
           if (result && result.status === "verified") {
             // موفق؛ Step پایین‌تر succeeded می‌شود.
           } else if (result && result.status === "needs_intervention") {

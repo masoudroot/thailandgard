@@ -286,3 +286,39 @@
 - محدودیت‌ها: تریگر immutability دست نخورده است. مقدار موردانتظار روی
   Production باید lilmfiyzeeinmifhxdhj و روی ردیف‌های شاخه‌ای
   vpybkilbqeshcoqnbjba باشد (ست شدن متغیر با مرج و دیپلوی همراه است).
+
+## CUTOVER-FT-02 — پمپ Outbox، اصلاحیهٔ ۱ Fast-Track (۱۴۰۵/۰۸/۱۱، شاخهٔ feat/thg-outbox-pump-01)
+- دستور مدیر پروژه (بخشی از بستهٔ MVP با همان تأیید واحد Fast-Track؛ فقط Deploy تازه می‌خواهد).
+- مشکل اثبات‌شده: انتشار دستی Publication و Outbox می‌سازد ولی هیچ ماشه‌ای Outbox را
+  پردازش نمی‌کند (تیک فقط گام process_publication کارهای tick_managed را دارد؛ کار دستی
+  هیچ گامی ندارد). Smoke گیرکرده: Publication با b5056865 و Outbox با 575079d8 در
+  pending با صفر تلاش، سند draft با اشاره‌گر نسخهٔ ۱، صفحه ۴۰۴.
+- قدم ۱ (سرویس مشترک): منطق پردازش Outbox از مسیر process-outbox به
+  site/lib/factory/tick/process-outbox-batch.ts با نام processOutboxBatch منتقل می‌شود؛
+  منطق موجود (lease، fencing، revalidateTag، Verify، ثبت نتیجه) عیناً حفظ می‌شود؛ مسیر
+  process-outbox نازک می‌شود و گام process_publication تیک مستقیم از همان سرویس صدا
+  می‌زند. هیچ مسیر دوم پردازش ساخته نمی‌شود.
+- قدم ۲ (سه ماشه + تکمیل پمپ‌دار): (الف) دکمهٔ «پردازش انتشار» در داشبورد
+  (مسیر factory-dashboard با callInternal و توکن سروری موجود)؛ (ب) Job زمان‌بندی
+  GitHub Actions هر ۵ دقیقه (factory-outbox-pump.yml، POST با سکرت موجود
+  INTERNAL_PUBLISH_TOKEN)؛ (پ) شلیک fire-and-forget با after() بعد از ثبت Publication
+  در مسیر publish داخلی؛ (ت) مسیر complete داخلی، اگر Publication pending باشد، اول
+  پمپ را اجرا می‌کند و بعد وضعیت را می‌خواند.
+- قدم ۳ (رفع fallback خواندن عمومی، الزامی در همین Deploy): در
+  site/lib/guide-versioned-read.ts، سند draft با اشاره‌گر تنظیم‌شده
+  (نسخهٔ منتشرشده) از content_versions رندر می‌شود، حتی اگر ردیفی در guides نداشته
+  باشد؛ چون اشاره‌گر فقط با RPC انتشار پس از تأیید تنظیم می‌شود. استثنا: سند archived
+  همچنان legacy می‌ماند تا صفحه و نقشهٔ سایت یک جواب بدهند.
+- نکتهٔ لازم برای قدم ۴: موفقیت Verification در سرویس، وضعیت سند را published می‌کند،
+  چون نقشهٔ سایت فقط status=published با اشاره‌گر را می‌گیرد و هیچ مسیر دیگری وضعیت
+  سند را عوض نمی‌کند؛ بدون این، slug هرگز وارد نقشه نمی‌شود.
+- قدم ۴ (تکمیل همان Smoke): دادهٔ جدید ساخته نمی‌شود؛ همان Publication و Outbox
+  pending با پمپ تازه تکمیل می‌شوند. Verify: صفحهٔ واقعی thailand-transport-guide
+  ۲۰۰ بدهد و از نسخهٔ منتشرشده رندر شود؛ slug وارد نقشهٔ سایت شود؛ Work Item موفق شود.
+  (نام test-guide-e2e در دستور، همان سند آرشیوشدهٔ حادثه است و احیا نمی‌شود؛ Smoke
+  همان thailand-transport-guide است.)
+- قدم ۵ (پرچم‌ها): بعد از Verify موفق: factory_paused=false و
+  data_publishing_enabled=true روی Production.
+- حذف‌شده‌ها (سیاست Fast-Track): ماتریس تست کامل، ریزه‌کاری داشبورد، سخت‌سازی‌ها.
+- پذیرش: npm run verify با کد ۰؛ PR با چک test سبز و squash merge و Deploy؛ صفحهٔ
+  واقعی Smoke با ۲۰۰ و slug در نقشهٔ سایت و Work Item در succeeded.

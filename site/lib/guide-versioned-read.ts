@@ -15,9 +15,11 @@
  *   ۵۰۰)؛ سند با نسخهٔ منتشرشده باشد versioned؛ خطاهای دیگر خواندن
  *   نسخه، fail-closed بالا می‌آیند، نه fallback بی‌صدا به محتوای
  *   اشتباه. سند فیکسچر هم legacy می‌شود، چون فیکسچر محتوای واقعی
- *   نیست و انتشار آن را خود Function انتشار رد می‌کند. سند با وضعیت
- *   صریح غیرمنتشرشده (THG-UNIFY-01، کد NOT_PUBLISHED) هم legacy
- *   می‌شود؛ قانون کامل و یکتا در lib/guide-source-resolver.ts است.
+ *   نیست و انتشار آن را خود Function انتشار رد می‌کند. سند archived
+ *   (CUTOVER-FT-02، کد NOT_PUBLISHED) هم legacy می‌شود تا صفحه و نقشهٔ
+ *   سایت یک جواب بدهند؛ ولی سند draft با اشاره‌گر تنظیم‌شده، نسخهٔ
+ *   منتشرشده دارد و versioned می‌شود، حتی اگر ردیفی در guides نداشته
+ *   باشد. قانون کامل و یکتا در lib/guide-source-resolver.ts است.
  * - shadow_compare: صفحه با legacy رندر می‌شود و مقایسهٔ هر دو رندر، سمت
  *   سرور ثبت می‌شود؛ مقایسه هرگز چیزی را منتشر نمی‌کند.
  *
@@ -221,19 +223,18 @@ export async function fetchVersionedGuide(
       `versioned read: document ${slug} is a test fixture`,
     );
   }
-  // SINGLE-SOURCE (THG-UNIFY-01): خوانش صفحه، همان فیلتر وضعیت نقشهٔ
-  // سایت را می‌زند، وقتی وضعیت واقعاً آمده باشد. سند با وضعیت صریح
-  // غیرpublished (draft، archived) حتی اگر اشاره‌گر داشته باشد، محتوای
-  // نسخه‌ای سرو نمی‌کند؛ رزولوشن زیر، این کد را به legacy برمی‌گرداند
-  // تا صفحه و نقشه یک جواب بدهند. وضعیتِ غایب (undefined/null، مثل
-  // دادهٔ قدیمیِ بدون ستون وضعیت) عمداً به رفتار قدیمیِ «فقط اشاره‌گر»
-  // برمی‌گردد تا تست‌ها و دادهٔ قدیمی نشکنند؛ شکاف باقیمانده: سندی با
-  // وضعیت تهی از نقشه می‌افتد ولی صفحه ممکن است نسخه‌اش را سرو کند.
-  // بستنش با backfill وضعیت همهٔ سندها است، نه با سخت‌گیری این‌جا.
-  if (doc.status !== undefined && doc.status !== null && doc.status !== "published") {
+  // CUTOVER-FT-02 قدم ۳: قانون وضعیت، فقط آرشیو را نگه می‌دارد. سند
+  // draft با اشاره‌گر تنظیم‌شده، نسخهٔ منتشرشده دارد: اشاره‌گر فقط با
+  // RPC انتشار پس از تأیید تنظیم می‌شود، پس draft با اشاره‌گر یعنی
+  // «نسخهٔ تأییدشده در مسیر انتشار/راستی‌آزمایی» و صفحه باید آن را از
+  // content_versions رندر کند، حتی اگر ردیفی در guides نداشته باشد؛
+  // وگرنه راستی‌آزماییِ slug مهاجرت‌کرده هرگز صفحهٔ تازه را نمی‌بیند و
+  // انتشار هرگز کامل نمی‌شود. وضعیتِ غایب (undefined/null) هم مثل قبل
+  // به رفتار «فقط اشاره‌گر» برمی‌گردد.
+  if (doc.status === "archived") {
     throw new VersionedReadError(
       "NOT_PUBLISHED",
-      `versioned read: document ${slug} is not published (status ${doc.status})`,
+      `versioned read: document ${slug} is archived (status archived)`,
     );
   }
   if (!doc.published_version_id) {
@@ -306,10 +307,9 @@ export interface GuideSourceDeps {
  * رزولوشن صفحه بر اساس حالت خواندن (قرارداد CONTENT-FIRST):
  * - legacy و shadow_compare همیشه legacy می‌دهند؛ در shadow_compare،
  *   ثبت مقایسه با صفحه است، نه با این helper.
- * - versioned: سند نباشد legacy؛ سند فیکسچر باشد legacy؛ سند با وضعیت
- *   صریح غیرمنتشرشده (NOT_PUBLISHED) باشد legacy (همان قانون رزولور
- *   یکتا: پیش‌نویس/آرشیو هرگز slug را تصاحب نمی‌کند)؛ سند بدون
- *   نسخهٔ منتشرشده draft؛ سند با نسخهٔ منتشرشده versioned؛ هر خطای
+ * - versioned: سند نباشد legacy؛ سند فیکسچر باشد legacy؛ سند archived
+ *   باشد legacy (کد NOT_PUBLISHED؛ آرشیو هرگز slug را تصاحب نمی‌کند)؛
+ *   سند بدون نسخهٔ منتشرشده draft؛ سند با نسخهٔ منتشرشده versioned؛ هر خطای
  *   دیگر خواندن نسخه (پیکربندی، بالادست، نسخهٔ پیدا‌نشده، ناهمخوانی
  *   نسخه، payload نامعتبر) fail-closed بالا می‌آید.
  * پارامترهای fetchFn و fetchVersioned فقط برای تست و برای پوستهٔ
