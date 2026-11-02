@@ -37,7 +37,7 @@ export const GATEWAY_TICK_STEP_KEYS = [
 
 export type GatewayTickStepKey = (typeof GATEWAY_TICK_STEP_KEYS)[number];
 
-export type AnyTickStepKey = TickStepKey | GatewayTickStepKey | GatewayV2TickStepKey;
+export type AnyTickStepKey = TickStepKey | GatewayTickStepKey | GatewayV2TickStepKey | AutoTickStepKey;
 
 /**
  * نسخهٔ Workflow مسیر رسمی. فقط همین نسخه، با همین ۸ Step و همین
@@ -68,11 +68,35 @@ export const GATEWAY_V2_TICK_STEP_KEYS = [
 export type GatewayV2TickStepKey =
   (typeof GATEWAY_V2_TICK_STEP_KEYS)[number];
 
+/**
+ * نسخهٔ Workflow خودمختار محتوا (THG-AUTO-01، اصلاحیهٔ ۲). همان
+ * تولید واقعی Gateway نسخهٔ ۲، ولی با زنجیرهٔ کامل انتشار و بدون
+ * هیچ قدم تأیید انسانی: جای تأیید را قدم auto_approve می‌گیرد که
+ * سطر approval را با هویت سیستمی (system:autonomous) ثبت می‌کند،
+ * نه هویت انسان؛ و جای اطمینان نهایی را قدم verify_publication
+ * می‌گیرد که صفحهٔ واقعی و sitemap را می‌سنجد و در شکست، Rollback
+ * می‌زند. قدم‌های دیگر، همان قدم‌های مسیر رسمی‌اند.
+ */
+export const AUTO_WORKFLOW_VERSION = "guide_content_auto_v1";
+export const AUTO_TICK_STEP_KEYS = [
+  "generate_draft",
+  "validate_artifact",
+  "auto_approve",
+  "create_version",
+  "publish_version",
+  "process_publication",
+  "verify_publication",
+  "complete_work",
+] as const;
+
+export type AutoTickStepKey = (typeof AUTO_TICK_STEP_KEYS)[number];
+
 export function isSupportedWorkflowVersion(version: string | null | undefined): boolean {
   return (
     version === WORKFLOW_VERSION ||
     version === GATEWAY_WORKFLOW_VERSION ||
-    version === GATEWAY_V2_WORKFLOW_VERSION
+    version === GATEWAY_V2_WORKFLOW_VERSION ||
+    version === AUTO_WORKFLOW_VERSION
   );
 }
 
@@ -80,7 +104,8 @@ export function isValidWorkflowStepKey(stepKey: string): stepKey is AnyTickStepK
   return (
     (TICK_STEP_KEYS as readonly string[]).includes(stepKey) ||
     (GATEWAY_TICK_STEP_KEYS as readonly string[]).includes(stepKey) ||
-    (GATEWAY_V2_TICK_STEP_KEYS as readonly string[]).includes(stepKey)
+    (GATEWAY_V2_TICK_STEP_KEYS as readonly string[]).includes(stepKey) ||
+    (AUTO_TICK_STEP_KEYS as readonly string[]).includes(stepKey)
   );
 }
 
@@ -92,6 +117,9 @@ export function isStepKeyOfWorkflow(stepKey: string, workflowVersion: string | n
   }
   if (workflowVersion === GATEWAY_V2_WORKFLOW_VERSION) {
     return (GATEWAY_V2_TICK_STEP_KEYS as readonly string[]).includes(stepKey);
+  }
+  if (workflowVersion === AUTO_WORKFLOW_VERSION) {
+    return (AUTO_TICK_STEP_KEYS as readonly string[]).includes(stepKey);
   }
   return false;
 }
@@ -213,7 +241,8 @@ export function gatewayStepBlockReason(
 ): GatewayStepBlockReason | null {
   if (
     workflowVersion !== GATEWAY_WORKFLOW_VERSION &&
-    workflowVersion !== GATEWAY_V2_WORKFLOW_VERSION
+    workflowVersion !== GATEWAY_V2_WORKFLOW_VERSION &&
+    workflowVersion !== AUTO_WORKFLOW_VERSION
   ) {
     return null;
   }

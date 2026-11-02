@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,8 +28,42 @@ type ClientState =
   | { kind: "error" }
   | { kind: "ready"; data: FactoryDashboardData };
 
+type TickState =
+  | { kind: "idle" }
+  | { kind: "busy" }
+  | { kind: "done"; status: string; stepKey: string | null }
+  | { kind: "error"; detail: string };
+
 export default function DashboardClient() {
   const [state, setState] = useState<ClientState>({ kind: "loading" });
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [tickState, setTickState] = useState<TickState>({ kind: "idle" });
+
+  async function runTick(): Promise<void> {
+    setTickState({ kind: "busy" });
+    try {
+      const res = await fetch("/api/factory-dashboard/tick", { method: "POST" });
+      const result = (await res.json().catch(() => null)) as {
+        status?: unknown;
+        step_key?: unknown;
+        error?: unknown;
+      } | null;
+      if (!res.ok) {
+        setTickState({
+          kind: "error",
+          detail: typeof result?.error === "string" ? result.error : `خطای ${res.status}`,
+        });
+        return;
+      }
+      setTickState({
+        kind: "done",
+        status: typeof result?.status === "string" ? result.status : "نامشخص",
+        stepKey: typeof result?.step_key === "string" ? result.step_key : null,
+      });
+    } catch {
+      setTickState({ kind: "error", detail: "فراخوان تیک ممکن نشد." });
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -104,5 +139,44 @@ export default function DashboardClient() {
     );
   }
 
-  return <DashboardView data={state.data} />;
+  return (
+    <div className="space-y-6">
+      <DashboardView data={state.data} />
+      <Card>
+        <CardHeader>
+          <CardTitle>ابزارهای پیشرفته</CardTitle>
+          <CardDescription>
+            اجرای دستی تیک کارخانه؛ معمولاً Job پنج‌دقیقه‌ای خودش تیک
+            می‌زند و این دکمه فقط برای وقتی است که بخواهید همان لحظه
+            یک قدم جلو برود.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button
+            variant="outline"
+            onClick={() => setAdvancedOpen((open) => !open)}
+            aria-expanded={advancedOpen}
+          >
+            {advancedOpen ? "پنهان کردن ابزارها" : "نمایش ابزارهای پیشرفته"}
+          </Button>
+          {advancedOpen && (
+            <div className="space-y-2">
+              <Button onClick={() => void runTick()} disabled={tickState.kind === "busy"}>
+                {tickState.kind === "busy" ? "در حال اجرای تیک…" : "اجرای تیک"}
+              </Button>
+              {tickState.kind === "done" && (
+                <p className="text-sm text-muted-foreground" dir="ltr">
+                  {tickState.status}
+                  {tickState.stepKey ? ` · ${tickState.stepKey}` : ""}
+                </p>
+              )}
+              {tickState.kind === "error" && (
+                <p className="text-sm text-destructive">{tickState.detail}</p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

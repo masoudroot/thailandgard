@@ -201,6 +201,32 @@ export function DashboardView({ data }: { data: FactoryDashboardData }) {
       </SectionCard>
 
       <SectionCard
+        icon={<Bot aria-hidden className="size-5" />}
+        title="تاریخچهٔ فعالیت خودکار"
+        description="چه چیزی، کی، به‌صورت خودمختار منتشر شد و نتیجه‌اش چه شد. فقط کارهای Workflow خودمختار این‌جا می‌آیند؛ انتشارهای دستی و بازگردانی‌های دستی، این‌جا نیستند."
+      >
+        {data.autoActivity.length === 0 ? (
+          <p className="text-sm text-muted-foreground">هنوز فعالیت خودمختاری ثبت نشده است.</p>
+        ) : (
+          <ul className="space-y-2">
+            {data.autoActivity.map((item, index) => (
+              <li key={`${item.at}-${item.slug}-${index}`} className="rounded-xl border border-border bg-card p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{item.title || item.slug}</span>
+                  <Pill>{item.kind === "published" ? "منتشر شد" : "بازگردانی شد"}</Pill>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground" dir="ltr">{item.slug}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{jalali(item.at)}</p>
+                {item.kind === "rolled_back" && item.detail && (
+                  <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+
+      <SectionCard
         icon={<ClipboardList aria-hidden className="size-5" />}
         title="نیازمند اقدام"
         description="کارهایی که در انتظار تأیید انسانی‌اند و Artifactهای آمادهٔ آن‌ها."

@@ -1,0 +1,30 @@
+name: factory-autonomous-daily
+
+# THG-AUTO-01 چرخهٔ روزانهٔ خودمختار محتوا. هر روز ساعت ۰۲:۰۰ UTC
+# (۰۵:۳۰ تهران) یک دور چرخهٔ داخلی Production را صدا می‌زند تا یک
+# راهنمای تازه و یک بازنویسی، به‌صورت Work Item خودمختار ساخته
+# شوند؛ اجرای آن‌ها با Job پنج‌دقیقه‌ای تیک و پمپ است، نه با این
+# Job. مسیر، وقتی چیزی برای ساختن نیست هم ۲۰۰ برمی‌گرداند؛ پس
+# فقط ۴۰۱/۵۰۳ (توکن یا پیکربندی) Job را قرمز می‌کند.
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  autonomous-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: trigger production autonomous cycle
+        run: |
+          code=$(curl -s --max-time 240 -o /tmp/autonomous-cycle.json -w '%{http_code}' -X POST "$CYCLE_URL" \
+            -H "x-internal-publish-token: $INTERNAL_PUBLISH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{}')
+          cat /tmp/autonomous-cycle.json; echo
+          test "$code" = "200"
+        env:
+          CYCLE_URL: https://thailandgard.ir/api/internal/autonomous-cycle
+          INTERNAL_PUBLISH_TOKEN: ${{ secrets.INTERNAL_PUBLISH_TOKEN }}

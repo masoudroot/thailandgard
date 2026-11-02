@@ -24,6 +24,8 @@ import {
 import { publishUpdateContent } from "@/lib/factory/publish-v2";
 import { processOutboxBatch } from "@/lib/factory/tick/process-outbox-batch";
 import {
+  AUTO_TICK_STEP_KEYS,
+  AUTO_WORKFLOW_VERSION,
   GATEWAY_TICK_STEP_KEYS,
   GATEWAY_V2_TICK_STEP_KEYS,
   GATEWAY_V2_WORKFLOW_VERSION,
@@ -53,6 +55,13 @@ import {
   runGatewayCallForOperation,
 } from "@/lib/factory/tick/gateway-operation-run";
 import {
+  AUTO_APPROVAL_REASON,
+  SYSTEM_APPROVER_ID,
+  buildRewriteUserMessage,
+  sitemapContainsSlug,
+} from "@/lib/factory/tick/autonomous";
+import { verifyPageWithRetries } from "@/lib/factory/tick/publish-outbox";
+import {
   recoverGatewayArtifact,
 } from "@/lib/factory/tick/gateway-artifact-recovery";
 
@@ -70,6 +79,19 @@ const DRAFT_SYSTEM_PROMPT = [
   "تو نویسندهٔ راهنمای سفر سایت تایلندگردی. فقط یک JSON معتبر برگردان؛ هیچ متن اضافه، هیچ توضیح، هیچ بلاک کد.",
   "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش ۲ تا ۳ پاراگراف کوتاه، faqs با position از ۱ و صعودی و ۳ پرسش کوتاه، seo با title و description و canonical_path برابر /guide/<slug>.",
   "قوانین محتوا: هیچ قیمت، نرخ ارز، ساعت پرواز یا برنامهٔ زمانی قطعی نیاور؛ هیچ واقعیتی که از آن مطمئن نیستی نساز و به‌جای آن، راهنمایی کلی و قابل‌اتکا بده؛ راهنما فشرده باشد: دقیقاً ۴ بخش و ۳ پرسش؛ فارسی روان و ساده، بدون لحن تبلیغاتی و بدون ادعای فروش.",
+].join(" ");
+
+/**
+ * پرامپت بازنویسی خودمختار (THG-AUTO-01): برخلاف پرامپت تازه،
+ * بار جاری راهنما به‌عنوان ورودی داده می‌شود و مدل، همان راهنما
+ * را کامل می‌کند؛ نه این‌که راهنمای دیگری بسازد. شمار بخش‌ها و
+ * پرسش‌ها کمتر از بار جاری نمی‌شود؛ فقط جای خالی پر می‌شود و
+ * کهنگی درست می‌شود. slug و عنوان و canonical_path همان می‌مانند.
+ */
+const REWRITE_SYSTEM_PROMPT = [
+  "تو ویراستار راهنمای سفر سایت تایلندگردی. فقط یک JSON معتبر برگردان؛ هیچ متن اضافه، هیچ توضیح، هیچ بلاک کد.",
+  "ساختار دقیق همان publish_payload_v1 است: schema_version برابر publish_payload_v1، slug همان slug داده‌شده، title همان عنوان داده‌شده، h1 برابر title، published_at برابر null، excerpt یک یا دو جمله، category برابر راهنمای سفر، reading_minutes عدد صحیح مثبت، updated_fa ماه و سال شمسی امروز، sections با position از ۱ و صعودی و هر بخش ۲ تا ۳ پاراگراف کوتاه، faqs با position از ۱ و صعودی، seo با title و description و canonical_path برابر /guide/<slug>.",
+  "قوانین بازنویسی: کهنگی، ناقصی و ناهماهنگی بار جاری را درست کن؛ بخش‌های کم‌مایه را کامل و پرسش‌های جاافتاده را اضافه کن؛ شمار بخش‌ها و پرسش‌ها را کمتر از بار جاری نکن؛ هیچ قیمت، نرخ ارز، ساعت پرواز یا برنامهٔ زمانی قطعی نیاور؛ هیچ واقعیتی که از آن مطمئن نیستی نساز؛ فارسی روان و ساده، بدون لحن تبلیغاتی و بدون ادعای فروش.",
 ].join(" ");
 
 /**
@@ -533,6 +555,35 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             status: "queued",
             max_attempts: stepMaxAttempts(stepKey),
             idempotency_key: `r3g-gateway-step-${wi.work_key}-${stepKey}`,
+          })),
+        );
+        break;
+      }
+    }
+    // بوت‌استرپ THG-AUTO-01: همان الگو، برای Workflow خودمختار.
+    // زنجیرهٔ ۸ Step این Workflow، هیچ قدم تأیید انسانی ندارد؛
+    // جای آن، auto_approve سیستمی و verify_publication نشسته است.
+    const queuedAutoWIs = (await postgrestGet(
+      cfg,
+      `factory_work_items?status=eq.queued&execution_mode=eq.tick_managed&workflow_version=eq.${AUTO_WORKFLOW_VERSION}&created_at=gte.${encodeURIComponent(R2A1_SCOPE_CUTOFF)}&order=created_at.asc&select=id,work_key,status`,
+    )) as WorkItemRow[];
+    for (const wi of queuedAutoWIs) {
+      const existing = (await postgrestGet(
+        cfg,
+        `factory_work_steps?work_item_id=eq.${encodeURIComponent(wi.id)}&select=id&limit=1`,
+      )) as unknown[];
+      if (existing.length === 0) {
+        await postgrestWrite(
+          cfg,
+          "POST",
+          "factory_work_steps",
+          AUTO_TICK_STEP_KEYS.map((stepKey, index) => ({
+            work_item_id: wi.id,
+            step_key: stepKey,
+            sequence_no: index + 1,
+            status: "queued",
+            max_attempts: stepMaxAttempts(stepKey),
+            idempotency_key: `auto-step-${wi.work_key}-${stepKey}`,
           })),
         );
         break;
@@ -1178,16 +1229,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           if (!doc?.slug) throw new Error("work item has no guide document");
           const modelId = modelsForCapability("generation")[0];
           if (!modelId) throw new Error("no generation model registered");
-          const draftInput = {
-            guide_slug: doc.slug,
-            messages: [
-              { role: "system", content: DRAFT_SYSTEM_PROMPT },
-              {
-                role: "user",
-                content: `راهنمای تازه با slug «${doc.slug}» و عنوان «${workItem.title ?? doc.slug}» بنویس.`,
-              },
-            ],
-          };
+          // مسیر بازنویسی خودمختار (THG-AUTO-01): اگر سند، نسخهٔ
+          // منتشرشده دارد، بار جاری همان نسخه به مدل داده می‌شود و
+          // پرامپت بازنویسی است؛ وگرنه، همان پرامپت راهنمای تازه.
+          // تمایز، از وضعیت سند است، نه از Work Item؛ پس یک Workflow
+          // خودمختار، هم راهنمای تازه و هم بازنویسی را می‌سازد.
+          let draftInput;
+          let draftPromptVersion = "r3g-draft-v1";
+          if (doc.published_version_id) {
+            const versions = (await postgrestGet(
+              cfg,
+              `content_versions?id=eq.${encodeURIComponent(doc.published_version_id)}&select=payload`,
+            )) as { payload: unknown }[];
+            if (versions.length === 0) throw new Error("published version not found for rewrite");
+            draftPromptVersion = "auto-rewrite-v1";
+            draftInput = {
+              guide_slug: doc.slug,
+              messages: [
+                { role: "system", content: REWRITE_SYSTEM_PROMPT },
+                {
+                  role: "user",
+                  content: buildRewriteUserMessage(doc.slug, workItem.title ?? doc.slug, versions[0].payload),
+                },
+              ],
+            };
+          } else {
+            draftInput = {
+              guide_slug: doc.slug,
+              messages: [
+                { role: "system", content: DRAFT_SYSTEM_PROMPT },
+                {
+                  role: "user",
+                  content: `راهنمای تازه با slug «${doc.slug}» و عنوان «${workItem.title ?? doc.slug}» بنویس.`,
+                },
+              ],
+            };
+          }
           const logicalId = gatewayLogicalOperationId(workItem.id, claimed.step_key, "generate_draft");
           const latestOp = await getLatestOperation(cfg, logicalId);
           const priorId =
@@ -1208,7 +1285,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 capability: "draft_generation",
                 provider: "reformboss",
                 model_id: modelId,
-                prompt_version: "r3g-draft-v1",
+                prompt_version: draftPromptVersion,
                 token_limit: 3000,
                 timeout: 30000,
                 input: draftInput,
@@ -1275,7 +1352,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                   capability: "draft_generation",
                   provider: "reformboss",
                   model_id: modelId,
-                  prompt_version: "r3g-draft-v1",
+                  prompt_version: draftPromptVersion,
                   token_limit: 3000,
                   timeout: 30000,
                   input: draftInput,
@@ -1344,6 +1421,47 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             throwIfCrashAfter("artifact_registered");
           }
         }
+      } else if (claimed.step_key === "auto_approve") {
+        // قدم تأیید سیستمی (THG-AUTO-01): فقط برای Workflow
+        // خودمختار. سطر approval، مستقیم با PostgREST درج می‌شود،
+        // چون مسیر approvals داشبورد، reviewer_id بدنه را نادیده
+        // می‌گیرد و هویت سروری می‌زند؛ استفاده از آن مسیر برای
+        // تأیید سیستمی، هویت انسان را جعل می‌کرد. این‌جا reviewer_id
+        // دقیقاً system:autonomous است و دلیل، دستور مدیر پروژه را
+        // می‌گوید؛ پس هیچ تأیید انسانی جعل نمی‌شود. بازپخش: اگر
+        // تأیید سیستمی همین Artifact از پیش هست، همان برگردانده
+        // می‌شود و سطر تازه ساخته نمی‌شود.
+        if (workItem.workflow_version !== AUTO_WORKFLOW_VERSION) {
+          throw new Error("auto_approve is only for the autonomous workflow");
+        }
+        if (workItem.status !== "awaiting_approval") {
+          throw new Error(`work item is not awaiting_approval (status ${workItem.status})`);
+        }
+        if (!workItem.result_artifact_id) throw new Error("work item has no artifact");
+        const artifacts = (await postgrestGet(
+          cfg,
+          `factory_artifacts?id=eq.${encodeURIComponent(workItem.result_artifact_id)}&select=*`,
+        )) as ArtifactRow[];
+        if (artifacts.length === 0) throw new Error("artifact not found");
+        const existing = (await postgrestGet(
+          cfg,
+          `factory_approvals?work_item_id=eq.${encodeURIComponent(workItem.id)}&artifact_id=eq.${encodeURIComponent(workItem.result_artifact_id)}&decision=eq.approved&reviewer_id=eq.${encodeURIComponent(SYSTEM_APPROVER_ID)}&select=id&limit=1`,
+        )) as ApprovalRow[];
+        if (existing.length === 0) {
+          const inserted = (await postgrestWrite(cfg, "POST", "factory_approvals", {
+            work_item_id: workItem.id,
+            artifact_id: artifacts[0].id,
+            artifact_hash: artifacts[0].artifact_hash,
+            decision: "approved",
+            reviewer_id: SYSTEM_APPROVER_ID,
+            decision_reason: AUTO_APPROVAL_REASON,
+          })) as ApprovalRow[];
+          if (!inserted[0]?.id) throw new Error("system approval was not created");
+        }
+        await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
+          status: "approved",
+          updated_at: new Date().toISOString(),
+        });
       } else if (claimed.step_key === "await_human_approval") {
         // گیت پیش از Claim، Approval را بررسی کرده است؛ این‌جا دوباره بررسی می‌شود.
         if (!workItem.result_artifact_id) throw new Error("work item has no artifact");
@@ -1537,6 +1655,113 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               next_attempt_at: nextAttempt,
             });
           }
+        }
+      } else if (claimed.step_key === "verify_publication") {
+        // قدم Verify خودکار پس از انتشار (THG-AUTO-01): تنها چیزی
+        // که جای تأیید انسانی را می‌گیرد. صفحهٔ واقعی با همان
+        // سنجش مسیر Outbox (۲۰۰ + مسیر متعارف + نشان نسخهٔ تازه +
+        // نبود متن یکتای نسخهٔ قبل) و با ۳ تلاش سنجیده می‌شود،
+        // به‌علاوهٔ حضور slug در نقشهٔ سایت داینامیک. موفقیت یعنی
+        // قدم succeeded و زنجیره به complete_work می‌رسد. شکست
+        // یعنی Rollback خودکار از مسیر موجود (وقتی نسخهٔ قبل هست)
+        // یا Unpublish برای انتشار اول (وقتی نسخهٔ قبلی نیست) +
+        // سطر audit از نوع intervention + مسدود شدن WI؛ قدم، هرگز
+        // با صفحهٔ خراب succeeded نمی‌شود.
+        if (workItem.workflow_version !== AUTO_WORKFLOW_VERSION) {
+          throw new Error("verify_publication is only for the autonomous workflow");
+        }
+        if (!workItem.publication_id) throw new Error("work item has no publication");
+        if (!workItem.result_version_id) throw new Error("work item has no version");
+        const pubs = (await postgrestGet(
+          cfg,
+          `factory_publications?id=eq.${encodeURIComponent(workItem.publication_id)}&select=*`,
+        )) as PublicationRow[];
+        if (pubs.length === 0) throw new Error("publication not found");
+        const publication = pubs[0];
+        const docs = (await postgrestGet(
+          cfg,
+          `content_documents?id=eq.${encodeURIComponent(workItem.content_id)}&select=*`,
+        )) as DocumentRow[];
+        if (docs.length === 0) throw new Error("guide document not found");
+        const versions = (await postgrestGet(
+          cfg,
+          `content_versions?id=eq.${encodeURIComponent(workItem.result_version_id)}&select=*`,
+        )) as VersionRow[];
+        if (versions.length === 0) throw new Error("version not found");
+        const payload = versions[0].payload as PublishPayload;
+        const canonicalPath = docs[0].canonical_path;
+        const expectedMarker = firstParagraph(payload);
+        let previousUniqueText: string | null = null;
+        if (publication.previous_version_id) {
+          const prevVersions = (await postgrestGet(
+            cfg,
+            `content_versions?id=eq.${encodeURIComponent(publication.previous_version_id)}&select=*`,
+          )) as VersionRow[];
+          if (prevVersions.length > 0) {
+            const prevFirst = firstParagraph(prevVersions[0].payload as PublishPayload);
+            previousUniqueText = prevFirst !== expectedMarker ? prevFirst : null;
+          }
+        }
+        const pageVerification = await verifyPageWithRetries(
+          async () => {
+            const res = await fetch(`${requestOrigin}${canonicalPath}`, { cache: "no-store" });
+            return { httpStatus: res.status, html: await res.text().catch(() => "") };
+          },
+          { canonicalPath, expectedMarker, previousUniqueText },
+          3,
+          3000,
+        );
+        let sitemapOk = false;
+        for (let attempt = 1; attempt <= 3 && !sitemapOk; attempt++) {
+          try {
+            const smRes = await fetch(`${requestOrigin}/sitemap.xml`, { cache: "no-store" });
+            const smXml = await smRes.text().catch(() => "");
+            sitemapOk = smRes.status === 200 && sitemapContainsSlug(smXml, canonicalPath);
+          } catch {
+            sitemapOk = false;
+          }
+          if (!sitemapOk && attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+        }
+        const verifyReasons = [
+          ...pageVerification.result.reasons,
+          ...(sitemapOk ? [] : ["canonical path not found in sitemap"]),
+        ];
+        if (!pageVerification.result.ok || !sitemapOk) {
+          const detail = `auto verify failed: ${verifyReasons.join("; ")}`.slice(0, 400);
+          let rollbackNote: string;
+          if (publication.previous_version_id) {
+            const rb = await internalPost(requestOrigin, "/api/internal/factory/rollback", {
+              publication_id: publication.id,
+              reason: `auto rollback after failed verification: ${detail}`.slice(0, 500),
+            });
+            if (rb.status !== 200) throw new Error(`auto rollback failed: ${JSON.stringify(rb.json)?.slice(0, 200)}`);
+            const pumped = await processOutboxBatch(cfg, requestOrigin, {});
+            const pumpBody = pumped.body as Record<string, unknown> | null;
+            rollbackNote = `rollback publication ${(rb.json as Record<string, unknown>)?.publication_id ?? "unknown"}, pump status ${String(pumpBody?.status ?? "unknown")}`;
+          } else {
+            await postgrestWrite(cfg, "PATCH", `content_documents?id=eq.${encodeURIComponent(workItem.content_id)}`, {
+              status: "draft",
+              published_version_id: null,
+              updated_at: new Date().toISOString(),
+            });
+            rollbackNote = "unpublished (no previous version)";
+          }
+          await postgrestWrite(cfg, "POST", "factory_audit_events", {
+            publication_id: publication.id,
+            kind: "intervention",
+            error: `${detail}; ${rollbackNote}`.slice(0, 1000),
+          });
+          await finishStep("blocked", "failed", "not_required", "auto_verify_failed", null, null);
+          await blockWorkItem(cfg, workItem, "auto_verify_failed");
+          await finishRun(cfg, runId, 1, 0, 1);
+          return NextResponse.json({
+            run_id: runId,
+            status: "auto_verify_failed_rollback",
+            work_item_id: workItem.id,
+            step_key: claimed.step_key,
+            attempt_no: claimed.attempt_count,
+            rollback: rollbackNote,
+          });
         }
       } else if (claimed.step_key === "complete_work") {
         const completed = await internalPost(requestOrigin, `/api/internal/work-items/${encodeURIComponent(workItem.id)}/complete`, {});

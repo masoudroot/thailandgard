@@ -12,6 +12,7 @@
  * «پیکربندی‌نشده» است؛ صفحه در این حالت ادعای سلامت نمی‌کند.
  */
 import { dbConfig, type DbCfg } from "@/lib/factory/tick/internal-api";
+import { AUTO_WORKFLOW_VERSION } from "@/lib/factory/tick/factory-tick";
 
 export type StatusCount = { status: string; count: number };
 
@@ -132,6 +133,21 @@ export interface DashboardGateway {
   settledSimulated: number | null;
   /** مجموع رزروهای هنوز باز (حالت‌های reserved و sent و unknown و response_recorded). */
   openReservations: number;
+}
+
+/**
+ * یک ردیف تاریخچهٔ فعالیت خودکار (THG-AUTO-01): فقط کارهای
+ * Workflow خودمختار؛ انتشار verified یعنی «منتشر شد» و رویداد
+ * intervention یعنی «بازگردانی شد» با دلیل. انتشارهای rollback
+ * ردیف جدا ندارند، چون داستانشان همان رویداد intervention است که
+ * آن‌ها را ساخته است.
+ */
+export interface AutoActivityItem {
+  kind: "published" | "rolled_back";
+  slug: string;
+  title: string;
+  at: string;
+  detail: string;
 }
 
 /** جمع‌بندی عملیات Gateway؛ تابع خالص، برای تست. */
@@ -263,6 +279,8 @@ export interface FactoryDashboardData {
   artifactsReadyCount: number;
   approvalsForAwaiting: StatusCount[];
   gateway: DashboardGateway;
+  /** تاریخچهٔ فعالیت خودکار (THG-AUTO-01): فقط Workflow خودمختار. */
+  autoActivity: AutoActivityItem[];
 }
 
 export type DashboardResult =
@@ -408,6 +426,77 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
     )) ?? [];
     const openReconciliations = summarizeOpenReconciliations(reconciliationRows);
 
+    // تاریخچهٔ فعالیت خودکار (THG-AUTO-01): فقط SELECT، مثل بقیهٔ
+    // لایه. استثنای آگاهانه بر قاعدهٔ «متن آزاد select نمی‌شود»:
+    // ستون error رویداد intervention، متن عملیاتی محافظ خودکار
+    // است (دلیل Verify و Rollback) که دستور، نمایش آن در داشبورد
+    // را می‌خواهد؛ هیچ Secret و هیچ متن داخلی دیتابیس در آن نیست.
+    const autoPubs = (await postgrestGetOrNull(
+      cfg,
+      "factory_publications?status=eq.verified&publication_kind=eq.publish&order=created_at.desc&limit=20&select=id,work_item_id,created_at",
+    )) ?? [];
+    const autoAudits = (await postgrestGetOrNull(
+      cfg,
+      "factory_audit_events?kind=eq.intervention&order=created_at.desc&limit=20&select=id,publication_id,error,created_at",
+    )) ?? [];
+    const autoPubWorkIds = [...new Set(autoPubs.map((r) => asString(r.work_item_id)))].filter(Boolean);
+    const autoAuditPubIds = [...new Set(autoAudits.map((r) => asString(r.publication_id)))].filter(Boolean);
+    const autoAuditPubs = autoAuditPubIds.length
+      ? ((await postgrestGetOrNull(
+          cfg,
+          `factory_publications?id=in.(${autoAuditPubIds.join(",")})&select=id,work_item_id`,
+        )) ?? [])
+      : [];
+    const autoWiIds = [
+      ...new Set([
+        ...autoPubWorkIds,
+        ...autoAuditPubs.map((r) => asString(r.work_item_id)),
+      ]),
+    ].filter(Boolean);
+    const autoWis = autoWiIds.length
+      ? ((await postgrestGetOrNull(
+          cfg,
+          `factory_work_items?id=in.(${autoWiIds.join(",")})&select=id,work_key,title,workflow_version,content_id`,
+        )) ?? [])
+      : [];
+    const autoWiById = new Map(autoWis.map((r) => [asString(r.id), r]));
+    const autoDocIds = [
+      ...new Set(autoWis.map((r) => asString(r.content_id))),
+    ].filter(Boolean);
+    const autoDocs = autoDocIds.length
+      ? ((await postgrestGetOrNull(
+          cfg,
+          `content_documents?id=in.(${autoDocIds.join(",")})&select=id,slug`,
+        )) ?? [])
+      : [];
+    const autoSlugByDocId = new Map(autoDocs.map((r) => [asString(r.id), asString(r.slug)]));
+    const autoActivity: AutoActivityItem[] = [];
+    for (const pub of autoPubs) {
+      const wi = autoWiById.get(asString(pub.work_item_id));
+      if (!wi || asString(wi.workflow_version) !== AUTO_WORKFLOW_VERSION) continue;
+      autoActivity.push({
+        kind: "published",
+        slug: autoSlugByDocId.get(asString(wi.content_id)) ?? "",
+        title: asString(wi.title) || asString(wi.work_key),
+        at: asString(pub.created_at),
+        detail: "منتشر شد",
+      });
+    }
+    const autoPubWiById = new Map(autoAuditPubs.map((r) => [asString(r.id), asString(r.work_item_id)]));
+    for (const audit of autoAudits) {
+      const wi = autoWiById.get(autoPubWiById.get(asString(audit.publication_id)) ?? "");
+      if (!wi || asString(wi.workflow_version) !== AUTO_WORKFLOW_VERSION) continue;
+      autoActivity.push({
+        kind: "rolled_back",
+        slug: autoSlugByDocId.get(asString(wi.content_id)) ?? "",
+        title: asString(wi.title) || asString(wi.work_key),
+        at: asString(audit.created_at),
+        detail: asString(audit.error).slice(0, 160),
+      });
+    }
+    autoActivity.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+    const autoActivityTop = autoActivity.slice(0, 20);
+
     const outboxCounts = countByStatus(outboxStatusRows.map((r) => asString(r.status)));
     const outboxOpen = outboxCounts
       .filter((c) => c.status === "pending" || c.status === "claimed")
@@ -518,6 +607,7 @@ export async function getFactoryDashboard(): Promise<DashboardResult> {
         })),
         artifactsReadyCount: readyArtifacts.length,
         approvalsForAwaiting: countByStatus(awaitingApprovals.map((r) => asString(r.decision))),
+        autoActivity: autoActivityTop,
         gateway: {
           totalCalls: gatewaySummary.totalCalls,
           totalEstimated: gatewaySummary.totalEstimated,
