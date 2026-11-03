@@ -7,7 +7,7 @@
  * فقط همان تصمیم را حساب می‌کند، نه اینکه زمان‌بند بیرونی صدا بزند.
  */
 
-export type SchedulerJobKind = "interval" | "daily";
+export type SchedulerJobKind = "interval" | "daily" | "once";
 
 export interface SchedulerJob {
   id: string;
@@ -17,11 +17,12 @@ export interface SchedulerJob {
   interval_minutes: number | null;
   daily_utc_time: string | null;
   enabled: boolean;
-  next_due: string;
+  next_due: string | null;
   last_run_at: string | null;
   last_status: string | null;
   last_result: unknown;
   last_error: string | null;
+  payload?: unknown;
 }
 
 export interface SchedulerRun {
@@ -41,7 +42,8 @@ export type WatchdogStatus = "healthy" | "down" | "paused" | "unknown";
 /** آستانهٔ نگهبانی: اگر تیک و پمپ بیش از این روشن نماند، قطع است. */
 export const WATCHDOG_WINDOW_MINUTES = 15;
 
-/** تعریف چهار کار ساعت داخلی؛ بذر Migration هم همین‌هاست. */
+/** تعریف چهار کار تکرارشوندهٔ ساعت داخلی؛ بذر Migration هم همین‌هاست.
+ * کار یک‌بارمصرف بازنشستگی، جداگانه با Migration کارهای once بذر می‌شود. */
 export const SCHEDULER_JOB_DEFS: Array<{
   job_key: string;
   display_name: string;
@@ -58,13 +60,16 @@ export const SCHEDULER_JOB_DEFS: Array<{
 /**
  * سررسید بعدی یک کار از لحظهٔ from.
  * فاصله‌ای: همان لحظه به‌اضافهٔ فاصله. روزانه: نزدیک‌ترین وقوع بعدی
- * زمان UTC (اگر زمان امروز گذشته باشد، فردا). همه‌چیز با UTC حساب
- * می‌شود تا جابه‌جایی ساعت تهران و تابستانی، برنامه را به‌هم نریزد.
+ * زمان UTC (اگر زمان امروز گذشته باشد، فردا). یک‌بارمصرف: null است،
+ * چون پس از اجرا دیگر سررسیدی ندارد و worker آن را خاموش می‌کند.
+ * همه‌چیز با UTC حساب می‌شود تا جابه‌جایی ساعت تهران و تابستانی،
+ * برنامه را به‌هم نریزد.
  */
 export function computeNextDue(
   job: Pick<SchedulerJob, "kind" | "interval_minutes" | "daily_utc_time">,
   from: Date,
-): Date {
+): Date | null {
+  if (job.kind === "once") return null;
   if (job.kind === "interval") {
     const minutes = job.interval_minutes ?? 5;
     return new Date(from.getTime() + minutes * 60_000);
@@ -113,6 +118,10 @@ export function watchdogStatus(
  */
 export function plainErrorFa(error: string | null | undefined): string | null {
   if (!error) return null;
+  // پیام سنجش بازنشستگی، خودش فارسیِ ساده است؛ همان را نشان بده.
+  if (error.startsWith("retirement_gap:")) {
+    return error.slice("retirement_gap:".length).trim() || "سنجش بازنشستگی شکاف نشان داد؛ چیزی خاموش نشد.";
+  }
   const text = error.toLowerCase();
   if (text.includes("provider_unavailable") || text.includes("arrearage") || text.includes("upstream_error")) {
     return "سرویس مدل پاسخ نمی‌دهد؛ چیزی منتشر نشده است.";

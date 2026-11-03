@@ -33,15 +33,16 @@ type JobRow = {
   id: string;
   job_key: string;
   display_name: string;
-  kind: "interval" | "daily";
+  kind: "interval" | "daily" | "once";
   interval_minutes: number | null;
   daily_utc_time: string | null;
   enabled: boolean;
-  next_due: string;
+  next_due: string | null;
   last_run_at: string | null;
   last_status: string | null;
   last_result: unknown;
   last_error: string | null;
+  payload?: unknown;
 };
 
 const SUPABASE_URL = (process.env.SUPABASE_URL ?? "").replace(/\/$/, "");
@@ -89,21 +90,37 @@ async function getJob(jobKey: string): Promise<JobRow | null> {
 }
 
 async function updateJob(job: JobRow, status: string, result: unknown, error: string | null, finishedAt: Date): Promise<void> {
-  const nextDue = computeNextDue(
-    { kind: job.kind, interval_minutes: job.interval_minutes, daily_utc_time: job.daily_utc_time },
-    finishedAt,
-  );
+  // کار یک‌بارمصرف: موفق → خاموش و بی‌سررسید؛ ناموفق → سررسید ۲۴ ساعت
+  // بعد، تا سنجش دوباره شود. بقیهٔ کارها سررسید بعدی را حساب می‌کنند.
+  let enabled: boolean | undefined;
+  let nextDue: string | null | undefined;
+  if (job.kind === "once") {
+    if (status === "success") {
+      enabled = false;
+      nextDue = null;
+    } else {
+      nextDue = new Date(finishedAt.getTime() + 24 * 60 * 60_000).toISOString();
+    }
+  } else {
+    const next = computeNextDue(
+      { kind: job.kind, interval_minutes: job.interval_minutes, daily_utc_time: job.daily_utc_time },
+      finishedAt,
+    );
+    nextDue = next ? next.toISOString() : null;
+  }
+  const body: Record<string, unknown> = {
+    last_run_at: finishedAt.toISOString(),
+    last_status: status,
+    last_result: result,
+    last_error: error,
+    updated_at: finishedAt.toISOString(),
+  };
+  if (enabled !== undefined) body.enabled = enabled;
+  if (nextDue !== undefined) body.next_due = nextDue;
   await postgrest(`scheduler_jobs?job_key=eq.${encodeURIComponent(job.job_key)}`, {
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      last_run_at: finishedAt.toISOString(),
-      last_status: status,
-      last_result: result,
-      last_error: error,
-      next_due: nextDue.toISOString(),
-      updated_at: finishedAt.toISOString(),
-    }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -181,7 +198,185 @@ function runScript(script: string, timeoutMs: number): Promise<{ code: number | 
   });
 }
 
-async function runHandler(jobKey: string): Promise<{ status: "success" | "failed"; result: unknown; error: string | null }> {
+function runGh(args: string[]): Promise<{ code: number | null; stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    const child = spawn("gh", args, { timeout: 120_000 });
+    let stdout = "";
+    let stderr = "";
+    child.stdout?.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+    child.stderr?.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString();
+    });
+    child.on("error", (err: Error) => {
+      resolve({ code: -1, stdout, stderr: err.message });
+    });
+    child.on("close", (code) => {
+      resolve({ code, stdout, stderr });
+    });
+  });
+}
+
+type RetirementPayload = {
+  pr_number?: number;
+  workflows?: string[];
+};
+
+const RETIREMENT_DAILY_JOBS = ["autonomous_daily", "intel_daily", "gsc_daily"];
+const RETIREMENT_WINDOW_MS = 24 * 60 * 60_000;
+const TICK_GAP_LIMIT_MS = 15 * 60_000;
+
+/**
+ * کار یک‌بارمصرف بازنشستگی زمان‌بندهای بیرونی (THG-SCHED-02 اصلاحیه).
+ * سنجش: در ۲۴ ساعت گذشته، تیک و پمپ با اجرای طبیعی و موفق، بی‌وقفه
+ * هر ۱۵ دقیقه دویده باشد و هر سه کار روزانه دست‌کم یک اجرای طبیعی
+ * موفق داشته باشند. اجرای اثبات دستی شمرده نمی‌شود.
+ * اگر شکاف بود: هیچ چیزی خاموش نمی‌شود و علت، با پیشوند
+ * retirement_gap در ledger و داشبورد می‌نشیند؛ کار ۲۴ ساعت بعد
+ * دوباره می‌سنجد. اگر سنجش سبز بود: چهار گردش‌کار گیت‌هاب خاموش
+ * و PR پاک‌سازی مرج می‌شود. خاموش‌سازی و مرج idempotent هستند،
+ * پس اجرای دوباره پس از خرابیِ نیمه‌کاره بی‌خطر است.
+ * اجرای دستی (--job) فقط خشک است: می‌سنجد و می‌گوید چه می‌کرد،
+ * ولی هیچ چیزی را خاموش یا مرج نمی‌کند؛ فقط اجرای طبیعی حلقه
+ * بازنشستگی واقعی را انجام می‌دهد.
+ */
+async function runRetirement(
+  job: JobRow,
+  dryRun: boolean,
+): Promise<{ status: "success" | "failed"; result: unknown; error: string | null }> {
+  const payload = (job.payload ?? {}) as RetirementPayload;
+  const prNumber = payload.pr_number;
+  const workflows = payload.workflows ?? [];
+  if (!prNumber || workflows.length === 0) {
+    return {
+      status: "failed",
+      result: null,
+      error: "retirement_gap: شماره PR پاک‌سازی یا فهرست گردش‌کارها در payload کار نیست؛ بازنشستگی انجام نشد.",
+    };
+  }
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - RETIREMENT_WINDOW_MS);
+  let runs: Array<{ job_key: string; trigger: string; source: string; status: string; started_at: string }>;
+  try {
+    runs = (await postgrest(
+      `scheduler_runs?select=job_key,trigger,source,status,started_at&source=eq.internal_worker&started_at=gte.${encodeURIComponent(windowStart.toISOString())}&order=started_at.asc&limit=2000`,
+    )) as typeof runs;
+  } catch {
+    return {
+      status: "failed",
+      result: null,
+      error: "retirement_gap: خواندن ledger برای سنجش ممکن نشد؛ بازنشستگی انجام نشد.",
+    };
+  }
+  const tickRuns = runs
+    .filter((run) => run.job_key === "tick_pump" && run.trigger === "worker_loop" && run.status === "success")
+    .map((run) => new Date(run.started_at).getTime())
+    .sort((a, b) => a - b);
+  let tickGapOk = tickRuns.length > 0;
+  let gapDetail = "در ۲۴ ساعت گذشته هیچ اجرای موفق تیک و پمپ ثبت نشده است.";
+  if (tickRuns.length > 0) {
+    for (let i = 1; i < tickRuns.length; i++) {
+      if (tickRuns[i] - tickRuns[i - 1] > TICK_GAP_LIMIT_MS) {
+        tickGapOk = false;
+        gapDetail = "بین دو اجرای تیک و پمپ بیش از ۱۵ دقیقه فاصله افتاده است.";
+        break;
+      }
+    }
+    if (tickGapOk && now.getTime() - tickRuns[tickRuns.length - 1] > TICK_GAP_LIMIT_MS) {
+      tickGapOk = false;
+      gapDetail = "آخرین اجرای تیک و پمپ بیش از ۱۵ دقیقه پیش بوده است.";
+    }
+  }
+  const dailies: Record<string, boolean> = {};
+  for (const key of RETIREMENT_DAILY_JOBS) {
+    dailies[key] = runs.some(
+      (run) => run.job_key === key && run.trigger === "worker_loop" && run.status === "success",
+    );
+  }
+  const dailiesOk = Object.values(dailies).every(Boolean);
+  const checks = { tick_gap_ok: tickGapOk, dailies, window_start: windowStart.toISOString() };
+  if (!tickGapOk || !dailiesOk) {
+    const missing = RETIREMENT_DAILY_JOBS.filter((key) => !dailies[key]).join("، ");
+    const reason = !tickGapOk
+      ? gapDetail
+      : `کارهای روزانهٔ زیر در ۲۴ ساعت گذشته اجرای طبیعی موفق نداشته‌اند: ${missing}.`;
+    return {
+      status: "failed",
+      result: { checks },
+      error: `retirement_gap: سنجش بازنشستگی شکاف نشان داد؛ چیزی خاموش نشد. ${reason}`,
+    };
+  }
+  if (dryRun) {
+    return {
+      status: "success",
+      result: { checks, dry_run: true, would_disable: workflows, would_merge_pr: prNumber },
+      error: null,
+    };
+  }
+  const disabled: string[] = [];
+  for (const file of workflows) {
+    const res = await runGh(["api", `repos/masoudroot/thailandgard/actions/workflows/${file}/disable`, "-X", "PUT"]);
+    if (res.code !== 0) {
+      return {
+        status: "failed",
+        result: { checks, disabled },
+        error: `retirement_gap: خاموش‌سازی گردش‌کار ${file} ممکن نشد؛ بازنشستگی ناتمام ماند.`,
+      };
+    }
+    disabled.push(file);
+  }
+  let mergeCommit: string | null = null;
+  const view = await runGh(["pr", "view", String(prNumber), "--json", "state,mergeCommit", "-q", "{state: .state, mergeCommit: .mergeCommit.oid}"]);
+  if (view.code === 0) {
+    try {
+      const parsed = JSON.parse(view.stdout) as { state?: string; mergeCommit?: string | null };
+      if (parsed.state === "MERGED") {
+        mergeCommit = parsed.mergeCommit ?? null;
+      } else if (parsed.state !== "OPEN") {
+        return {
+          status: "failed",
+          result: { checks, disabled },
+          error: "retirement_gap: PR پاک‌سازی نه باز است و نه مرج‌شده؛ مرج انجام نشد.",
+        };
+      }
+    } catch {
+      return {
+        status: "failed",
+        result: { checks, disabled },
+        error: "retirement_gap: خواندن وضعیت PR پاک‌سازی ممکن نشد؛ مرج انجام نشد.",
+      };
+    }
+  }
+  if (mergeCommit === null) {
+    const checksRes = await runGh(["pr", "checks", String(prNumber)]);
+    if (checksRes.code !== 0) {
+      return {
+        status: "failed",
+        result: { checks, disabled },
+        error: "retirement_gap: چک‌های PR پاک‌سازی سبز نیستند؛ مرج انجام نشد.",
+      };
+    }
+    const merge = await runGh(["pr", "merge", String(prNumber), "--squash"]);
+    if (merge.code !== 0) {
+      return {
+        status: "failed",
+        result: { checks, disabled },
+        error: "retirement_gap: مرج PR پاک‌سازی ممکن نشد.",
+      };
+    }
+    const viewAfter = await runGh(["pr", "view", String(prNumber), "--json", "mergeCommit", "-q", ".mergeCommit.oid"]);
+    mergeCommit = viewAfter.stdout.trim() || null;
+  }
+  return {
+    status: "success",
+    result: { checks, disabled, cleanup_pr: prNumber, merge_commit: mergeCommit },
+    error: null,
+  };
+}
+
+async function runHandler(job: JobRow, dryRun: boolean): Promise<{ status: "success" | "failed"; result: unknown; error: string | null }> {
+  const jobKey = job.job_key;
   if (jobKey === "tick_pump") {
     const tick = await postInternal("/api/factory/tick", 240_000);
     const pump = await postInternal("/api/internal/process-outbox", 240_000);
@@ -208,6 +403,9 @@ async function runHandler(jobKey: string): Promise<{ status: "success" | "failed
     if (out.code === 0) return { status: "success", result: { log_tail: out.tail }, error: null };
     return { status: "failed", result: { log_tail: out.tail }, error: `gsc_script_exit_${out.code}` };
   }
+  if (jobKey === "external_scheduler_retirement") {
+    return runRetirement(job, dryRun);
+  }
   return { status: "failed", result: null, error: `unknown_job_${jobKey}` };
 }
 
@@ -216,7 +414,9 @@ async function runJob(job: JobRow, trigger: string): Promise<boolean> {
   log(`run ${job.job_key} (trigger=${trigger})`);
   let outcome: { status: "success" | "failed"; result: unknown; error: string | null };
   try {
-    outcome = await runHandler(job.job_key);
+    // اجرای دستی فقط برای بازنشستگی خشک است؛ بقیهٔ کارها همان‌طور
+    // که هستند اجرا می‌شوند.
+    outcome = await runHandler(job, trigger === "manual_proof" && job.job_key === "external_scheduler_retirement");
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     outcome = { status: "failed", result: null, error: message.slice(0, 300) };

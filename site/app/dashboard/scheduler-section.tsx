@@ -53,6 +53,10 @@ function scheduleText(job: SchedulerJobView): string {
   if (job.kind === "interval") {
     return `هر ${toFaDigits(String(job.interval_minutes ?? 5))} دقیقه`;
   }
+  if (job.kind === "once") {
+    if (job.next_due) return `یک‌بار در ${jalaliTehran(job.next_due)}`;
+    return "یک‌بارمصرف (اجرا شده)";
+  }
   return `روزانه ساعت ${toFaDigits(job.daily_utc_time ?? "—")} UTC`;
 }
 
@@ -226,7 +230,7 @@ export function SchedulerSection() {
                     ذخیره
                   </Button>
                 </div>
-              ) : (
+              ) : job.kind === "daily" ? (
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-muted-foreground" htmlFor={`time-${job.job_key}`}>
                     ساعت روزانه (UTC)
@@ -255,7 +259,7 @@ export function SchedulerSection() {
                     ذخیره
                   </Button>
                 </div>
-              )}
+              ) : null}
               {job.plain_error ? (
                 <p className="text-sm text-destructive">{job.plain_error}</p>
               ) : null}
