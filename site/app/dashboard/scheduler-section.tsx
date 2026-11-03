@@ -66,6 +66,13 @@ function runResult(run: SchedulerRun): string {
     if (typeof result.inserted === "number") {
       return `موفق · ${toFaDigits(String(result.inserted))} ردیف تازه`;
     }
+    // اجرای موفقِ بدون درج (مثل gsc_daily تا وقتی حساب سرویس ساخته
+    // نشده): جملهٔ اول خروجی اسکریپت را نشان بده تا «موفق» به‌تنهایی
+    // به‌معنای درج داده خوانده نشود.
+    if (typeof result.log_tail === "string" && result.log_tail.trim().length > 0) {
+      const firstLine = result.log_tail.trim().split("\n")[0] ?? "";
+      return firstLine.slice(0, 120);
+    }
   }
   return "موفق";
 }
