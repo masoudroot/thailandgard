@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DashboardView, UnconfiguredCard } from "./dashboard-view";
+import { SchedulerSection } from "./scheduler-section";
 import type {
   DashboardResult,
   FactoryDashboardData,
@@ -142,13 +143,14 @@ export default function DashboardClient() {
   return (
     <div className="space-y-6">
       <DashboardView data={state.data} />
+      <SchedulerSection />
       <Card>
         <CardHeader>
           <CardTitle>ابزارهای پیشرفته</CardTitle>
           <CardDescription>
-            اجرای دستی تیک کارخانه؛ معمولاً Job پنج‌دقیقه‌ای خودش تیک
-            می‌زند و این دکمه فقط برای وقتی است که بخواهید همان لحظه
-            یک قدم جلو برود.
+            اجرای دستی تیک کارخانه فقط برای اضطرار است؛ زمان‌بندی عادی
+            با ساعت داخلی همین داشبورد جلو می‌رود و این دکمه فقط برای
+            وقتی است که بخواهید همان لحظه یک قدم جلو برود.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
