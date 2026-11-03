@@ -1,10 +1,6 @@
 name: gsc-daily
 
 on:
-  schedule:
-    # هر روز ساعت ۰۶:۰۰ تهران (۰۲:۳۰ UTC): دادهٔ سرچ کنسول → page_analytics و gsc_queries
-    # (دادهٔ GSC حدود ۳ روز تأخیر دارد؛ اسکریپت خودش روزِ «۳ روز قبل» را می‌گیرد)
-    - cron: '30 2 * * *'
   workflow_dispatch:
 
 jobs:

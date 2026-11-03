@@ -16,8 +16,6 @@ name: factory-outbox-pump
 # پس فقط ۴۰۱/۵۰۳ (توکن یا پیکربندی) یا خطای قدم، Job را قرمز می‌کند.
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:

@@ -1,9 +1,6 @@
 name: intel-daily
 
 on:
-  schedule:
-    # هر روز ساعت ۰۷:۳۰ تهران (۰۴:۰۰ UTC): جمع‌آوری خبرهای تایلند در intel_feed
-    - cron: '0 4 * * *'
   workflow_dispatch:
 
 jobs:

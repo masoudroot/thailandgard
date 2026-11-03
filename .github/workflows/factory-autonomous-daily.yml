@@ -8,8 +8,6 @@ name: factory-autonomous-daily
 # فقط ۴۰۱/۵۰۳ (توکن یا پیکربندی) Job را قرمز می‌کند.
 
 on:
-  schedule:
-    - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
