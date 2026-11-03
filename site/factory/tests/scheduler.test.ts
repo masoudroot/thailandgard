@@ -50,7 +50,7 @@ describe("computeNextDue", () => {
       { kind: "interval", interval_minutes: 5, daily_utc_time: null },
       new Date("2026-11-03T06:00:00.000Z"),
     );
-    expect(next.toISOString()).toBe("2026-11-03T06:05:00.000Z");
+    expect(next?.toISOString()).toBe("2026-11-03T06:05:00.000Z");
   });
 
   it("کار روزانه: اگر زمان امروز هنوز نیامده، همان امروز", () => {
@@ -58,7 +58,7 @@ describe("computeNextDue", () => {
       { kind: "daily", interval_minutes: null, daily_utc_time: "02:00" },
       new Date("2026-11-03T01:00:00.000Z"),
     );
-    expect(next.toISOString()).toBe("2026-11-03T02:00:00.000Z");
+    expect(next?.toISOString()).toBe("2026-11-03T02:00:00.000Z");
   });
 
   it("کار روزانه: اگر زمان امروز گذشته، فردا", () => {
@@ -66,7 +66,7 @@ describe("computeNextDue", () => {
       { kind: "daily", interval_minutes: null, daily_utc_time: "02:00" },
       new Date("2026-11-03T03:00:00.000Z"),
     );
-    expect(next.toISOString()).toBe("2026-11-04T02:00:00.000Z");
+    expect(next?.toISOString()).toBe("2026-11-04T02:00:00.000Z");
   });
 
   it("کار روزانه: دقیقاً سر زمان، فردا (نه همان لحظه)", () => {
@@ -74,7 +74,15 @@ describe("computeNextDue", () => {
       { kind: "daily", interval_minutes: null, daily_utc_time: "02:00" },
       new Date("2026-11-03T02:00:00.000Z"),
     );
-    expect(next.toISOString()).toBe("2026-11-04T02:00:00.000Z");
+    expect(next?.toISOString()).toBe("2026-11-04T02:00:00.000Z");
+  });
+
+  it("کار یک‌بارمصرف: سررسید بعدی ندارد", () => {
+    const next = computeNextDue(
+      { kind: "once", interval_minutes: null, daily_utc_time: null },
+      new Date("2026-11-03T06:00:00.000Z"),
+    );
+    expect(next).toBeNull();
   });
 });
 
@@ -127,5 +135,11 @@ describe("plainErrorFa", () => {
 
   it("خطای خالی، خالی برمی‌گردد", () => {
     expect(plainErrorFa(null)).toBeNull();
+  });
+
+  it("پیام سنجش بازنشستگی، همان‌طور که هست نشان داده می‌شود", () => {
+    expect(plainErrorFa("retirement_gap: سنجش بازنشستگی شکاف نشان داد؛ چیزی خاموش نشد.")).toBe(
+      "سنجش بازنشستگی شکاف نشان داد؛ چیزی خاموش نشد.",
+    );
   });
 });

@@ -50,8 +50,8 @@ function isSchedulerJob(value: unknown): value is SchedulerJob {
   return (
     typeof row.job_key === "string" &&
     typeof row.display_name === "string" &&
-    (row.kind === "interval" || row.kind === "daily") &&
-    typeof row.next_due === "string"
+    (row.kind === "interval" || row.kind === "daily" || row.kind === "once") &&
+    (typeof row.next_due === "string" || row.next_due === null)
   );
 }
 
@@ -132,26 +132,31 @@ export async function updateSchedulerJob(
     if (!job) return { ok: false, reason: "چنین کاری در زمان‌بند نیست." };
     const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (typeof patch.enabled === "boolean") body.enabled = patch.enabled;
+    if (job.kind === "once" && (patch.interval_minutes !== undefined || patch.daily_utc_time !== undefined)) {
+      return { ok: false, reason: "کار یک‌بارمصرف فاصله یا ساعت ندارد." };
+    }
     if (job.kind === "interval" && patch.interval_minutes !== undefined) {
       const minutes = Math.floor(patch.interval_minutes);
       if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) {
         return { ok: false, reason: "فاصله باید عددی بین ۱ تا ۱۴۴۰ دقیقه باشد." };
       }
       body.interval_minutes = minutes;
-      body.next_due = computeNextDue(
+      const next = computeNextDue(
         { kind: "interval", interval_minutes: minutes, daily_utc_time: null },
         new Date(),
-      ).toISOString();
+      );
+      if (next) body.next_due = next.toISOString();
     }
     if (job.kind === "daily" && patch.daily_utc_time !== undefined) {
       if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(patch.daily_utc_time)) {
         return { ok: false, reason: "ساعت روزانه باید به شکل HH:MM باشد." };
       }
       body.daily_utc_time = patch.daily_utc_time;
-      body.next_due = computeNextDue(
+      const next = computeNextDue(
         { kind: "daily", interval_minutes: null, daily_utc_time: patch.daily_utc_time },
         new Date(),
-      ).toISOString();
+      );
+      if (next) body.next_due = next.toISOString();
     }
     if (job.kind === "interval" && patch.daily_utc_time !== undefined) {
       return { ok: false, reason: "کار فاصله‌ای ساعت روزانه ندارد." };
