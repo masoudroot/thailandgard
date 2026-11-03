@@ -424,7 +424,14 @@ async function runJob(job: JobRow, trigger: string): Promise<boolean> {
   const finishedAt = new Date();
   try {
     await insertRun(job.job_key, trigger, outcome.status, startedAt, finishedAt, outcome.result, outcome.error);
-    await updateJob(job, outcome.status, outcome.result, outcome.error, finishedAt);
+    // اجرای دستی کار یک‌بارمصرف، فقط اثبات است: ردیف اجرای آن در
+    // ledger می‌نشیند، ولی سررسید و وضعیت فعال کار دست نمی‌خورد؛
+    // وگرنه یک اثبات خشک می‌توانست کار را یک روز جابه‌جا کند یا،
+    // اگر سنجش سبز بود، بی‌آن‌که بازنشستگی انجام شده باشد، خاموشش کند.
+    const skipUpdate = trigger === "manual_proof" && job.kind === "once";
+    if (!skipUpdate) {
+      await updateJob(job, outcome.status, outcome.result, outcome.error, finishedAt);
+    }
   } catch (err) {
     log(`ledger failed for ${job.job_key}: ${err instanceof Error ? err.message : "unknown"}`);
     return false;
