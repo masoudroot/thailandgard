@@ -53,6 +53,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // هویت بازبین، فقط سروری است؛ reviewer_id بدنه نادیده گرفته می‌شود.
   const reviewerId = serverReviewerIdentity();
   const reason = typeof input.decision_reason === "string" ? input.decision_reason : null;
+  // THG-TEAM-ARCHITECTURE-01 P2 step 2: معنای تازهٔ factory_approvals.
+  // سطر approval می‌تواند معنای بازبینی را هم حمل کند؛ این سه فیلد
+  // اختیاری‌اند و وقتی فرستنده‌ای ندارد، NULL می‌مانند. واژگان
+  // review_type هنوز آزاد است (بستهٔ پیگیری گام ۱، Q11) و این‌جا هیچ
+  // مقداری اختراع نمی‌شود؛ فقط آن‌چه بازبینی واقعاً داده، ثبت می‌شود.
+  const reviewType =
+    typeof input.review_type === "string" && input.review_type.trim().length > 0
+      ? input.review_type.trim()
+      : null;
+  const severity =
+    typeof input.severity === "string" && input.severity.trim().length > 0 ? input.severity.trim() : null;
+  let confidence: number | null = null;
+  if (input.confidence !== undefined && input.confidence !== null) {
+    if (typeof input.confidence !== "number" || !Number.isFinite(input.confidence) || input.confidence < 0 || input.confidence > 1) {
+      return NextResponse.json({ error: "confidence must be a number between 0 and 1" }, { status: 400 });
+    }
+    confidence = input.confidence;
+  }
   if (artifactId.length === 0 || artifactHash.length === 0) {
     return NextResponse.json({ error: "artifact_id and artifact_hash are required" }, { status: 400 });
   }
@@ -98,6 +116,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       decision,
       reviewer_id: reviewerId,
       decision_reason: reason,
+      review_type: reviewType,
+      severity,
+      confidence,
     })) as ApprovalRow[];
     if (rows.length === 0) return NextResponse.json({ error: "approval was not created" }, { status: 500 });
     const approval = rows[0];
@@ -105,12 +126,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!isValidWorkItemTransition(workItem.status as WorkItemStatus, nextStatus)) {
       return NextResponse.json({ error: `invalid work item transition ${workItem.status} to ${nextStatus}` }, { status: 409 });
     }
+    // THG-TEAM-ARCHITECTURE-01 P2 step 2: تصمیم Policy روی همان Work
+    // Item آینه می‌شود؛ دروازهٔ انسانی، policy_decision برابر human
+    // با تصمیم‌گیرندهٔ سروری است. مقدار human از CHECK روی
+    // factory_work_items می‌آید، نه از حدس.
+    // policy_decision فقط نوع تصمیم‌گیرنده (human) را می‌گوید؛ نتیجه در status و تصمیم سطر approval است.
     const updated = (await postgrestWrite(
       cfg,
       "PATCH",
       `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`,
       {
         status: nextStatus,
+        policy_decision: "human",
+        policy_decided_by: reviewerId,
+        policy_decided_at: new Date().toISOString(),
         last_error: decision === "rejected" ? reason : null,
         updated_at: new Date().toISOString(),
       },

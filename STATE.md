@@ -163,3 +163,48 @@
   تکمیل همان Smoke گیرکرده (thailand-transport-guide) با پمپ و Verify صفحه
   و نقشهٔ سایت؛ سپس پرچم‌ها factory_paused=false و data_publishing_enabled=true.
 - تریگر immutability دست نخورده است. دادهٔ Smoke تازه ساخته نمی‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S1: بستن گام ۱ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۱: PASS با راستی‌آزمایی تست؛ چهار فایل مهاجرت ریپو: 20261104120000_thg_team_phase2_step1_001.sql و 20261104120100_thg_team_phase2_step1_knowledge_sources_bootstrap.sql و 20261104120200_thg_team_phase2_step1_002.sql و 20261104121000_thg_team_phase2_step1_proposal_fk.sql.
+- شکاف ریپو/استیجینگ کلید خارجی proposal با فایل چهارم بسته شد (اجرای دوباره روی استیجینگ no-op با کد خروج ۰؛ قید factory_work_items_proposal_id_fkey با ON DELETE NO ACTION پابرجاست؛ factory_work_items برابر ۱۴۴ ردیف با ۰ مقدار غیر NULL در proposal_id).
+- PR #291 باز و مرج‌نشده است؛ گام ۲ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S2: بستن گام ۲ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۲: PARTIAL؛ کد و تست کامل و سبز است و اجرای زندهٔ هر دو شاخهٔ تازه با ماشهٔ generation_enabled روی استیجینگ و سلامت درگاه و بودجهٔ تأییدشده، یا با چرخهٔ زندهٔ گام ۷، به تعویق افتاده است.
+- فایل‌های کامیت‌شده: site/app/api/factory/tick/route.ts و site/app/api/internal/work-items/[id]/approvals/route.ts و site/factory/tests/approvals-review-cap.test.ts و PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۲ فایل قبول و ۴ فایل ردشده؛ ۷۶۸ تست قبول و ۹ تست ردشده؛ فایل approvals برابر ۱۷ از ۱۷.
+- PR #291 باز و مرج‌نشده است؛ گام ۳ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S3: بستن گام ۳ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۳: استخراج DONE؛ بازتولید زنده ۴ انتشار NOT DONE (مسدود، چهار مانع).
+- فایل‌های کامیت‌شده: site/app/api/factory/tick/route.ts و site/lib/factory/handlers/content-runtime.ts و site/factory/tests/content-runtime-handler.test.ts و PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۳ پرونده قبول و ۴ پرونده ردشده؛ ۷۷۱ آزمون قبول و ۹ آزمون ردشده؛ پرونده content-runtime-handler برابر ۳ از ۳.
+- PR #291 باز و مرج‌نشده است؛ گام ۴ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S4: بستن گام ۴ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۴: Runtime رهبر و خوراک‌ها و آداپتور DONE روی دادهٔ ساختگی با آزمون؛ خواندن زنده NOT DONE؛ بازتولید زندهٔ ۴ انتشار NOT DONE (مانده از گام ۳).
+- فایل‌های کامیت‌شده: site/lib/factory/leader/leader-runtime.ts و site/lib/factory/feeds/leader-feeds.ts و site/lib/factory/leader/leader-adapter.ts و site/factory/tests/leader-runtime.test.ts و site/factory/tests/leader-feeds.test.ts و site/factory/tests/leader-adapter.test.ts و site/factory/tests/content-runtime-handler.test.ts و site/factory/tests/content-runtime-gateway-tail.test.ts و site/factory/tests/content-runtime-recovery-real.test.ts و PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده؛ ۱۰۴ آزمون در ۶ پروندهٔ گام ۴ (۳۲ و ۱۹ و ۱۱ و ۳۷ و ۳ و ۲)؛ لاگ در phase2-work/step4-verify.log.
+- PR #291 باز و مرج‌نشده است؛ گام ۵ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S5: بستن گام ۵ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۵: BLOCKED روی کنش مدیر پروژه (فعال‌سازی دوبارهٔ workflow روزانهٔ gsc-daily). هیچ کدی عوض نشد و هیچ سطری ساخته نشد.
+- یافتهٔ ریشه: workflow با وضعیت disabled_manually خاموش است؛ تنها اجرای تاریخ آن در ۲۰۲۶-۱۰-۲۴ موفق بود و ۱۱ سطر صفحه و ۸ سطر پرسمان برای ۲۰۲۶-۱۰-۲۱ نوشت؛ تازه‌ترین روز پایگاه اصلی ۲۰۲۶-۱۰-۲۱ است.
+- فایل‌های کامیت‌شده: PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده.
+- PR #291 باز و مرج‌نشده است؛ گام ۶ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S6: بستن گام ۶ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۶: بسته شد. ۸۲ سطر pending و in_progress سرنوشت گرفت (۳۴ پیشنهاد، ۴۲ کهنه، ۵ ردشده، ۱ زامبی با دلیل superseded_by_factory_migration، ۰ تکراری کارخانه). هیچ سطری اعمال نشد.
+- فایل‌های مرجع: phase2-work/step6-fates.md و step6-updates.sql (اجرا نشده) و step6-qa.md.
+- فایل‌های کامیت‌شده: PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده.
+- PR #291 باز و مرج‌نشده است؛ گام ۷ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S7: بستن گام ۷ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۷: BLOCKED است و چرخه واقعی اجرا نشد؛ فاز ۲ در مجموع ناقص می‌ماند تا روزی که زنجیره بچرخد.
+- علت‌ها: ارائه‌دهنده با دو تایم‌اوت GET (بدون وضعیت HTTP) ناکاراست؛ generation_enabled=false در Staging؛ خاستگاه سایت Staging برپا نیست.
+- فایل‌های مرجع: phase2-work/step7-readiness.md و step7-qa.md.
+- فایل‌های کامیت‌شده: PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده.
+- PR #291 باز و مرج‌نشده است؛ گزارش نهایی فاز ۲ پس از این بستن نوشته می‌شود.
