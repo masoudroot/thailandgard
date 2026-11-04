@@ -174,3 +174,9 @@
 - فایل‌های کامیت‌شده: site/app/api/factory/tick/route.ts و site/app/api/internal/work-items/[id]/approvals/route.ts و site/factory/tests/approvals-review-cap.test.ts و PLAN.md و STATE.md.
 - راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۲ فایل قبول و ۴ فایل ردشده؛ ۷۶۸ تست قبول و ۹ تست ردشده؛ فایل approvals برابر ۱۷ از ۱۷.
 - PR #291 باز و مرج‌نشده است؛ گام ۳ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S3: بستن گام ۳ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۳: استخراج DONE؛ بازتولید زنده ۴ انتشار NOT DONE (مسدود، چهار مانع).
+- فایل‌های کامیت‌شده: site/app/api/factory/tick/route.ts و site/lib/factory/handlers/content-runtime.ts و site/factory/tests/content-runtime-handler.test.ts و PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۳ پرونده قبول و ۴ پرونده ردشده؛ ۷۷۱ آزمون قبول و ۹ آزمون ردشده؛ پرونده content-runtime-handler برابر ۳ از ۳.
+- PR #291 باز و مرج‌نشده است؛ گام ۴ پس از این بستن آغاز می‌شود.
