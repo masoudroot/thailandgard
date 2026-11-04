@@ -186,3 +186,10 @@
 - فایل‌های کامیت‌شده: site/lib/factory/leader/leader-runtime.ts و site/lib/factory/feeds/leader-feeds.ts و site/lib/factory/leader/leader-adapter.ts و site/factory/tests/leader-runtime.test.ts و site/factory/tests/leader-feeds.test.ts و site/factory/tests/leader-adapter.test.ts و site/factory/tests/content-runtime-handler.test.ts و site/factory/tests/content-runtime-gateway-tail.test.ts و site/factory/tests/content-runtime-recovery-real.test.ts و PLAN.md و STATE.md.
 - راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده؛ ۱۰۴ آزمون در ۶ پروندهٔ گام ۴ (۳۲ و ۱۹ و ۱۱ و ۳۷ و ۳ و ۲)؛ لاگ در phase2-work/step4-verify.log.
 - PR #291 باز و مرج‌نشده است؛ گام ۵ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S5: بستن گام ۵ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۵: BLOCKED روی کنش مدیر پروژه (فعال‌سازی دوبارهٔ workflow روزانهٔ gsc-daily). هیچ کدی عوض نشد و هیچ سطری ساخته نشد.
+- یافتهٔ ریشه: workflow با وضعیت disabled_manually خاموش است؛ تنها اجرای تاریخ آن در ۲۰۲۶-۱۰-۲۴ موفق بود و ۱۱ سطر صفحه و ۸ سطر پرسمان برای ۲۰۲۶-۱۰-۲۱ نوشت؛ تازه‌ترین روز پایگاه اصلی ۲۰۲۶-۱۰-۲۱ است.
+- فایل‌های کامیت‌شده: PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده.
+- PR #291 باز و مرج‌نشده است؛ گام ۶ پس از این بستن آغاز می‌شود.
