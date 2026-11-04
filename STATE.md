@@ -180,3 +180,9 @@
 - فایل‌های کامیت‌شده: site/app/api/factory/tick/route.ts و site/lib/factory/handlers/content-runtime.ts و site/factory/tests/content-runtime-handler.test.ts و PLAN.md و STATE.md.
 - راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۳ پرونده قبول و ۴ پرونده ردشده؛ ۷۷۱ آزمون قبول و ۹ آزمون ردشده؛ پرونده content-runtime-handler برابر ۳ از ۳.
 - PR #291 باز و مرج‌نشده است؛ گام ۴ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S4: بستن گام ۴ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۴: Runtime رهبر و خوراک‌ها و آداپتور DONE روی دادهٔ ساختگی با آزمون؛ خواندن زنده NOT DONE؛ بازتولید زندهٔ ۴ انتشار NOT DONE (مانده از گام ۳).
+- فایل‌های کامیت‌شده: site/lib/factory/leader/leader-runtime.ts و site/lib/factory/feeds/leader-feeds.ts و site/lib/factory/leader/leader-adapter.ts و site/factory/tests/leader-runtime.test.ts و site/factory/tests/leader-feeds.test.ts و site/factory/tests/leader-adapter.test.ts و site/factory/tests/content-runtime-handler.test.ts و site/factory/tests/content-runtime-gateway-tail.test.ts و site/factory/tests/content-runtime-recovery-real.test.ts و PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۸ پرونده قبول و ۴ پرونده ردشده؛ ۸۷۲ آزمون قبول و ۹ آزمون ردشده؛ ۱۰۴ آزمون در ۶ پروندهٔ گام ۴ (۳۲ و ۱۹ و ۱۱ و ۳۷ و ۳ و ۲)؛ لاگ در phase2-work/step4-verify.log.
+- PR #291 باز و مرج‌نشده است؛ گام ۵ پس از این بستن آغاز می‌شود.
