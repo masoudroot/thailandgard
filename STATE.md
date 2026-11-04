@@ -168,3 +168,9 @@
 - حکم گام ۱: PASS با راستی‌آزمایی تست؛ چهار فایل مهاجرت ریپو: 20261104120000_thg_team_phase2_step1_001.sql و 20261104120100_thg_team_phase2_step1_knowledge_sources_bootstrap.sql و 20261104120200_thg_team_phase2_step1_002.sql و 20261104121000_thg_team_phase2_step1_proposal_fk.sql.
 - شکاف ریپو/استیجینگ کلید خارجی proposal با فایل چهارم بسته شد (اجرای دوباره روی استیجینگ no-op با کد خروج ۰؛ قید factory_work_items_proposal_id_fkey با ON DELETE NO ACTION پابرجاست؛ factory_work_items برابر ۱۴۴ ردیف با ۰ مقدار غیر NULL در proposal_id).
 - PR #291 باز و مرج‌نشده است؛ گام ۲ پس از این بستن آغاز می‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S2: بستن گام ۲ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۲: PARTIAL؛ کد و تست کامل و سبز است و اجرای زندهٔ هر دو شاخهٔ تازه با ماشهٔ generation_enabled روی استیجینگ و سلامت درگاه و بودجهٔ تأییدشده، یا با چرخهٔ زندهٔ گام ۷، به تعویق افتاده است.
+- فایل‌های کامیت‌شده: site/app/api/factory/tick/route.ts و site/app/api/internal/work-items/[id]/approvals/route.ts و site/factory/tests/approvals-review-cap.test.ts و PLAN.md و STATE.md.
+- راستی‌آزمایی: npm run verify با کد خروج ۰؛ ۸۲ فایل قبول و ۴ فایل ردشده؛ ۷۶۸ تست قبول و ۹ تست ردشده؛ فایل approvals برابر ۱۷ از ۱۷.
+- PR #291 باز و مرج‌نشده است؛ گام ۳ پس از این بستن آغاز می‌شود.

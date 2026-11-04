@@ -1458,8 +1458,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           })) as ApprovalRow[];
           if (!inserted[0]?.id) throw new Error("system approval was not created");
         }
+        // THG-TEAM-ARCHITECTURE-01 P2 step 2: تصمیم Policy هم روی همان
+        // Work Item می‌نشیند؛ دروازهٔ خودکار، policy_decision برابر auto
+        // با تصمیم‌گیرندهٔ system:autonomous است. مقدار auto از CHECK
+        // روی factory_work_items می‌آید، نه از حدس.
+        // policy_decision فقط نوع تصمیم‌گیرنده (auto) را می‌گوید؛ نتیجه در status و سطر approval است.
         await postgrestWrite(cfg, "PATCH", `factory_work_items?id=eq.${encodeURIComponent(workItem.id)}`, {
           status: "approved",
+          policy_decision: "auto",
+          policy_decided_by: SYSTEM_APPROVER_ID,
+          policy_decided_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
       } else if (claimed.step_key === "await_human_approval") {
