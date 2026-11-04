@@ -163,3 +163,8 @@
   تکمیل همان Smoke گیرکرده (thailand-transport-guide) با پمپ و Verify صفحه
   و نقشهٔ سایت؛ سپس پرچم‌ها factory_paused=false و data_publishing_enabled=true.
 - تریگر immutability دست نخورده است. دادهٔ Smoke تازه ساخته نمی‌شود.
+
+## THG-TEAM-ARCHITECTURE-01-P2-S1: بستن گام ۱ (۴ نوامبر ۲۰۲۶، شاخهٔ feat/thg-team-phase2)
+- حکم گام ۱: PASS با راستی‌آزمایی تست؛ چهار فایل مهاجرت ریپو: 20261104120000_thg_team_phase2_step1_001.sql و 20261104120100_thg_team_phase2_step1_knowledge_sources_bootstrap.sql و 20261104120200_thg_team_phase2_step1_002.sql و 20261104121000_thg_team_phase2_step1_proposal_fk.sql.
+- شکاف ریپو/استیجینگ کلید خارجی proposal با فایل چهارم بسته شد (اجرای دوباره روی استیجینگ no-op با کد خروج ۰؛ قید factory_work_items_proposal_id_fkey با ON DELETE NO ACTION پابرجاست؛ factory_work_items برابر ۱۴۴ ردیف با ۰ مقدار غیر NULL در proposal_id).
+- PR #291 باز و مرج‌نشده است؛ گام ۲ پس از این بستن آغاز می‌شود.
